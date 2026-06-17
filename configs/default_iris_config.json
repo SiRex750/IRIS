@@ -1,0 +1,8 @@
+{
+  "salient_thresh": 0.35,
+  "candidate_thresh": 0.08,
+  "alpha": 0.4,
+  "beta": 0.6,
+  "peak_order": 3,
+  "_comment": "Default config. GEPA optimizer will overwrite salient_thresh and candidate_thresh at runtime."
+}
