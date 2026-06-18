@@ -11,4 +11,5 @@ Lowest composite score evicted first.
 
 Owner: Track A
 """
-# TODO: implement — see Phase 1 prompt
+from cache import L1Cache
+

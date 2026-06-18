@@ -16,10 +16,12 @@ _ENCODING = tiktoken.get_encoding("cl100k_base")
 class CacheEntry:
     triple: KnowledgeTriple
     pagerank_score: float = 0.0
+    source_residual: float = 0.0
 
     @property
     def text(self) -> str:
         return self.triple.as_text()
+
 
 
 @dataclass(slots=True)
@@ -87,13 +89,15 @@ class L1Cache:
         self,
         triple: KnowledgeTriple,
         pagerank_score: float = 0.0,
+        source_residual: float = 0.0,
     ) -> None:
         if not isinstance(triple, KnowledgeTriple):
             raise TypeError("add_fact expects a KnowledgeTriple instance.")
 
-        entry = CacheEntry(triple=triple, pagerank_score=pagerank_score)
+        entry = CacheEntry(triple=triple, pagerank_score=pagerank_score, source_residual=source_residual)
         self.set_facts[entry.text] = entry
         self._trim_facts_to_budget()
+
 
     def add_history_turn(self, role: str, text: str) -> None:
         cleaned = text.strip()
