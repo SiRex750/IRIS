@@ -150,13 +150,30 @@ class L1ElysiumCache:
     def is_full(self) -> bool:
         return len(self._frames) >= self._config.l1_capacity
 
+    # ── Shared fact-text helper ────────────────────────────────────────────
+
+    @staticmethod
+    def _frame_to_fact_text(frame: "CachedFrame") -> str:
+        """Single source of truth for how a CachedFrame is expressed as text.
+
+        Used by both as_context_text() and set_facts so the format is never
+        duplicated and can never drift out of sync between them.
+        """
+        base = f"Frame {frame.frame_idx} at {frame.timestamp_sec:.2f}s"
+        if getattr(frame, "caption", None):
+            return (
+                f"{base}: {frame.caption}. "
+                f"(action score {frame.action_score:.4f}, persistence {frame.persistence_value:.4f})"
+            )
+        return (
+            f"{base} depicts action score {frame.action_score:.4f}, "
+            f"persistence {frame.persistence_value:.4f}."
+        )
+
     def as_context_text(self) -> str:
         lines = ["Fact Cache:"]
         for frame in self._frames.values():
-            cap = f": {frame.caption}." if getattr(frame, "caption", None) else " depicts visual cues."
-            lines.append(
-                f"Frame {frame.frame_idx} at {frame.timestamp_sec:.2f}s{cap} (action score {frame.action_score:.4f}, persistence {frame.persistence_value:.4f})."
-            )
+            lines.append(self._frame_to_fact_text(frame))
         return "\n".join(lines)
 
     @property
@@ -164,10 +181,9 @@ class L1ElysiumCache:
         class MockFactEntry:
             def __init__(self, text: str):
                 self.text = text
-        
+
         facts = {}
         for frame in self._frames.values():
-            cap = f": {frame.caption}." if getattr(frame, "caption", None) else " depicts visual cues."
-            text = f"Frame {frame.frame_idx} at {frame.timestamp_sec:.2f}s{cap} (action score {frame.action_score:.4f}, persistence {frame.persistence_value:.4f})."
+            text = self._frame_to_fact_text(frame)
             facts[text] = MockFactEntry(text)
         return facts

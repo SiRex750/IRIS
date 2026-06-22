@@ -300,25 +300,34 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
     return retrieved
 
 
-def wrapper_cerberus_gate(claims: list[str], cache_obj: object, action_score: float, config: object) -> tuple[bool, list[str], list[str], bool]:
-    """Isolate Cerberus-V NLI truth gate."""
+def wrapper_cerberus_gate(claims: list[str], cache_obj: object, action_score: float, config: object) -> tuple[bool, list[str], list[str], list[str], bool]:
+    """Isolate Cerberus-V NLI truth gate.
+
+    Returns (is_verified, verified_claims, rejected_claims, unverifiable_claims, is_mocked).
+
+    is_verified is True only when BOTH rejected_claims AND unverifiable_claims are empty.
+    A claim with no supporting evidence (unverifiable) is NOT the same as verified.
+    """
     from cerberus_v import CerberusV
-    
+
     gate_obj = CerberusV()
     try:
         res = gate_obj.verify(claims, cache_obj, action_score, config)
         verified_claims = res.get("verified", [])
         rejected_claims = res.get("rejected", [])
-        is_verified = len(rejected_claims) == 0
+        unverifiable_claims = res.get("unverifiable", [])
+        # Fix 9b: require zero rejected AND zero unverifiable to count as verified.
+        is_verified = len(rejected_claims) == 0 and len(unverifiable_claims) == 0
         is_mocked = False
     except Exception as e:
         print(f"Warning: CerberusV verification failed, falling back to mock: {e}")
         verified_claims = list(claims)
         rejected_claims = []
+        unverifiable_claims = []
         is_verified = True
         is_mocked = True
 
-    return is_verified, verified_claims, rejected_claims, is_mocked
+    return is_verified, verified_claims, rejected_claims, unverifiable_claims, is_mocked
 
 
 # --- Main Pipeline Runners ---
@@ -427,10 +436,11 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
     # 8. Run claims through Cerberus-V NLI truth gate
     t_cerberus_start = time.time()
     max_score = max([f.get("action_score", 0.0) for f in retrieved_frames]) if retrieved_frames else 0.5
-    is_verified, verified_claims, rejected_claims, is_mocked = wrapper_cerberus_gate(claims, cache_obj, max_score, config)
+    is_verified, verified_claims, rejected_claims, unverifiable_claims, is_mocked = wrapper_cerberus_gate(claims, cache_obj, max_score, config)
     t_cerberus = time.time() - t_cerberus_start
 
-    # Generate final verified answer (assemble verified claims back together)
+    # Generate final verified answer (verified claims only; raw_answer and breakdowns are also
+    # returned in the result dict so nothing is silently dropped from reporting).
     final_answer = " ".join(verified_claims) if verified_claims else raw_answer
 
     # Determine peak counts and skip statistics
@@ -440,8 +450,12 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
 
     result = {
         "answer": final_answer,
+        "raw_answer": raw_answer,
         "verified": is_verified,
         "nli_mocked": is_mocked,
+        "verified_claims": verified_claims,
+        "rejected_claims": rejected_claims,
+        "unverifiable_claims": unverifiable_claims,
         "frames_processed": len(output_frames),
         "peak_count": peak_count,
         "compression_ratio": skipped_frames_ratio,  # Keep for backward compatibility
@@ -462,9 +476,11 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
         result["debug_info"] = {
             "action_scores": action_scores,
             "retrieved_frames": retrieved_frames,
+            "context_text": context_text,
             "raw_answer": raw_answer,
             "verified_claims": verified_claims,
-            "rejected_claims": rejected_claims
+            "rejected_claims": rejected_claims,
+            "unverifiable_claims": unverifiable_claims,
         }
 
     return result

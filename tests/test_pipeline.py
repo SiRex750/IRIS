@@ -65,7 +65,30 @@ def test_pipeline_integration(bbb_video):
         assert result["frames_processed"] > 0
         assert result["peak_count"] > 0
         assert 0.0 < result["skipped_frames_ratio"] < 1.0
-        
+
+        # Fix 9b/9c: new result fields must always be present
+        assert "raw_answer" in result
+        assert "verified_claims" in result
+        assert "rejected_claims" in result
+        assert "unverifiable_claims" in result
+        assert isinstance(result["verified_claims"], list)
+        assert isinstance(result["rejected_claims"], list)
+        assert isinstance(result["unverifiable_claims"], list)
+
+        # Fix 9b: is_verified must be consistent with the 3-way breakdown
+        expected_verified = (
+            len(result["rejected_claims"]) == 0
+            and len(result["unverifiable_claims"]) == 0
+        )
+        assert result["verified"] == expected_verified, (
+            f"is_verified={result['verified']} but rejected={result['rejected_claims']} "
+            f"unverifiable={result['unverifiable_claims']}"
+        )
+
+        # verbose debug_info must include context_text and unverifiable_claims
+        assert "context_text" in result["debug_info"]
+        assert "unverifiable_claims" in result["debug_info"]
+
         # Test backward-compatible interface
         compat_result = run(bbb_video, "Summarize the action events seen in the video.")
         assert compat_result["answer"] == result["answer"]
