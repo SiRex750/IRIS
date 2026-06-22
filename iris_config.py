@@ -1,50 +1,114 @@
 """
 IRISConfig and ConfigManager for IRIS pipeline configuration.
 
-IRISConfig holds all tunable thresholds and retrieval weights.
-ConfigManager loads GEPA-output JSON and injects config into
-pipeline components.
+IRISConfig holds all tunable thresholds and weights across the pipeline.
+ConfigManager loads GEPA-output JSON and injects config into components.
 
-Fields:
-    salient_thresh: float      # default 0.35 — PEAK/SALIENT floor
-    candidate_thresh: float    # default 0.08 — CANDIDATE floor
-    alpha: float               # default 0.4  — semantic weight in L2 retrieval
-    beta: float                # default 0.6  — motion weight in L2 retrieval
-    peak_order: int            # default 3    — argrelextrema window for PEAK detection
-
-Owner: Track A
+Owner: Track A (L1 fields)
 """
 from __future__ import annotations
-from dataclasses import dataclass, field
+
 import json
+from dataclasses import dataclass, asdict
 from pathlib import Path
 
 
 @dataclass
 class IRISConfig:
-    salient_thresh:       float = 0.35
-    candidate_thresh:     float = 0.08
-    alpha:                float = 0.4
-    beta:                 float = 0.6
-    peak_order:           int   = 3
-    cerberus_high_thresh: float = 0.7    # action_score >= this → full NLI
-    cerberus_low_thresh:  float = 0.35   # action_score >= this → filtered NLI
+    # ── Charon-V ──────────────────────────────────────────────────────────
+    salient_thresh:   float = 0.35   # residual floor for SALIENT tier
+    candidate_thresh: float = 0.08   # residual floor for CANDIDATE tier
+    peak_order:       int   = 3      # argrelextrema window for PEAK detection
+
+    # ── L2 Asphodel retrieval ─────────────────────────────────────────────
+    alpha: float = 0.4   # semantic weight in L2 retrieval blend
+    beta:  float = 0.6   # motion weight in L2 retrieval blend
+
+    # ── Cerberus-V ────────────────────────────────────────────────────────
+    cerberus_high_thresh: float = 0.70  # action_score >= this → full NLI
+    cerberus_low_thresh:  float = 0.35  # action_score >= this → filtered NLI
+
+    # ── L1 Elysium — capacity ─────────────────────────────────────────────
+    # Maximum number of CachedFrame entries L1 holds at once.
+    # When exceeded, the frame with the lowest keep_score is evicted.
+    l1_capacity: int = 64
+
+    # ── L1 Elysium — eviction weights ────────────────────────────────────
+    # These seven weights are used in CachedFrame.keep_score().
+    # They must sum to 1.0. GEPA will tune them between runs.
+    l1_w_action:   float = 0.30
+    l1_w_query:    float = 0.20
+    l1_w_persist:  float = 0.15
+    l1_w_pagerank: float = 0.10
+    l1_w_entropy:  float = 0.10
+    l1_w_hessian:  float = 0.10
+    l1_w_recency:  float = 0.05
 
     def validate(self) -> None:
-        # TODO: implement range checks
-        assert 0 < self.cerberus_low_thresh < self.cerberus_high_thresh < 1.0, \
+        """
+        Sanity-check all config values.
+        Called by ConfigManager after loading.
+        Raises AssertionError with a clear message if anything is wrong.
+        """
+        assert 0 < self.cerberus_low_thresh < self.cerberus_high_thresh < 1.0, (
             "Cerberus thresholds must satisfy: 0 < low < high < 1"
+        )
+        assert self.l1_capacity > 0, (
+            "l1_capacity must be a positive integer"
+        )
+
+        l1_weight_sum = round(
+            self.l1_w_action + self.l1_w_query + self.l1_w_persist
+            + self.l1_w_pagerank + self.l1_w_entropy
+            + self.l1_w_hessian + self.l1_w_recency,
+            6,
+        )
+        assert abs(l1_weight_sum - 1.0) < 1e-4, (
+            f"L1 eviction weights must sum to 1.0, got {l1_weight_sum}"
+        )
 
 
 class ConfigManager:
+    """
+    Loads IRISConfig from a JSON file (written by GEPA).
+    Falls back to IRISConfig defaults if no file is given.
+    """
+
     def __init__(self, config_path: str | Path | None = None) -> None:
-        # TODO: implement — load from JSON if path given, else use defaults
-        pass
+        self._path = Path(config_path) if config_path else None
+        self._config: IRISConfig = self._load()
 
     def get_config(self) -> IRISConfig:
-        # TODO: implement
-        pass
+        """Return the currently loaded config."""
+        return self._config
 
     def reload(self) -> None:
-        # TODO: implement — hot-reload for GEPA tuning loop
-        pass
+        """
+        Re-read config from file.
+        Call this after GEPA writes a new JSON to pick up updated weights
+        without restarting the pipeline.
+        """
+        self._config = self._load()
+
+    def _load(self) -> IRISConfig:
+        """
+        Internal: parse JSON into IRISConfig, then validate.
+        If no path given, return defaults.
+        """
+        if self._path is None or not self._path.exists():
+            cfg = IRISConfig()
+            cfg.validate()
+            return cfg
+
+        with open(self._path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        # Build IRISConfig — only accept keys that are actual fields.
+        # Unknown keys in the JSON are silently ignored so old JSON
+        # files don't crash a newer version of IRISConfig.
+        valid_keys = IRISConfig.__dataclass_fields__.keys()
+        filtered = {k: v for k, v in data.items() if k in valid_keys}
+
+        cfg = IRISConfig(**filtered)
+        cfg.validate()
+        return cfg
