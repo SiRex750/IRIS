@@ -24,14 +24,30 @@ class MockLLMBackend(LLMBackend):
         )
 
 
+def load_env():
+    """Manually load .env file from the same directory as the test script."""
+    env_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), ".env")
+    if os.path.exists(env_path):
+        with open(env_path, "r") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    key, val = line.split("=", 1)
+                    os.environ[key.strip()] = val.strip().strip('"').strip("'")
+
+
 def main():
-    # 1. Select the appropriate LLM Backend
+    # 1. Load the environment key from .env
+    load_env()
     api_key = os.environ.get("OPENAI_API_KEY")
+    
     if not api_key:
         print("[INFO] No OPENAI_API_KEY env var found. Setting up Mock LLM Backend for isolated testing.")
         aria.set_backend(MockLLMBackend())
+        model_in_use = "Mock-LLM-Model"
     else:
-        print("[INFO] OPENAI_API_KEY found. Running testing with real OpenAI Backend.")
+        print("[INFO] OPENAI_API_KEY found. Running E2E testing with real OpenAI Backend.")
+        model_in_use = "gpt-4o-mini"
 
     # 2. Download or locate test video
     url = "https://www.w3schools.com/html/mov_bbb.mp4"
@@ -65,17 +81,36 @@ def main():
         # 3. Run E2E pipeline for Track B
         print("\n--- Running Track B End-to-End Pipeline Check ---")
         # Run with verbose=True to print action scores, retrieved frames, raw answer, and claims
-        result = run_pipeline(temp_video, "Summarize the action events seen in the video.", verbose=True)
+        # Default nms_window=10 is used to suppress adjacent peak frames
+        result = run_pipeline(temp_video, "Summarize the action events seen in the video.", verbose=True, nms_window=10)
         
         print("\n=== Track B Pipeline Execution Results ===")
+        print(f"Active LLM Model:   {model_in_use}")
         print(f"Final Answer:       {result['answer']}")
-        print(f"Claims Verified:    {result['verified']}")
+        
+        # Clarify Mock vs. Real verification
+        if result.get("nli_mocked", False):
+            print("Claims Verified:    True (MOCKED - Cerberus-V is currently a stub)")
+        else:
+            print(f"Claims Verified:    {result['verified']}")
+            
         print(f"Frames Processed:   {result['frames_processed']} (non-SKIP)")
-        print(f"Continuous Peaks:   {result['peak_count']}")
-        print(f"Compression Ratio:  {result['compression_ratio']:.3f} (SKIP% of total)")
+        print(f"Continuous Peaks:   {result['peak_count']} (NMS Gated)")
+        
+        # Report both compression metrics clearly
+        print(f"Compression Ratio (Skipped/Total):  {result['skipped_frames_ratio']:.6f} (portion of frames completely skipped)")
+        print(f"Compression Ratio (Total/Stored):   {result['storage_reduction_factor']:.6f} (reduction factor in stored frames)")
         
         debug = result.get("debug_info", {})
-        print("\n=== Top 3 Detected Action Peaks ===")
+        
+        # 4. Print raw, unrounded values for the top 10 frames by action score to check actual spread
+        all_scores = list(debug.get("action_scores", {}).items())
+        all_scores.sort(key=lambda x: x[1]["action_score"], reverse=True)
+        print("\n=== Top 10 Frames by Action Score (Raw & Unrounded) ===")
+        for idx, score_dict in all_scores[:10]:
+            print(f"  Frame {idx:3d}: Action Score = {score_dict['action_score']:.8f}, Persistence = {score_dict['persistence_value']:.8f}")
+
+        # 5. Print top 3 peaks (genuinely separate events due to NMS)
         peaks_found = []
         for idx, score_dict in debug.get("action_scores", {}).items():
             if score_dict["is_peak"]:
@@ -83,14 +118,17 @@ def main():
         
         # Sort by action score descending
         peaks_found.sort(key=lambda x: x[1], reverse=True)
+        print("\n=== Top 3 Peaks (NMS Gated & Suppressed) ===")
+        if not peaks_found:
+            print("  No peaks detected.")
         for idx, score, persistence in peaks_found[:3]:
-            print(f"  Frame {idx:3d}: Score={score:.4f}, Persistence={persistence:.4f}")
+            print(f"  Frame {idx:3d}: Score={score:.8f}, Persistence={persistence:.8f}")
 
         # Assertions
         assert len(result["answer"]) > 0, "Pipeline answer should not be empty"
         assert result["frames_processed"] > 0, "Should have processed non-SKIP frames"
         assert result["peak_count"] > 0, "Should have detected at least one peak frame"
-        assert 0.0 < result["compression_ratio"] < 1.0, "Compression ratio should be a valid percentage"
+        assert 0.0 < result["skipped_frames_ratio"] < 1.0, "Compression ratio should be a valid percentage"
         
         print("\n[SUCCESS] Track B isolation test completed and all assertions passed!")
 
