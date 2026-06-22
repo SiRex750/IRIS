@@ -328,22 +328,69 @@ class CerberusV:
                         if not any(gpe in fact.lower() for gpe in claim_gpes):
                             label = "neutral"
 
-                pair_results[(claim, fact)] = (label, entailment_score)
+                # Topical overlap: a fact is "topically relevant" to a claim if they
+                # share at least one non-stopword lemma or named entity.  Facts with
+                # zero overlap are excluded from aggregation so an off-topic fact line
+                # cannot veto an otherwise-supported claim.  claim_doc/fact_doc are
+                # already parsed above for the negation check — reuse them.
+                claim_lemmas = {
+                    t.lemma_.lower()
+                    for t in claim_doc
+                    if not t.is_stop and t.is_alpha and len(t.text) > 2
+                }
+                fact_lemmas = {
+                    t.lemma_.lower()
+                    for t in fact_doc
+                    if not t.is_stop and t.is_alpha and len(t.text) > 2
+                }
+                claim_ents_set = {e.text.lower() for e in claim_doc.ents}
+                fact_ents_set  = {e.text.lower() for e in fact_doc.ents}
+                has_topical_overlap = bool(
+                    (claim_lemmas & fact_lemmas) or (claim_ents_set & fact_ents_set)
+                )
+
+                pair_results[(claim, fact)] = (label, entailment_score, has_topical_overlap)
 
         # Aggregate results
+        # Fix 10: two-step aggregation.
+        #
+        # Step 1 — topical relevance filter:
+        #   Only facts that share at least one non-stopword lemma or named entity
+        #   with the claim are admitted to that claim's verdict pool.  A completely
+        #   off-topic fact line cannot veto an otherwise-supported claim.
+        #
+        # Step 2 — majority vote over relevant facts:
+        #   Contradiction wins only if contradicted_count > entailed_count.
+        #   This prevents a single low-persistence frame (persistence=0.0000 in the
+        #   fact text) from vetoing a claim that three other frames genuinely entail.
+        #   Relevant negation/geo checks (applied per-pair above) are preserved.
         verified = []
         rejected = []
         unverifiable = []
 
         for claim in claims:
-            claim_results = [pair_results[(claim, fact)] for fact in facts]
-            
-            contradicted = any(r[0] == "contradiction" for r in claim_results)
-            entailed = any(r[0] == "entailment" for r in claim_results)
+            all_results = [pair_results[(claim, fact)] for fact in facts]
 
-            if contradicted:
+            # Filter to topically relevant facts
+            relevant = [
+                (label, score)
+                for label, score, has_overlap in all_results
+                if has_overlap
+            ]
+
+            if not relevant:
+                # No fact is topically related to this claim — cannot verify or reject
+                unverifiable.append(claim)
+                continue
+
+            entailed_count    = sum(1 for label, _ in relevant if label == "entailment")
+            contradicted_count = sum(1 for label, _ in relevant if label == "contradiction")
+
+            if contradicted_count > entailed_count:
+                # Contradictions outnumber entailments among relevant facts
                 rejected.append(claim)
-            elif entailed:
+            elif entailed_count > 0:
+                # At least one relevant fact entails, and entailments >= contradictions
                 verified.append(claim)
             else:
                 unverifiable.append(claim)
