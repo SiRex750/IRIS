@@ -5,6 +5,9 @@ import socket
 from charon_v import parse_video
 
 def test_peak_tier(video_path: str = "mov_bbb.mp4"):
+    if not os.path.exists(video_path):
+        import pytest
+        pytest.skip(f"Test video {video_path} not found")
     frames, stats = parse_video(video_path, return_stats=True, adaptive=True)
     actual_salient_thresh = stats["salient_thresh_used"]
     
