@@ -267,6 +267,8 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
     Run the end-to-end IRIS pipeline using the new continuous action score
     and topological persistence-based peak detection alongside the existing tier path.
     """
+    import time
+    
     # 1. Load config parameters
     try:
         from iris_config import ConfigManager
@@ -280,6 +282,7 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
 
     # 2. Parse video and extract raw frame features non-breakingly from H.264 stream
     # Returns (output_frames, stats, raw_records)
+    t_start = time.time()
     output_frames, stats, raw_records = charon_v.parse_video(
         str(video_path),
         return_stats=True,
@@ -287,8 +290,10 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
         candidate_thresh=config.candidate_thresh,
         salient_thresh=config.salient_thresh
     )
+    t_charon = time.time() - t_start
 
     # 3. Continuous action scoring & persistence peak detection
+    t_action_start = time.time()
     buf = FrameFeatureBuffer(window_size=30)
     score_module = ActionScoreModule(persistence_thresh=0.4)
     action_scores = {}
@@ -325,9 +330,11 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
         frame["is_peak"] = score_info["is_peak"]
         frame["persistence_value"] = score_info["persistence_value"]
         frame["entropy"] = raw_map.get(frame_idx, {}).get("entropy", 0.0)
+    t_action = time.time() - t_action_start
 
     # 4. L2 Graph retrieval
     # Nodes are populated from output_frames (non-SKIP)
+    t_l2_start = time.time()
     retrieved_frames = wrapper_l2_retrieve(
         video_path,
         query,
@@ -335,22 +342,29 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
         alpha=config.alpha,
         beta=config.beta
     )
+    t_l2 = time.time() - t_l2_start
 
     # 5. Populate L1 active context cache with retrieved frame evidence
+    t_elysium_start = time.time()
     cache_obj = wrapper_init_l1_cache(config)
     wrapper_populate_cache(cache_obj, retrieved_frames)
+    t_elysium = time.time() - t_elysium_start
     
     # 6. Generate answer using ARIA LLM brain
+    t_aria_start = time.time()
     context_text = cache_obj.as_context_text()
     raw_answer = aria.generate(prompt=query, context=context_text)
+    t_aria = time.time() - t_aria_start
 
     # 7. Extract sentence-level claims from the raw answer
     sentences = re.split(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s', raw_answer)
     claims = [s.strip() for s in sentences if s.strip()]
 
     # 8. Run claims through Cerberus-V NLI truth gate
+    t_cerberus_start = time.time()
     max_score = max([f.get("action_score", 0.0) for f in retrieved_frames]) if retrieved_frames else 0.5
     is_verified, verified_claims, rejected_claims, is_mocked = wrapper_cerberus_gate(claims, cache_obj, max_score, config)
+    t_cerberus = time.time() - t_cerberus_start
 
     # Generate final verified answer (assemble verified claims back together)
     final_answer = " ".join(verified_claims) if verified_claims else raw_answer
@@ -368,7 +382,16 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
         "peak_count": peak_count,
         "compression_ratio": skipped_frames_ratio,  # Keep for backward compatibility
         "skipped_frames_ratio": skipped_frames_ratio,
-        "storage_reduction_factor": storage_reduction_factor
+        "storage_reduction_factor": storage_reduction_factor,
+        "timings": {
+            "charon_v": t_charon,
+            "action_score": t_action,
+            "l2_retrieval": t_l2,
+            "elysium": t_elysium,
+            "aria": t_aria,
+            "cerberus_v": t_cerberus,
+            "total": t_charon + t_action + t_l2 + t_elysium + t_aria + t_cerberus
+        }
     }
 
     if verbose:
