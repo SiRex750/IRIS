@@ -114,10 +114,18 @@ def wrapper_populate_cache(cache_obj: object, retrieved_frames: list[dict]) -> N
 
 def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: list[dict], alpha: float, beta: float) -> list[dict]:
     """Isolate L2 Asphodel graph retrieval. Fallback to sorted action/energy scores if graph is a stub."""
-    from l2_asphodel import AsphodelGraph
+    try:
+        from l2_asphodel import L2Asphodel
+    except ImportError:
+        sorted_frames = sorted(
+            frames_to_index,
+            key=lambda x: (x.get("action_score", 0.0), x.get("residual_energy", 0.0)),
+            reverse=True
+        )
+        return sorted_frames[:5]
+
     import clip
     import torch
-
     device = "cuda" if torch.cuda.is_available() else "cpu"
     
     # 1. Generate query embedding
@@ -134,35 +142,55 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
     else:
         query_embedding = np.zeros(512, dtype=np.float32)
 
-    query_motion = [0.0]  # stub motion representation for query
-
-    # 2. Build AsphodelGraph and index frames with CLIP embeddings
-    graph = AsphodelGraph(alpha=alpha, beta=beta)
+    # 2. Build L2Asphodel graph and index frames
+    graph = L2Asphodel(config={"alpha": alpha, "beta": beta})
     frame_map = {f["frame_idx"]: f for f in frames_to_index}
     
     container = av.open(str(video_path))
     for idx, frame in enumerate(container.decode(video=0)):
         if idx in frame_map:
             f_data = frame_map[idx]
-            # Extract CLIP embedding
+            
+            # Prepare feature record and action score record
             clip_emb = get_frame_clip_embedding(frame, device)
             f_data["clip_embedding"] = clip_emb
-            f_data["refined_motion_tokens"] = []
             
-            # Add to graph
-            graph.add_frame(f_data, clip_emb)
+            feature_record = {
+                "frame_idx": f_data["frame_idx"],
+                "timestamp": f_data["timestamp"],
+                "residual_energy": f_data["residual_energy"],
+                "motion_magnitude": f_data.get("motion_magnitude", 0.0),
+                "entropy": f_data.get("entropy", 0.0),
+                "refined_motion_tensor": np.zeros(1, dtype=np.float32)
+            }
+            score_record = {
+                "action_score": f_data["action_score"],
+                "persistence_value": f_data["persistence_value"]
+            }
+            
+            # Add to graph (Cold-Start)
+            graph.add_peak_frame(feature_record, score_record)
+            # Enrich with CLIP embedding
+            graph.enrich_node(f_data["frame_idx"], triples=[], embedding=clip_emb)
             
     container.close()
 
-    # 3. Connect Graph edges
-    graph.build_edges()
-
-    # 4. Perform hybrid RAG retrieval
-    retrieved = graph.retrieve(query_embedding, query_motion, top_k=5)
-
-    # 5. Check if graph actually retrieved nodes. If empty (stub class), fallback to top scored frames
+    # 3. Perform hybrid retrieval (query_action_score set to 0.9 for personalization)
+    retrieved_nodes = graph.retrieve(query_embedding, query_action_score=0.9, top_k=5)
+    
+    # 4. Map returned AsphodelNode objects back to dictionaries expected by cache wrapper
+    retrieved = []
+    if retrieved_nodes:
+        for node in retrieved_nodes:
+            retrieved.append({
+                "frame_idx": node.frame_idx,
+                "timestamp": node.timestamp,
+                "residual_energy": node.residual_energy,
+                "action_score": node.action_score,
+                "persistence_value": node.persistence_value
+            })
+    
     if not retrieved:
-        # Sort by action_score, then residual_energy descending
         sorted_frames = sorted(
             frames_to_index,
             key=lambda x: (x.get("action_score", 0.0), x.get("residual_energy", 0.0)),
@@ -173,25 +201,23 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
     return retrieved
 
 
-def wrapper_cerberus_gate(claims: list[str], evidence: list[str]) -> tuple[bool, list[str], list[str], bool]:
-    """Isolate Cerberus-V NLI truth gate. Fallback to accepting all claims if gate is a stub."""
+def wrapper_cerberus_gate(claims: list[str], cache_obj: object, action_score: float, config: object) -> tuple[bool, list[str], list[str], bool]:
+    """Isolate Cerberus-V NLI truth gate."""
     from cerberus_v import CerberusV
     
     gate_obj = CerberusV()
     try:
-        verified_claims, rejected_claims = gate_obj.gate(claims, evidence, threshold=0.7)
-    except Exception:
-        verified_claims, rejected_claims = None, None
-
-    if verified_claims is None or (not verified_claims and not rejected_claims):
-        # Fallback: Treat all claims as verified
+        res = gate_obj.verify(claims, cache_obj, action_score, config)
+        verified_claims = res.get("verified", [])
+        rejected_claims = res.get("rejected", [])
+        is_verified = len(rejected_claims) == 0
+        is_mocked = False
+    except Exception as e:
+        print(f"Warning: CerberusV verification failed, falling back to mock: {e}")
         verified_claims = list(claims)
         rejected_claims = []
         is_verified = True
         is_mocked = True
-    else:
-        is_verified = len(rejected_claims) == 0
-        is_mocked = False
 
     return is_verified, verified_claims, rejected_claims, is_mocked
 
@@ -282,11 +308,9 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
     sentences = re.split(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s', raw_answer)
     claims = [s.strip() for s in sentences if s.strip()]
 
-    # Format evidence text for NLI verification
-    evidence_texts = [f.triple.as_text() for f in cache_obj.active_facts.values()] if hasattr(cache_obj, "active_facts") else [cache_obj.as_context_text()]
-
     # 8. Run claims through Cerberus-V NLI truth gate
-    is_verified, verified_claims, rejected_claims, is_mocked = wrapper_cerberus_gate(claims, evidence_texts)
+    max_score = max([f.get("action_score", 0.0) for f in retrieved_frames]) if retrieved_frames else 0.5
+    is_verified, verified_claims, rejected_claims, is_mocked = wrapper_cerberus_gate(claims, cache_obj, max_score, config)
 
     # Generate final verified answer (assemble verified claims back together)
     final_answer = " ".join(verified_claims) if verified_claims else raw_answer
