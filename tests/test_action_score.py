@@ -1,4 +1,4 @@
-from action_score import ActionScoreConfig, ActionScoreModule
+from action_acore import ActionScoreConfig, ActionScoreModule
 
 
 def test_uniform_pan_not_peak():
