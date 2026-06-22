@@ -22,15 +22,18 @@ from pathlib import Path
 
 @dataclass
 class IRISConfig:
-    salient_thresh: float = 0.35
-    candidate_thresh: float = 0.08
-    alpha: float = 0.4
-    beta: float = 0.6
-    peak_order: int = 3
+    salient_thresh:       float = 0.35
+    candidate_thresh:     float = 0.08
+    alpha:                float = 0.4
+    beta:                 float = 0.6
+    peak_order:           int   = 3
+    cerberus_high_thresh: float = 0.7    # action_score >= this → full NLI
+    cerberus_low_thresh:  float = 0.35   # action_score >= this → filtered NLI
 
     def validate(self) -> None:
         # TODO: implement range checks
-        pass
+        assert 0 < self.cerberus_low_thresh < self.cerberus_high_thresh < 1.0, \
+            "Cerberus thresholds must satisfy: 0 < low < high < 1"
 
 
 class ConfigManager:
