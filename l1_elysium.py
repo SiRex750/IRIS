@@ -149,3 +149,23 @@ class L1ElysiumCache:
     @property
     def is_full(self) -> bool:
         return len(self._frames) >= self._config.l1_capacity
+
+    def as_context_text(self) -> str:
+        lines = ["Fact Cache:"]
+        for frame in self._frames.values():
+            lines.append(
+                f"Frame {frame.frame_idx} at {frame.timestamp_sec:.2f}s depicts action score {frame.action_score:.4f}, persistence {frame.persistence_value:.4f}."
+            )
+        return "\n".join(lines)
+
+    @property
+    def set_facts(self) -> dict:
+        class MockFactEntry:
+            def __init__(self, text: str):
+                self.text = text
+        
+        facts = {}
+        for frame in self._frames.values():
+            text = f"Frame {frame.frame_idx} at {frame.timestamp_sec:.2f}s depicts action score {frame.action_score:.4f}, persistence {frame.persistence_value:.4f}."
+            facts[text] = MockFactEntry(text)
+        return facts

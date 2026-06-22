@@ -74,42 +74,66 @@ def get_frame_clip_embedding(frame: av.video.frame.VideoFrame, device: str) -> n
 
 # --- Isolation Wrappers for Active/In-Progress Modules ---
 
-def wrapper_init_l1_cache() -> object:
+def wrapper_init_l1_cache(config: object = None) -> object:
     """Isolate L1 Elysium cache instantiation. Fallback to cache.py L1Cache if empty/stub."""
     try:
-        from l1_elysium import L1Cache
-        # Check if the class has a real implementation, otherwise fallback
-        cache_obj = L1Cache()
-        if not hasattr(cache_obj, "route_triple") and not hasattr(cache_obj, "add_fact"):
-            raise ImportError("l1_elysium.L1Cache is a stub")
-        return cache_obj
+        from l1_elysium import L1ElysiumCache
+        return L1ElysiumCache(config)
     except (ImportError, AttributeError):
         from cache import L1Cache
         return L1Cache()
 
 
 def wrapper_populate_cache(cache_obj: object, retrieved_frames: list[dict]) -> None:
-    """Populate L1 Cache with knowledge triples representing retrieved video frames."""
-    from triple import KnowledgeTriple
-    for frame in retrieved_frames:
-        frame_idx = frame["frame_idx"]
-        timestamp = frame.get("timestamp", 0.0)
-        tier = frame.get("tier", "PEAK")
-        res_energy = frame.get("residual_energy", 0.0)
-        action_score = frame.get("action_score", 0.0)
-        
-        # Generate semantic triple
-        triple = KnowledgeTriple(
-            subject=f"Frame {frame_idx} at {timestamp:.2f}s",
-            verb="depicts",
-            object=f"salient visual cues (residual energy {res_energy:.4f}, action score {action_score:.4f}, tier {tier})"
-        )
-        # Use action_score/residual_energy as importance ranking score
-        score = action_score or res_energy
-        if hasattr(cache_obj, "route_triple"):
-            cache_obj.route_triple(triple, pagerank_score=score)
-        else:
-            cache_obj.add_fact(triple, pagerank_score=score)
+    """Populate L1 Cache with knowledge triples or CachedFrames representing retrieved video frames."""
+    try:
+        from l1_elysium import L1ElysiumCache
+        use_elysium = isinstance(cache_obj, L1ElysiumCache)
+    except ImportError:
+        use_elysium = False
+
+    if use_elysium:
+        from cached_frame import CachedFrame
+        from frame_motion_descriptor import FrameMotionDescriptor
+        for frame in retrieved_frames:
+            motion = FrameMotionDescriptor(
+                frame_idx=frame["frame_idx"],
+                timestamp_sec=frame.get("timestamp", 0.0),
+                residual_energy=frame.get("residual_energy", 0.0),
+                motion_entropy=frame.get("entropy", 0.0),
+                hessian_max_eigenvalue=0.0
+            )
+            cached_frame = CachedFrame(
+                frame_idx=frame["frame_idx"],
+                timestamp_sec=frame.get("timestamp", 0.0),
+                action_score=frame.get("action_score", 0.0),
+                persistence_value=frame.get("persistence_value", 0.0),
+                is_peak=frame.get("is_peak", False),
+                motion=motion,
+                embedding=frame.get("clip_embedding", None)
+            )
+            cache_obj.admit(cached_frame)
+    else:
+        from triple import KnowledgeTriple
+        for frame in retrieved_frames:
+            frame_idx = frame["frame_idx"]
+            timestamp = frame.get("timestamp", 0.0)
+            tier = frame.get("tier", "PEAK")
+            res_energy = frame.get("residual_energy", 0.0)
+            action_score = frame.get("action_score", 0.0)
+            
+            # Generate semantic triple
+            triple = KnowledgeTriple(
+                subject=f"Frame {frame_idx} at {timestamp:.2f}s",
+                verb="depicts",
+                object=f"salient visual cues (residual energy {res_energy:.4f}, action score {action_score:.4f}, tier {tier})"
+            )
+            # Use action_score/residual_energy as importance ranking score
+            score = action_score or res_energy
+            if hasattr(cache_obj, "route_triple"):
+                cache_obj.route_triple(triple, pagerank_score=score)
+            else:
+                cache_obj.add_fact(triple, pagerank_score=score)
 
 
 def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: list[dict], alpha: float, beta: float) -> list[dict]:
@@ -182,12 +206,16 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
     retrieved = []
     if retrieved_nodes:
         for node in retrieved_nodes:
+            orig = frame_map.get(node.frame_idx, {})
             retrieved.append({
                 "frame_idx": node.frame_idx,
                 "timestamp": node.timestamp,
                 "residual_energy": node.residual_energy,
                 "action_score": node.action_score,
-                "persistence_value": node.persistence_value
+                "persistence_value": node.persistence_value,
+                "is_peak": orig.get("is_peak", False),
+                "clip_embedding": orig.get("clip_embedding", None),
+                "entropy": orig.get("entropy", 0.0),
             })
     
     if not retrieved:
@@ -196,7 +224,17 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
             key=lambda x: (x.get("action_score", 0.0), x.get("residual_energy", 0.0)),
             reverse=True
         )
-        retrieved = sorted_frames[:5]
+        for f in sorted_frames[:5]:
+            retrieved.append({
+                "frame_idx": f["frame_idx"],
+                "timestamp": f["timestamp"],
+                "residual_energy": f["residual_energy"],
+                "action_score": f.get("action_score", 0.0),
+                "persistence_value": f.get("persistence_value", 0.0),
+                "is_peak": f.get("is_peak", False),
+                "clip_embedding": f.get("clip_embedding", None),
+                "entropy": f.get("entropy", 0.0),
+            })
 
     return retrieved
 
@@ -229,6 +267,8 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
     Run the end-to-end IRIS pipeline using the new continuous action score
     and topological persistence-based peak detection alongside the existing tier path.
     """
+    import time
+    
     # 1. Load config parameters
     try:
         from iris_config import ConfigManager
@@ -242,6 +282,7 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
 
     # 2. Parse video and extract raw frame features non-breakingly from H.264 stream
     # Returns (output_frames, stats, raw_records)
+    t_start = time.time()
     output_frames, stats, raw_records = charon_v.parse_video(
         str(video_path),
         return_stats=True,
@@ -249,8 +290,10 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
         candidate_thresh=config.candidate_thresh,
         salient_thresh=config.salient_thresh
     )
+    t_charon = time.time() - t_start
 
     # 3. Continuous action scoring & persistence peak detection
+    t_action_start = time.time()
     buf = FrameFeatureBuffer(window_size=30)
     score_module = ActionScoreModule(persistence_thresh=0.4)
     action_scores = {}
@@ -276,6 +319,7 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
                 accepted_peaks.add(idx)
 
     # Map the computed action scores back to the non-SKIP output frames
+    raw_map = {r["frame_idx"]: r for r in raw_records}
     for frame in output_frames:
         frame_idx = frame["frame_idx"]
         score_info = action_scores.get(
@@ -285,9 +329,12 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
         frame["action_score"] = score_info["action_score"]
         frame["is_peak"] = score_info["is_peak"]
         frame["persistence_value"] = score_info["persistence_value"]
+        frame["entropy"] = raw_map.get(frame_idx, {}).get("entropy", 0.0)
+    t_action = time.time() - t_action_start
 
     # 4. L2 Graph retrieval
     # Nodes are populated from output_frames (non-SKIP)
+    t_l2_start = time.time()
     retrieved_frames = wrapper_l2_retrieve(
         video_path,
         query,
@@ -295,22 +342,29 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
         alpha=config.alpha,
         beta=config.beta
     )
+    t_l2 = time.time() - t_l2_start
 
     # 5. Populate L1 active context cache with retrieved frame evidence
-    cache_obj = wrapper_init_l1_cache()
+    t_elysium_start = time.time()
+    cache_obj = wrapper_init_l1_cache(config)
     wrapper_populate_cache(cache_obj, retrieved_frames)
+    t_elysium = time.time() - t_elysium_start
     
     # 6. Generate answer using ARIA LLM brain
+    t_aria_start = time.time()
     context_text = cache_obj.as_context_text()
     raw_answer = aria.generate(prompt=query, context=context_text)
+    t_aria = time.time() - t_aria_start
 
     # 7. Extract sentence-level claims from the raw answer
     sentences = re.split(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s', raw_answer)
     claims = [s.strip() for s in sentences if s.strip()]
 
     # 8. Run claims through Cerberus-V NLI truth gate
+    t_cerberus_start = time.time()
     max_score = max([f.get("action_score", 0.0) for f in retrieved_frames]) if retrieved_frames else 0.5
     is_verified, verified_claims, rejected_claims, is_mocked = wrapper_cerberus_gate(claims, cache_obj, max_score, config)
+    t_cerberus = time.time() - t_cerberus_start
 
     # Generate final verified answer (assemble verified claims back together)
     final_answer = " ".join(verified_claims) if verified_claims else raw_answer
@@ -328,7 +382,16 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
         "peak_count": peak_count,
         "compression_ratio": skipped_frames_ratio,  # Keep for backward compatibility
         "skipped_frames_ratio": skipped_frames_ratio,
-        "storage_reduction_factor": storage_reduction_factor
+        "storage_reduction_factor": storage_reduction_factor,
+        "timings": {
+            "charon_v": t_charon,
+            "action_score": t_action,
+            "l2_retrieval": t_l2,
+            "elysium": t_elysium,
+            "aria": t_aria,
+            "cerberus_v": t_cerberus,
+            "total": t_charon + t_action + t_l2 + t_elysium + t_aria + t_cerberus
+        }
     }
 
     if verbose:
