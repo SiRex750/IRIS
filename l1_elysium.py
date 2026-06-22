@@ -153,8 +153,9 @@ class L1ElysiumCache:
     def as_context_text(self) -> str:
         lines = ["Fact Cache:"]
         for frame in self._frames.values():
+            cap = f": {frame.caption}." if getattr(frame, "caption", None) else " depicts visual cues."
             lines.append(
-                f"Frame {frame.frame_idx} at {frame.timestamp_sec:.2f}s depicts action score {frame.action_score:.4f}, persistence {frame.persistence_value:.4f}."
+                f"Frame {frame.frame_idx} at {frame.timestamp_sec:.2f}s{cap} (action score {frame.action_score:.4f}, persistence {frame.persistence_value:.4f})."
             )
         return "\n".join(lines)
 
@@ -166,6 +167,7 @@ class L1ElysiumCache:
         
         facts = {}
         for frame in self._frames.values():
-            text = f"Frame {frame.frame_idx} at {frame.timestamp_sec:.2f}s depicts action score {frame.action_score:.4f}, persistence {frame.persistence_value:.4f}."
+            cap = f": {frame.caption}." if getattr(frame, "caption", None) else " depicts visual cues."
+            text = f"Frame {frame.frame_idx} at {frame.timestamp_sec:.2f}s{cap} (action score {frame.action_score:.4f}, persistence {frame.persistence_value:.4f})."
             facts[text] = MockFactEntry(text)
         return facts

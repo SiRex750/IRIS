@@ -54,6 +54,7 @@ class OpenAIBackend(LLMBackend):
         response = self.client.chat.completions.create(
             model=model_name,
             messages=messages,
+            temperature=0.0,
         )
         return response.choices[0].message.content
 

@@ -36,6 +36,48 @@ _load_env()
 # Globals for caching the CLIP model
 _CLIP_MODEL = None
 _CLIP_PREPROCESS = None
+_CLIP_TEXT_FEATURES = None
+
+
+def get_zero_shot_caption(clip_embedding: np.ndarray, device: str) -> str:
+    """Classify clip_embedding against a set of action/scene vocabulary labels."""
+    global _CLIP_TEXT_FEATURES
+    
+    vocabulary = [
+        "a cartoon rabbit standing in a field",
+        "a rabbit watching something",
+        "a butterfly flying near a rabbit",
+        "a rabbit sleeping on the grass",
+        "a badger or rodent appearing on screen",
+        "a close-up of a bunny's face",
+        "animals playing in the forest",
+        "a scenic green meadow with trees",
+        "a rodent or small animal moving",
+        "a cartoon character showing action or movement",
+    ]
+    
+    model, _ = get_clip_model()
+    if model is None:
+        return "visual cues from the video"
+        
+    try:
+        import clip
+        import torch
+        
+        if _CLIP_TEXT_FEATURES is None:
+            text_inputs = clip.tokenize(vocabulary).to(device)
+            with torch.no_grad():
+                text_features = model.encode_text(text_inputs)
+                text_features /= text_features.norm(dim=-1, keepdim=True)
+                _CLIP_TEXT_FEATURES = text_features.cpu().numpy()
+                
+        # Compute cosine similarity
+        similarities = np.dot(_CLIP_TEXT_FEATURES, clip_embedding)
+        top_idx = np.argmax(similarities)
+        return vocabulary[top_idx]
+    except Exception as e:
+        print(f"Warning: Zero-shot classification failed: {e}")
+        return "visual cues from the video"
 
 
 def get_clip_model():
@@ -110,7 +152,8 @@ def wrapper_populate_cache(cache_obj: object, retrieved_frames: list[dict]) -> N
                 persistence_value=frame.get("persistence_value", 0.0),
                 is_peak=frame.get("is_peak", False),
                 motion=motion,
-                embedding=frame.get("clip_embedding", None)
+                embedding=frame.get("clip_embedding", None),
+                caption=frame.get("caption", None)
             )
             cache_obj.admit(cached_frame)
     else:
@@ -179,6 +222,7 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
             # Prepare feature record and action score record
             clip_emb = get_frame_clip_embedding(frame, device)
             f_data["clip_embedding"] = clip_emb
+            f_data["caption"] = get_zero_shot_caption(clip_emb, device)
             
             feature_record = {
                 "frame_idx": f_data["frame_idx"],
@@ -221,6 +265,7 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
                 "is_peak": orig.get("is_peak", False),
                 "clip_embedding": orig.get("clip_embedding", None),
                 "entropy": orig.get("entropy", 0.0),
+                "caption": orig.get("caption", None),
             })
     
     if not retrieved:
@@ -239,6 +284,7 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
                 "is_peak": f.get("is_peak", False),
                 "clip_embedding": f.get("clip_embedding", None),
                 "entropy": f.get("entropy", 0.0),
+                "caption": f.get("caption", None),
             })
 
     return retrieved

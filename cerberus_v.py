@@ -19,6 +19,11 @@ from cache import L1Cache
 from triple import KnowledgeTriple
 
 
+_SPACY_NLP = None
+_NLI_TOKENIZER = None
+_NLI_MODEL = None
+
+
 class CerberusV:
     def __init__(self, model_name: str = "cross-encoder/nli-deberta-v3-base") -> None:
         self.model_name = model_name
@@ -27,26 +32,28 @@ class CerberusV:
         self._nlp: Any = None
 
     def _get_spacy(self) -> Any:
-        if self._nlp is None:
+        global _SPACY_NLP
+        if _SPACY_NLP is None:
             import spacy
             try:
-                self._nlp = spacy.load("en_core_web_sm")
+                _SPACY_NLP = spacy.load("en_core_web_sm")
             except OSError:
                 from spacy.cli import download
                 download("en_core_web_sm")
-                self._nlp = spacy.load("en_core_web_sm")
-        return self._nlp
+                _SPACY_NLP = spacy.load("en_core_web_sm")
+        return _SPACY_NLP
 
     def _get_nli_model(self) -> tuple[Any, Any]:
-        if self._model is None:
+        global _NLI_TOKENIZER, _NLI_MODEL
+        if _NLI_MODEL is None:
             from transformers import AutoModelForSequenceClassification, AutoTokenizer
             import torch
-            self._tokenizer = AutoTokenizer.from_pretrained(self.model_name)
-            self._model = AutoModelForSequenceClassification.from_pretrained(self.model_name)
-            self._model.eval()
+            _NLI_TOKENIZER = AutoTokenizer.from_pretrained(self.model_name)
+            _NLI_MODEL = AutoModelForSequenceClassification.from_pretrained(self.model_name)
+            _NLI_MODEL.eval()
             device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-            self._model.to(device)
-        return self._tokenizer, self._model
+            _NLI_MODEL.to(device)
+        return _NLI_TOKENIZER, _NLI_MODEL
 
     def get_verification_mode(
         self,
@@ -136,20 +143,31 @@ class CerberusV:
             "action_score": float        # echo back for logging
         }
         """
-        parsed_claims = self._parse_claims(claims)
+        import time
+        t_load_start = time.time()
+        self._get_spacy()
         mode = self.get_verification_mode(action_score, config)
+        if mode in ("full_nli", "filtered_nli"):
+            self._get_nli_model()
+        t_load = time.time() - t_load_start
+
+        t_inf_start = time.time()
+        parsed_claims = self._parse_claims(claims)
         facts = [entry.text for entry in cache.set_facts.values()]
 
         if mode == "full_nli":
-            return self._full_nli(parsed_claims, facts, mode, action_score)
+            res = self._full_nli(parsed_claims, facts, mode, action_score)
         elif mode == "filtered_nli":
             high_conf = [c for c in parsed_claims if self._confidence(c) >= 0.6]
             low_conf  = [c for c in parsed_claims if self._confidence(c) <  0.6]
-            result = self._full_nli(high_conf, facts, mode, action_score)
-            result["verified"] += low_conf   # low-conf claims pass unverified
-            return result
+            res = self._full_nli(high_conf, facts, mode, action_score)
+            res["verified"] += low_conf   # low-conf claims pass unverified
         else:  # ner_only
-            return self._ner_overlap(parsed_claims, facts, mode, action_score)
+            res = self._ner_overlap(parsed_claims, facts, mode, action_score)
+        t_inf = time.time() - t_inf_start
+
+        print(f"[DEBUG] CerberusV verification: model_load_time = {t_load:.4f}s | inference_time = {t_inf:.4f}s")
+        return res
 
     def _confidence(self, claim: str) -> float:
         """
