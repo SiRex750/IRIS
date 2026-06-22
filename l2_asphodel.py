@@ -183,9 +183,9 @@ class L2Asphodel:
         for idx, score in pr.items():
             self.graph.nodes[idx]["node_data"].pagerank_score = score
 
-    def add_peak_frame(self, feature_record: Any, action_score_record: Any) -> None:
+    def add_frame_node(self, feature_record: Any, action_score_record: Any) -> None:
         """
-        Admits a new peak frame as a node, connects it to existing nodes, and runs PageRank.
+        Admits a new frame as a node, connects it to existing nodes, and runs PageRank.
 
         Args:
             feature_record: Dict or object containing:
@@ -459,8 +459,8 @@ if __name__ == "__main__":
     ]
 
     for f_rec, a_rec in mock_frames:
-        asphodel.add_peak_frame(f_rec, a_rec)
-        print(f"Admitted peak frame {f_rec['frame_idx']} (Action Score: {a_rec['action_score']})")
+        asphodel.add_frame_node(f_rec, a_rec)
+        print(f"Admitted frame node {f_rec['frame_idx']} (Action Score: {a_rec['action_score']})")
 
     # Display Graph Node States after Cold-Start
     print("\nGraph Node States after Cold-Start:")

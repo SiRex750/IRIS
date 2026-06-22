@@ -17,7 +17,7 @@ import av
 
 import charon_v
 import aria
-from action_score import FrameFeatureBuffer, ActionScoreModule
+from action_score import ActionScoreConfig, ActionScoreModule
 import os
 
 # Load environment variables from .env file if it exists in the workspace
@@ -136,8 +136,9 @@ def wrapper_populate_cache(cache_obj: object, retrieved_frames: list[dict]) -> N
                 cache_obj.add_fact(triple, pagerank_score=score)
 
 
-def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: list[dict], alpha: float, beta: float) -> list[dict]:
+def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: list[dict], config: object = None) -> list[dict]:
     """Isolate L2 Asphodel graph retrieval. Fallback to sorted action/energy scores if graph is a stub."""
+    l2_retrieve_top_k = getattr(config, "l2_retrieve_top_k", 5)
     try:
         from l2_asphodel import L2Asphodel
     except ImportError:
@@ -146,7 +147,7 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
             key=lambda x: (x.get("action_score", 0.0), x.get("residual_energy", 0.0)),
             reverse=True
         )
-        return sorted_frames[:5]
+        return sorted_frames[:l2_retrieve_top_k]
 
     import clip
     import torch
@@ -167,7 +168,7 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
         query_embedding = np.zeros(512, dtype=np.float32)
 
     # 2. Build L2Asphodel graph and index frames
-    graph = L2Asphodel(config={"alpha": alpha, "beta": beta})
+    graph = L2Asphodel(config=config)
     frame_map = {f["frame_idx"]: f for f in frames_to_index}
     
     container = av.open(str(video_path))
@@ -193,14 +194,18 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
             }
             
             # Add to graph (Cold-Start)
-            graph.add_peak_frame(feature_record, score_record)
+            graph.add_frame_node(feature_record, score_record)
             # Enrich with CLIP embedding
             graph.enrich_node(f_data["frame_idx"], triples=[], embedding=clip_emb)
             
     container.close()
 
-    # 3. Perform hybrid retrieval (query_action_score set to 0.9 for personalization)
-    retrieved_nodes = graph.retrieve(query_embedding, query_action_score=0.9, top_k=5)
+    # 3. Perform hybrid retrieval
+    if frames_to_index:
+        query_action_score = max(f.get("action_score", 0.0) for f in frames_to_index)
+    else:
+        query_action_score = 0.5
+    retrieved_nodes = graph.retrieve(query_embedding, query_action_score=query_action_score, top_k=l2_retrieve_top_k)
     
     # 4. Map returned AsphodelNode objects back to dictionaries expected by cache wrapper
     retrieved = []
@@ -224,7 +229,7 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
             key=lambda x: (x.get("action_score", 0.0), x.get("residual_energy", 0.0)),
             reverse=True
         )
-        for f in sorted_frames[:5]:
+        for f in sorted_frames[:l2_retrieve_top_k]:
             retrieved.append({
                 "frame_idx": f["frame_idx"],
                 "timestamp": f["timestamp"],
@@ -294,14 +299,18 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
 
     # 3. Continuous action scoring & persistence peak detection
     t_action_start = time.time()
-    buf = FrameFeatureBuffer(window_size=30)
-    score_module = ActionScoreModule(persistence_thresh=0.4)
-    action_scores = {}
-    
-    for record in raw_records:
-        buf.push(record)
-        score_dict = score_module.score(buf)
-        action_scores[record["frame_idx"]] = score_dict
+    action_score_config = ActionScoreConfig(
+        residual_weight=getattr(config, "residual_weight", 0.5),
+        motion_weight=getattr(config, "motion_weight", 0.3),
+        entropy_weight=getattr(config, "entropy_weight", 0.2),
+        peak_distance=getattr(config, "peak_distance", 5),
+        peak_prominence=getattr(config, "peak_prominence", 0.05),
+        persistence_threshold=getattr(config, "persistence_threshold", 0.4),
+        max_prominence=getattr(config, "max_prominence", 0.5),
+    )
+    score_module = ActionScoreModule(config=action_score_config)
+    score_records = score_module.score_all(raw_records)
+    action_scores = {r["frame_idx"]: r for r in score_records}
 
     # Run Non-Maximum Suppression (NMS) on peak frame decisions to avoid clustering
     if nms_window is not None and nms_window > 0:
@@ -339,8 +348,7 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
         video_path,
         query,
         output_frames,
-        alpha=config.alpha,
-        beta=config.beta
+        config=config
     )
     t_l2 = time.time() - t_l2_start
 

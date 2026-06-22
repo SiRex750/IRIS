@@ -38,7 +38,7 @@ def test_init_and_config():
     assert graph_obj.beta == 0.9
 
 
-def test_add_peak_frame():
+def test_add_frame_node():
     """Test that peak frames are admitted correctly as nodes and PageRank triggers."""
     asphodel = L2Asphodel()
     
@@ -55,7 +55,7 @@ def test_add_peak_frame():
         "persistence_value": 0.85
     }
 
-    asphodel.add_peak_frame(feat_1, score_1)
+    asphodel.add_frame_node(feat_1, score_1)
 
     assert 10 in asphodel.graph.nodes
     node_data = asphodel.graph.nodes[10]["node_data"]
@@ -79,7 +79,7 @@ def test_add_peak_frame():
         "persistence_value": 0.3
     }
 
-    asphodel.add_peak_frame(feat_2, score_2)
+    asphodel.add_frame_node(feat_2, score_2)
 
     assert 20 in asphodel.graph.nodes
     assert asphodel.graph.has_edge(10, 20)
@@ -107,15 +107,15 @@ def test_dynamic_max_score_range_and_zero_division():
     feat_2 = {"frame_idx": 2, "timestamp": 0.2, "action_score": 0.5}
     score_2 = {"action_score": 0.5}
 
-    asphodel.add_peak_frame(feat_1, score_1)
-    asphodel.add_peak_frame(feat_2, score_2)
+    asphodel.add_frame_node(feat_1, score_1)
+    asphodel.add_frame_node(feat_2, score_2)
     assert asphodel.graph[1][2]["weight"] == 1.0
 
     # Case 2: Introduce range
     feat_3 = {"frame_idx": 3, "timestamp": 0.3, "action_score": 1.5}
     score_3 = {"action_score": 1.5} # min=0.5, max=1.5, range=1.0
 
-    asphodel.add_peak_frame(feat_3, score_3)
+    asphodel.add_frame_node(feat_3, score_3)
     
     # 1 <-> 2 coherence: 1 - abs(0.5 - 0.5)/1.0 = 1.0
     assert pytest.approx(asphodel.graph[1][2]["weight"]) == 1.0
@@ -134,8 +134,8 @@ def test_enrich_node_and_hybrid_weights():
     feat_2 = {"frame_idx": 20, "timestamp": 2.0}
     score_2 = {"action_score": 0.4}
 
-    asphodel.add_peak_frame(feat_1, score_1)
-    asphodel.add_peak_frame(feat_2, score_2)
+    asphodel.add_frame_node(feat_1, score_1)
+    asphodel.add_frame_node(feat_2, score_2)
 
     # Initial cold-start weight: coherence = 1 - (0.8 - 0.4) / 0.4 = 0.0
     assert pytest.approx(asphodel.graph[10][20]["weight"]) == 0.0
@@ -157,9 +157,9 @@ def test_retrieve():
     asphodel = L2Asphodel(config={"alpha": 0.5, "beta": 0.5})
 
     # Add peak frames (min_score=0.1, max_score=0.9, range=0.8)
-    asphodel.add_peak_frame({"frame_idx": 1, "timestamp": 0.1}, {"action_score": 0.1})
-    asphodel.add_peak_frame({"frame_idx": 2, "timestamp": 0.2}, {"action_score": 0.5})
-    asphodel.add_peak_frame({"frame_idx": 3, "timestamp": 0.3}, {"action_score": 0.9})
+    asphodel.add_frame_node({"frame_idx": 1, "timestamp": 0.1}, {"action_score": 0.1})
+    asphodel.add_frame_node({"frame_idx": 2, "timestamp": 0.2}, {"action_score": 0.5})
+    asphodel.add_frame_node({"frame_idx": 3, "timestamp": 0.3}, {"action_score": 0.9})
 
     # Retrieval 1: Cold start (no embeddings), match action score 0.6
     # Coherences:
@@ -193,7 +193,7 @@ def test_export_to_csr():
     assert isinstance(empty_csr, scipy.sparse.csr_matrix)
 
     # Populated graph
-    asphodel.add_peak_frame(
+    asphodel.add_frame_node(
         {
             "frame_idx": 2,
             "timestamp": 10.0,
@@ -204,7 +204,7 @@ def test_export_to_csr():
         },
         {"action_score": 0.7, "persistence_value": 0.6}
     )
-    asphodel.add_peak_frame(
+    asphodel.add_frame_node(
         {
             "frame_idx": 1,
             "timestamp": 5.0,
