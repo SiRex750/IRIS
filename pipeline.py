@@ -18,6 +18,20 @@ import av
 import charon_v
 import aria
 from action_score import FrameFeatureBuffer, ActionScoreModule
+import os
+
+# Load environment variables from .env file if it exists in the workspace
+def _load_env():
+    env_path = Path(__file__).parent / ".env"
+    if env_path.exists():
+        with open(env_path, "r") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    key, val = line.split("=", 1)
+                    os.environ[key.strip()] = val.strip().strip('"').strip("'")
+
+_load_env()
 
 # Globals for caching the CLIP model
 _CLIP_MODEL = None
@@ -159,7 +173,7 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
     return retrieved
 
 
-def wrapper_cerberus_gate(claims: list[str], evidence: list[str]) -> tuple[bool, list[str], list[str]]:
+def wrapper_cerberus_gate(claims: list[str], evidence: list[str]) -> tuple[bool, list[str], list[str], bool]:
     """Isolate Cerberus-V NLI truth gate. Fallback to accepting all claims if gate is a stub."""
     from cerberus_v import CerberusV
     
@@ -174,15 +188,17 @@ def wrapper_cerberus_gate(claims: list[str], evidence: list[str]) -> tuple[bool,
         verified_claims = list(claims)
         rejected_claims = []
         is_verified = True
+        is_mocked = True
     else:
         is_verified = len(rejected_claims) == 0
+        is_mocked = False
 
-    return is_verified, verified_claims, rejected_claims
+    return is_verified, verified_claims, rejected_claims, is_mocked
 
 
 # --- Main Pipeline Runners ---
 
-def run_pipeline(video_path: str | Path, query: str, verbose: bool = False) -> dict:
+def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_window: int = 10) -> dict:
     """
     Run the end-to-end IRIS pipeline using the new continuous action score
     and topological persistence-based peak detection alongside the existing tier path.
@@ -217,6 +233,21 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False) -> d
         buf.push(record)
         score_dict = score_module.score(buf)
         action_scores[record["frame_idx"]] = score_dict
+
+    # Run Non-Maximum Suppression (NMS) on peak frame decisions to avoid clustering
+    if nms_window is not None and nms_window > 0:
+        # Find frame indices where is_peak is True
+        peak_indices = [idx for idx, score_info in action_scores.items() if score_info["is_peak"]]
+        # Sort peaks by action_score descending
+        peak_indices.sort(key=lambda idx: action_scores[idx]["action_score"], reverse=True)
+        
+        accepted_peaks = set()
+        for idx in peak_indices:
+            # If the peak is within nms_window of an already accepted peak, suppress it
+            if any(abs(idx - accepted) <= nms_window for accepted in accepted_peaks):
+                action_scores[idx]["is_peak"] = False
+            else:
+                accepted_peaks.add(idx)
 
     # Map the computed action scores back to the non-SKIP output frames
     for frame in output_frames:
@@ -255,21 +286,25 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False) -> d
     evidence_texts = [f.triple.as_text() for f in cache_obj.active_facts.values()] if hasattr(cache_obj, "active_facts") else [cache_obj.as_context_text()]
 
     # 8. Run claims through Cerberus-V NLI truth gate
-    is_verified, verified_claims, rejected_claims = wrapper_cerberus_gate(claims, evidence_texts)
+    is_verified, verified_claims, rejected_claims, is_mocked = wrapper_cerberus_gate(claims, evidence_texts)
 
     # Generate final verified answer (assemble verified claims back together)
     final_answer = " ".join(verified_claims) if verified_claims else raw_answer
 
     # Determine peak counts and skip statistics
     peak_count = len([f for f in output_frames if f.get("is_peak", False)])
-    compression_ratio = float(stats["skipped"] / stats["total"]) if stats["total"] > 0 else 0.0
+    skipped_frames_ratio = float(stats["skipped"] / stats["total"]) if stats["total"] > 0 else 0.0
+    storage_reduction_factor = float(stats["total"] / len(output_frames)) if len(output_frames) > 0 else 0.0
 
     result = {
         "answer": final_answer,
         "verified": is_verified,
+        "nli_mocked": is_mocked,
         "frames_processed": len(output_frames),
         "peak_count": peak_count,
-        "compression_ratio": compression_ratio
+        "compression_ratio": skipped_frames_ratio,  # Keep for backward compatibility
+        "skipped_frames_ratio": skipped_frames_ratio,
+        "storage_reduction_factor": storage_reduction_factor
     }
 
     if verbose:
@@ -297,4 +332,11 @@ def run(video_path: str | Path, query: str) -> dict:
             "compression_ratio": float  # SKIP% of total frames
         }
     """
-    return run_pipeline(video_path, query, verbose=False)
+    res = run_pipeline(video_path, query, verbose=False)
+    return {
+        "answer": res["answer"],
+        "verified": res["verified"],
+        "frames_processed": res["frames_processed"],
+        "peak_count": res["peak_count"],
+        "compression_ratio": res["compression_ratio"]
+    }
