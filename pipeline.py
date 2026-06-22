@@ -54,6 +54,16 @@ def get_zero_shot_caption(clip_embedding: np.ndarray, device: str) -> str:
         "a scenic green meadow with trees",
         "a rodent or small animal moving",
         "a cartoon character showing action or movement",
+        "a person walking or running",
+        "a person talking or speaking",
+        "a car or vehicle moving on a street",
+        "an indoor room or office setting",
+        "a group of people gathering",
+        "a close-up of a person's face",
+        "a computer screen or technology interface",
+        "a person cooking or eating food",
+        "a street scene with buildings",
+        "a sports game or athletic activity",
     ]
     
     model, _ = get_clip_model()
