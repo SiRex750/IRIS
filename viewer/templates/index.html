@@ -3,291 +3,681 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IRIS — Frame Viewer</title>
+  <title>IRIS — Kept Frames Viewer</title>
+  
+  <!-- Premium Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+
   <style>
+    /* ── CSS Reset & Vars ───────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:        #0e0e10;
-      --surface:   #18181b;
-      --border:    #2a2a2e;
-      --text:      #e4e4e7;
-      --muted:     #71717a;
-      --faint:     #3f3f46;
+      --bg: #09090b;
+      --surface: rgba(20, 20, 23, 0.6);
+      --surface-border: rgba(255, 255, 255, 0.08);
+      --surface-hover: rgba(255, 255, 255, 0.03);
+      --text: #f4f4f5;
+      --muted: #a1a1aa;
+      --faint: #3f3f46;
 
-      --peak:      #e05c5c;
-      --iframe:    #4a9eff;
-      --salient:   #e8a838;
-      --candidate: #666;
-      --skip:      #444;
+      --peak: #ef4444;
+      --iframe: #3b82f6;
+      --salient: #f59e0b;
+      --candidate: #71717a;
+      --skip: #27272a;
 
-      --accent:    #4a9eff;
+      --accent: #3b82f6;
+      --accent-glow: rgba(59, 130, 246, 0.25);
     }
 
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: 'Inter', -apple-system, sans-serif;
       font-size: 14px;
-      line-height: 1.5;
-      padding: 32px 24px 64px;
-      max-width: 1280px;
+      line-height: 1.6;
+      padding: 40px 24px 80px;
+      max-width: 1440px;
       margin: 0 auto;
+      overflow-x: hidden;
+      position: relative;
     }
 
-    /* ── Typography ─────────────────────────────── */
-    h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
-    h2 { font-size: 14px; font-weight: 600; text-transform: uppercase;
-         letter-spacing: 0.06em; color: var(--muted); }
-    .subtitle { color: var(--muted); margin-top: 4px; font-size: 13px; }
-    .subtitle strong { color: var(--text); }
+    /* ── Ambient Background Glows ──────────────── */
+    .bg-glow-1 {
+      position: absolute;
+      top: -200px;
+      left: -100px;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: -1;
+    }
 
-    /* ── Layout helpers ─────────────────────────── */
-    .stack   { display: flex; flex-direction: column; }
-    .row     { display: flex; flex-direction: row; align-items: center; }
-    .gap-4   { gap: 4px; }
-    .gap-8   { gap: 8px; }
-    .gap-12  { gap: 12px; }
-    .gap-16  { gap: 16px; }
-    .gap-24  { gap: 24px; }
-    .divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+    .bg-glow-2 {
+      position: absolute;
+      top: 400px;
+      right: -200px;
+      width: 800px;
+      height: 800px;
+      background: radial-gradient(circle, rgba(239, 68, 68, 0.04) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: -1;
+    }
 
-    /* ── Stats strip ────────────────────────────── */
+    .grid-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: -2;
+    }
+
+    /* ── Typography & Headers ─────────────────── */
+    h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #fff 30%, #a1a1aa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+    }
+
+    .shiny-text {
+      background: linear-gradient(90deg, #3b82f6, #60a5fa, #3b82f6);
+      background-size: 200% auto;
+      color: transparent;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: shine 4s linear infinite;
+    }
+
+    @keyframes shine {
+      to { background-position: 200% center; }
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 400;
+    }
+    .subtitle strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .divider {
+      border: none;
+      height: 1px;
+      background: linear-gradient(90deg, var(--surface-border) 0%, transparent 100%);
+      margin: 32px 0;
+    }
+
+    /* ── Stats Panels ────────────────────────── */
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 12px;
-      margin: 20px 0;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin: 24px 0 32px;
     }
+
     .stat-card {
       background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 14px 16px;
+      border: 1px solid var(--surface-border);
+      border-radius: 12px;
+      padding: 20px;
+      backdrop-filter: blur(12px);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
     }
-    .stat-value {
-      font-size: 24px;
-      font-weight: 700;
-      line-height: 1.1;
-      color: var(--text);
-    }
-    .stat-value.accent  { color: var(--accent); }
-    .stat-value.success { color: #4ade80; }
-    .stat-value.danger  { color: var(--peak); }
-    .stat-label { font-size: 11px; color: var(--muted); margin-top: 4px; }
 
-    /* ── Filter pills ───────────────────────────── */
-    .filter-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
-    .pill {
-      padding: 5px 12px;
-      border-radius: 20px;
-      border: 1px solid var(--border);
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 2px;
       background: transparent;
+      transition: background 0.25s;
+    }
+
+    .stat-card:hover {
+      border-color: rgba(255, 255, 255, 0.15);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 20px -10px rgba(0, 0, 0, 0.5);
+    }
+
+    .stat-card.accent:hover::before { background: var(--accent); }
+    .stat-card.success:hover::before { background: #10b981; }
+    .stat-card.danger:hover::before { background: var(--peak); }
+
+    .stat-value {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 32px;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+
+    .stat-value.accent { color: var(--accent); text-shadow: 0 0 15px rgba(59, 130, 246, 0.2); }
+    .stat-value.success { color: #10b981; text-shadow: 0 0 15px rgba(16, 185, 129, 0.2); }
+    .stat-value.danger { color: var(--peak); text-shadow: 0 0 15px rgba(239, 68, 110, 0.2); }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 500;
+    }
+
+    /* ── Filter Navigation ────────────────────── */
+    .filter-section {
+      margin-bottom: 24px;
+    }
+    
+    .filter-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .pill {
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: 1px solid var(--surface-border);
+      background: rgba(20, 20, 23, 0.4);
       color: var(--muted);
       font-size: 12px;
-      font-weight: 500;
+      font-weight: 600;
       cursor: pointer;
-      transition: all 0.12s;
+      backdrop-filter: blur(8px);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .pill:hover { border-color: var(--faint); color: var(--text); }
-    .pill.active { background: var(--surface); color: var(--text); border-color: var(--faint); }
-    .pill[data-tier="PEAK"].active       { border-color: var(--peak);      color: var(--peak); }
-    .pill[data-tier="I_FRAME"].active    { border-color: var(--iframe);    color: var(--iframe); }
-    .pill[data-tier="SALIENT"].active    { border-color: var(--salient);   color: var(--salient); }
-    .pill[data-tier="CANDIDATE"].active  { border-color: var(--candidate); color: var(--text); }
 
-    /* ── Callout ────────────────────────────────── */
+    .pill:hover {
+      border-color: rgba(255, 255, 255, 0.2);
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .pill.active {
+      background: var(--text);
+      color: var(--bg);
+      border-color: var(--text);
+      box-shadow: 0 4px 12px rgba(255, 255, 255, 0.15);
+    }
+
+    .pill[data-tier="I_FRAME"].active    { background: var(--iframe);    color: #fff; border-color: var(--iframe);    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+    .pill[data-tier="PEAK"].active       { background: var(--peak);      color: #fff; border-color: var(--peak);      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
+    .pill[data-tier="SALIENT"].active    { background: var(--salient);   color: #fff; border-color: var(--salient);   box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3); }
+    .pill[data-tier="CANDIDATE"].active  { background: var(--candidate); color: #fff; border-color: var(--candidate); box-shadow: 0 4px 12px rgba(113, 113, 122, 0.3); }
+
+    /* ── Info Callout ─────────────────────────── */
     .callout {
-      background: #1a2235;
-      border: 1px solid #2a3a5a;
-      border-radius: 6px;
-      padding: 10px 14px;
+      background: rgba(59, 130, 246, 0.06);
+      border: 1px solid rgba(59, 130, 246, 0.15);
+      border-radius: 8px;
+      padding: 12px 16px;
       font-size: 13px;
       color: #93c5fd;
-      margin-bottom: 16px;
+      margin-bottom: 24px;
       display: none;
+      align-items: center;
+      gap: 10px;
+      animation: fadeIn 0.3s ease;
     }
-    .callout.visible { display: block; }
+    .callout.visible { display: flex; }
 
-    /* ── Frame grid ─────────────────────────────── */
+    /* ── Frame Grid & Cards ───────────────────── */
     .frame-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
     }
 
+    /* Spotlight Card Effect Container */
     .frame-card {
       background: var(--surface);
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
+      border: 1px solid var(--surface-border);
+      border-radius: 12px;
       overflow: hidden;
-      transition: border-color 0.12s, transform 0.12s;
-      cursor: default;
+      backdrop-filter: blur(12px);
+      cursor: pointer;
+      position: relative;
+      transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
     }
-    .frame-card:hover { transform: translateY(-2px); }
-    .frame-card:hover.tier-PEAK      { border-color: var(--peak); }
-    .frame-card:hover.tier-I_FRAME   { border-color: var(--iframe); }
-    .frame-card:hover.tier-SALIENT   { border-color: var(--salient); }
-    .frame-card:hover.tier-CANDIDATE { border-color: var(--faint); }
 
-    .frame-img-wrap { position: relative; }
-    .frame-img-wrap img { width: 100%; display: block; }
+    /* Spotlight Radial Hover Overlay */
+    .frame-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(800px circle at var(--mouse-x, 0) var(--mouse-y, 0), rgba(255, 255, 255, 0.04), transparent 40%);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .frame-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 30px -15px rgba(0, 0, 0, 0.6);
+    }
+
+    .frame-card.tier-I_FRAME:hover { border-color: rgba(59, 130, 246, 0.4); }
+    .frame-card.tier-PEAK:hover { border-color: rgba(239, 68, 68, 0.4); }
+    .frame-card.tier-SALIENT:hover { border-color: rgba(245, 158, 11, 0.4); }
+    .frame-card.tier-CANDIDATE:hover { border-color: rgba(255, 255, 255, 0.15); }
+
+    .frame-img-wrap {
+      position: relative;
+      overflow: hidden;
+      aspect-ratio: 16/9;
+      background: #111;
+    }
+    
+    .frame-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.3s ease;
+    }
+
+    .frame-card:hover .frame-img-wrap img {
+      transform: scale(1.03);
+    }
 
     .tier-badge {
       position: absolute;
-      top: 6px; left: 6px;
-      font-size: 9px; font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 3px;
-      letter-spacing: 0.06em;
+      top: 8px; left: 8px;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
       color: #fff;
+      z-index: 2;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
     }
-    .badge-PEAK      { background: var(--peak); }
+    
     .badge-I_FRAME   { background: var(--iframe); }
+    .badge-PEAK      { background: var(--peak); }
     .badge-SALIENT   { background: var(--salient); }
     .badge-CANDIDATE { background: var(--candidate); }
 
     .ts-badge {
       position: absolute;
-      bottom: 6px; right: 6px;
+      bottom: 8px; right: 8px;
       font-size: 10px;
-      padding: 2px 5px;
-      border-radius: 3px;
-      background: rgba(0,0,0,0.65);
+      font-weight: 600;
+      padding: 3px 6px;
+      border-radius: 4px;
+      background: rgba(9, 9, 11, 0.85);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255,255,255,0.05);
       color: #fff;
+      z-index: 2;
     }
 
     .frame-meta {
-      padding: 8px 10px;
-      border-top: 1px solid var(--border);
+      padding: 16px;
+      border-top: 1px solid var(--surface-border);
+      position: relative;
+      z-index: 2;
     }
-    .frame-meta .row { justify-content: space-between; }
-    .frame-idx  { font-size: 12px; font-weight: 600; }
+    
+    .frame-meta .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    
+    .frame-idx  { font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 600; color: var(--text); }
     .frame-ts   { font-size: 11px; color: var(--muted); }
-    .frame-res  { font-size: 11px; color: var(--muted); margin-top: 3px; }
-    .frame-res  span { color: var(--text); font-weight: 600; }
-    .frame-mvs  { font-size: 11px; color: var(--faint); margin-top: 2px; }
+    
+    .frame-metric {
+      font-size: 11px;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      margin-top: 4px;
+    }
+    .frame-metric span { color: var(--text); font-weight: 500; }
 
-    /* ── Legend ─────────────────────────────────── */
+    /* ── Legend Section ───────────────────────── */
+    .legend-section {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-top: 48px;
+      backdrop-filter: blur(12px);
+    }
+
     .legend-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-      margin-top: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      margin-top: 16px;
     }
-    .legend-item { display: flex; align-items: flex-start; gap: 10px; }
-    .legend-dot  { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; margin-top: 3px; }
-    .legend-title { font-size: 12px; font-weight: 600; }
+    .legend-item { display: flex; align-items: flex-start; gap: 12px; }
+    .legend-dot  { width: 12px; height: 12px; border-radius: 4px; flex-shrink: 0; margin-top: 4px; }
+    .legend-title { font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 600; color: var(--text); }
     .legend-desc  { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
-    /* ── Empty state ─────────────────────────────── */
-    .empty { text-align: center; color: var(--muted); padding: 40px; grid-column: 1 / -1; }
+    /* ── Immersive Inspector Modal ────────────── */
+    .modal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(9, 9, 11, 0.85);
+      backdrop-filter: blur(16px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      padding: 20px;
+    }
 
-    /* ── Loading ─────────────────────────────────── */
-    #loading { text-align: center; color: var(--muted); padding: 60px; }
+    .modal.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
 
-    @media (max-width: 900px)  { .frame-grid { grid-template-columns: repeat(3, 1fr); } }
-    @media (max-width: 640px)  { .frame-grid { grid-template-columns: repeat(2, 1fr); } .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+    .modal-content {
+      background: #121214;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 960px;
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      overflow: hidden;
+      box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.8);
+      transform: scale(0.95);
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .modal.open .modal-content {
+      transform: scale(1);
+    }
+
+    .modal-left {
+      background: #000;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      aspect-ratio: 16/9;
+    }
+    
+    .modal-left img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    /* Scanning Tech Grid Overlay */
+    .scan-line {
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 100%;
+      background: linear-gradient(to bottom, rgba(59, 130, 246, 0.1) 0%, transparent 10%, transparent 90%, rgba(59, 130, 246, 0.1) 100%);
+      pointer-events: none;
+      animation: scan 6s linear infinite;
+      box-shadow: inset 0 0 20px rgba(59, 130, 246, 0.15);
+    }
+
+    @keyframes scan {
+      0% { transform: translateY(-5%); }
+      100% { transform: translateY(5%); }
+    }
+
+    .modal-right {
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border-left: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .modal-header {
+      margin-bottom: 24px;
+    }
+
+    .modal-tier-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+    }
+
+    .modal-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .modal-specs {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .spec-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      padding-bottom: 8px;
+    }
+    
+    .spec-label {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .spec-value {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .close-btn {
+      align-self: flex-end;
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.02);
+      color: var(--text);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .close-btn:hover {
+      background: var(--text);
+      color: var(--bg);
+    }
+
+    /* ── Empty & Loading States ───────────────── */
+    .empty { text-align: center; color: var(--muted); padding: 60px; grid-column: 1 / -1; }
+    #loading { text-align: center; color: var(--muted); padding: 80px; font-weight: 500; font-size: 16px; }
+
+    @media (max-width: 900px) {
+      .modal-content { grid-template-columns: 1fr; }
+      .modal-right { border-left: none; border-top: 1px solid rgba(255,255,255,0.06); }
+    }
   </style>
 </head>
 <body>
 
-  <div id="loading">Loading frame data...</div>
+  <!-- Background Overlays -->
+  <div class="bg-glow-1"></div>
+  <div class="bg-glow-2"></div>
+  <div class="grid-overlay"></div>
+
+  <div id="loading">Loading visual frame matrix...</div>
+
   <div id="app" style="display:none">
 
-    <div class="stack gap-4">
+    <!-- Header Section -->
+    <div style="margin-bottom: 32px">
       <h1>IRIS — Kept Frames Viewer</h1>
       <p class="subtitle">
-        These are the <strong id="kept-count">—</strong> frames Charon-V kept from
+        Displaying the <strong class="shiny-text" id="kept-count">—</strong> codec gating frames kept from
         <strong id="video-name">—</strong> (<span id="total-count">—</span> total decoded).
-        Every other frame was SKIP — discarded before any AI model ran.
+        All other frames were processed as <span style="color: var(--muted); font-weight:600">SKIP</span> by the Codec Oracle.
       </p>
     </div>
 
+    <!-- Telemetry Cards -->
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-value" id="s-total">—</div>
-        <div class="stat-label">Total frames decoded</div>
+        <div class="stat-label">Total decoded</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card accent">
         <div class="stat-value accent" id="s-kept">—</div>
-        <div class="stat-label">Kept by Charon-V</div>
+        <div class="stat-label">Kept by Oracle</div>
       </div>
       <div class="stat-card">
         <div class="stat-value" id="s-skip">—</div>
         <div class="stat-label">Discarded (SKIP)</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card success">
         <div class="stat-value success" id="s-ratio">—</div>
         <div class="stat-label">Filter ratio</div>
       </div>
-      <div class="stat-card">
-        <div class="stat-value" id="s-thresh">—</div>
-        <div class="stat-label">Adaptive salient threshold</div>
+      <div class="stat-card danger">
+        <div class="stat-value danger" id="s-thresh">—</div>
+        <div class="stat-label">Min salient floor</div>
       </div>
     </div>
 
     <hr class="divider" />
 
-    <h2 style="margin-bottom:10px">Filter by tier</h2>
-    <div class="filter-row">
-      <button class="pill active" data-tier="ALL">All (<span id="count-ALL">—</span>)</button>
-      <button class="pill" data-tier="I_FRAME">I-Frame (<span id="count-I_FRAME">—</span>)</button>
-      <button class="pill" data-tier="PEAK">Peak (<span id="count-PEAK">—</span>)</button>
-      <button class="pill" data-tier="SALIENT">Salient (<span id="count-SALIENT">—</span>)</button>
-      <button class="pill" data-tier="CANDIDATE">Candidate (<span id="count-CANDIDATE">—</span>)</button>
+    <!-- Interactive Filters -->
+    <div class="filter-section">
+      <div class="filter-title">Filter by Tier</div>
+      <div class="filter-row">
+        <button class="pill active" data-tier="ALL">All (<span id="count-ALL">—</span>)</button>
+        <button class="pill" data-tier="I_FRAME">I-Frame (<span id="count-I_FRAME">—</span>)</button>
+        <button class="pill" data-tier="PEAK">Peak (<span id="count-PEAK">—</span>)</button>
+        <button class="pill" data-tier="SALIENT">Salient (<span id="count-SALIENT">—</span>)</button>
+        <button class="pill" data-tier="CANDIDATE">Candidate (<span id="count-CANDIDATE">—</span>)</button>
+      </div>
     </div>
 
     <div class="callout" id="tier-callout"></div>
 
+    <!-- Active Frame Grid -->
     <div class="frame-grid" id="frame-grid"></div>
 
-    <hr class="divider" />
-
-    <h2>What each tier means</h2>
-    <div class="legend-grid">
-      <div class="legend-item">
-        <div class="legend-dot" style="background:var(--iframe)"></div>
-        <div>
-          <div class="legend-title">I-Frame</div>
-          <div class="legend-desc">Scene anchor — full keyframe, no prediction from prior frames.</div>
+    <!-- Legend -->
+    <div class="legend-section">
+      <h2 class="filter-title" style="margin-bottom:8px">Visual Signal Taxonomy</h2>
+      <div class="legend-grid">
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--iframe)"></div>
+          <div>
+            <div class="legend-title">I-Frame</div>
+            <div class="legend-desc">Scene cut anchors — self-contained keyframe containing complete visual matrices.</div>
+          </div>
         </div>
-      </div>
-      <div class="legend-item">
-        <div class="legend-dot" style="background:var(--peak)"></div>
-        <div>
-          <div class="legend-title">Peak</div>
-          <div class="legend-desc">Local residual energy maximum — genuine motion event. Goes to L2 Asphodel graph.</div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--peak)"></div>
+          <div>
+            <div class="legend-title">Peak</div>
+            <div class="legend-desc">Local residual maxima — represents dynamic motion boundaries and changes.</div>
+          </div>
         </div>
-      </div>
-      <div class="legend-item">
-        <div class="legend-dot" style="background:var(--salient)"></div>
-        <div>
-          <div class="legend-title">Salient</div>
-          <div class="legend-desc">Residual above the 97th-percentile adaptive threshold.</div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--salient)"></div>
+          <div>
+            <div class="legend-title">Salient</div>
+            <div class="legend-desc">Frames exceeding the local scene-adaptive 95th-percentile gating threshold.</div>
+          </div>
         </div>
-      </div>
-      <div class="legend-item">
-        <div class="legend-dot" style="background:var(--candidate)"></div>
-        <div>
-          <div class="legend-title">Candidate</div>
-          <div class="legend-desc">Residual between 90th and 97th percentile — kept but lower priority.</div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--candidate)"></div>
+          <div>
+            <div class="legend-title">Candidate</div>
+            <div class="legend-desc">Intermediate values between 90th and 95th percentile, kept as context buffer.</div>
+          </div>
         </div>
       </div>
     </div>
-    <p style="font-size:11px;color:var(--faint);margin-top:12px">
-      MVs = H.264 motion vectors (macroblock displacement count per frame) &nbsp;·&nbsp;
-      avg mag = mean displacement magnitude in pixels
-    </p>
 
   </div><!-- #app -->
 
+  <!-- Tech Inspector Modal -->
+  <div class="modal" id="inspector-modal" onclick="closeInspector(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-left">
+        <img id="modal-img" src="" alt="Frame Inspector" />
+        <div class="scan-line"></div>
+      </div>
+      <div class="modal-right">
+        <div class="modal-header">
+          <div class="modal-tier-badge" id="modal-badge">TIER</div>
+          <h3 class="modal-title" id="modal-title">Frame #0</h3>
+        </div>
+        <div class="modal-specs">
+          <div class="spec-row">
+            <span class="spec-label">Time Coordinate</span>
+            <span class="spec-value" id="spec-time">0.00s</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-label">Residual Energy Proxy</span>
+            <span class="spec-value" id="spec-residual">0.00000</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-label">H.264 Motion Vectors</span>
+            <span class="spec-value" id="spec-mvs">0 MVs</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-label">Mean MV Magnitude</span>
+            <span class="spec-value" id="spec-mv-mag">0.0px</span>
+          </div>
+        </div>
+        <button class="close-btn" onclick="closeInspector()">Close System</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const TIER_DESCS = {
-      I_FRAME:   "Scene anchor — full keyframe, no prediction from prior frames.",
-      PEAK:      "Local residual energy maximum — this is a genuine motion event. IRIS stores these as Video RAG graph nodes in L2 Asphodel.",
-      SALIENT:   "Residual energy above the 97th-percentile adaptive threshold.",
-      CANDIDATE: "Residual between the 90th and 97th percentile — kept but lower priority than Salient/Peak.",
+      I_FRAME:   "Scene anchor — Full keyframe containing full spatial representation.",
+      PEAK:      "Local maximum — Dynamic motion event. Kept directly to build the motion-aware L2 Asphodel context graph.",
+      SALIENT:   "Residual energy above the 95th-percentile adaptive local scene threshold.",
+      CANDIDATE: "Residual between 90th and 95th percentile — Retained but prioritized lower than Salient/Peak.",
     };
 
     let allFrames = [];
@@ -305,9 +695,12 @@
       document.getElementById("kept-count").textContent  = kept;
       document.getElementById("total-count").textContent = stats.total;
       document.getElementById("video-name").textContent  = data.video;
-      document.getElementById("s-total").textContent     = stats.total;
-      document.getElementById("s-kept").textContent      = kept;
-      document.getElementById("s-skip").textContent      = stats.skipped;
+      
+      // Animate counting numbers
+      animateCount("s-total", stats.total);
+      animateCount("s-kept", kept);
+      animateCount("s-skip", stats.skipped);
+      
       document.getElementById("s-ratio").textContent     = (stats.skipped / stats.total * 100).toFixed(1) + "%";
       document.getElementById("s-thresh").textContent    = stats.salient_thresh_used.toFixed(4);
 
@@ -326,6 +719,25 @@
       document.getElementById("app").style.display     = "block";
     }
 
+    function animateCount(id, target) {
+      let current = 0;
+      const duration = 1000; 
+      const stepTime = 16; 
+      const steps = duration / stepTime;
+      const stepVal = target / steps;
+      const el = document.getElementById(id);
+
+      const timer = setInterval(() => {
+        current += stepVal;
+        if (current >= target) {
+          el.textContent = target;
+          clearInterval(timer);
+        } else {
+          el.textContent = Math.round(current);
+        }
+      }, stepTime);
+    }
+
     function renderFrames() {
       const grid = document.getElementById("frame-grid");
       grid.innerHTML = "";
@@ -342,16 +754,24 @@
       for (const fr of filtered) {
         const card = document.createElement("div");
         card.className = `frame-card tier-${fr.tier}`;
+        card.onclick = () => openInspectorModal(fr);
 
-        // Build the image wrap
+        // Bind mouse movement tracking for spotlight effect
+        card.addEventListener('mousemove', (e) => {
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          card.style.setProperty('--mouse-x', `${x}px`);
+          card.style.setProperty('--mouse-y', `${y}px`);
+        });
+
         const imgWrap = document.createElement("div");
         imgWrap.className = "frame-img-wrap";
 
         const img = document.createElement("img");
         img.src = `/api/frame/${fr.frame_idx}/image`;
-        img.alt = `Frame ${fr.frame_idx} (${fr.tier})`;
-        img.style.width = "100%";
-        img.style.display = "block";
+        img.alt = `Frame ${fr.frame_idx}`;
+        img.loading = "lazy";
 
         const badge = document.createElement("div");
         badge.className = `tier-badge badge-${fr.tier}`;
@@ -365,7 +785,6 @@
         imgWrap.appendChild(badge);
         imgWrap.appendChild(ts);
 
-        // Build the metadata strip
         const meta = document.createElement("div");
         meta.className = "frame-meta";
         meta.innerHTML = `
@@ -373,8 +792,8 @@
             <span class="frame-idx">Frame #${fr.frame_idx}</span>
             <span class="frame-ts">${fr.timestamp.toFixed(3)}s</span>
           </div>
-          <div class="frame-res">residual: <span>${fr.residual_energy.toFixed(5)}</span></div>
-          <div class="frame-mvs">${fr.mv_count} MVs · avg ${fr.mv_magnitude.toFixed(1)}px</div>`;
+          <div class="frame-metric">residual: <span>${fr.residual_energy.toFixed(5)}</span></div>
+          <div class="frame-metric">mvs: <span>${fr.mv_count} (${fr.mv_magnitude.toFixed(1)}px)</span></div>`;
 
         card.appendChild(imgWrap);
         card.appendChild(meta);
@@ -382,7 +801,37 @@
       }
     }
 
-    // Filter pill clicks
+    // Modal Operations
+    function openInspectorModal(frame) {
+      const modal = document.getElementById("inspector-modal");
+      const modalImg = document.getElementById("modal-img");
+      const badge = document.getElementById("modal-badge");
+      const title = document.getElementById("modal-title");
+      
+      const time = document.getElementById("spec-time");
+      const residual = document.getElementById("spec-residual");
+      const mvs = document.getElementById("spec-mvs");
+      const mvMag = document.getElementById("spec-mv-mag");
+
+      modalImg.src = `/api/frame/${frame.frame_idx}/image`;
+      title.textContent = `Frame Inspector — #${frame.frame_idx}`;
+      
+      badge.textContent = frame.tier.replace("_", "-");
+      badge.className = `modal-tier-badge badge-${frame.tier}`;
+      
+      time.textContent = `${frame.timestamp.toFixed(3)}s`;
+      residual.textContent = frame.residual_energy.toFixed(5);
+      mvs.textContent = `${frame.mv_count} vectors`;
+      mvMag.textContent = `${frame.mv_magnitude.toFixed(1)}px`;
+
+      modal.classList.add("open");
+    }
+
+    function closeInspector() {
+      document.getElementById("inspector-modal").classList.remove("open");
+    }
+
+    // Filter Navigation Click Handlers
     document.querySelectorAll(".pill").forEach(btn => {
       btn.addEventListener("click", () => {
         document.querySelectorAll(".pill").forEach(b => b.classList.remove("active"));
