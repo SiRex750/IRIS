@@ -6,7 +6,7 @@ from scipy.signal import argrelextrema
 
 def detect_peaks(
     all_frame_energies: list[tuple[int, float]],
-    salient_thresh: float,
+    salient_thresh: float | dict[tuple[int, int], float],
     order: int = 3,
 ) -> set[int]:
     """
@@ -18,7 +18,7 @@ def detect_peaks(
     Args:
         all_frame_energies: list of (frame_idx, residual_energy) for
                             every frame in decode order, including SKIPs.
-        salient_thresh: floor for PEAK promotion.
+        salient_thresh: floor for PEAK promotion (or a dict mapping scene ranges to floors).
         order: frames on each side that must be lower to qualify as
                a local maximum. Default 3.
     
@@ -32,8 +32,21 @@ def detect_peaks(
     
     peak_frame_ids = set()
     for pos in local_max_positions:
-        if energies[pos] >= salient_thresh:
-            peak_frame_ids.add(indices[pos])
+        idx = indices[pos]
+        energy = energies[pos]
+        
+        # Determine the threshold for this frame
+        thresh = salient_thresh
+        if isinstance(salient_thresh, dict):
+            for (start, end), val in salient_thresh.items():
+                if start <= idx < end:
+                    thresh = val
+                    break
+            if isinstance(thresh, dict):  # safety check
+                thresh = 0.35
+                
+        if energy >= thresh:
+            peak_frame_ids.add(idx)
     
     return peak_frame_ids
 
@@ -52,6 +65,7 @@ def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = 
         raise ValueError("No video stream found in the container.")
     
     all_frame_energies: list[tuple[int, float]] = []  # (frame_idx, residual_energy)
+    iframe_indices = []
     energies = []  # existing list, kept for threshold calculation
     total_frames_pass1 = 0
     prev_Y_pass1 = None
@@ -73,22 +87,65 @@ def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = 
             prev_Y_pass1 = current_Y_pass1.copy()
             
             all_frame_energies.append((total_frames_pass1, residual_energy))
-            if not frame.key_frame:
+            if frame.key_frame:
+                iframe_indices.append(total_frames_pass1)
+            else:
                 energies.append(residual_energy)
                 
             total_frames_pass1 += 1
     finally:
         container.close()
     
+    scene_thresholds = {}
     if adaptive:
-        if energies:
-            salient_thresh = float(np.percentile(energies, 97))
-            candidate_thresh = float(np.percentile(energies, 90))
-
-    peak_frame_ids = detect_peaks(all_frame_energies, salient_thresh=salient_thresh)
+        num_frames_total = len(all_frame_energies)
+        if not iframe_indices:
+            iframe_indices = [0]
+        elif iframe_indices[0] != 0:
+            iframe_indices.insert(0, 0)
+            
+        scenes = []
+        for i, start_idx in enumerate(iframe_indices):
+            end_idx = iframe_indices[i+1] if i+1 < len(iframe_indices) else num_frames_total
+            scenes.append((start_idx, end_idx))
+            
+        scene_salient_vals = []
+        scene_candidate_vals = []
+        
+        for start_idx, end_idx in scenes:
+            scene_energies = [
+                energy for idx, energy in all_frame_energies
+                if start_idx <= idx < end_idx and idx not in iframe_indices
+            ]
+            if scene_energies:
+                salient = float(np.percentile(scene_energies, 95))
+                candidate = float(np.percentile(scene_energies, 90))
+            else:
+                if energies:
+                    salient = float(np.percentile(energies, 95))
+                    candidate = float(np.percentile(energies, 90))
+                else:
+                    salient = 0.35
+                    candidate = 0.08
+            scene_thresholds[(start_idx, end_idx)] = (salient, candidate)
+            scene_salient_vals.append(salient)
+            scene_candidate_vals.append(candidate)
+            
+        if scene_salient_vals:
+            salient_thresh = float(np.min(scene_salient_vals))
+            candidate_thresh = float(np.min(scene_candidate_vals))
+            
+        peak_frame_ids = detect_peaks(
+            all_frame_energies,
+            salient_thresh={k: v[0] for k, v in scene_thresholds.items()},
+        )
+    else:
+        peak_frame_ids = detect_peaks(all_frame_energies, salient_thresh=salient_thresh)
 
     # Second pass (or only pass)
     container = av.open(video_path)
+    
+    # Locate the first video stream
     if not container.streams.video:
         container.close()
         raise ValueError("No video stream found in the container.")
@@ -130,14 +187,24 @@ def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = 
             # Keep a copy of current Y for the next iteration's residual proxy calculation
             prev_Y = current_Y.copy()
             
+            # Determine thresholds for the current frame
+            curr_salient = salient_thresh
+            curr_candidate = candidate_thresh
+            if adaptive:
+                for (start, end), (s_thresh, c_thresh) in scene_thresholds.items():
+                    if start <= total_frames < end:
+                        curr_salient = s_thresh
+                        curr_candidate = c_thresh
+                        break
+            
             # Tier classification
             if frame.key_frame:
                 tier = "I_FRAME"
             elif total_frames in peak_frame_ids:
-                tier = "PEAK"   # local maximum above salient_thresh — overrides threshold tier
-            elif residual_energy > salient_thresh:
+                tier = "PEAK"   # local maximum overrides threshold tier
+            elif residual_energy > curr_salient:
                 tier = "SALIENT"
-            elif residual_energy >= candidate_thresh:
+            elif residual_energy >= curr_candidate:
                 tier = "CANDIDATE"
             else:
                 tier = "SKIP"
