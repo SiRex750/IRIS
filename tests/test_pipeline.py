@@ -100,3 +100,31 @@ def test_pipeline_integration(bbb_video):
     finally:
         # Restore original backend
         aria.set_backend(original_backend)
+
+
+def test_aria_frame_mismatch_regression(bbb_video):
+    import re
+    # Set up Mock LLM backend to avoid using API credits
+    original_backend = aria.get_backend()
+    aria.set_backend(MockLLMBackend())
+    
+    try:
+        # Run pipeline with verbose=True so we get debug_info
+        result = run_pipeline(bbb_video, "Summarize the action events seen in the video.", verbose=True, nms_window=10)
+        
+        # 1. Extract frame indices from the returned retrieved_frames list in debug_info
+        retrieved_indices = {int(f["frame_idx"]) for f in result["debug_info"]["retrieved_frames"]}
+        
+        # 2. Extract frame indices from the context_text fed into ARIA
+        context_text = result["debug_info"]["context_text"]
+        context_indices = {int(m) for m in re.findall(r"Frame (\d+)", context_text)}
+        
+        # 3. Assert no frame in ARIA's context is absent from retrieved_frames, and vice versa
+        assert retrieved_indices == context_indices, (
+            f"Mismatch! retrieved_frames={retrieved_indices} vs context_text={context_indices}"
+        )
+        
+    finally:
+        # Restore original backend
+        aria.set_backend(original_backend)
+

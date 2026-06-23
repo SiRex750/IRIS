@@ -152,8 +152,11 @@ def wrapper_populate_cache(cache_obj: object, retrieved_frames: list[dict]) -> N
                 frame_idx=frame["frame_idx"],
                 timestamp_sec=frame.get("timestamp", 0.0),
                 residual_energy=frame.get("residual_energy", 0.0),
-                motion_entropy=frame.get("entropy", 0.0),
-                hessian_max_eigenvalue=0.0
+                divergence=frame.get("divergence", 0.0),
+                curl=frame.get("curl", 0.0),
+                jacobian_frobenius=frame.get("jacobian_frobenius", 0.0),
+                hessian_max_eigenvalue=frame.get("hessian_max_eigenvalue", 0.0),
+                motion_entropy=frame.get("motion_entropy", 0.0)
             )
             cached_frame = CachedFrame(
                 frame_idx=frame["frame_idx"],
@@ -171,7 +174,6 @@ def wrapper_populate_cache(cache_obj: object, retrieved_frames: list[dict]) -> N
         for frame in retrieved_frames:
             frame_idx = frame["frame_idx"]
             timestamp = frame.get("timestamp", 0.0)
-            tier = frame.get("tier", "PEAK")
             res_energy = frame.get("residual_energy", 0.0)
             action_score = frame.get("action_score", 0.0)
             
@@ -179,7 +181,7 @@ def wrapper_populate_cache(cache_obj: object, retrieved_frames: list[dict]) -> N
             triple = KnowledgeTriple(
                 subject=f"Frame {frame_idx} at {timestamp:.2f}s",
                 verb="depicts",
-                object=f"salient visual cues (residual energy {res_energy:.4f}, action score {action_score:.4f}, tier {tier})"
+                object=f"salient visual cues (residual energy {res_energy:.4f}, action score {action_score:.4f})"
             )
             # Use action_score/residual_energy as importance ranking score
             score = action_score or res_energy
@@ -332,7 +334,7 @@ def wrapper_cerberus_gate(claims: list[str], cache_obj: object, action_score: fl
 
 # --- Main Pipeline Runners ---
 
-def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_window: int = 10) -> dict:
+def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_window: int = 10, config: IRISConfig | None = None) -> dict:
     """
     Run the end-to-end IRIS pipeline using the new continuous action score
     and topological persistence-based peak detection alongside the existing tier path.
@@ -340,15 +342,17 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
     import time
     
     # 1. Load config parameters
-    try:
-        from iris_config import ConfigManager
-        config = ConfigManager().get_config()
-        if config is None:
+    if config is None:
+        try:
+            from iris_config import ConfigManager
+            config = ConfigManager().get_config()
+            if config is None:
+                from iris_config import IRISConfig
+                config = IRISConfig()
+        except Exception:
             from iris_config import IRISConfig
             config = IRISConfig()
-    except Exception:
-        from iris_config import IRISConfig
-        config = IRISConfig()
+
 
     # 2. Parse video and extract raw frame features non-breakingly from H.264 stream
     # Returns (output_frames, stats, raw_records)
@@ -358,7 +362,7 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
         return_stats=True,
         return_raw=True,
         candidate_thresh=config.candidate_thresh,
-        salient_thresh=config.salient_thresh
+        adaptive=getattr(config, "adaptive", True)
     )
     t_charon = time.time() - t_start
 

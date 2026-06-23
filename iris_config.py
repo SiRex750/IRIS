@@ -19,6 +19,8 @@ class IRISConfig:
     salient_thresh:   float = 0.35   # residual floor for SALIENT tier
     candidate_thresh: float = 0.08   # residual floor for CANDIDATE tier
     peak_order:       int   = 3      # argrelextrema window for PEAK detection
+    adaptive:         bool  = True   # Whether Charon-V uses adaptive thresholding
+
 
     # ── L2 Asphodel retrieval ─────────────────────────────────────────────
     alpha: float = 0.4   # semantic weight in L2 retrieval blend

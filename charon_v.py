@@ -4,6 +4,92 @@ import sys
 import pprint
 from scipy.signal import argrelextrema
 
+def compute_motion_geometry(motion_vectors: list, width: int, height: int) -> dict:
+    """
+    Computes physical motion geometry descriptors from raw H.264 motion vectors.
+    """
+    if not motion_vectors or width <= 0 or height <= 0:
+        return {
+            "divergence": 0.0,
+            "curl": 0.0,
+            "jacobian_frobenius": 0.0,
+            "hessian_max_eigenvalue": 0.0,
+            "motion_entropy": 0.0
+        }
+        
+    grid_w = max(1, width // 16)
+    grid_h = max(1, height // 16)
+    
+    U = np.zeros((grid_h, grid_w), dtype=np.float32)
+    V = np.zeros((grid_h, grid_w), dtype=np.float32)
+    counts = np.zeros((grid_h, grid_w), dtype=np.float32)
+    
+    for mv in motion_vectors:
+        # mv: (src_x, src_y, dst_x, dst_y, motion_x, motion_y)
+        gx = min(max(0, mv[2] // 16), grid_w - 1)
+        gy = min(max(0, mv[3] // 16), grid_h - 1)
+        U[gy, gx] += mv[4]
+        V[gy, gx] += mv[5]
+        counts[gy, gx] += 1.0
+        
+    mask = counts > 0
+    U[mask] /= counts[mask]
+    V[mask] /= counts[mask]
+    
+    if grid_h > 1 and grid_w > 1:
+        U_y, U_x = np.gradient(U)
+        V_y, V_x = np.gradient(V)
+    else:
+        U_y = np.zeros_like(U)
+        U_x = np.zeros_like(U)
+        V_y = np.zeros_like(V)
+        V_x = np.zeros_like(V)
+        
+    div = U_x + V_y
+    divergence = float(np.mean(div))
+    
+    rot = V_x - U_y
+    curl = float(np.mean(np.abs(rot)))
+    
+    jac_norm = np.sqrt(U_x**2 + U_y**2 + V_x**2 + V_y**2)
+    jacobian_frobenius = float(np.mean(jac_norm))
+    
+    M = np.sqrt(U**2 + V**2)
+    if grid_h > 1 and grid_w > 1:
+        M_y, M_x = np.gradient(M)
+        M_yy, M_yx = np.gradient(M_y)
+        M_xy, M_xx = np.gradient(M_x)
+    else:
+        M_xx = np.zeros_like(M)
+        M_yy = np.zeros_like(M)
+        M_xy = np.zeros_like(M)
+        M_yx = np.zeros_like(M)
+        
+    trace = M_xx + M_yy
+    diff = M_xx - M_yy
+    det_term = np.sqrt(diff**2 + 4 * M_yx * M_xy)
+    eigenvalue_field = 0.5 * (np.abs(trace) + det_term)
+    hessian_max_eigenvalue = float(np.mean(eigenvalue_field))
+    
+    flat_mags = M.flatten()
+    max_mag = np.max(flat_mags)
+    if max_mag > 1e-5:
+        hist, _ = np.histogram(flat_mags, bins=10, range=(0, max_mag), density=True)
+        hist = hist[hist > 0]
+        p = hist / np.sum(hist)
+        motion_entropy = float(-np.sum(p * np.log2(p)))
+    else:
+        motion_entropy = 0.0
+        
+    return {
+        "divergence": divergence,
+        "curl": curl,
+        "jacobian_frobenius": jacobian_frobenius,
+        "hessian_max_eigenvalue": hessian_max_eigenvalue,
+        "motion_entropy": motion_entropy
+    }
+
+
 def detect_peaks(
     all_frame_energies: list[tuple[int, float]],
     salient_thresh: float | dict[tuple[int, int], float],
@@ -118,12 +204,12 @@ def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = 
                 if start_idx <= idx < end_idx and idx not in iframe_indices
             ]
             if scene_energies:
-                salient = float(np.percentile(scene_energies, 95))
-                candidate = float(np.percentile(scene_energies, 90))
+                salient = max(0.002, float(np.percentile(scene_energies, 95)))
+                candidate = max(0.001, float(np.percentile(scene_energies, 90)))
             else:
                 if energies:
-                    salient = float(np.percentile(energies, 95))
-                    candidate = float(np.percentile(energies, 90))
+                    salient = max(0.002, float(np.percentile(energies, 95)))
+                    candidate = max(0.001, float(np.percentile(energies, 90)))
                 else:
                     salient = 0.35
                     candidate = 0.08
@@ -251,12 +337,14 @@ def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = 
 
             # Append to output only if the frame tier is not SKIP
             if tier != "SKIP":
+                geom = compute_motion_geometry(motion_vectors, frame.width, frame.height)
                 output_frames.append({
                     "frame_idx": total_frames,
                     "timestamp": timestamp,
                     "tier": tier,
                     "residual_energy": residual_energy,
-                    "motion_vectors": motion_vectors
+                    "motion_vectors": motion_vectors,
+                    **geom
                 })
 
             # Expose raw records non-breakingly if requested
