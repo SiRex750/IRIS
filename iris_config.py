@@ -28,6 +28,18 @@ class IRISConfig:
     cerberus_high_thresh: float = 0.70  # action_score >= this → full NLI
     cerberus_low_thresh:  float = 0.35  # action_score >= this → filtered NLI
 
+    # ── Action Score Module ────────────────────────────────────────────────
+    residual_weight:        float = 0.5
+    motion_weight:          float = 0.3
+    entropy_weight:         float = 0.2
+    peak_distance:          int   = 5
+    peak_prominence:        float = 0.05
+    persistence_threshold:  float = 0.4
+    max_prominence:         float = 0.5   # calibrated global max prominence (Fix 3 Option B)
+
+    # ── L2 retrieve top-k ─────────────────────────────────────────────────
+    l2_retrieve_top_k:      int   = 5
+
     # ── L1 Elysium — capacity ─────────────────────────────────────────────
     # Maximum number of CachedFrame entries L1 holds at once.
     # When exceeded, the frame with the lowest keep_score is evicted.
@@ -56,6 +68,18 @@ class IRISConfig:
         assert self.l1_capacity > 0, (
             "l1_capacity must be a positive integer"
         )
+
+        assert self.residual_weight >= 0 and self.motion_weight >= 0 and self.entropy_weight >= 0, (
+            "Action score weights must be non-negative"
+        )
+        assert (self.residual_weight + self.motion_weight + self.entropy_weight) > 0, (
+            "Action score weights must sum to a positive value"
+        )
+        assert self.peak_distance > 0, "peak_distance must be positive"
+        assert self.peak_prominence >= 0, "peak_prominence must be non-negative"
+        assert 0.0 <= self.persistence_threshold <= 1.0, "persistence_threshold must be between 0 and 1"
+        assert self.max_prominence > 0, "max_prominence must be positive"
+        assert self.l2_retrieve_top_k > 0, "l2_retrieve_top_k must be positive"
 
         l1_weight_sum = round(
             self.l1_w_action + self.l1_w_query + self.l1_w_persist

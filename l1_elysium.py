@@ -149,3 +149,90 @@ class L1ElysiumCache:
     @property
     def is_full(self) -> bool:
         return len(self._frames) >= self._config.l1_capacity
+
+    # ── Fact-text helpers ──────────────────────────────────────────────────
+    #
+    # Two separate outputs serve two different consumers:
+    #
+    #   _frame_to_display_text()  Full human-readable string including numeric
+    #                             pipeline metrics (action_score, persistence).
+    #                             Used by as_context_text() → ARIA's prompt.
+    #                             ARIA can legitimately reference these numbers
+    #                             in prose ("this frame had a high action score").
+    #
+    #   _frame_to_nli_fact()      Semantic content ONLY — no numbers, no metric
+    #                             names.  Used by set_facts → Cerberus-V's fact
+    #                             pool.  An NLI model can only meaningfully reason
+    #                             about natural-language scene descriptions; numeric
+    #                             metadata phrased as sentences invites false
+    #                             contradiction verdicts (Fix 10/11 root cause).
+    #                             Returns None for frames without a caption — a
+    #                             bare numeric string is not a real fact and should
+    #                             not enter the NLI pool at all.
+
+    @staticmethod
+    def _frame_to_display_text(frame: "CachedFrame") -> str:
+        """Full display string for a frame, including numeric pipeline metrics.
+
+        Used by as_context_text() so ARIA's prompt context is rich and complete.
+        NOT used for Cerberus-V NLI verification.
+        """
+        base = f"Frame {frame.frame_idx} at {frame.timestamp_sec:.2f}s"
+        if getattr(frame, "caption", None):
+            return (
+                f"{base}: {frame.caption}. "
+                f"(action score {frame.action_score:.4f}, persistence {frame.persistence_value:.4f})"
+            )
+        return (
+            f"{base} depicts action score {frame.action_score:.4f}, "
+            f"persistence {frame.persistence_value:.4f}."
+        )
+
+    @staticmethod
+    def _frame_to_nli_fact(frame: "CachedFrame") -> str | None:
+        """Semantic-only fact string for Cerberus-V NLI verification.
+
+        Returns ONLY the natural-language scene description — no action_score,
+        no persistence_value, no bare numbers.  An NLI model cannot meaningfully
+        reason about internal pipeline metrics, and numeric metadata phrased as
+        sentences produces false contradiction verdicts (e.g. 'persistence 0.0000'
+        contradicting 'notable persistence in interactions').
+
+        Returns None if the frame has no caption.  A frame without a semantic
+        caption has nothing meaningful to contribute to the NLI fact pool —
+        a bare numeric line is not a real fact about the scene.
+        """
+        if not getattr(frame, "caption", None):
+            return None
+        return f"Frame {frame.frame_idx} at {frame.timestamp_sec:.2f}s: {frame.caption}."
+
+    def as_context_text(self) -> str:
+        """Full context string for ARIA's prompt.
+
+        Includes numeric pipeline metrics so ARIA can reference them in prose.
+        Uses _frame_to_display_text(), not the NLI-only variant.
+        """
+        lines = ["Fact Cache:"]
+        for frame in self._frames.values():
+            lines.append(self._frame_to_display_text(frame))
+        return "\n".join(lines)
+
+    @property
+    def set_facts(self) -> dict:
+        """Semantic-only fact pool for Cerberus-V NLI verification.
+
+        Uses _frame_to_nli_fact() — numeric pipeline metrics are excluded.
+        Frames without a caption are skipped entirely (None return value)
+        rather than contributing a meaningless numeric string to the pool.
+        """
+        class MockFactEntry:
+            def __init__(self, text: str):
+                self.text = text
+
+        facts = {}
+        for frame in self._frames.values():
+            text = self._frame_to_nli_fact(frame)
+            if text is None:
+                continue  # no caption → no NLI-checkable fact for this frame
+            facts[text] = MockFactEntry(text)
+        return facts

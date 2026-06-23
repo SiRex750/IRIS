@@ -50,12 +50,13 @@ def detect_peaks(
     
     return peak_frame_ids
 
-def parse_video(video_path: str, return_stats: bool = False, candidate_thresh: float = 0.08, salient_thresh: float = 0.35, adaptive: bool = True):
+def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = False, candidate_thresh: float = 0.08, salient_thresh: float = 0.35, adaptive: bool = True):
     """
     Parses an H.264 video stream using PyAV and numpy without full RGB decoding.
     Returns a list of dicts for salient frames (I_FRAME, SALIENT, CANDIDATE) only.
     
     If return_stats is True, returns a tuple: (output_frames, stats_dict).
+    If return_raw is True, additionally returns a list of raw per-frame records.
     """
     # Pass 1: Collect luma-diff energies of P/B frames
     container = av.open(video_path)
@@ -69,30 +70,31 @@ def parse_video(video_path: str, return_stats: bool = False, candidate_thresh: f
     total_frames_pass1 = 0
     prev_Y_pass1 = None
     
-    for frame in container.decode(video=0):
-        arr = frame.to_ndarray(format='yuv420p')
-        current_Y_pass1 = arr[0:frame.height, :]
-        
-        if total_frames_pass1 == 0:
-            residual_energy = 1.0
-        else:
-            if prev_Y_pass1 is not None:
-                diff = np.abs(current_Y_pass1.astype(float) - prev_Y_pass1.astype(float))
-                residual_energy = float(np.mean(diff) / 255.0)
-            else:
-                residual_energy = 1.0
-                
-        prev_Y_pass1 = current_Y_pass1.copy()
-        
-        all_frame_energies.append((total_frames_pass1, residual_energy))
-        if frame.key_frame:
-            iframe_indices.append(total_frames_pass1)
-        else:
-            energies.append(residual_energy)
+    try:
+        for frame in container.decode(video=0):
+            arr = frame.to_ndarray(format='yuv420p')
+            current_Y_pass1 = arr[0:frame.height, :]
             
-        total_frames_pass1 += 1
-        
-    container.close()
+            if total_frames_pass1 == 0:
+                residual_energy = 1.0
+            else:
+                if prev_Y_pass1 is not None:
+                    diff = np.abs(current_Y_pass1.astype(float) - prev_Y_pass1.astype(float))
+                    residual_energy = float(np.mean(diff) / 255.0)
+                else:
+                    residual_energy = 1.0
+                    
+            prev_Y_pass1 = current_Y_pass1.copy()
+            
+            all_frame_energies.append((total_frames_pass1, residual_energy))
+            if frame.key_frame:
+                iframe_indices.append(total_frames_pass1)
+            else:
+                energies.append(residual_energy)
+                
+            total_frames_pass1 += 1
+    finally:
+        container.close()
     
     scene_thresholds = {}
     if adaptive:
@@ -154,6 +156,7 @@ def parse_video(video_path: str, return_stats: bool = False, candidate_thresh: f
     stream.codec_context.options = {"flags2": "+export_mvs"}
     
     output_frames = []
+    raw_records = []
     
     total_frames = 0
     i_frame_count = 0
@@ -164,100 +167,133 @@ def parse_video(video_path: str, return_stats: bool = False, candidate_thresh: f
     
     prev_Y = None
     
-    for frame in container.decode(video=0):
-        # Y plane extraction
-        # yuv420p layout has the Y channel as the first height rows of the numpy array
-        arr = frame.to_ndarray(format='yuv420p')
-        current_Y = arr[0:frame.height, :]
-        
-        if total_frames == 0:
-            residual_energy = 1.0
-        else:
-            if prev_Y is not None:
-                # Cast to float to prevent underflow before calculating mean absolute diff
-                diff = np.abs(current_Y.astype(float) - prev_Y.astype(float))
-                residual_energy = float(np.mean(diff) / 255.0)
-            else:
+    try:
+        for frame in container.decode(video=0):
+            # Y plane extraction
+            # yuv420p layout has the Y channel as the first height rows of the numpy array
+            arr = frame.to_ndarray(format='yuv420p')
+            current_Y = arr[0:frame.height, :]
+            
+            if total_frames == 0:
                 residual_energy = 1.0
-        
-        # Keep a copy of current Y for the next iteration's residual proxy calculation
-        prev_Y = current_Y.copy()
-        
-        # Determine thresholds for the current frame
-        curr_salient = salient_thresh
-        curr_candidate = candidate_thresh
-        if adaptive:
-            for (start, end), (s_thresh, c_thresh) in scene_thresholds.items():
-                if start <= total_frames < end:
-                    curr_salient = s_thresh
-                    curr_candidate = c_thresh
-                    break
-        
-        # Tier classification
-        if frame.key_frame:
-            tier = "I_FRAME"
-        elif total_frames in peak_frame_ids:
-            tier = "PEAK"   # local maximum overrides threshold tier
-        elif residual_energy > curr_salient:
-            tier = "SALIENT"
-        elif residual_energy >= curr_candidate:
-            tier = "CANDIDATE"
-        else:
-            tier = "SKIP"
-                
-        # Update statistics counters
-        if tier == "I_FRAME":
-            i_frame_count += 1
-        elif tier == "PEAK":
-            peak_count += 1
-        elif tier == "SALIENT":
-            salient_count += 1
-        elif tier == "CANDIDATE":
-            candidate_count += 1
-        elif tier == "SKIP":
-            skipped_count += 1
+            else:
+                if prev_Y is not None:
+                    # Cast to float to prevent underflow before calculating mean absolute diff
+                    diff = np.abs(current_Y.astype(float) - prev_Y.astype(float))
+                    residual_energy = float(np.mean(diff) / 255.0)
+                else:
+                    residual_energy = 1.0
             
-        # Extract motion vectors (empty for I-frames or if not exported/available)
-        if tier == "I_FRAME":
-            motion_vectors = []
-        else:
-            motion_vectors = []
-            try:
-                for sd in frame.side_data:
-                    if getattr(sd.type, 'name', None) == 'MOTION_VECTORS':
-                        for mv in sd:
-                            motion_vectors.append((
-                                int(mv.src_x),
-                                int(mv.src_y),
-                                int(mv.dst_x),
-                                int(mv.dst_y),
-                                int(mv.motion_x),
-                                int(mv.motion_y)
-                             ))
-            except (AttributeError, TypeError):
+            # Keep a copy of current Y for the next iteration's residual proxy calculation
+            prev_Y = current_Y.copy()
+            
+            # Determine thresholds for the current frame
+            curr_salient = salient_thresh
+            curr_candidate = candidate_thresh
+            if adaptive:
+                for (start, end), (s_thresh, c_thresh) in scene_thresholds.items():
+                    if start <= total_frames < end:
+                        curr_salient = s_thresh
+                        curr_candidate = c_thresh
+                        break
+            
+            # Tier classification
+            if frame.key_frame:
+                tier = "I_FRAME"
+            elif total_frames in peak_frame_ids:
+                tier = "PEAK"   # local maximum overrides threshold tier
+            elif residual_energy > curr_salient:
+                tier = "SALIENT"
+            elif residual_energy >= curr_candidate:
+                tier = "CANDIDATE"
+            else:
+                tier = "SKIP"
+                    
+            # Update statistics counters
+            if tier == "I_FRAME":
+                i_frame_count += 1
+            elif tier == "PEAK":
+                peak_count += 1
+            elif tier == "SALIENT":
+                salient_count += 1
+            elif tier == "CANDIDATE":
+                candidate_count += 1
+            elif tier == "SKIP":
+                skipped_count += 1
+                
+            # Extract motion vectors (empty for I-frames or if not exported/available)
+            if tier == "I_FRAME":
                 motion_vectors = []
-                
-        # Calculate robust timestamp
-        if frame.time is not None:
-            timestamp = float(frame.time)
-        elif frame.pts is not None and stream.time_base is not None:
-            timestamp = float(frame.pts * stream.time_base)
-        else:
-            timestamp = 0.0
+            else:
+                motion_vectors = []
+                try:
+                    for sd in frame.side_data:
+                        if getattr(sd.type, 'name', None) == 'MOTION_VECTORS':
+                            for mv in sd:
+                                motion_vectors.append((
+                                    int(mv.src_x),
+                                    int(mv.src_y),
+                                    int(mv.dst_x),
+                                    int(mv.dst_y),
+                                    int(mv.motion_x),
+                                    int(mv.motion_y)
+                                ))
+                except (AttributeError, TypeError):
+                    motion_vectors = []
+                    
+            # Calculate robust timestamp
+            if frame.time is not None:
+                timestamp = float(frame.time)
+            elif frame.pts is not None and stream.time_base is not None:
+                timestamp = float(frame.pts * stream.time_base)
+            else:
+                timestamp = 0.0
 
-        # Append to output only if the frame tier is not SKIP
-        if tier != "SKIP":
-            output_frames.append({
-                "frame_idx": total_frames,
-                "timestamp": timestamp,
-                "tier": tier,
-                "residual_energy": residual_energy,
-                "motion_vectors": motion_vectors
-            })
-            
-        total_frames += 1
-        
-    container.close()
+            # Append to output only if the frame tier is not SKIP
+            if tier != "SKIP":
+                output_frames.append({
+                    "frame_idx": total_frames,
+                    "timestamp": timestamp,
+                    "tier": tier,
+                    "residual_energy": residual_energy,
+                    "motion_vectors": motion_vectors
+                })
+
+            # Expose raw records non-breakingly if requested
+            if return_raw:
+                pict_type = getattr(frame, "pict_type", None)
+                if pict_type is None:
+                    frame_type = "I" if frame.key_frame else "P"
+                elif isinstance(pict_type, int):
+                    try:
+                        frame_type = av.video.frame.PictureType(pict_type).name
+                    except Exception:
+                        frame_type = "I" if frame.key_frame else "P"
+                elif hasattr(pict_type, "name"):
+                    frame_type = pict_type.name
+                else:
+                    frame_type = str(pict_type)
+
+                mvs_mags = [np.sqrt(mv[4]**2 + mv[5]**2) for mv in motion_vectors]
+                motion_magnitude = float(np.mean(mvs_mags)) if mvs_mags else 0.0
+                try:
+                    hist, _ = np.histogram(current_Y, bins=256, range=(0, 256), density=True)
+                    hist = hist[hist > 0]
+                    entropy = float(-np.sum(hist * np.log2(hist))) / 8.0
+                except Exception:
+                    entropy = 0.0
+                
+                raw_records.append({
+                    "frame_idx": total_frames,
+                    "frame_type": frame_type,
+                    "residual_energy": residual_energy,
+                    "motion_magnitude": motion_magnitude,
+                    "entropy": entropy
+                })
+                
+            total_frames += 1
+    finally:
+        container.close()
     
     stats = {
         "total": total_frames,
@@ -270,6 +306,11 @@ def parse_video(video_path: str, return_stats: bool = False, candidate_thresh: f
         "candidate_thresh_used": candidate_thresh
     }
     
+    if return_raw:
+        if return_stats:
+            return output_frames, stats, raw_records
+        return output_frames, raw_records
+        
     if return_stats:
         return output_frames, stats
     return output_frames

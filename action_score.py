@@ -21,6 +21,7 @@ class ActionScoreConfig:
     peak_distance: int = 5
     peak_prominence: float = 0.05
     persistence_threshold: float = 0.4
+    max_prominence: float = 0.5
 
 
 class ActionScoreModule:
@@ -97,11 +98,9 @@ class ActionScoreModule:
         persistence_by_index: dict[int, float] = {}
 
         if len(peak_indices) > 0:
-            max_prominence = float(np.max(prominences)) if len(prominences) > 0 else 0.0
-
             for idx, prominence in zip(peak_indices, prominences):
-                if max_prominence > 1e-8:
-                    persistence_value = float(prominence / max_prominence)
+                if self.config.max_prominence > 1e-8:
+                    persistence_value = min(float(prominence / self.config.max_prominence), 1.0)
                 else:
                     persistence_value = 0.0
 
