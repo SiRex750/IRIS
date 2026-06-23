@@ -15,7 +15,7 @@ import psutil
 from typing import Any, Iterable
 
 from iris_config import IRISConfig, ConfigManager
-from l1_elysium import L1Cache
+from cache import L1Cache
 from triple import KnowledgeTriple
 
 

@@ -5,6 +5,9 @@ import socket
 from charon_v import parse_video
 
 def test_peak_tier(video_path: str = "mov_bbb.mp4"):
+    if not os.path.exists(video_path):
+        url = "https://www.w3schools.com/html/mov_bbb.mp4"
+        urllib.request.urlretrieve(url, video_path)
     frames, stats = parse_video(video_path, return_stats=True, adaptive=True)
     actual_salient_thresh = stats["salient_thresh_used"]
     

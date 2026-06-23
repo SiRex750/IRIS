@@ -6,7 +6,7 @@ Owner: Track D
 from __future__ import annotations
 
 from triple import KnowledgeTriple
-from l1_elysium import L1Cache
+from cache import L1Cache
 from cerberus_v import CerberusV
 from iris_config import IRISConfig
 
