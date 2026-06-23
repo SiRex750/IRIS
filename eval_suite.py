@@ -30,19 +30,21 @@ ABLATION_CONDITIONS = ["baseline", "ablation_1", "ablation_2", "full_iris"]
 def get_config_for_condition(condition: str) -> IRISConfig:
     """Returns the IRISConfig custom-tailored for each ablation condition."""
     if condition == "baseline":
-        # No codec gating (threshold=0), no NLI (thresholds set to maximum to trigger ner_only)
+        # No codec gating (threshold=0), no NLI
         return IRISConfig(
             candidate_thresh=0.0,
-            cerberus_low_thresh=0.99,
-            cerberus_high_thresh=0.99,
+            cerberus_low_thresh=0.35,
+            cerberus_high_thresh=0.70,
+            disable_nli=True,
             adaptive=False
         )
     elif condition == "ablation_1":
         # Codec gating active, no NLI
         return IRISConfig(
             candidate_thresh=0.08,
-            cerberus_low_thresh=0.99,
-            cerberus_high_thresh=0.99,
+            cerberus_low_thresh=0.35,
+            cerberus_high_thresh=0.70,
+            disable_nli=True,
             adaptive=True
         )
     elif condition == "ablation_2":
@@ -51,6 +53,7 @@ def get_config_for_condition(condition: str) -> IRISConfig:
             candidate_thresh=0.0,
             cerberus_low_thresh=0.01,
             cerberus_high_thresh=0.02,
+            disable_nli=False,
             adaptive=False
         )
     elif condition == "full_iris":
@@ -59,6 +62,7 @@ def get_config_for_condition(condition: str) -> IRISConfig:
             candidate_thresh=0.08,
             cerberus_low_thresh=0.35,
             cerberus_high_thresh=0.70,
+            disable_nli=False,
             adaptive=True
         )
     else:
@@ -77,6 +81,18 @@ def run_ablation(video_path: str, query: str, condition: str) -> dict:
     claims_verified = res.get("verified_claims", []) or []
     claims_rejected = res.get("rejected_claims", []) or []
     claims_unverifiable = res.get("unverifiable_claims", []) or []
+    
+    debug_info = res.get("debug_info", {})
+    retrieved_frames = debug_info.get("retrieved_frames", [])
+    retrieved_idxs = [f["frame_idx"] for f in retrieved_frames]
+    retrieved_scores = [round(f.get("action_score", 0.0), 3) for f in retrieved_frames]
+    
+    # Print detailed debug info for analysis
+    print(f"  [DEBUG {condition}] Retrieved frames: {retrieved_idxs} with action scores {retrieved_scores}")
+    print(f"  [DEBUG {condition}] Raw answer: {res.get('raw_answer')}")
+    print(f"  [DEBUG {condition}] Verified claims: {claims_verified}")
+    print(f"  [DEBUG {condition}] Rejected claims: {claims_rejected}")
+    print(f"  [DEBUG {condition}] Unverifiable claims: {claims_unverifiable}")
     
     total_claims = len(claims_verified) + len(claims_rejected) + len(claims_unverifiable)
     nli_calls_estimated = len(claims_verified) + len(claims_rejected) if condition in ("ablation_2", "full_iris") else 0

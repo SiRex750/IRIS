@@ -1,0 +1,32 @@
+{
+  "video": "benchmark_results\\static_video.mp4",
+  "video_total_frames": 250,
+  "video_fps": 25.0,
+  "video_duration_sec": 10.0,
+  "uniform_baseline": {
+    "sample_rate_fps": 1.0,
+    "frames_sent_to_llm": 10,
+    "reduction_factor_vs_raw": 25.0,
+    "estimated_llm_cost_usd": 0.015
+  },
+  "iris": {
+    "frames_sent_to_llm": 10,
+    "reduction_factor_vs_raw": 25.0,
+    "estimated_llm_cost_usd": 0.015,
+    "skip_ratio_reported_by_pipeline": 0.96,
+    "wall_clock_total_sec": 26.441,
+    "claims_verified": null,
+    "verified_claim_count": 0,
+    "rejected_claim_count": 1,
+    "unverifiable_claim_count": 3
+  },
+  "comparison": {
+    "frames_iris_vs_baseline_ratio": 1.0,
+    "estimated_cost_savings_pct_vs_uniform_baseline": 0.0
+  },
+  "caveats": [
+    "Cost figures are illustrative order-of-magnitude estimates (per-frame vision-token cost assumption), not exact billing numbers.",
+    "This compares FRAME-SELECTION EFFICIENCY only (how many frames each approach sends to an LLM). It does NOT compare answer accuracy/quality -- uniform sampling has no verification step, so an apples-to-apples accuracy comparison isn't available yet.",
+    "Single test video (mov_bbb.mp4). Not yet validated across a dataset -- see eval_suite.py for planned multi-clip ablation."
+  ]
+}

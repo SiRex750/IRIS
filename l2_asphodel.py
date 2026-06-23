@@ -266,6 +266,84 @@ class L2Asphodel:
         # Re-run PageRank now that the transition graph has new hybrid weights
         self._update_pagerank()
 
+    def add_frame_nodes_bulk(
+        self,
+        feature_records: list,
+        action_score_records: list,
+    ) -> None:
+        """
+        Batch-insert multiple frame nodes.
+
+        Adds all nodes to the graph first, then calls _update_all_edge_weights and
+        _update_pagerank ONCE — instead of once per node as add_frame_node() does.
+
+        Complexity:
+            add_frame_node() called N times: O(N * N²) = O(N³)
+            add_frame_nodes_bulk() for N nodes: O(N²)  ← this method
+
+        Args:
+            feature_records:     list of feature dicts (same schema as add_frame_node)
+            action_score_records: parallel list of action_score dicts
+        """
+        def get_val(record: Any, key: str, default: Any = None) -> Any:
+            if record is None:
+                return default
+            if isinstance(record, dict):
+                return record.get(key, default)
+            return getattr(record, key, default)
+
+        for feature_record, action_score_record in zip(feature_records, action_score_records):
+            frame_idx         = int(get_val(feature_record, "frame_idx"))
+            timestamp         = float(get_val(feature_record, "timestamp", 0.0))
+            residual_energy   = float(get_val(feature_record, "residual_energy", 0.0))
+            motion_magnitude  = float(get_val(feature_record, "motion_magnitude", 0.0))
+            entropy           = float(get_val(feature_record, "entropy", 0.0))
+            refined_motion_tensor = get_val(feature_record, "refined_motion_tensor", None)
+            if refined_motion_tensor is None:
+                refined_motion_tensor = np.zeros(1, dtype=np.float32)
+
+            action_score    = float(get_val(action_score_record, "action_score", 0.0))
+            persistence_value = float(get_val(action_score_record, "persistence_value", 0.0))
+
+            node_obj = AsphodelNode(
+                frame_idx=frame_idx,
+                timestamp=timestamp,
+                action_score=action_score,
+                persistence_value=persistence_value,
+                residual_energy=residual_energy,
+                motion_magnitude=motion_magnitude,
+                entropy=entropy,
+                refined_motion_tensor=refined_motion_tensor,
+                triples=[],
+                embedding=None,
+            )
+            self.graph.add_node(frame_idx, node_data=node_obj)
+
+        # Single recompute after all nodes inserted — the key efficiency gain.
+        self._update_all_edge_weights()
+        self._update_pagerank()
+
+    def enrich_nodes_bulk(self, enrichment_map: dict) -> None:
+        """
+        Batch-enrich multiple nodes with CLIP embeddings.
+
+        Applies all embeddings first, then calls _update_all_edge_weights and
+        _update_pagerank ONCE instead of once per node as enrich_node() does.
+
+        Args:
+            enrichment_map: {frame_idx (int): embedding (np.ndarray)}
+        """
+        for frame_idx, embedding in enrichment_map.items():
+            if frame_idx not in self.graph.nodes:
+                continue
+            node_data = self.graph.nodes[frame_idx]["node_data"]
+            node_data.triples = []
+            node_data.embedding = embedding
+
+        # Single recompute after all enrichments applied.
+        self._update_all_edge_weights()
+        self._update_pagerank()
+
     def retrieve(
         self,
         query_embedding: np.ndarray | None,

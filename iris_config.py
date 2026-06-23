@@ -29,6 +29,7 @@ class IRISConfig:
     # ── Cerberus-V ────────────────────────────────────────────────────────
     cerberus_high_thresh: float = 0.70  # action_score >= this → full NLI
     cerberus_low_thresh:  float = 0.35  # action_score >= this → filtered NLI
+    disable_nli:          bool  = False # completely bypass DeBERTa NLI, use ner_only
 
     # ── Action Score Module ────────────────────────────────────────────────
     residual_weight:        float = 0.5
@@ -64,9 +65,10 @@ class IRISConfig:
         Called by ConfigManager after loading.
         Raises AssertionError with a clear message if anything is wrong.
         """
-        assert 0 < self.cerberus_low_thresh < self.cerberus_high_thresh < 1.0, (
-            "Cerberus thresholds must satisfy: 0 < low < high < 1"
-        )
+        if not self.disable_nli:
+            assert 0 < self.cerberus_low_thresh < self.cerberus_high_thresh < 1.0, (
+                "Cerberus thresholds must satisfy: 0 < low < high < 1"
+            )
         assert self.l1_capacity > 0, (
             "l1_capacity must be a positive integer"
         )

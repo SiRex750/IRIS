@@ -338,12 +338,21 @@ def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = 
             # Append to output only if the frame tier is not SKIP
             if tier != "SKIP":
                 geom = compute_motion_geometry(motion_vectors, frame.width, frame.height)
+                # Capture PIL image here so pipeline.py can extract CLIP embeddings
+                # without opening the video a 3rd time.  Guard with try/except so
+                # any format issue doesn't drop the frame — it just falls back to
+                # the legacy re-decode path in wrapper_l2_retrieve.
+                try:
+                    pil_image = frame.to_image()
+                except Exception:
+                    pil_image = None
                 output_frames.append({
                     "frame_idx": total_frames,
                     "timestamp": timestamp,
                     "tier": tier,
                     "residual_energy": residual_energy,
                     "motion_vectors": motion_vectors,
+                    "pil_image": pil_image,
                     **geom
                 })
 

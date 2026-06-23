@@ -1,0 +1,81 @@
+{
+  "video": "benchmark_results\\mov_bbb.mp4",
+  "query": "What action events happen in this video?",
+  "runs": 1,
+  "avg_total_ms": 29201.42,
+  "stages": [
+    {
+      "stage": "cerberus_nli",
+      "latency_ms": 13131.14,
+      "percentage_of_total": 44.97
+    },
+    {
+      "stage": "aria_inference",
+      "latency_ms": 7811.84,
+      "percentage_of_total": 26.75
+    },
+    {
+      "stage": "clip_model_load",
+      "latency_ms": 3821.3,
+      "percentage_of_total": 13.09
+    },
+    {
+      "stage": "clip_embedding",
+      "latency_ms": 2790.45,
+      "percentage_of_total": 9.56
+    },
+    {
+      "stage": "charon_v_total",
+      "latency_ms": 1570.99,
+      "percentage_of_total": 5.38
+    },
+    {
+      "stage": "l2_enrich_and_query_embed",
+      "latency_ms": 61.63,
+      "percentage_of_total": 0.21
+    },
+    {
+      "stage": "l1_elysium",
+      "latency_ms": 6.74,
+      "percentage_of_total": 0.02
+    },
+    {
+      "stage": "l2_graph_build",
+      "latency_ms": 5.62,
+      "percentage_of_total": 0.02
+    },
+    {
+      "stage": "action_score_normalize",
+      "latency_ms": 0.91,
+      "percentage_of_total": 0.0
+    },
+    {
+      "stage": "l2_retrieval",
+      "latency_ms": 0.46,
+      "percentage_of_total": 0.0
+    },
+    {
+      "stage": "cerberus_claim_extract",
+      "latency_ms": 0.26,
+      "percentage_of_total": 0.0
+    },
+    {
+      "stage": "action_score_nms",
+      "latency_ms": 0.04,
+      "percentage_of_total": 0.0
+    },
+    {
+      "stage": "aria_prompt_build",
+      "latency_ms": 0.04,
+      "percentage_of_total": 0.0
+    }
+  ],
+  "search_pool": {
+    "total_frames": 250,
+    "candidate_frames": 28,
+    "peak_frames": 1,
+    "retrieved_frames": 5,
+    "frames_sent_to_aria": 5
+  },
+  "context_tokens": 78
+}

@@ -124,6 +124,28 @@ def get_frame_clip_embedding(frame: av.video.frame.VideoFrame, device: str) -> n
         return np.zeros(512, dtype=np.float32)
 
 
+def get_clip_embedding_from_pil(pil_image, device: str) -> np.ndarray:
+    """Extract normalized CLIP embedding from a PIL image.
+
+    Used by the PIL-cache fast path in wrapper_l2_retrieve to avoid re-opening
+    the video file when Charon-V has already captured frame images during its
+    2nd decode pass.
+    """
+    model, preprocess = get_clip_model()
+    if model is None or pil_image is None:
+        return np.zeros(512, dtype=np.float32)
+    try:
+        import torch
+        image_input = preprocess(pil_image).unsqueeze(0).to(device)
+        with torch.no_grad():
+            image_features = model.encode_image(image_input)
+            image_features /= image_features.norm(dim=-1, keepdim=True)
+            return image_features.cpu().numpy().flatten().astype(np.float32)
+    except Exception as e:
+        print(f"Warning: Failed to extract CLIP embedding from PIL image: {e}")
+        return np.zeros(512, dtype=np.float32)
+
+
 # --- Isolation Wrappers for Active/In-Progress Modules ---
 
 def wrapper_init_l1_cache(config: object = None) -> object:
@@ -192,7 +214,14 @@ def wrapper_populate_cache(cache_obj: object, retrieved_frames: list[dict]) -> N
 
 
 def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: list[dict], config: object = None) -> list[dict]:
-    """Isolate L2 Asphodel graph retrieval. Fallback to sorted action/energy scores if graph is a stub."""
+    """Isolate L2 Asphodel graph retrieval. Fallback to sorted action/energy scores if graph is a stub.
+
+    Optimisations applied:
+      1. PIL-cache fast path: if Charon-V stored pil_image for every candidate frame,
+         CLIP embeddings are extracted directly from those images — no 3rd video decode.
+      2. Bulk graph build: add_frame_nodes_bulk + enrich_nodes_bulk call
+         _update_all_edge_weights / _update_pagerank ONCE instead of N times.
+    """
     l2_retrieve_top_k = getattr(config, "l2_retrieve_top_k", 5)
     try:
         from l2_asphodel import L2Asphodel
@@ -207,8 +236,8 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
     import clip
     import torch
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    
-    # 1. Generate query embedding
+
+    # 1. Generate query embedding from text
     model, _ = get_clip_model()
     if model is not None:
         try:
@@ -222,39 +251,69 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
     else:
         query_embedding = np.zeros(512, dtype=np.float32)
 
-    # 2. Build L2Asphodel graph and index frames
+    # 2. Build L2Asphodel graph and index frames.
+    #    Fast path: use PIL images cached by Charon-V's 2nd pass (no re-decode).
+    #    Legacy path: open the video and decode all frames (original behaviour).
     graph = L2Asphodel(config=config)
     frame_map = {f["frame_idx"]: f for f in frames_to_index}
-    
-    container = av.open(str(video_path))
-    for idx, frame in enumerate(container.decode(video=0)):
-        if idx in frame_map:
-            f_data = frame_map[idx]
-            
-            # Prepare feature record and action score record
-            clip_emb = get_frame_clip_embedding(frame, device)
+
+    # Check whether every candidate frame has a usable PIL image from Charon-V.
+    has_pil_cache = bool(frames_to_index) and all(
+        f.get("pil_image") is not None for f in frames_to_index
+    )
+
+    feature_records = []
+    score_records   = []
+    enrichment_map  = {}  # frame_idx -> clip embedding
+
+    if has_pil_cache:
+        # ── Fast path (no 3rd video decode) ──────────────────────────────
+        for f_data in frames_to_index:
+            clip_emb = get_clip_embedding_from_pil(f_data["pil_image"], device)
             f_data["clip_embedding"] = clip_emb
-            f_data["caption"] = get_zero_shot_caption(clip_emb, device)
-            
-            feature_record = {
-                "frame_idx": f_data["frame_idx"],
-                "timestamp": f_data["timestamp"],
-                "residual_energy": f_data["residual_energy"],
-                "motion_magnitude": f_data.get("motion_magnitude", 0.0),
-                "entropy": f_data.get("entropy", 0.0),
-                "refined_motion_tensor": np.zeros(1, dtype=np.float32)
-            }
-            score_record = {
-                "action_score": f_data["action_score"],
-                "persistence_value": f_data["persistence_value"]
-            }
-            
-            # Add to graph (Cold-Start)
-            graph.add_frame_node(feature_record, score_record)
-            # Enrich with CLIP embedding
-            graph.enrich_node(f_data["frame_idx"], triples=[], embedding=clip_emb)
-            
-    container.close()
+            f_data["caption"]        = get_zero_shot_caption(clip_emb, device)
+
+            feature_records.append({
+                "frame_idx":            f_data["frame_idx"],
+                "timestamp":            f_data["timestamp"],
+                "residual_energy":      f_data["residual_energy"],
+                "motion_magnitude":     f_data.get("motion_magnitude", 0.0),
+                "entropy":              f_data.get("entropy", 0.0),
+                "refined_motion_tensor": np.zeros(1, dtype=np.float32),
+            })
+            score_records.append({
+                "action_score":     f_data["action_score"],
+                "persistence_value": f_data["persistence_value"],
+            })
+            enrichment_map[f_data["frame_idx"]] = clip_emb
+    else:
+        # ── Legacy path (full video decode) ──────────────────────────────
+        container = av.open(str(video_path))
+        for idx, frame in enumerate(container.decode(video=0)):
+            if idx in frame_map:
+                f_data   = frame_map[idx]
+                clip_emb = get_frame_clip_embedding(frame, device)
+                f_data["clip_embedding"] = clip_emb
+                f_data["caption"]        = get_zero_shot_caption(clip_emb, device)
+
+                feature_records.append({
+                    "frame_idx":            f_data["frame_idx"],
+                    "timestamp":            f_data["timestamp"],
+                    "residual_energy":      f_data["residual_energy"],
+                    "motion_magnitude":     f_data.get("motion_magnitude", 0.0),
+                    "entropy":              f_data.get("entropy", 0.0),
+                    "refined_motion_tensor": np.zeros(1, dtype=np.float32),
+                })
+                score_records.append({
+                    "action_score":     f_data["action_score"],
+                    "persistence_value": f_data["persistence_value"],
+                })
+                enrichment_map[f_data["frame_idx"]] = clip_emb
+        container.close()
+
+    # Bulk graph build: PageRank runs exactly once regardless of N.
+    graph.add_frame_nodes_bulk(feature_records, score_records)
+    graph.enrich_nodes_bulk(enrichment_map)
 
     # 3. Perform hybrid retrieval
     if frames_to_index:

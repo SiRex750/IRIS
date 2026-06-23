@@ -1,0 +1,129 @@
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.rm{padding:1rem 0}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.leg{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--color-text-secondary)}
+.dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.track{margin-bottom:24px}
+.track-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.track-label{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.owner-pill{font-size:11px;padding:2px 8px;border-radius:12px;font-weight:500}
+.cards{display:flex;flex-direction:column;gap:6px}
+.card{border-radius:var(--border-radius-md);padding:10px 14px;border:0.5px solid var(--color-border-tertiary);background:var(--color-background-secondary)}
+.card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.card-title{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.status{font-size:11px;padding:1px 7px;border-radius:8px;font-weight:500}
+.done{background:#EAF3DE;color:#3B6D11}
+.active{background:#E6F1FB;color:#185FA5}
+.next{background:#FAEEDA;color:#854F0B}
+.blocked{background:#FAECE7;color:#993C1D}
+.card-sub{font-size:12px;color:var(--color-text-secondary);line-height:1.5}
+.dep{font-size:11px;color:var(--color-text-tertiary);margin-top:4px}
+.divider{height:0.5px;background:var(--color-border-tertiary);margin:20px 0}
+.phase-label{font-size:11px;font-weight:500;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px}
+</style>
+<div class="rm">
+<div class="legend">
+  <div class="leg"><div class="dot" style="background:#639922"></div>Done</div>
+  <div class="leg"><div class="dot" style="background:#378ADD"></div>Active — build now</div>
+  <div class="leg"><div class="dot" style="background:#BA7517"></div>Next — unblocked after active</div>
+  <div class="leg"><div class="dot" style="background:#D85A30"></div>Blocked — needs dependency</div>
+</div>
+
+<div class="phase-label">Phase 1 — memory layer (parallel tracks)</div>
+
+<div class="track">
+  <div class="track-header">
+    <div class="dot" style="background:#534AB7;width:12px;height:12px;border-radius:2px"></div>
+    <div class="track-label">Track A — codec + cache core</div>
+    <div class="owner-pill" style="background:#EEEDFE;color:#3C3489">You (Siddanth)</div>
+  </div>
+  <div class="cards">
+    <div class="card">
+      <div class="card-top"><span class="card-title">charon_v.py — PEAK tier</span><span class="status done">Done</span></div>
+      <div class="card-sub">Two-pass adaptive threshold + argrelextrema local maxima. All tests passing.</div>
+    </div>
+    <div class="card">
+      <div class="card-top"><span class="card-title">l1_elysium.py — Phase 1 port</span><span class="status active">Active</span></div>
+      <div class="card-sub">Port cache.py → l1_elysium.py. Add source_residual to CacheEntry, set_residual_energy(), PEAK/SALIENT/CANDIDATE/SKIP budget multipliers, composite eviction key. Remove tiktoken → word-count.</div>
+      <div class="dep">Prompt already written — send to Antigravity now</div>
+    </div>
+    <div class="card">
+      <div class="card-top"><span class="card-title">iris_config.py — IRISConfig + ConfigManager</span><span class="status next">Next</span></div>
+      <div class="card-sub">IRISConfig dataclass (salient_thresh, candidate_thresh, α, β). ConfigManager loads GEPA JSON. Injects into set_residual_energy() calls.</div>
+      <div class="dep">Needs: l1_elysium.py done</div>
+    </div>
+  </div>
+</div>
+
+<div class="track">
+  <div class="track-header">
+    <div class="dot" style="background:#0F6E56;width:12px;height:12px;border-radius:2px"></div>
+    <div class="track-label">Track B — LLM abstraction + pipeline glue</div>
+    <div class="owner-pill" style="background:#E1F5EE;color:#085041">Teammate 2</div>
+  </div>
+  <div class="cards">
+    <div class="card">
+      <div class="card-top"><span class="card-title">aria.py — LLM interface</span><span class="status active">Active</span></div>
+      <div class="card-sub">Single generate(prompt, context) → str function. OpenAI backend now, swap to Llama 3.2 3B later. No OpenAI calls anywhere else in codebase.</div>
+      <div class="dep">Fully independent — start immediately</div>
+    </div>
+    <div class="card">
+      <div class="card-top"><span class="card-title">pipeline.py — end-to-end harness</span><span class="status next">Next</span></div>
+      <div class="card-sub">Wires charon_v → l1_elysium → aria → cerberus_v. Accepts video path + query, returns verified answer. Used for all integration testing.</div>
+      <div class="dep">Needs: l1_elysium.py + aria.py done</div>
+    </div>
+  </div>
+</div>
+
+<div class="track">
+  <div class="track-header">
+    <div class="dot" style="background:#993C1D;width:12px;height:12px;border-radius:2px"></div>
+    <div class="track-label">Track C — Video RAG (L2 Asphodel)</div>
+    <div class="owner-pill" style="background:#FAECE7;color:#712B13">Teammate 3</div>
+  </div>
+  <div class="cards">
+    <div class="card">
+      <div class="card-top"><span class="card-title">l2_asphodel.py — graph schema</span><span class="status active">Active</span></div>
+      <div class="card-sub">NetworkX graph. Node schema: frame_idx, timestamp, tier, clip_embedding, refined_motion_tokens, residual_energy. Hybrid retrieval: (semantic × α) + (motion_intensity × β). α/β from IRISConfig.</div>
+      <div class="dep">Can start schema design now — IRISConfig needed for α/β injection later</div>
+    </div>
+    <div class="card">
+      <div class="card-top"><span class="card-title">video_rag_integration.py — baseline port</span><span class="status next">Next</span></div>
+      <div class="card-sub">Port teammate's flat video_rag_web.py into the IRIS node schema. This becomes Ablation 0. CLIP embeddings stay, motion tokens added on top.</div>
+      <div class="dep">Needs: l2_asphodel.py schema locked</div>
+    </div>
+  </div>
+</div>
+
+<div class="track">
+  <div class="track-header">
+    <div class="dot" style="background:#185FA5;width:12px;height:12px;border-radius:2px"></div>
+    <div class="track-label">Track D — NLI gate + eval</div>
+    <div class="owner-pill" style="background:#E6F1FB;color:#0C447C">Teammate 4</div>
+  </div>
+  <div class="cards">
+    <div class="card">
+      <div class="card-top"><span class="card-title">cerberus_v.py — NLI truth gate</span><span class="status active">Active</span></div>
+      <div class="card-sub">Port Cerberus from HADES. Add video-specific context: flush_scratch() entries verified against PEAK/SALIENT frame facts. DeBERTa-v3 backend.</div>
+      <div class="dep">HADES cerberus.py is the starting point — same port pattern as l1_elysium</div>
+    </div>
+    <div class="card">
+      <div class="card-top"><span class="card-title">eval_suite.py — ablation harness</span><span class="status next">Next</span></div>
+      <div class="card-sub">Runs all 4 ablation conditions against test videos. Outputs accuracy, compression ratio, latency per condition. Feeds GEPA logs.</div>
+      <div class="dep">Needs: pipeline.py + cerberus_v.py done</div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+<div class="phase-label">Phase 2 — integration gate (all tracks merge)</div>
+
+<div class="card">
+  <div class="card-top"><span class="card-title">First full pipeline run</span><span class="status blocked">Blocked</span></div>
+  <div class="card-sub">charon_v → l1_elysium → l2_asphodel → aria → cerberus_v on real video with real query. All 4 tracks must be complete.</div>
+  <div class="dep">Needs: all Track A–D active items done</div>
+</div>
+
+</div>
