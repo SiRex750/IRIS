@@ -46,14 +46,18 @@ class L1ElysiumCache:
         self._config: IRISConfig = config or IRISConfig()
         self._frames: dict[int, CachedFrame] = {}
         self._admission_counter: int = 0
+        self.hits: int = 0
+        self.misses: int = 0
 
     # ── Public interface ───────────────────────────────────────────────────
 
     def admit(self, frame: CachedFrame) -> None:
         if frame.frame_idx in self._frames:
+            self.hits += 1
             self._frames[frame.frame_idx] = frame
             return
 
+        self.misses += 1
         if self.is_full:
             self._evict_one()
 
@@ -177,16 +181,30 @@ class L1ElysiumCache:
         Used by as_context_text() so ARIA's prompt context is rich and complete.
         NOT used for Cerberus-V NLI verification.
         """
-        base = f"Frame {frame.frame_idx} at {frame.timestamp_sec:.2f}s"
-        if getattr(frame, "caption", None):
-            return (
-                f"{base}: {frame.caption}. "
-                f"(action score {frame.action_score:.4f}, persistence {frame.persistence_value:.4f})"
-            )
-        return (
-            f"{base} depicts action score {frame.action_score:.4f}, "
-            f"persistence {frame.persistence_value:.4f}."
-        )
+        caption_val = getattr(frame, "caption", None)
+        if isinstance(caption_val, dict):
+            semantic_caption = caption_val.get("semantic_caption") or "[CAPTION_FAILED]"
+        else:
+            semantic_caption = caption_val or "[CAPTION_FAILED]"
+            
+        parts = [
+            f"Frame {frame.frame_idx}",
+            f"Timestamp: {frame.timestamp_sec:.1f}s",
+            "",
+            f"Caption:\n{semantic_caption}",
+            "",
+            f"Action Score:\n{frame.action_score:.2f}",
+            "",
+            f"Persistence:\n{frame.persistence_value:.2f}"
+        ]
+        
+        if frame.is_peak:
+            parts.extend([
+                "",
+                f"Selection Reason:\nTop peak after NMS."
+            ])
+            
+        return "\n".join(parts)
 
     @staticmethod
     def _frame_to_nli_fact(frame: "CachedFrame") -> str | None:
@@ -195,16 +213,25 @@ class L1ElysiumCache:
         Returns ONLY the natural-language scene description — no action_score,
         no persistence_value, no bare numbers.  An NLI model cannot meaningfully
         reason about internal pipeline metrics, and numeric metadata phrased as
-        sentences produces false contradiction verdicts (e.g. 'persistence 0.0000'
-        contradicting 'notable persistence in interactions').
+        sentences produces false contradiction verdicts.
 
         Returns None if the frame has no caption.  A frame without a semantic
-        caption has nothing meaningful to contribute to the NLI fact pool —
-        a bare numeric line is not a real fact about the scene.
+        caption has nothing meaningful to contribute to the NLI fact pool.
         """
-        if not getattr(frame, "caption", None):
+        caption_val = getattr(frame, "caption", None)
+        if not caption_val:
             return None
-        return f"Frame {frame.frame_idx} at {frame.timestamp_sec:.2f}s: {frame.caption}."
+            
+        if isinstance(caption_val, dict):
+            semantic_caption = caption_val.get("semantic_caption")
+        else:
+            semantic_caption = caption_val
+            
+        # Reject silent fallback, failed captions, or legacy fake content
+        if not semantic_caption or semantic_caption == "[CAPTION_FAILED]" or "rabbit" in semantic_caption.lower() or "meadow" in semantic_caption.lower():
+            return None
+            
+        return f"Frame {frame.frame_idx} at {frame.timestamp_sec:.2f}s: {semantic_caption}."
 
     def as_context_text(self) -> str:
         """Full context string for ARIA's prompt.
@@ -212,10 +239,10 @@ class L1ElysiumCache:
         Includes numeric pipeline metrics so ARIA can reference them in prose.
         Uses _frame_to_display_text(), not the NLI-only variant.
         """
-        lines = ["Fact Cache:"]
+        frame_blocks = []
         for frame in self._frames.values():
-            lines.append(self._frame_to_display_text(frame))
-        return "\n".join(lines)
+            frame_blocks.append(self._frame_to_display_text(frame))
+        return "\n\n---\n\n".join(frame_blocks)
 
     @property
     def set_facts(self) -> dict:

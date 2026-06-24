@@ -22,7 +22,9 @@ class IRISConfig:
 
     # ── L2 Asphodel retrieval ─────────────────────────────────────────────
     alpha: float = 0.4   # semantic weight in L2 retrieval blend
-    beta:  float = 0.6   # motion weight in L2 retrieval blend
+    beta:  float = 0.3   # motion weight in L2 retrieval blend
+    gamma: float = 0.3   # persistence weight in L2 retrieval blend
+    retrieval_strategy: str = "hybrid"  # strategy: "peak_only", "top_k_action", "peak_neighbors", "hybrid"
 
     # ── Cerberus-V ────────────────────────────────────────────────────────
     cerberus_high_thresh: float = 0.70  # action_score >= this → full NLI
@@ -39,6 +41,9 @@ class IRISConfig:
 
     # ── L2 retrieve top-k ─────────────────────────────────────────────────
     l2_retrieve_top_k:      int   = 5
+
+    # ── Visual Debug Mode ──────────────────────────────────────────────────
+    visual_debug_mode:      bool  = False
 
     # ── L1 Elysium — capacity ─────────────────────────────────────────────
     # Maximum number of CachedFrame entries L1 holds at once.
@@ -80,6 +85,12 @@ class IRISConfig:
         assert 0.0 <= self.persistence_threshold <= 1.0, "persistence_threshold must be between 0 and 1"
         assert self.max_prominence > 0, "max_prominence must be positive"
         assert self.l2_retrieve_top_k > 0, "l2_retrieve_top_k must be positive"
+        assert self.alpha >= 0.0, "alpha must be non-negative"
+        assert self.beta >= 0.0, "beta must be non-negative"
+        assert self.gamma >= 0.0, "gamma must be non-negative"
+        assert self.retrieval_strategy in {"peak_only", "top_k_action", "peak_neighbors", "hybrid"}, (
+            f"Invalid retrieval_strategy '{self.retrieval_strategy}'"
+        )
 
         l1_weight_sum = round(
             self.l1_w_action + self.l1_w_query + self.l1_w_persist

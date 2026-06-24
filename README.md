@@ -57,7 +57,18 @@ Nothing merges to `main` without tests passing.
 
 ```bash
 pip install -r requirements.txt
-pip install git+https://github.com/openai/CLIP.git
+```
+
+Run the API from the same Python environment that installed the requirements, for example:
+
+```bash
+python -m uvicorn api:app --reload --host 0.0.0.0 --port 8000
+```
+
+If you want the frontend to target a different backend host or port, set `VITE_IRIS_API_URL` before starting Vite, for example:
+
+```bash
+VITE_IRIS_API_URL=http://localhost:8000
 ```
 
 ## Hardware target

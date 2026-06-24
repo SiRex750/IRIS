@@ -57,7 +57,8 @@ class CachedFrame:
     # None until the VLM encoder processes this frame.
     # When filled: numpy array of shape (D,), dtype=bfloat16
     embedding: np.ndarray | None = None
-    caption: str | None = None
+    caption: str | dict | None = None
+    reasons: list[str] | None = None
 
     def keep_score(
         self,
