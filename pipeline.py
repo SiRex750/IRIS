@@ -297,6 +297,17 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
     l2_retrieve_top_k = getattr(config, "l2_retrieve_top_k", 5)
     try:
         from l2_asphodel import L2Asphodel
+        if not hasattr(L2Asphodel, "batch_add_frame_nodes"):
+            def batch_add_frame_nodes(self, node_records):
+                feature_records = [r[0] for r in node_records]
+                action_score_records = [r[1] for r in node_records]
+                self.add_frame_nodes_bulk(feature_records, action_score_records)
+            L2Asphodel.batch_add_frame_nodes = batch_add_frame_nodes
+        if not hasattr(L2Asphodel, "batch_enrich_nodes"):
+            def batch_enrich_nodes(self, enrichment_records):
+                enrichment_map = {r[0]: r[2] for r in enrichment_records}
+                self.enrich_nodes_bulk(enrichment_map)
+            L2Asphodel.batch_enrich_nodes = batch_enrich_nodes
     except ImportError:
         sorted_frames = sorted(
             frames_to_index,
@@ -334,9 +345,9 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
         f.get("pil_image") is not None for f in frames_to_index
     )
 
-    feature_records = []
-    score_records   = []
-    enrichment_map  = {}  # frame_idx -> clip embedding
+    # Pass 1: collect all node data without touching the graph
+    node_records = []       # list of (feature_record, score_record)
+    enrichment_records = [] # list of (frame_idx, triples, embedding)
 
     if has_pil_cache:
         # ── Fast path (no 3rd video decode) ──────────────────────────────
@@ -347,19 +358,20 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
             caption = get_semantic_and_clip_caption(f_data["pil_image"], None, clip_emb, device)
             f_data["caption"] = caption
 
-            feature_records.append({
+            feature_record = {
                 "frame_idx":            f_data["frame_idx"],
                 "timestamp":            f_data["timestamp"],
                 "residual_energy":      f_data["residual_energy"],
                 "motion_magnitude":     f_data.get("motion_magnitude", 0.0),
                 "entropy":              f_data.get("entropy", 0.0),
                 "refined_motion_tensor": np.zeros(1, dtype=np.float32),
-            })
-            score_records.append({
+            }
+            score_record = {
                 "action_score":     f_data["action_score"],
                 "persistence_value": f_data["persistence_value"],
-            })
-            enrichment_map[f_data["frame_idx"]] = clip_emb
+            }
+            node_records.append((feature_record, score_record))
+            enrichment_records.append((f_data["frame_idx"], [], clip_emb))
     else:
         # ── Legacy path (full video decode) ──────────────────────────────
         container = av.open(str(video_path))
@@ -376,24 +388,25 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
                 caption = get_semantic_and_clip_caption(pil_img, frame, clip_emb, device)
                 f_data["caption"] = caption
 
-                feature_records.append({
+                feature_record = {
                     "frame_idx":            f_data["frame_idx"],
                     "timestamp":            f_data["timestamp"],
                     "residual_energy":      f_data["residual_energy"],
                     "motion_magnitude":     f_data.get("motion_magnitude", 0.0),
                     "entropy":              f_data.get("entropy", 0.0),
                     "refined_motion_tensor": np.zeros(1, dtype=np.float32),
-                })
-                score_records.append({
+                }
+                score_record = {
                     "action_score":     f_data["action_score"],
                     "persistence_value": f_data["persistence_value"],
-                })
-                enrichment_map[f_data["frame_idx"]] = clip_emb
+                }
+                node_records.append((feature_record, score_record))
+                enrichment_records.append((f_data["frame_idx"], [], clip_emb))
         container.close()
 
-    # Bulk graph build: PageRank runs exactly once regardless of N.
-    graph.add_frame_nodes_bulk(feature_records, score_records)
-    graph.enrich_nodes_bulk(enrichment_map)
+    # Pass 2: batch index into graph — single edge+pagerank recompute each
+    graph.batch_add_frame_nodes(node_records)
+    graph.batch_enrich_nodes(enrichment_records)
 
     # 3. Perform hybrid retrieval
     if frames_to_index:
@@ -616,8 +629,13 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
     t_aria = time.time() - t_aria_start
 
     # 7. Extract sentence-level claims from the raw answer
-    sentences = re.split(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s', raw_answer)
-    claims = [s.strip() for s in sentences if s.strip()]
+    # Strip markdown before splitting
+    clean_answer = re.sub(r'\*\*.*?\*\*:?\s*', '', raw_answer)
+    clean_answer = re.sub(r'^\s*[-*]\s+', '', clean_answer, flags=re.MULTILINE)
+    clean_answer = re.sub(r'^\s*\d+\.\s+', '', clean_answer, flags=re.MULTILINE)
+    clean_answer = re.sub(r'\n+', ' ', clean_answer).strip()
+    raw_sentences = re.split(r'(?<=[.!?])\s+', clean_answer)
+    claims = [s.strip() for s in raw_sentences if len(s.strip()) >= 12]
 
     # 8. Run claims through Cerberus-V NLI truth gate
     t_cerberus_start = time.time()

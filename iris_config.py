@@ -64,6 +64,29 @@ class IRISConfig:
     l1_w_hessian:  float = 0.10
     l1_w_recency:  float = 0.05
 
+    # ── L1 Elysium — dual-vector query weights (Contribution 3) ────────
+    # Controls the blend between visual-embedding similarity and motion-
+    # embedding similarity when ranking frames during query().
+    # Must sum to 1.0. GEPA can shift toward motion for CCTV anomaly
+    # queries or toward visual for sports highlights.
+    l1_visual_query_weight: float = 0.70
+    l1_motion_query_weight: float = 0.30
+
+    # ── L2 Tiered Index (Contribution 4) ─────────────────────────────
+    # Embedding dimensionality (must match VLM encoder output).
+    l2_embed_dim:       int   = 512
+    # HNSW parameters for SALIENT tier
+    l2_hnsw_m:          int   = 32    # graph connectivity
+    l2_hnsw_ef_search:  int   = 64    # search depth
+    # Product Quantization parameters for CANDIDATE tier
+    l2_pq_m:            int   = 8     # number of subquantizers
+    l2_pq_nbits:        int   = 8     # bits per subquantizer
+    # Minimum candidate count before PQ training; below this, fall back to FlatIP
+    l2_pq_min_train:    int   = 100
+    # Tier routing threshold for SALIENT (frames with action_score >= this
+    # that are not peaks go to HNSW)
+    l2_salient_action_thresh: float = 0.35
+
     def validate(self) -> None:
         """
         Sanity-check all config values.
@@ -104,6 +127,28 @@ class IRISConfig:
         )
         assert abs(l1_weight_sum - 1.0) < 1e-4, (
             f"L1 eviction weights must sum to 1.0, got {l1_weight_sum}"
+        )
+
+        # ── Dual-vector query weights (C3) ──
+        dv_sum = round(self.l1_visual_query_weight + self.l1_motion_query_weight, 6)
+        assert abs(dv_sum - 1.0) < 1e-4, (
+            f"Dual-vector query weights must sum to 1.0, got {dv_sum}"
+        )
+        assert self.l1_visual_query_weight >= 0.0, "l1_visual_query_weight must be non-negative"
+        assert self.l1_motion_query_weight >= 0.0, "l1_motion_query_weight must be non-negative"
+
+        # ── L2 tiered index (C4) ──
+        assert self.l2_embed_dim > 0, "l2_embed_dim must be positive"
+        assert self.l2_hnsw_m > 0, "l2_hnsw_m must be positive"
+        assert self.l2_hnsw_ef_search > 0, "l2_hnsw_ef_search must be positive"
+        assert self.l2_pq_m > 0, "l2_pq_m must be positive"
+        assert self.l2_pq_nbits > 0, "l2_pq_nbits must be positive"
+        assert self.l2_embed_dim % self.l2_pq_m == 0, (
+            f"l2_embed_dim ({self.l2_embed_dim}) must be divisible by l2_pq_m ({self.l2_pq_m})"
+        )
+        assert self.l2_pq_min_train > 0, "l2_pq_min_train must be positive"
+        assert 0.0 <= self.l2_salient_action_thresh <= 1.0, (
+            "l2_salient_action_thresh must be in [0, 1]"
         )
 
 

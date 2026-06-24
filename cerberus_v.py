@@ -15,7 +15,6 @@ import psutil
 from typing import Any, Iterable
 
 from iris_config import IRISConfig, ConfigManager
-from cache import L1Cache
 from triple import KnowledgeTriple
 
 
@@ -124,7 +123,7 @@ class CerberusV:
     def verify(
         self,
         claims: list[str],
-        cache: L1Cache,
+        cache: object,
         action_score: float,
         config: IRISConfig,
     ) -> dict:

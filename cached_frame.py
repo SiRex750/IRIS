@@ -60,6 +60,44 @@ class CachedFrame:
     caption: str | dict | None = None
     reasons: list[str] | None = None
 
+    # --- Motion embedding (Contribution 3: Dual-Vector) ---
+    # 6-D float32 unit vector built from FrameMotionDescriptor fields.
+    # Enables dual-space retrieval (visual + motion).
+    # None until build_motion_embedding() is called.
+    motion_embedding: np.ndarray | None = None
+
+    def build_motion_embedding(self) -> None:
+        """
+        Build a 6-D motion fingerprint from FrameMotionDescriptor fields.
+
+        Packs the six codec geometry signals into a compact vector and
+        L2-normalises it to a unit vector for cosine similarity.
+
+        The resulting motion_embedding enables dual-space retrieval where
+        queries can match on motion dynamics independently of visual content.
+
+        Fields packed (in order):
+            residual_energy, divergence, curl,
+            jacobian_frobenius, hessian_max_eigenvalue, motion_entropy
+        """
+        raw = np.array(
+            [
+                self.motion.residual_energy,
+                self.motion.divergence,
+                self.motion.curl,
+                self.motion.jacobian_frobenius,
+                self.motion.hessian_max_eigenvalue,
+                self.motion.motion_entropy,
+            ],
+            dtype=np.float32,
+        )
+        norm = float(np.linalg.norm(raw))
+        if norm < 1e-8:
+            # All-zero descriptor → store zero vector (no motion signal)
+            self.motion_embedding = np.zeros(6, dtype=np.float32)
+        else:
+            self.motion_embedding = raw / norm
+
     def keep_score(
         self,
         total_admitted: int,

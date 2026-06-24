@@ -232,3 +232,168 @@ def test_pagerank_affects_keep_score():
     score_1 = cache._keep_score(cache._frames[1])
 
     assert score_0 > score_1
+
+
+# ── 5. Dual-vector representation (Contribution 3) ────────────────────────
+
+def make_frame_with_motion(
+    frame_idx: int,
+    action_score: float = 0.5,
+    persistence_value: float = 0.5,
+    residual_energy: float = 1.0,
+    divergence: float = 0.5,
+    curl: float = 0.3,
+    jacobian_frobenius: float = 0.8,
+    hessian: float = 0.6,
+    motion_entropy: float = 0.7,
+    embedding: np.ndarray | None = None,
+) -> CachedFrame:
+    """Build a CachedFrame with non-trivial FrameMotionDescriptor for dual-vector tests."""
+    motion = FrameMotionDescriptor(
+        frame_idx=frame_idx,
+        timestamp_sec=float(frame_idx),
+        residual_energy=residual_energy,
+        divergence=divergence,
+        curl=curl,
+        jacobian_frobenius=jacobian_frobenius,
+        hessian_max_eigenvalue=hessian,
+        motion_entropy=motion_entropy,
+    )
+    frame = CachedFrame(
+        frame_idx=frame_idx,
+        timestamp_sec=float(frame_idx),
+        action_score=action_score,
+        persistence_value=persistence_value,
+        is_peak=action_score >= 0.5,
+        motion=motion,
+        embedding=embedding,
+    )
+    frame.build_motion_embedding()
+    return frame
+
+
+def test_build_motion_embedding_shape_and_norm():
+    """build_motion_embedding() should produce a 6-D unit vector."""
+    frame = make_frame_with_motion(0)
+    assert frame.motion_embedding is not None
+    assert frame.motion_embedding.shape == (6,)
+    assert frame.motion_embedding.dtype == np.float32
+
+    norm = float(np.linalg.norm(frame.motion_embedding))
+    assert abs(norm - 1.0) < 1e-5, f"Expected unit vector, got norm={norm}"
+
+
+def test_build_motion_embedding_zero_vector():
+    """All-zero FrameMotionDescriptor should produce a zero motion_embedding."""
+    motion = FrameMotionDescriptor(
+        frame_idx=0,
+        timestamp_sec=0.0,
+        residual_energy=0.0,
+        divergence=0.0,
+        curl=0.0,
+        jacobian_frobenius=0.0,
+        hessian_max_eigenvalue=0.0,
+        motion_entropy=0.0,
+    )
+    frame = CachedFrame(
+        frame_idx=0,
+        timestamp_sec=0.0,
+        action_score=0.5,
+        persistence_value=0.5,
+        is_peak=False,
+        motion=motion,
+    )
+    frame.build_motion_embedding()
+    assert frame.motion_embedding is not None
+    assert float(np.linalg.norm(frame.motion_embedding)) < 1e-8
+
+
+def test_dual_vector_query_combines_similarities():
+    """When query_motion_embedding is provided, ranking should reflect
+    both visual and motion similarity."""
+    config = IRISConfig(l1_visual_query_weight=0.50, l1_motion_query_weight=0.50)
+    cache = L1ElysiumCache(config=config)
+
+    # Frame 0: good visual match, bad motion match
+    f0 = make_frame_with_motion(
+        0,
+        residual_energy=0.0, divergence=0.0, curl=0.0,
+        jacobian_frobenius=0.0, hessian=0.0, motion_entropy=1.0,
+        embedding=np.array([1.0, 0.0, 0.0], dtype=np.float32),
+    )
+    cache.admit(f0)
+
+    # Frame 1: bad visual match, good motion match
+    f1 = make_frame_with_motion(
+        1,
+        residual_energy=1.0, divergence=0.5, curl=0.3,
+        jacobian_frobenius=0.8, hessian=0.6, motion_entropy=0.7,
+        embedding=np.array([0.0, 1.0, 0.0], dtype=np.float32),
+    )
+    cache.admit(f1)
+
+    query_visual = np.array([1.0, 0.0, 0.0], dtype=np.float32)
+    # Motion query that matches frame 1's motion signature
+    query_motion = f1.motion_embedding.copy()
+
+    results = cache.query(query_visual, top_k=2, query_motion_embedding=query_motion)
+
+    # With 50/50 weighting:
+    # Frame 0: visual=1.0, motion=low → blended ~0.5
+    # Frame 1: visual=0.0, motion=1.0 → blended ~0.5
+    # The key test: both similarities were actually computed (non-zero query_similarity)
+    assert all(r.query_similarity > 0.0 for r in results), (
+        "Both frames should have non-zero combined similarity"
+    )
+
+
+def test_query_backward_compatible_without_motion():
+    """Existing callers without query_motion_embedding should work identically."""
+    cache = L1ElysiumCache()
+
+    emb = np.array([1.0, 0.0], dtype=np.float32)
+    cache.admit(make_frame(0, embedding=emb))
+
+    query_emb = np.array([1.0, 0.0], dtype=np.float32)
+    results = cache.query(query_emb, top_k=1)
+
+    assert results[0].query_similarity == pytest.approx(1.0, abs=1e-5)
+
+
+def test_dual_vector_gepa_weight_shift():
+    """Shifting weights toward motion should change rankings."""
+    # Visual-heavy config
+    config_v = IRISConfig(l1_visual_query_weight=0.90, l1_motion_query_weight=0.10)
+    # Motion-heavy config
+    config_m = IRISConfig(l1_visual_query_weight=0.10, l1_motion_query_weight=0.90)
+
+    for cfg, expected_first in [(config_v, 0), (config_m, 1)]:
+        cache = L1ElysiumCache(config=cfg)
+
+        # Frame 0: perfect visual match, zero motion
+        f0 = make_frame_with_motion(
+            0,
+            residual_energy=0.0, divergence=0.0, curl=0.0,
+            jacobian_frobenius=0.0, hessian=0.0, motion_entropy=0.0,
+            embedding=np.array([1.0, 0.0, 0.0], dtype=np.float32),
+        )
+        # Force motion embedding to zero (all-zero descriptor)
+        cache.admit(f0)
+
+        # Frame 1: zero visual match, strong motion
+        f1 = make_frame_with_motion(
+            1,
+            residual_energy=1.0, divergence=0.5, curl=0.3,
+            jacobian_frobenius=0.8, hessian=0.6, motion_entropy=0.7,
+            embedding=np.array([0.0, 0.0, 1.0], dtype=np.float32),
+        )
+        cache.admit(f1)
+
+        query_visual = np.array([1.0, 0.0, 0.0], dtype=np.float32)
+        query_motion = f1.motion_embedding.copy()
+
+        results = cache.query(query_visual, top_k=2, query_motion_embedding=query_motion)
+        assert results[0].frame_idx == expected_first, (
+            f"With visual={cfg.l1_visual_query_weight}, motion={cfg.l1_motion_query_weight}, "
+            f"expected frame {expected_first} first but got frame {results[0].frame_idx}"
+        )

@@ -66,37 +66,65 @@ class L1ElysiumCache:
         self._admission_counter += 1
 
     def query(
-    self,
-    query_embedding: np.ndarray,
-    top_k: int = 5,
+        self,
+        query_embedding: np.ndarray,
+        top_k: int = 5,
+        query_motion_embedding: np.ndarray | None = None,
     ) -> list[CachedFrame]:
+        """Rank cached frames by similarity to the query and return top-k.
+
+        Supports dual-space retrieval (Contribution 3):
+            total_sim = visual_weight × visual_sim + motion_weight × motion_sim
+
+        When *query_motion_embedding* is ``None``, pure visual retrieval is
+        used (backwards compatible with all existing call-sites).
+
+        Args:
+            query_embedding: Visual query vector (any dtype, cast to float32).
+            top_k: Maximum number of frames to return.
+            query_motion_embedding: Optional 6-D motion query vector.  When
+                provided, dual-space retrieval is activated.
+        """
         if not self._frames:
             return []
 
-        # Compute query norm once — reused for every frame's similarity.
-        # Cast to float32 because bfloat16 lacks full numpy support.
+        # --- visual query norm (computed once) ---
         q = query_embedding.astype(np.float32)
         q_norm = float(np.linalg.norm(q))
 
+        # --- motion query norm (computed once, if provided) ---
+        qm: np.ndarray | None = None
+        qm_norm: float = 0.0
+        use_dual = query_motion_embedding is not None
+        if use_dual:
+            qm = query_motion_embedding.astype(np.float32)
+            qm_norm = float(np.linalg.norm(qm))
+
+        w_visual = self._config.l1_visual_query_weight
+        w_motion = self._config.l1_motion_query_weight
+
         for frame in self._frames.values():
+            # --- visual similarity ---
+            visual_sim = 0.0
+            if frame.embedding is not None:
+                f = frame.embedding.astype(np.float32)
+                f_norm = float(np.linalg.norm(f))
+                if q_norm >= 1e-8 and f_norm >= 1e-8:
+                    visual_sim = max(0.0, min(1.0, float(np.dot(q, f) / (q_norm * f_norm))))
 
-            # Frame not yet encoded — no embedding to compare against.
-            if frame.embedding is None:
-                frame.query_similarity = 0.0
-                continue
+            # --- motion similarity (Contribution 3) ---
+            motion_sim = 0.0
+            if use_dual and frame.motion_embedding is not None and qm is not None:
+                fm = frame.motion_embedding.astype(np.float32)
+                fm_norm = float(np.linalg.norm(fm))
+                if qm_norm >= 1e-8 and fm_norm >= 1e-8:
+                    motion_sim = max(0.0, min(1.0, float(np.dot(qm, fm) / (qm_norm * fm_norm))))
 
-            # Cast frame embedding to float32 for computation.
-            f = frame.embedding.astype(np.float32)
-            f_norm = float(np.linalg.norm(f))
-
-            # Guard against zero vectors — dot / 0 is undefined.
-            if q_norm < 1e-8 or f_norm < 1e-8:
-                frame.query_similarity = 0.0
-                continue
-
-            # Cosine similarity, clipped to [0, 1].
-            sim = float(np.dot(q, f) / (q_norm * f_norm))
-            frame.query_similarity = max(0.0, min(1.0, sim))
+            # --- combined similarity ---
+            if use_dual:
+                frame.query_similarity = w_visual * visual_sim + w_motion * motion_sim
+            else:
+                frame.query_similarity = visual_sim
 
         # Re-sort by keep_score now that query_similarity is updated.
         # reverse=True because higher score = more relevant = comes first.
