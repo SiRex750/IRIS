@@ -559,6 +559,22 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
         frame["entropy"] = raw_map.get(frame_idx, {}).get("entropy", 0.0)
     t_action = time.time() - t_action_start
 
+    # If visual_debug_mode is enabled, save annotated candidate frames
+    if getattr(config, "visual_debug_mode", False):
+        import os
+        from PIL import ImageDraw
+        debug_frames_dir = os.path.join(os.path.dirname(str(video_path)), "debug_frames")
+        os.makedirs(debug_frames_dir, exist_ok=True)
+        for f in output_frames:
+            pil_img = f.get("pil_image")
+            if pil_img is not None:
+                annotated = pil_img.copy()
+                draw = ImageDraw.Draw(annotated)
+                text = f"Frame {f['frame_idx']} | Score: {f.get('action_score', 0.0):.4f}"
+                draw.text((10, 10), text, fill=(255, 0, 0))
+                out_name = f"frame_{f['frame_idx']:04d}.png"
+                annotated.save(os.path.join(debug_frames_dir, out_name))
+
     # 4. L2 Graph retrieval (dynamic indexing strategy selection)
     t_l2_start = time.time()
     strategy = getattr(config, "retrieval_strategy", "hybrid")
