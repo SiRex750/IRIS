@@ -1,0 +1,46 @@
+[
+  {
+    "condition": "baseline",
+    "frames_processed": 250,
+    "compression_ratio": 0.0,
+    "skipped_ratio": 0.0,
+    "latency_ms": 222797.6417541504,
+    "total_claims": 4,
+    "verified_claims_count": 0,
+    "rejected_claims_count": 0,
+    "unverifiable_claims_count": 4
+  },
+  {
+    "condition": "ablation_1",
+    "frames_processed": 10,
+    "compression_ratio": 0.96,
+    "skipped_ratio": 0.96,
+    "latency_ms": 7196.156978607178,
+    "total_claims": 3,
+    "verified_claims_count": 1,
+    "rejected_claims_count": 0,
+    "unverifiable_claims_count": 2
+  },
+  {
+    "condition": "ablation_2",
+    "frames_processed": 250,
+    "compression_ratio": 0.0,
+    "skipped_ratio": 0.0,
+    "latency_ms": 213031.0275554657,
+    "total_claims": 3,
+    "verified_claims_count": 1,
+    "rejected_claims_count": 1,
+    "unverifiable_claims_count": 1
+  },
+  {
+    "condition": "full_iris",
+    "frames_processed": 10,
+    "compression_ratio": 0.96,
+    "skipped_ratio": 0.96,
+    "latency_ms": 16641.282320022583,
+    "total_claims": 4,
+    "verified_claims_count": 1,
+    "rejected_claims_count": 1,
+    "unverifiable_claims_count": 2
+  }
+]

@@ -41,7 +41,12 @@ class OpenAIBackend(LLMBackend):
     def client(self):
         if self._client is None:
             if not self.api_key:
-                raise ValueError("OPENAI_API_KEY environment variable is not set.")
+                raise ValueError(
+                    "OPENAI_API_KEY environment variable is not set.\n"
+                    "To run IRIS dynamically, please either:\n"
+                    "  1. Set the OPENAI_API_KEY environment variable in your system or in a .env file.\n"
+                    "  2. Implement and select a local LLM backend (such as LlamaBackend using Ollama)."
+                )
             from openai import OpenAI
             self._client = OpenAI(api_key=self.api_key)
         return self._client

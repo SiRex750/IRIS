@@ -23,22 +23,33 @@ class MockLLMBackend(LLMBackend):
 
 @pytest.fixture(scope="module")
 def bbb_video():
-    local_video = os.path.join(os.path.dirname(__file__), "..", "mov_bbb.mp4")
-    if os.path.exists(local_video):
-        yield local_video
-        return
-
     url = "https://www.w3schools.com/html/mov_bbb.mp4"
     temp_video = "test_pipeline_video.mp4"
+    import time
     
-    # Download the video
-    try:
-        opener = urllib.request.build_opener()
-        opener.addheaders = [('User-Agent', 'Mozilla/5.0')]
-        urllib.request.install_opener(opener)
-        urllib.request.urlretrieve(url, temp_video)
-    except Exception as e:
-        pytest.skip(f"Could not download test video for integration test: {e}")
+    # Download the video with retries and timeout
+    success = False
+    for attempt in range(1, 4):
+        try:
+            opener = urllib.request.build_opener()
+            opener.addheaders = [('User-Agent', 'Mozilla/5.0')]
+            urllib.request.install_opener(opener)
+            with opener.open(url, timeout=15) as response:
+                with open(temp_video, 'wb') as f:
+                    f.write(response.read())
+            success = True
+            break
+        except Exception as e:
+            print(f"Download attempt {attempt} failed: {e}")
+            if os.path.exists(temp_video):
+                try:
+                    os.remove(temp_video)
+                except Exception:
+                    pass
+            time.sleep(2)
+            
+    if not success:
+        pytest.skip("Could not download test video for integration test (attempts exhausted)")
         
     yield temp_video
     
@@ -101,6 +112,33 @@ def test_pipeline_integration(bbb_video):
         assert compat_result["frames_processed"] == result["frames_processed"]
         assert compat_result["peak_count"] == result["peak_count"]
         assert compat_result["compression_ratio"] == result["skipped_frames_ratio"]
+        
+    finally:
+        # Restore original backend
+        aria.set_backend(original_backend)
+
+
+def test_aria_frame_mismatch_regression(bbb_video):
+    import re
+    # Set up Mock LLM backend to avoid using API credits
+    original_backend = aria.get_backend()
+    aria.set_backend(MockLLMBackend())
+    
+    try:
+        # Run pipeline with verbose=True so we get debug_info
+        result = run_pipeline(bbb_video, "Summarize the action events seen in the video.", verbose=True, nms_window=10)
+        
+        # 1. Extract frame indices from the returned retrieved_frames list in debug_info
+        retrieved_indices = {int(f["frame_idx"]) for f in result["debug_info"]["retrieved_frames"]}
+        
+        # 2. Extract frame indices from the context_text fed into ARIA
+        context_text = result["debug_info"]["context_text"]
+        context_indices = {int(m) for m in re.findall(r"Frame (\d+)", context_text)}
+        
+        # 3. Assert no frame in ARIA's context is absent from retrieved_frames, and vice versa
+        assert retrieved_indices == context_indices, (
+            f"Mismatch! retrieved_frames={retrieved_indices} vs context_text={context_indices}"
+        )
         
     finally:
         # Restore original backend

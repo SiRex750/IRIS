@@ -69,6 +69,8 @@ class CerberusV:
         filtered_nli: DeBERTa only on claims where confidence >= 0.6
         ner_only:     named entity overlap check, no DeBERTa forward pass
         """
+        if getattr(config, "disable_nli", False):
+            return "ner_only"
         if action_score >= config.cerberus_high_thresh:
             return "full_nli"
         elif action_score >= config.cerberus_low_thresh:

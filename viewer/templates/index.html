@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IRIS — Frame Viewer</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0e0e10;
+      --surface:   #18181b;
+      --border:    #2a2a2e;
+      --text:      #e4e4e7;
+      --muted:     #71717a;
+      --faint:     #3f3f46;
+
+      --peak:      #e05c5c;
+      --iframe:    #4a9eff;
+      --salient:   #e8a838;
+      --candidate: #666;
+      --skip:      #444;
+
+      --accent:    #4a9eff;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      padding: 32px 24px 64px;
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    /* ── Typography ─────────────────────────────── */
+    h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
+    h2 { font-size: 14px; font-weight: 600; text-transform: uppercase;
+         letter-spacing: 0.06em; color: var(--muted); }
+    .subtitle { color: var(--muted); margin-top: 4px; font-size: 13px; }
+    .subtitle strong { color: var(--text); }
+
+    /* ── Layout helpers ─────────────────────────── */
+    .stack   { display: flex; flex-direction: column; }
+    .row     { display: flex; flex-direction: row; align-items: center; }
+    .gap-4   { gap: 4px; }
+    .gap-8   { gap: 8px; }
+    .gap-12  { gap: 12px; }
+    .gap-16  { gap: 16px; }
+    .gap-24  { gap: 24px; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+    /* ── Stats strip ────────────────────────────── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin: 20px 0;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1.1;
+      color: var(--text);
+    }
+    .stat-value.accent  { color: var(--accent); }
+    .stat-value.success { color: #4ade80; }
+    .stat-value.danger  { color: var(--peak); }
+    .stat-label { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+    /* ── Filter pills ───────────────────────────── */
+    .filter-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+    .pill {
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    .pill:hover { border-color: var(--faint); color: var(--text); }
+    .pill.active { background: var(--surface); color: var(--text); border-color: var(--faint); }
+    .pill[data-tier="PEAK"].active       { border-color: var(--peak);      color: var(--peak); }
+    .pill[data-tier="I_FRAME"].active    { border-color: var(--iframe);    color: var(--iframe); }
+    .pill[data-tier="SALIENT"].active    { border-color: var(--salient);   color: var(--salient); }
+    .pill[data-tier="CANDIDATE"].active  { border-color: var(--candidate); color: var(--text); }
+
+    /* ── Callout ────────────────────────────────── */
+    .callout {
+      background: #1a2235;
+      border: 1px solid #2a3a5a;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: #93c5fd;
+      margin-bottom: 16px;
+      display: none;
+    }
+    .callout.visible { display: block; }
+
+    /* ── Frame grid ─────────────────────────────── */
+    .frame-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .frame-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      transition: border-color 0.12s, transform 0.12s;
+      cursor: default;
+    }
+    .frame-card:hover { transform: translateY(-2px); }
+    .frame-card:hover.tier-PEAK      { border-color: var(--peak); }
+    .frame-card:hover.tier-I_FRAME   { border-color: var(--iframe); }
+    .frame-card:hover.tier-SALIENT   { border-color: var(--salient); }
+    .frame-card:hover.tier-CANDIDATE { border-color: var(--faint); }
+
+    .frame-img-wrap { position: relative; }
+    .frame-img-wrap img { width: 100%; display: block; }
+
+    .tier-badge {
+      position: absolute;
+      top: 6px; left: 6px;
+      font-size: 9px; font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 3px;
+      letter-spacing: 0.06em;
+      color: #fff;
+    }
+    .badge-PEAK      { background: var(--peak); }
+    .badge-I_FRAME   { background: var(--iframe); }
+    .badge-SALIENT   { background: var(--salient); }
+    .badge-CANDIDATE { background: var(--candidate); }
+
+    .ts-badge {
+      position: absolute;
+      bottom: 6px; right: 6px;
+      font-size: 10px;
+      padding: 2px 5px;
+      border-radius: 3px;
+      background: rgba(0,0,0,0.65);
+      color: #fff;
+    }
+
+    .frame-meta {
+      padding: 8px 10px;
+      border-top: 1px solid var(--border);
+    }
+    .frame-meta .row { justify-content: space-between; }
+    .frame-idx  { font-size: 12px; font-weight: 600; }
+    .frame-ts   { font-size: 11px; color: var(--muted); }
+    .frame-res  { font-size: 11px; color: var(--muted); margin-top: 3px; }
+    .frame-res  span { color: var(--text); font-weight: 600; }
+    .frame-mvs  { font-size: 11px; color: var(--faint); margin-top: 2px; }
+
+    /* ── Legend ─────────────────────────────────── */
+    .legend-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .legend-item { display: flex; align-items: flex-start; gap: 10px; }
+    .legend-dot  { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; margin-top: 3px; }
+    .legend-title { font-size: 12px; font-weight: 600; }
+    .legend-desc  { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    /* ── Empty state ─────────────────────────────── */
+    .empty { text-align: center; color: var(--muted); padding: 40px; grid-column: 1 / -1; }
+
+    /* ── Loading ─────────────────────────────────── */
+    #loading { text-align: center; color: var(--muted); padding: 60px; }
+
+    @media (max-width: 900px)  { .frame-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 640px)  { .frame-grid { grid-template-columns: repeat(2, 1fr); } .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+  </style>
+</head>
+<body>
+
+  <div id="loading">Loading frame data...</div>
+  <div id="app" style="display:none">
+
+    <div class="stack gap-4">
+      <h1>IRIS — Kept Frames Viewer</h1>
+      <p class="subtitle">
+        These are the <strong id="kept-count">—</strong> frames Charon-V kept from
+        <strong id="video-name">—</strong> (<span id="total-count">—</span> total decoded).
+        Every other frame was SKIP — discarded before any AI model ran.
+      </p>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value" id="s-total">—</div>
+        <div class="stat-label">Total frames decoded</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value accent" id="s-kept">—</div>
+        <div class="stat-label">Kept by Charon-V</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="s-skip">—</div>
+        <div class="stat-label">Discarded (SKIP)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value success" id="s-ratio">—</div>
+        <div class="stat-label">Filter ratio</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="s-thresh">—</div>
+        <div class="stat-label">Adaptive salient threshold</div>
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    <h2 style="margin-bottom:10px">Filter by tier</h2>
+    <div class="filter-row">
+      <button class="pill active" data-tier="ALL">All (<span id="count-ALL">—</span>)</button>
+      <button class="pill" data-tier="I_FRAME">I-Frame (<span id="count-I_FRAME">—</span>)</button>
+      <button class="pill" data-tier="PEAK">Peak (<span id="count-PEAK">—</span>)</button>
+      <button class="pill" data-tier="SALIENT">Salient (<span id="count-SALIENT">—</span>)</button>
+      <button class="pill" data-tier="CANDIDATE">Candidate (<span id="count-CANDIDATE">—</span>)</button>
+    </div>
+
+    <div class="callout" id="tier-callout"></div>
+
+    <div class="frame-grid" id="frame-grid"></div>
+
+    <hr class="divider" />
+
+    <h2>What each tier means</h2>
+    <div class="legend-grid">
+      <div class="legend-item">
+        <div class="legend-dot" style="background:var(--iframe)"></div>
+        <div>
+          <div class="legend-title">I-Frame</div>
+          <div class="legend-desc">Scene anchor — full keyframe, no prediction from prior frames.</div>
+        </div>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:var(--peak)"></div>
+        <div>
+          <div class="legend-title">Peak</div>
+          <div class="legend-desc">Local residual energy maximum — genuine motion event. Goes to L2 Asphodel graph.</div>
+        </div>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:var(--salient)"></div>
+        <div>
+          <div class="legend-title">Salient</div>
+          <div class="legend-desc">Residual above the 97th-percentile adaptive threshold.</div>
+        </div>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:var(--candidate)"></div>
+        <div>
+          <div class="legend-title">Candidate</div>
+          <div class="legend-desc">Residual between 90th and 97th percentile — kept but lower priority.</div>
+        </div>
+      </div>
+    </div>
+    <p style="font-size:11px;color:var(--faint);margin-top:12px">
+      MVs = H.264 motion vectors (macroblock displacement count per frame) &nbsp;·&nbsp;
+      avg mag = mean displacement magnitude in pixels
+    </p>
+
+  </div><!-- #app -->
+
+  <script>
+    const TIER_DESCS = {
+      I_FRAME:   "Scene anchor — full keyframe, no prediction from prior frames.",
+      PEAK:      "Local residual energy maximum — this is a genuine motion event. IRIS stores these as Video RAG graph nodes in L2 Asphodel.",
+      SALIENT:   "Residual energy above the 97th-percentile adaptive threshold.",
+      CANDIDATE: "Residual between the 90th and 97th percentile — kept but lower priority than Salient/Peak.",
+    };
+
+    let allFrames = [];
+    let activeTier = "ALL";
+
+    async function loadData() {
+      const res  = await fetch("/api/frames");
+      const data = await res.json();
+
+      allFrames = data.frames;
+      const stats = data.stats;
+      const kept  = allFrames.length;
+
+      // Populate stats
+      document.getElementById("kept-count").textContent  = kept;
+      document.getElementById("total-count").textContent = stats.total;
+      document.getElementById("video-name").textContent  = data.video;
+      document.getElementById("s-total").textContent     = stats.total;
+      document.getElementById("s-kept").textContent      = kept;
+      document.getElementById("s-skip").textContent      = stats.skipped;
+      document.getElementById("s-ratio").textContent     = (stats.skipped / stats.total * 100).toFixed(1) + "%";
+      document.getElementById("s-thresh").textContent    = stats.salient_thresh_used.toFixed(4);
+
+      // Count per tier
+      const counts = { I_FRAME: 0, PEAK: 0, SALIENT: 0, CANDIDATE: 0 };
+      for (const f of allFrames) counts[f.tier] = (counts[f.tier] || 0) + 1;
+      document.getElementById("count-ALL").textContent       = kept;
+      document.getElementById("count-I_FRAME").textContent   = counts.I_FRAME  || 0;
+      document.getElementById("count-PEAK").textContent      = counts.PEAK     || 0;
+      document.getElementById("count-SALIENT").textContent   = counts.SALIENT  || 0;
+      document.getElementById("count-CANDIDATE").textContent = counts.CANDIDATE || 0;
+
+      renderFrames();
+
+      document.getElementById("loading").style.display = "none";
+      document.getElementById("app").style.display     = "block";
+    }
+
+    function renderFrames() {
+      const grid = document.getElementById("frame-grid");
+      grid.innerHTML = "";
+
+      const filtered = activeTier === "ALL"
+        ? allFrames
+        : allFrames.filter(f => f.tier === activeTier);
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '<div class="empty">No frames for this tier.</div>';
+        return;
+      }
+
+      for (const fr of filtered) {
+        const card = document.createElement("div");
+        card.className = `frame-card tier-${fr.tier}`;
+
+        // Build the image wrap
+        const imgWrap = document.createElement("div");
+        imgWrap.className = "frame-img-wrap";
+
+        const img = document.createElement("img");
+        img.src = `/api/frame/${fr.frame_idx}/image`;
+        img.alt = `Frame ${fr.frame_idx} (${fr.tier})`;
+        img.style.width = "100%";
+        img.style.display = "block";
+
+        const badge = document.createElement("div");
+        badge.className = `tier-badge badge-${fr.tier}`;
+        badge.textContent = fr.tier.replace("_", "-");
+
+        const ts = document.createElement("div");
+        ts.className = "ts-badge";
+        ts.textContent = fr.timestamp.toFixed(2) + "s";
+
+        imgWrap.appendChild(img);
+        imgWrap.appendChild(badge);
+        imgWrap.appendChild(ts);
+
+        // Build the metadata strip
+        const meta = document.createElement("div");
+        meta.className = "frame-meta";
+        meta.innerHTML = `
+          <div class="row">
+            <span class="frame-idx">Frame #${fr.frame_idx}</span>
+            <span class="frame-ts">${fr.timestamp.toFixed(3)}s</span>
+          </div>
+          <div class="frame-res">residual: <span>${fr.residual_energy.toFixed(5)}</span></div>
+          <div class="frame-mvs">${fr.mv_count} MVs · avg ${fr.mv_magnitude.toFixed(1)}px</div>`;
+
+        card.appendChild(imgWrap);
+        card.appendChild(meta);
+        grid.appendChild(card);
+      }
+    }
+
+    // Filter pill clicks
+    document.querySelectorAll(".pill").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".pill").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        activeTier = btn.dataset.tier;
+
+        const callout = document.getElementById("tier-callout");
+        if (activeTier !== "ALL") {
+          callout.textContent = TIER_DESCS[activeTier] || "";
+          callout.classList.add("visible");
+        } else {
+          callout.classList.remove("visible");
+        }
+
+        renderFrames();
+      });
+    });
+
+    loadData();
+  </script>
+</body>
+</html>
