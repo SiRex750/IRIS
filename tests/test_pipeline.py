@@ -25,15 +25,31 @@ class MockLLMBackend(LLMBackend):
 def bbb_video():
     url = "https://www.w3schools.com/html/mov_bbb.mp4"
     temp_video = "test_pipeline_video.mp4"
+    import time
     
-    # Download the video
-    try:
-        opener = urllib.request.build_opener()
-        opener.addheaders = [('User-Agent', 'Mozilla/5.0')]
-        urllib.request.install_opener(opener)
-        urllib.request.urlretrieve(url, temp_video)
-    except Exception as e:
-        pytest.skip(f"Could not download test video for integration test: {e}")
+    # Download the video with retries and timeout
+    success = False
+    for attempt in range(1, 4):
+        try:
+            opener = urllib.request.build_opener()
+            opener.addheaders = [('User-Agent', 'Mozilla/5.0')]
+            urllib.request.install_opener(opener)
+            with opener.open(url, timeout=15) as response:
+                with open(temp_video, 'wb') as f:
+                    f.write(response.read())
+            success = True
+            break
+        except Exception as e:
+            print(f"Download attempt {attempt} failed: {e}")
+            if os.path.exists(temp_video):
+                try:
+                    os.remove(temp_video)
+                except Exception:
+                    pass
+            time.sleep(2)
+            
+    if not success:
+        pytest.skip("Could not download test video for integration test (attempts exhausted)")
         
     yield temp_video
     
