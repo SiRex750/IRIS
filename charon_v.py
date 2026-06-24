@@ -283,6 +283,9 @@ def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = 
                         curr_candidate = c_thresh
                         break
             
+            # LEGACY / UNUSED: Tier classification is kept purely for backward compatibility 
+            # with Track A (l1_elysium.py) and Track C (l2_asphodel.py) in-flight work.
+            # The core Track B pipeline has transitioned to continuous action scoring in action_score.py.
             # Tier classification
             if frame.key_frame:
                 tier = "I_FRAME"
