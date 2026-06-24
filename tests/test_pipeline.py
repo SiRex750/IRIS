@@ -144,3 +144,42 @@ def test_aria_frame_mismatch_regression(bbb_video):
         # Restore original backend
         aria.set_backend(original_backend)
 
+
+def test_pipeline_visual_debug_mode(bbb_video):
+    # Set up Mock LLM backend
+    original_backend = aria.get_backend()
+    aria.set_backend(MockLLMBackend())
+    
+    from unittest.mock import patch
+    from iris_config import IRISConfig
+    
+    # Create a config with visual_debug_mode enabled
+    debug_config = IRISConfig()
+    debug_config.visual_debug_mode = True
+    
+    try:
+        # Patch ConfigManager.get_config to return our debug_config
+        with patch('iris_config.ConfigManager.get_config', return_value=debug_config):
+            # Run the pipeline with verbose=True
+            result = run_pipeline(bbb_video, "Summarize the action events.", verbose=True)
+            
+            # Since visual_debug_mode is enabled, there should be a "debug_frames" directory
+            # created next to the bbb_video path
+            debug_frames_dir = os.path.join(os.path.dirname(bbb_video), "debug_frames")
+            assert os.path.exists(debug_frames_dir)
+            
+            # Check that there are annotated frame PNG images saved inside it
+            saved_frames = os.listdir(debug_frames_dir)
+            assert len(saved_frames) > 0
+            for f in saved_frames:
+                assert f.startswith("frame_")
+                assert f.endswith(".png")
+                
+            # Clean up the generated debug frames
+            import shutil
+            shutil.rmtree(debug_frames_dir)
+            
+    finally:
+        # Restore original backend
+        aria.set_backend(original_backend)
+

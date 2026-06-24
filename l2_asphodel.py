@@ -77,14 +77,17 @@ class L2Asphodel:
         # Default weights injected from IRISConfig
         self.alpha: float = 0.4
         self.beta: float = 0.6
+        self.gamma: float = 0.0
 
         # Parse config fields if provided (handling both IRISConfig classes and dictionaries)
         if config is not None:
             self.alpha = getattr(config, "alpha", self.alpha)
             self.beta = getattr(config, "beta", self.beta)
+            self.gamma = getattr(config, "gamma", self.gamma)
             if isinstance(config, dict):
                 self.alpha = config.get("alpha", self.alpha)
                 self.beta = config.get("beta", self.beta)
+                self.gamma = config.get("gamma", self.gamma)
 
     def _update_all_edge_weights(self) -> None:
         """
@@ -379,26 +382,30 @@ class L2Asphodel:
 
         scored_nodes = []
         for node in nodes_data:
-            # Calculate Motion Score matching the query action score
-            if max_score_range == 0.0:
-                motion_score = 1.0
-            else:
-                motion_score = 1.0 - (abs(node.action_score - query_action_score) / max_score_range)
-
-            # Check for cold-start fallback
-            if node.embedding is None or query_embedding is None:
-                final_score = motion_score
-            else:
-                # Semantic cosine similarity
+            semantic_sim = 0.0
+            if node.embedding is not None and query_embedding is not None:
                 norm_node = np.linalg.norm(node.embedding)
                 norm_query = np.linalg.norm(query_embedding)
-                if norm_node == 0.0 or norm_query == 0.0:
-                    semantic_score = 0.0
-                else:
-                    semantic_score = float(np.dot(node.embedding, query_embedding) / (norm_node * norm_query))
-                
-                final_score = (semantic_score * self.alpha) + (motion_score * self.beta)
-
+                if norm_node > 0.0 and norm_query > 0.0:
+                    semantic_sim = float(np.dot(node.embedding, query_embedding) / (norm_node * norm_query))
+            
+            comp_sem = self.alpha * semantic_sim
+            comp_act = self.beta * node.action_score
+            comp_pers = self.gamma * node.persistence_value
+            final_score = comp_sem + comp_act + comp_pers
+            
+            print(f"[DEBUG] Node {node.frame_idx} retrieval score contributions: "
+                  f"semantic = {comp_sem:.4f} (sim={semantic_sim:.4f}, wt={self.alpha:.2f}), "
+                  f"action = {comp_act:.4f} (score={node.action_score:.4f}, wt={self.beta:.2f}), "
+                  f"persistence = {comp_pers:.4f} (persist={node.persistence_value:.4f}, wt={self.gamma:.2f}) | "
+                  f"final = {final_score:.4f}")
+                  
+            node.last_retrieval_score = final_score
+            node.retrieval_contributions = {
+                "semantic": comp_sem,
+                "action": comp_act,
+                "persistence": comp_pers
+            }
             scored_nodes.append((node, final_score))
 
         # Sort descending by calculated score

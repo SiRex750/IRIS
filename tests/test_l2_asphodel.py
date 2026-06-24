@@ -154,33 +154,29 @@ def test_enrich_node_and_hybrid_weights():
 
 def test_retrieve():
     """Test cold-start and hybrid retrieval functionality."""
-    asphodel = L2Asphodel(config={"alpha": 0.5, "beta": 0.5})
+    asphodel = L2Asphodel(config={"alpha": 0.5, "beta": 0.5, "gamma": 0.0})
 
     # Add peak frames (min_score=0.1, max_score=0.9, range=0.8)
     asphodel.add_frame_node({"frame_idx": 1, "timestamp": 0.1}, {"action_score": 0.1})
     asphodel.add_frame_node({"frame_idx": 2, "timestamp": 0.2}, {"action_score": 0.5})
     asphodel.add_frame_node({"frame_idx": 3, "timestamp": 0.3}, {"action_score": 0.9})
 
-    # Retrieval 1: Cold start (no embeddings), match action score 0.6
-    # Coherences:
-    # 1: 1 - |0.1 - 0.6|/0.8 = 0.375
-    # 2: 1 - |0.5 - 0.6|/0.8 = 0.875
-    # 3: 1 - |0.9 - 0.6|/0.8 = 0.625
-    # Expected order: 2, 3, 1
+    # Retrieval 1: Cold start (no embeddings)
+    # Expected order: 3 (score 0.45), 2 (score 0.25), 1 (score 0.05)
     res = asphodel.retrieve(query_embedding=None, query_action_score=0.6, top_k=3)
-    assert [node.frame_idx for node in res] == [2, 3, 1]
+    assert [node.frame_idx for node in res] == [3, 2, 1]
 
     # Retrieval 2: Hybrid. Enrich node 1 and 3, node 2 stays cold-start.
     # Query embedding: [1, 0]
-    # Node 1: embedding [0.5, 0.866] (cos_sim = 0.5), coherence to query (0.9) = 1 - |0.1-0.9|/0.8 = 0.0. Hybrid = 0.5*0.5 + 0.0*0.5 = 0.25
-    # Node 2: cold-start, coherence to query (0.9) = 1 - |0.5-0.9|/0.8 = 0.5. Score = 0.5
-    # Node 3: embedding [0.9, 0.435] (cos_sim = 0.9), coherence to query (0.9) = 1 - |0.9-0.9|/0.8 = 1.0. Hybrid = 0.9*0.5 + 1.0*0.5 = 0.95
-    # Expected order: 3, 2, 1
+    # Node 1: embedding [0.5, 0.866] (cos_sim = 0.5). Score = 0.5*0.5 + 0.5*0.1 = 0.30
+    # Node 2: cold-start, semantic_sim = 0.0. Score = 0.5*0.0 + 0.5*0.5 = 0.25
+    # Node 3: embedding [0.9, 0.435] (cos_sim = 0.9). Score = 0.5*0.9 + 0.5*0.9 = 0.90
+    # Expected order: 3, 1, 2
     asphodel.enrich_node(1, [], np.array([0.5, 0.866]))
     asphodel.enrich_node(3, [], np.array([0.9, 0.435]))
 
     res_hybrid = asphodel.retrieve(query_embedding=np.array([1.0, 0.0]), query_action_score=0.9, top_k=3)
-    assert [node.frame_idx for node in res_hybrid] == [3, 2, 1]
+    assert [node.frame_idx for node in res_hybrid] == [3, 1, 2]
 
 
 def test_export_to_csr():

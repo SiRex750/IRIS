@@ -136,7 +136,7 @@ def detect_peaks(
     
     return peak_frame_ids
 
-def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = False, candidate_thresh: float = 0.08, salient_thresh: float = 0.35, adaptive: bool = True):
+def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = False, candidate_thresh: float = 0.08, salient_thresh: float = 0.35, adaptive: bool = True, visual_debug_mode: bool = False):
     """
     Parses an H.264 video stream using PyAV and numpy without full RGB decoding.
     Returns a list of dicts for salient frames (I_FRAME, SALIENT, CANDIDATE) only.
@@ -380,13 +380,16 @@ def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = 
                 except Exception:
                     entropy = 0.0
                 
-                raw_records.append({
+                rec = {
                     "frame_idx": total_frames,
                     "frame_type": frame_type,
                     "residual_energy": residual_energy,
                     "motion_magnitude": motion_magnitude,
                     "entropy": entropy
-                })
+                }
+                if visual_debug_mode:
+                    rec["frame"] = frame.to_ndarray(format='bgr24')
+                raw_records.append(rec)
                 
             total_frames += 1
     finally:

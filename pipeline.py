@@ -33,6 +33,17 @@ def _load_env():
 
 _load_env()
 
+# ── CLIP availability flag ─────────────────────────────────────────────────
+def _check_clip_available() -> bool:
+    try:
+        import clip  # noqa: F401
+        import torch  # noqa: F401
+        return True
+    except ImportError:
+        return False
+
+_CLIP_AVAILABLE = _check_clip_available()
+
 # Globals for caching the CLIP and BLIP models
 _CLIP_MODEL = None
 _CLIP_PREPROCESS = None
@@ -131,6 +142,25 @@ def get_zero_shot_caption(clip_embedding: np.ndarray, device: str) -> str:
         return "visual cues from the video"
 
 
+def get_semantic_and_clip_caption(pil_img, frame, clip_emb, device) -> dict:
+    clip_label = get_zero_shot_caption(clip_emb, device)
+    
+    # 1. Try VLM OpenAI vision captioning first (ARIA)
+    caption_res = aria.generate_caption_for_frame(pil_img if pil_img is not None else frame)
+    if caption_res.success:
+        semantic_caption = caption_res.caption
+    else:
+        # 2. Fall back to local generative BLIP model (which is a real generative model!)
+        blip_caption = get_generative_caption(pil_img if pil_img is not None else (frame.to_image() if frame else None), device)
+        if blip_caption and blip_caption != "visual cues from the video":
+            semantic_caption = blip_caption
+        else:
+            semantic_caption = "[CAPTION_FAILED]"
+            
+    return {
+        "clip_label": clip_label,
+        "semantic_caption": semantic_caption
+    }
 
 def get_clip_model():
     """Load and cache the CLIP ViT-B/32 model globally."""
@@ -314,10 +344,7 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
             clip_emb = get_clip_embedding_from_pil(f_data["pil_image"], device)
             f_data["clip_embedding"] = clip_emb
             
-            # Use generative BLIP captioning, fall back to zero-shot if it fails
-            caption = get_generative_caption(f_data["pil_image"], device)
-            if caption == "visual cues from the video" or not caption:
-                caption = get_zero_shot_caption(clip_emb, device)
+            caption = get_semantic_and_clip_caption(f_data["pil_image"], None, clip_emb, device)
             f_data["caption"] = caption
 
             feature_records.append({
@@ -342,14 +369,11 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
                 clip_emb = get_frame_clip_embedding(frame, device)
                 f_data["clip_embedding"] = clip_emb
                 
-                # Use generative BLIP captioning, fall back to zero-shot if it fails
                 try:
                     pil_img = frame.to_image()
                 except Exception:
                     pil_img = None
-                caption = get_generative_caption(pil_img, device)
-                if caption == "visual cues from the video" or not caption:
-                    caption = get_zero_shot_caption(clip_emb, device)
+                caption = get_semantic_and_clip_caption(pil_img, frame, clip_emb, device)
                 f_data["caption"] = caption
 
                 feature_records.append({
@@ -393,6 +417,9 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
                 "clip_embedding": orig.get("clip_embedding", None),
                 "entropy": orig.get("entropy", 0.0),
                 "caption": orig.get("caption", None),
+                "pagerank_score": node.pagerank_score,
+                "last_retrieval_score": getattr(node, "last_retrieval_score", 0.0),
+                "retrieval_contributions": getattr(node, "retrieval_contributions", {}),
             })
     
     if not retrieved:
@@ -412,6 +439,9 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
                 "clip_embedding": f.get("clip_embedding", None),
                 "entropy": f.get("entropy", 0.0),
                 "caption": f.get("caption", None),
+                "pagerank_score": 0.0,
+                "last_retrieval_score": 0.0,
+                "retrieval_contributions": {},
             })
 
     return retrieved
@@ -468,6 +498,8 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
             from iris_config import IRISConfig
             config = IRISConfig()
 
+    # Enforce active backend diagnostics check
+    aria.run_diagnostics()
 
     # 2. Parse video and extract raw frame features non-breakingly from H.264 stream
     # Returns (output_frames, stats, raw_records)
@@ -477,7 +509,9 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
         return_stats=True,
         return_raw=True,
         candidate_thresh=config.candidate_thresh,
-        adaptive=getattr(config, "adaptive", True)
+        salient_thresh=config.salient_thresh,
+        adaptive=getattr(config, "adaptive", True),
+        visual_debug_mode=getattr(config, "visual_debug_mode", False)
     )
     t_charon = time.time() - t_start
 
@@ -525,13 +559,30 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
         frame["entropy"] = raw_map.get(frame_idx, {}).get("entropy", 0.0)
     t_action = time.time() - t_action_start
 
-    # 4. L2 Graph retrieval
-    # Nodes are populated from output_frames (non-SKIP)
+    # 4. L2 Graph retrieval (dynamic indexing strategy selection)
     t_l2_start = time.time()
+    strategy = getattr(config, "retrieval_strategy", "hybrid")
+    l2_retrieve_top_k = getattr(config, "l2_retrieve_top_k", 5)
+    
+    if strategy == "peak_only":
+        frames_to_index = [f for f in output_frames if f.get("is_peak", False)]
+    elif strategy == "top_k_action":
+        top_n = l2_retrieve_top_k * 3
+        frames_to_index = sorted(output_frames, key=lambda x: x.get("action_score", 0.0), reverse=True)[:top_n]
+    elif strategy == "peak_neighbors":
+        peaks = [f for f in output_frames if f.get("is_peak", False)]
+        peak_indices = {f["frame_idx"] for f in peaks}
+        target_indices = set()
+        for p in peak_indices:
+            target_indices.update(range(max(0, p - 2), p + 3))
+        frames_to_index = [f for f in output_frames if f["frame_idx"] in target_indices]
+    else:  # hybrid
+        frames_to_index = output_frames
+
     retrieved_frames = wrapper_l2_retrieve(
         video_path,
         query,
-        output_frames,
+        frames_to_index,
         config=config
     )
     t_l2 = time.time() - t_l2_start
@@ -591,6 +642,89 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
         }
     }
 
+    # Observability Logging: Write ARIA debug logs to logs/aria_debug/
+    import json
+    import os
+    os.makedirs("logs/aria_debug", exist_ok=True)
+    os.makedirs("logs/pipeline", exist_ok=True)
+    
+    timestamp_log = time.strftime("%Y%m%d_%H%M%S")
+    import random
+    rand_id = random.randint(100000, 999999)
+    
+    aria_log_file = f"logs/aria_debug/debug_{timestamp_log}_{rand_id}.json"
+    aria_log_data = {
+        "frames_sent_to_aria": [f.frame_idx for f in cache_obj.frames()],
+        "semantic_captions": [
+            f.caption.get("semantic_caption") if isinstance(f.caption, dict) else f.caption
+            for f in cache_obj.frames()
+        ],
+        "prompt": query,
+        "response": raw_answer
+    }
+    try:
+        with open(aria_log_file, "w", encoding="utf-8") as f:
+            json.dump(aria_log_data, f, indent=2)
+    except Exception as e:
+        print(f"Warning: Failed to write ARIA debug log: {e}")
+
+    # Build validation report payload
+    total_captions_attempted = len(frames_to_index)
+    successful_captions = sum(
+        1 for f in frames_to_index
+        if isinstance(f.get("caption"), dict) and f["caption"].get("semantic_caption") != "[CAPTION_FAILED]"
+    )
+    caption_success_rate = float(successful_captions / total_captions_attempted) if total_captions_attempted > 0 else 0.0
+    
+    aria_success = 1.0 if not raw_answer.startswith("Based on the video analysis, I processed") or "failed" not in raw_answer.lower() else 0.0
+    
+    validation_report = {
+        "aria": {
+            "backend": aria.get_backend().__class__.__name__,
+            "model": "gpt-4o-mini",
+            "success_rate": aria_success,
+            "caption_success_rate": caption_success_rate
+        },
+        "retrieval": {
+            "frames_indexed": len(frames_to_index),
+            "frames_retrieved": len(retrieved_frames)
+        },
+        "elysium": {
+            "cache_hits": getattr(cache_obj, "hits", 0),
+            "cache_misses": getattr(cache_obj, "misses", 0),
+            "context_size": len(context_text)
+        },
+        "cerberus": {
+            "verified": len(verified_claims),
+            "rejected": len(rejected_claims),
+            "unverifiable": len(unverifiable_claims)
+        },
+        "failures": {
+            "caption_failures": aria.get_caption_failures()
+        }
+    }
+    
+    result["validation_report"] = validation_report
+
+    pipeline_log_file = f"logs/pipeline/run_{timestamp_log}_{rand_id}.json"
+    try:
+        log_friendly_result = {k: v for k, v in result.items() if k != "validation_report"}
+        log_friendly_result["validation_report"] = {
+            "aria": {
+                "backend": validation_report["aria"]["backend"],
+                "model": validation_report["aria"]["model"],
+                "success_rate": validation_report["aria"]["success_rate"],
+                "caption_success_rate": validation_report["aria"]["caption_success_rate"]
+            },
+            "retrieval": validation_report["retrieval"],
+            "elysium": validation_report["elysium"],
+            "cerberus": validation_report["cerberus"]
+        }
+        with open(pipeline_log_file, "w", encoding="utf-8") as f:
+            json.dump(log_friendly_result, f, indent=2)
+    except Exception as e:
+        print(f"Warning: Failed to write pipeline run log: {e}")
+
     if verbose:
         result["debug_info"] = {
             "action_scores": action_scores,
@@ -600,6 +734,32 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
             "verified_claims": verified_claims,
             "rejected_claims": rejected_claims,
             "unverifiable_claims": unverifiable_claims,
+            
+            # --- ARIA Debug Data ---
+            "aria_prompt": query,
+            "aria_context": context_text,
+            "aria_response": raw_answer,
+            "frames_given_to_aria": [f.frame_idx for f in cache_obj.frames()],
+            "context_length": len(context_text),
+            "retrieval_results": context_text,
+            
+            # --- Cerberus Debug Data ---
+            "cerberus_claims": claims,
+            "cerberus_evidence": [entry.text for entry in cache_obj.set_facts.values()],
+            "cerberus_result": {
+                "verified": verified_claims,
+                "rejected": rejected_claims,
+                "unverifiable": unverifiable_claims,
+                "is_verified": is_verified
+            },
+            
+            # --- Thresholds & Configuration ---
+            "thresholds": {
+                "persistence_threshold": getattr(config, "persistence_threshold", 0.4),
+                "max_prominence": getattr(config, "max_prominence", 0.5),
+                "peak_prominence": getattr(config, "peak_prominence", 0.05),
+                "peak_distance": getattr(config, "peak_distance", 5)
+            }
         }
 
     return result
