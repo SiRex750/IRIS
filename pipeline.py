@@ -33,10 +33,51 @@ def _load_env():
 
 _load_env()
 
-# Globals for caching the CLIP model
+# Globals for caching the CLIP and BLIP models
 _CLIP_MODEL = None
 _CLIP_PREPROCESS = None
 _CLIP_TEXT_FEATURES = None
+
+_BLIP_MODEL = None
+_BLIP_PROCESSOR = None
+
+
+def get_blip_model():
+    """Load and cache the BLIP image captioning model globally."""
+    global _BLIP_MODEL, _BLIP_PROCESSOR
+    if _BLIP_MODEL is None:
+        from transformers import BlipProcessor, BlipForConditionalGeneration
+        import torch
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        try:
+            print(f"[INFO] Loading BLIP model on {device} (first run will download ~990MB)...")
+            _BLIP_PROCESSOR = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
+            _BLIP_MODEL = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base").to(device)
+            print("[INFO] BLIP model loaded successfully.")
+        except Exception as e:
+            print(f"Warning: Failed to load BLIP model: {e}")
+            _BLIP_MODEL = None
+            _BLIP_PROCESSOR = None
+    return _BLIP_MODEL, _BLIP_PROCESSOR
+
+
+def get_generative_caption(pil_image, device: str) -> str:
+    """Generate a dynamic, natural-language caption for a PIL image using BLIP."""
+    if pil_image is None:
+        return "visual cues from the video"
+    model, processor = get_blip_model()
+    if model is None or processor is None:
+        return "visual cues from the video"
+    try:
+        import torch
+        inputs = processor(images=pil_image, return_tensors="pt").to(device)
+        with torch.no_grad():
+            outputs = model.generate(**inputs, max_new_tokens=20)
+        caption = processor.decode(outputs[0], skip_special_tokens=True)
+        return caption.strip()
+    except Exception as e:
+        print(f"Warning: Generative captioning failed: {e}")
+        return "visual cues from the video"
 
 
 def get_zero_shot_caption(clip_embedding: np.ndarray, device: str) -> str:
@@ -88,6 +129,7 @@ def get_zero_shot_caption(clip_embedding: np.ndarray, device: str) -> str:
     except Exception as e:
         print(f"Warning: Zero-shot classification failed: {e}")
         return "visual cues from the video"
+
 
 
 def get_clip_model():
@@ -271,7 +313,12 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
         for f_data in frames_to_index:
             clip_emb = get_clip_embedding_from_pil(f_data["pil_image"], device)
             f_data["clip_embedding"] = clip_emb
-            f_data["caption"]        = get_zero_shot_caption(clip_emb, device)
+            
+            # Use generative BLIP captioning, fall back to zero-shot if it fails
+            caption = get_generative_caption(f_data["pil_image"], device)
+            if caption == "visual cues from the video" or not caption:
+                caption = get_zero_shot_caption(clip_emb, device)
+            f_data["caption"] = caption
 
             feature_records.append({
                 "frame_idx":            f_data["frame_idx"],
@@ -294,7 +341,16 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
                 f_data   = frame_map[idx]
                 clip_emb = get_frame_clip_embedding(frame, device)
                 f_data["clip_embedding"] = clip_emb
-                f_data["caption"]        = get_zero_shot_caption(clip_emb, device)
+                
+                # Use generative BLIP captioning, fall back to zero-shot if it fails
+                try:
+                    pil_img = frame.to_image()
+                except Exception:
+                    pil_img = None
+                caption = get_generative_caption(pil_img, device)
+                if caption == "visual cues from the video" or not caption:
+                    caption = get_zero_shot_caption(clip_emb, device)
+                f_data["caption"] = caption
 
                 feature_records.append({
                     "frame_idx":            f_data["frame_idx"],
