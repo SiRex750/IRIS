@@ -23,33 +23,41 @@ class MockLLMBackend(LLMBackend):
 
 @pytest.fixture(scope="module")
 def bbb_video():
-    url = "https://www.w3schools.com/html/mov_bbb.mp4"
+    local_path = "mov_bbb.mp4"
     temp_video = "test_pipeline_video.mp4"
+    import shutil
     import time
     
-    # Download the video with retries and timeout
-    success = False
-    for attempt in range(1, 4):
-        try:
-            opener = urllib.request.build_opener()
-            opener.addheaders = [('User-Agent', 'Mozilla/5.0')]
-            urllib.request.install_opener(opener)
-            with opener.open(url, timeout=15) as response:
-                with open(temp_video, 'wb') as f:
-                    f.write(response.read())
-            success = True
-            break
-        except Exception as e:
-            print(f"Download attempt {attempt} failed: {e}")
-            if os.path.exists(temp_video):
-                try:
-                    os.remove(temp_video)
-                except Exception:
-                    pass
-            time.sleep(2)
+    # Prioritize local offline video file to bypass network sandbox restrictions
+    if os.path.exists(local_path):
+        print(f"[INFO] Found local video copy '{local_path}'. Copying to '{temp_video}' for offline test.")
+        shutil.copy(local_path, temp_video)
+        success = True
+    else:
+        url = "https://www.w3schools.com/html/mov_bbb.mp4"
+        # Fallback to download with retries and timeout if local copy is missing
+        success = False
+        for attempt in range(1, 4):
+            try:
+                opener = urllib.request.build_opener()
+                opener.addheaders = [('User-Agent', 'Mozilla/5.0')]
+                urllib.request.install_opener(opener)
+                with opener.open(url, timeout=15) as response:
+                    with open(temp_video, 'wb') as f:
+                        f.write(response.read())
+                success = True
+                break
+            except Exception as e:
+                print(f"Download attempt {attempt} failed: {e}")
+                if os.path.exists(temp_video):
+                    try:
+                        os.remove(temp_video)
+                    except Exception:
+                        pass
+                time.sleep(2)
             
     if not success:
-        pytest.skip("Could not download test video for integration test (attempts exhausted)")
+        pytest.skip("Could not locate or download test video for integration test")
         
     yield temp_video
     

@@ -50,12 +50,19 @@ def main():
         model_in_use = "gpt-4o-mini"
 
     # 2. Download or locate test video
-    url = "https://www.w3schools.com/html/mov_bbb.mp4"
+    local_path = "mov_bbb.mp4"
     temp_video = "track_b_test_video.mp4"
+    import shutil
     
-    if os.path.exists(temp_video):
+    if os.path.exists(local_path):
+        print(f"[INFO] Found local video copy '{local_path}'. Copying to '{temp_video}' for offline test.")
+        shutil.copy(local_path, temp_video)
+        success = True
+    elif os.path.exists(temp_video):
         print(f"[INFO] Using existing test video: {temp_video}")
+        success = True
     else:
+        url = "https://www.w3schools.com/html/mov_bbb.mp4"
         print(f"Downloading test video from {url}...")
         opener = urllib.request.build_opener()
         opener.addheaders = [('User-Agent', 'Mozilla/5.0')]
