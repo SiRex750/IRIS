@@ -15,8 +15,8 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from iris_config import IRISConfig
-from l2_index import L2TieredIndex, FrameTier
+from iris.iris_config import IRISConfig
+from iris.l2_index import L2TieredIndex, FrameTier
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────

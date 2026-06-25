@@ -15,9 +15,9 @@ from pathlib import Path
 import numpy as np
 import av
 
-import charon_v
-import aria
-from action_score import ActionScoreConfig, ActionScoreModule
+import iris.charon_v as charon_v
+import iris.aria as aria
+from iris.action_score import ActionScoreConfig, ActionScoreModule
 import os
 
 # Load environment variables from .env file if it exists in the workspace
@@ -223,24 +223,24 @@ def get_clip_embedding_from_pil(pil_image, device: str) -> np.ndarray:
 def wrapper_init_l1_cache(config: object = None) -> object:
     """Isolate L1 Elysium cache instantiation. Fallback to cache.py L1Cache if empty/stub."""
     try:
-        from l1_elysium import L1ElysiumCache
+        from iris.l1_elysium import L1ElysiumCache
         return L1ElysiumCache(config)
     except (ImportError, AttributeError):
-        from cache import L1Cache
+        from legacy.cache import L1Cache
         return L1Cache()
 
 
 def wrapper_populate_cache(cache_obj: object, retrieved_frames: list[dict]) -> None:
     """Populate L1 Cache with knowledge triples or CachedFrames representing retrieved video frames."""
     try:
-        from l1_elysium import L1ElysiumCache
+        from iris.l1_elysium import L1ElysiumCache
         use_elysium = isinstance(cache_obj, L1ElysiumCache)
     except ImportError:
         use_elysium = False
 
     if use_elysium:
-        from cached_frame import CachedFrame
-        from frame_motion_descriptor import FrameMotionDescriptor
+        from iris.cached_frame import CachedFrame
+        from iris.frame_motion_descriptor import FrameMotionDescriptor
         for frame in retrieved_frames:
             motion = FrameMotionDescriptor(
                 frame_idx=frame["frame_idx"],
@@ -264,7 +264,7 @@ def wrapper_populate_cache(cache_obj: object, retrieved_frames: list[dict]) -> N
             )
             cache_obj.admit(cached_frame)
     else:
-        from triple import KnowledgeTriple
+        from iris.triple import KnowledgeTriple
         for frame in retrieved_frames:
             frame_idx = frame["frame_idx"]
             timestamp = frame.get("timestamp", 0.0)
@@ -296,7 +296,7 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
     """
     l2_retrieve_top_k = getattr(config, "l2_retrieve_top_k", 5)
     try:
-        from l2_asphodel import L2Asphodel
+        from iris.l2_asphodel import L2Asphodel
         if not hasattr(L2Asphodel, "batch_add_frame_nodes"):
             def batch_add_frame_nodes(self, node_records):
                 feature_records = [r[0] for r in node_records]
@@ -468,7 +468,7 @@ def wrapper_cerberus_gate(claims: list[str], cache_obj: object, action_score: fl
     is_verified is True only when BOTH rejected_claims AND unverifiable_claims are empty.
     A claim with no supporting evidence (unverifiable) is NOT the same as verified.
     """
-    from cerberus_v import CerberusV
+    from iris.cerberus_v import CerberusV
 
     gate_obj = CerberusV()
     try:
@@ -502,13 +502,13 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
     # 1. Load config parameters
     if config is None:
         try:
-            from iris_config import ConfigManager
+            from iris.iris_config import ConfigManager
             config = ConfigManager().get_config()
             if config is None:
-                from iris_config import IRISConfig
+                from iris.iris_config import IRISConfig
                 config = IRISConfig()
         except Exception:
-            from iris_config import IRISConfig
+            from iris.iris_config import IRISConfig
             config = IRISConfig()
 
     # Enforce active backend diagnostics check

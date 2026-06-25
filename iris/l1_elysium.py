@@ -17,8 +17,8 @@ from typing import Iterator
 
 import numpy as np
 
-from cached_frame import CachedFrame
-from iris_config import IRISConfig
+from iris.cached_frame import CachedFrame
+from iris.iris_config import IRISConfig
 
 
 class L1ElysiumCache:

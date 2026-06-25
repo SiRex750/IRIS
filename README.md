@@ -7,7 +7,7 @@ Codec-native hierarchical memory system for efficient video-language understandi
 
 ## Core novelty
 
-IRIS uses H.264 codec residual energy as a unified cognitive controller that simultaneously gates (1) spatiotemporal knowledge graph indexing and (2) NLI-based hallucination verification. Local maxima of the residual energy curve (PEAK frames) are identified via `argrelextrema` — a more precise keyframe signal than the absolute thresholds used in prior work (CodecSight 2026, OneVision-Encoder).
+IRIS uses H.264 codec residual energy as a unified cognitive controller that simultaneously gates (1) spatiotemporal knowledge graph indexing and (2) NLI-based hallucination verification. Local maxima of the residual energy curve (PEAK frames) are identified via persistent homology (via ripser or equivalent) — a more precise keyframe signal than the absolute thresholds used in prior work (CodecSight 2026, OneVision-Encoder).
 
 ## Architecture
 

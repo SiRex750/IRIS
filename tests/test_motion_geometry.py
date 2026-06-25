@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from charon_v import compute_motion_geometry
+from iris.charon_v import compute_motion_geometry
 
 def test_compute_motion_geometry_empty():
     res = compute_motion_geometry([], 320, 240)

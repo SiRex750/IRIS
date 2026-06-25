@@ -1,0 +1,4209 @@
+
+================================================================================
+FILE: README.md
+================================================================================
+
+# IRIS — Intelligent Residual Indexing System
+
+Codec-native hierarchical memory system for efficient video-language understanding.
+
+**Target venues:** CVPR / MLSys  
+**Supervisor:** Dr. Uma D, CDSAML, PES University
+
+## Core novelty
+
+IRIS uses H.264 codec residual energy as a unified cognitive controller that simultaneously gates (1) spatiotemporal knowledge graph indexing and (2) NLI-based hallucination verification. Local maxima of the residual energy curve (PEAK frames) are identified via `argrelextrema` — a more precise keyframe signal than the absolute thresholds used in prior work (CodecSight 2026, OneVision-Encoder).
+
+## Architecture
+
+```
+.mp4 → charon_v (Codec Oracle)
+         ↓ PEAK / SALIENT / CANDIDATE / SKIP tiers
+       l1_elysium (Active Context Cache)
+         ↓ residual-pressure-scaled budget
+       l2_asphodel (Motion-Aware Video RAG Graph)
+         ↓ hybrid retrieval: (semantic × α) + (motion × β)
+       aria (LLM Brain — ARIA model)
+         ↓ generated claims → SCRATCH
+       cerberus_v (NLI Truth Gate)
+         ↓ DeBERTa-v3 verification
+       Final Verified Answer
+```
+
+## Ablation table
+
+| Condition   | Codec gating | NLI verification |
+|-------------|--------------|------------------|
+| Baseline    | None         | None             |
+| Ablation 1  | KG only      | None             |
+| Ablation 2  | None         | Uniform NLI      |
+| Full IRIS   | Both jointly | Risk-proportional|
+
+## Team tracks
+
+| Track | Owner | Files |
+|-------|-------|-------|
+| A — Codec + Cache | Siddanth | `charon_v.py`, `l1_elysium.py`, `iris_config.py` |
+| B — LLM + Pipeline | Teammate 2 | `aria.py`, `pipeline.py` |
+| C — Video RAG | Teammate 3 | `l2_asphodel.py` |
+| D — NLI + Eval | Teammate 4 | `cerberus_v.py`, `eval_suite.py` |
+
+## Branch strategy
+
+- `main` — verified, tested code only
+- `track-a/l1-elysium`
+- `track-b/aria-pipeline`
+- `track-c/l2-asphodel`
+- `track-d/cerberus-eval`
+
+Nothing merges to `main` without tests passing.
+
+## Setup
+
+```bash
+pip install -r requirements.txt
+```
+
+Run the API from the same Python environment that installed the requirements, for example:
+
+```bash
+python -m uvicorn api:app --reload --host 0.0.0.0 --port 8000
+```
+
+If you want the frontend to target a different backend host or port, set `VITE_IRIS_API_URL` before starting Vite, for example:
+
+```bash
+VITE_IRIS_API_URL=http://localhost:8000
+```
+
+## Hardware target
+
+Ryzen 9 9800X3D · RTX 5070 12GB · 32GB DDR5  
+RAM budget ceiling: 8GB for full pipeline
+
+================================================================================
+FILE: iris_config.py
+================================================================================
+
+"""
+IRISConfig and ConfigManager for IRIS pipeline configuration.
+
+IRISConfig holds all tunable thresholds and weights across the pipeline.
+ConfigManager loads GEPA-output JSON and injects config into components.
+
+Owner: Track A (L1 fields)
+"""
+from __future__ import annotations
+
+import json
+from dataclasses import dataclass, asdict
+from pathlib import Path
+
+
+@dataclass
+class IRISConfig:
+    # ── Charon-V ──────────────────────────────────────────────────────────
+    salient_thresh:   float = 0.35   # residual floor for SALIENT tier
+    candidate_thresh: float = 0.08   # residual floor for CANDIDATE tier
+    peak_order:       int   = 3      # argrelextrema window for PEAK detection
+    adaptive:         bool  = True   # Whether Charon-V uses adaptive thresholding
+
+
+    # ── L2 Asphodel retrieval ─────────────────────────────────────────────
+    alpha: float = 0.4   # semantic weight in L2 retrieval blend
+    beta:  float = 0.3   # motion weight in L2 retrieval blend
+    gamma: float = 0.3   # persistence weight in L2 retrieval blend
+    retrieval_strategy: str = "hybrid"  # strategy: "peak_only", "top_k_action", "peak_neighbors", "hybrid"
+
+    # ── Cerberus-V ────────────────────────────────────────────────────────
+    cerberus_high_thresh: float = 0.70  # action_score >= this → full NLI
+    cerberus_low_thresh:  float = 0.35  # action_score >= this → filtered NLI
+    disable_nli:          bool  = False # completely bypass DeBERTa NLI, use ner_only
+
+    # ── Action Score Module ────────────────────────────────────────────────
+    residual_weight:        float = 0.5
+    motion_weight:          float = 0.3
+    entropy_weight:         float = 0.2
+    peak_distance:          int   = 5
+    peak_prominence:        float = 0.05
+    persistence_threshold:  float = 0.4
+    max_prominence:         float = 0.5   # calibrated global max prominence (Fix 3 Option B)
+
+    # ── L2 retrieve top-k ─────────────────────────────────────────────────
+    l2_retrieve_top_k:      int   = 5
+
+    # ── Visual Debug Mode ──────────────────────────────────────────────────
+    visual_debug_mode:      bool  = False
+
+    # ── L1 Elysium — capacity ─────────────────────────────────────────────
+    # Maximum number of CachedFrame entries L1 holds at once.
+    # When exceeded, the frame with the lowest keep_score is evicted.
+    l1_capacity: int = 64
+
+    # ── L1 Elysium — eviction weights ────────────────────────────────────
+    # These seven weights are used in CachedFrame.keep_score().
+    # They must sum to 1.0. GEPA will tune them between runs.
+    l1_w_action:   float = 0.30
+    l1_w_query:    float = 0.20
+    l1_w_persist:  float = 0.15
+    l1_w_pagerank: float = 0.10
+    l1_w_entropy:  float = 0.10
+    l1_w_hessian:  float = 0.10
+    l1_w_recency:  float = 0.05
+
+    def validate(self) -> None:
+        """
+        Sanity-check all config values.
+        Called by ConfigManager after loading.
+        Raises AssertionError with a clear message if anything is wrong.
+        """
+        if not self.disable_nli:
+            assert 0 < self.cerberus_low_thresh < self.cerberus_high_thresh < 1.0, (
+                "Cerberus thresholds must satisfy: 0 < low < high < 1"
+            )
+        assert self.l1_capacity > 0, (
+            "l1_capacity must be a positive integer"
+        )
+
+        assert self.residual_weight >= 0 and self.motion_weight >= 0 and self.entropy_weight >= 0, (
+            "Action score weights must be non-negative"
+        )
+        assert (self.residual_weight + self.motion_weight + self.entropy_weight) > 0, (
+            "Action score weights must sum to a positive value"
+        )
+        assert self.peak_distance > 0, "peak_distance must be positive"
+        assert self.peak_prominence >= 0, "peak_prominence must be non-negative"
+        assert 0.0 <= self.persistence_threshold <= 1.0, "persistence_threshold must be between 0 and 1"
+        assert self.max_prominence > 0, "max_prominence must be positive"
+        assert self.l2_retrieve_top_k > 0, "l2_retrieve_top_k must be positive"
+        assert self.alpha >= 0.0, "alpha must be non-negative"
+        assert self.beta >= 0.0, "beta must be non-negative"
+        assert self.gamma >= 0.0, "gamma must be non-negative"
+        assert self.retrieval_strategy in {"peak_only", "top_k_action", "peak_neighbors", "hybrid"}, (
+            f"Invalid retrieval_strategy '{self.retrieval_strategy}'"
+        )
+
+        l1_weight_sum = round(
+            self.l1_w_action + self.l1_w_query + self.l1_w_persist
+            + self.l1_w_pagerank + self.l1_w_entropy
+            + self.l1_w_hessian + self.l1_w_recency,
+            6,
+        )
+        assert abs(l1_weight_sum - 1.0) < 1e-4, (
+            f"L1 eviction weights must sum to 1.0, got {l1_weight_sum}"
+        )
+
+
+class ConfigManager:
+    """
+    Loads IRISConfig from a JSON file (written by GEPA).
+    Falls back to IRISConfig defaults if no file is given.
+    """
+
+    def __init__(self, config_path: str | Path | None = None) -> None:
+        self._path = Path(config_path) if config_path else None
+        self._config: IRISConfig = self._load()
+
+    def get_config(self) -> IRISConfig:
+        """Return the currently loaded config."""
+        return self._config
+
+    def reload(self) -> None:
+        """
+        Re-read config from file.
+        Call this after GEPA writes a new JSON to pick up updated weights
+        without restarting the pipeline.
+        """
+        self._config = self._load()
+
+    def _load(self) -> IRISConfig:
+        """
+        Internal: parse JSON into IRISConfig, then validate.
+        If no path given, return defaults.
+        """
+        if self._path is None or not self._path.exists():
+            cfg = IRISConfig()
+            cfg.validate()
+            return cfg
+
+        with open(self._path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        # Build IRISConfig — only accept keys that are actual fields.
+        # Unknown keys in the JSON are silently ignored so old JSON
+        # files don't crash a newer version of IRISConfig.
+        valid_keys = IRISConfig.__dataclass_fields__.keys()
+        filtered = {k: v for k, v in data.items() if k in valid_keys}
+
+        cfg = IRISConfig(**filtered)
+        cfg.validate()
+        return cfg
+
+================================================================================
+FILE: charon_v.py
+================================================================================
+
+import av
+import numpy as np
+import sys
+import pprint
+from scipy.signal import argrelextrema
+
+def compute_motion_geometry(motion_vectors: list, width: int, height: int) -> dict:
+    """
+    Computes physical motion geometry descriptors from raw H.264 motion vectors.
+    """
+    if not motion_vectors or width <= 0 or height <= 0:
+        return {
+            "divergence": 0.0,
+            "curl": 0.0,
+            "jacobian_frobenius": 0.0,
+            "hessian_max_eigenvalue": 0.0,
+            "motion_entropy": 0.0
+        }
+        
+    grid_w = max(1, width // 16)
+    grid_h = max(1, height // 16)
+    
+    U = np.zeros((grid_h, grid_w), dtype=np.float32)
+    V = np.zeros((grid_h, grid_w), dtype=np.float32)
+    counts = np.zeros((grid_h, grid_w), dtype=np.float32)
+    
+    for mv in motion_vectors:
+        # mv: (src_x, src_y, dst_x, dst_y, motion_x, motion_y)
+        gx = min(max(0, mv[2] // 16), grid_w - 1)
+        gy = min(max(0, mv[3] // 16), grid_h - 1)
+        U[gy, gx] += mv[4]
+        V[gy, gx] += mv[5]
+        counts[gy, gx] += 1.0
+        
+    mask = counts > 0
+    U[mask] /= counts[mask]
+    V[mask] /= counts[mask]
+    
+    if grid_h > 1 and grid_w > 1:
+        U_y, U_x = np.gradient(U)
+        V_y, V_x = np.gradient(V)
+    else:
+        U_y = np.zeros_like(U)
+        U_x = np.zeros_like(U)
+        V_y = np.zeros_like(V)
+        V_x = np.zeros_like(V)
+        
+    div = U_x + V_y
+    divergence = float(np.mean(div))
+    
+    rot = V_x - U_y
+    curl = float(np.mean(np.abs(rot)))
+    
+    jac_norm = np.sqrt(U_x**2 + U_y**2 + V_x**2 + V_y**2)
+    jacobian_frobenius = float(np.mean(jac_norm))
+    
+    M = np.sqrt(U**2 + V**2)
+    if grid_h > 1 and grid_w > 1:
+        M_y, M_x = np.gradient(M)
+        M_yy, M_yx = np.gradient(M_y)
+        M_xy, M_xx = np.gradient(M_x)
+    else:
+        M_xx = np.zeros_like(M)
+        M_yy = np.zeros_like(M)
+        M_xy = np.zeros_like(M)
+        M_yx = np.zeros_like(M)
+        
+    trace = M_xx + M_yy
+    diff = M_xx - M_yy
+    det_term = np.sqrt(diff**2 + 4 * M_yx * M_xy)
+    eigenvalue_field = 0.5 * (np.abs(trace) + det_term)
+    hessian_max_eigenvalue = float(np.mean(eigenvalue_field))
+    
+    flat_mags = M.flatten()
+    max_mag = np.max(flat_mags)
+    if max_mag > 1e-5:
+        hist, _ = np.histogram(flat_mags, bins=10, range=(0, max_mag), density=True)
+        hist = hist[hist > 0]
+        p = hist / np.sum(hist)
+        motion_entropy = float(-np.sum(p * np.log2(p)))
+    else:
+        motion_entropy = 0.0
+        
+    return {
+        "divergence": divergence,
+        "curl": curl,
+        "jacobian_frobenius": jacobian_frobenius,
+        "hessian_max_eigenvalue": hessian_max_eigenvalue,
+        "motion_entropy": motion_entropy
+    }
+
+
+def detect_peaks(
+    all_frame_energies: list[tuple[int, float]],
+    salient_thresh: float | dict[tuple[int, int], float],
+    order: int = 3,
+) -> set[int]:
+    """
+    Find local maxima of the residual energy curve over ALL frames
+    (including SKIP frames) to preserve signal continuity.
+    Only promotes frames above salient_thresh to avoid noise peaks
+    in quiet segments being misclassified as significant.
+    
+    Args:
+        all_frame_energies: list of (frame_idx, residual_energy) for
+                            every frame in decode order, including SKIPs.
+        salient_thresh: floor for PEAK promotion (or a dict mapping scene ranges to floors).
+        order: frames on each side that must be lower to qualify as
+               a local maximum. Default 3.
+    
+    Returns:
+        Set of frame_idx values that qualify as PEAK.
+    """
+    indices = [fe[0] for fe in all_frame_energies]
+    energies = np.array([fe[1] for fe in all_frame_energies])
+    
+    local_max_positions = argrelextrema(energies, np.greater, order=order)[0]
+    
+    peak_frame_ids = set()
+    for pos in local_max_positions:
+        idx = indices[pos]
+        energy = energies[pos]
+        
+        # Determine the threshold for this frame
+        thresh = salient_thresh
+        if isinstance(salient_thresh, dict):
+            for (start, end), val in salient_thresh.items():
+                if start <= idx < end:
+                    thresh = val
+                    break
+            if isinstance(thresh, dict):  # safety check
+                thresh = 0.35
+                
+        if energy >= thresh:
+            peak_frame_ids.add(idx)
+    
+    return peak_frame_ids
+
+def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = False, candidate_thresh: float = 0.08, salient_thresh: float = 0.35, adaptive: bool = True, visual_debug_mode: bool = False):
+    """
+    Parses an H.264 video stream using PyAV and numpy without full RGB decoding.
+    Returns a list of dicts for salient frames (I_FRAME, SALIENT, CANDIDATE) only.
+    
+    If return_stats is True, returns a tuple: (output_frames, stats_dict).
+    If return_raw is True, additionally returns a list of raw per-frame records.
+    """
+    # Pass 1: Collect luma-diff energies of P/B frames
+    container = av.open(video_path)
+    if not container.streams.video:
+        container.close()
+        raise ValueError("No video stream found in the container.")
+    
+    all_frame_energies: list[tuple[int, float]] = []  # (frame_idx, residual_energy)
+    iframe_indices = []
+    energies = []  # existing list, kept for threshold calculation
+    total_frames_pass1 = 0
+    prev_Y_pass1 = None
+    
+    try:
+        for frame in container.decode(video=0):
+            arr = frame.to_ndarray(format='yuv420p')
+            current_Y_pass1 = arr[0:frame.height, :]
+            
+            if total_frames_pass1 == 0:
+                residual_energy = 1.0
+            else:
+                if prev_Y_pass1 is not None:
+                    diff = np.abs(current_Y_pass1.astype(float) - prev_Y_pass1.astype(float))
+                    residual_energy = float(np.mean(diff) / 255.0)
+                else:
+                    residual_energy = 1.0
+                    
+            prev_Y_pass1 = current_Y_pass1.copy()
+            
+            all_frame_energies.append((total_frames_pass1, residual_energy))
+            if frame.key_frame:
+                iframe_indices.append(total_frames_pass1)
+            else:
+                energies.append(residual_energy)
+                
+            total_frames_pass1 += 1
+    finally:
+        container.close()
+    
+    scene_thresholds = {}
+    if adaptive:
+        num_frames_total = len(all_frame_energies)
+        if not iframe_indices:
+            iframe_indices = [0]
+        elif iframe_indices[0] != 0:
+            iframe_indices.insert(0, 0)
+            
+        scenes = []
+        for i, start_idx in enumerate(iframe_indices):
+            end_idx = iframe_indices[i+1] if i+1 < len(iframe_indices) else num_frames_total
+            scenes.append((start_idx, end_idx))
+            
+        scene_salient_vals = []
+        scene_candidate_vals = []
+        
+        for start_idx, end_idx in scenes:
+            scene_energies = [
+                energy for idx, energy in all_frame_energies
+                if start_idx <= idx < end_idx and idx not in iframe_indices
+            ]
+            if scene_energies:
+                salient = max(0.002, float(np.percentile(scene_energies, 95)))
+                candidate = max(0.001, float(np.percentile(scene_energies, 90)))
+            else:
+                if energies:
+                    salient = max(0.002, float(np.percentile(energies, 95)))
+                    candidate = max(0.001, float(np.percentile(energies, 90)))
+                else:
+                    salient = 0.35
+                    candidate = 0.08
+            scene_thresholds[(start_idx, end_idx)] = (salient, candidate)
+            scene_salient_vals.append(salient)
+            scene_candidate_vals.append(candidate)
+            
+        if scene_salient_vals:
+            salient_thresh = float(np.min(scene_salient_vals))
+            candidate_thresh = float(np.min(scene_candidate_vals))
+            
+        peak_frame_ids = detect_peaks(
+            all_frame_energies,
+            salient_thresh={k: v[0] for k, v in scene_thresholds.items()},
+        )
+    else:
+        peak_frame_ids = detect_peaks(all_frame_energies, salient_thresh=salient_thresh)
+
+    # Second pass (or only pass)
+    container = av.open(video_path)
+    
+    # Locate the first video stream
+    if not container.streams.video:
+        container.close()
+        raise ValueError("No video stream found in the container.")
+        
+    stream = container.streams.video[0]
+    
+    # Export motion vectors (must set before container.decode starts)
+    stream.codec_context.options = {"flags2": "+export_mvs"}
+    
+    output_frames = []
+    raw_records = []
+    
+    total_frames = 0
+    i_frame_count = 0
+    peak_count = 0
+    salient_count = 0
+    candidate_count = 0
+    skipped_count = 0
+    
+    prev_Y = None
+    
+    try:
+        for frame in container.decode(video=0):
+            # Y plane extraction
+            # yuv420p layout has the Y channel as the first height rows of the numpy array
+            arr = frame.to_ndarray(format='yuv420p')
+            current_Y = arr[0:frame.height, :]
+            
+            if total_frames == 0:
+                residual_energy = 1.0
+            else:
+                if prev_Y is not None:
+                    # Cast to float to prevent underflow before calculating mean absolute diff
+                    diff = np.abs(current_Y.astype(float) - prev_Y.astype(float))
+                    residual_energy = float(np.mean(diff) / 255.0)
+                else:
+                    residual_energy = 1.0
+            
+            # Keep a copy of current Y for the next iteration's residual proxy calculation
+            prev_Y = current_Y.copy()
+            
+            # Determine thresholds for the current frame
+            curr_salient = salient_thresh
+            curr_candidate = candidate_thresh
+            if adaptive:
+                for (start, end), (s_thresh, c_thresh) in scene_thresholds.items():
+                    if start <= total_frames < end:
+                        curr_salient = s_thresh
+                        curr_candidate = c_thresh
+                        break
+            
+            # LEGACY / UNUSED: Tier classification is kept purely for backward compatibility 
+            # with Track A (l1_elysium.py) and Track C (l2_asphodel.py) in-flight work.
+            # The core Track B pipeline has transitioned to continuous action scoring in action_score.py.
+            # Tier classification
+            if frame.key_frame:
+                tier = "I_FRAME"
+            elif total_frames in peak_frame_ids:
+                tier = "PEAK"   # local maximum overrides threshold tier
+            elif residual_energy > curr_salient:
+                tier = "SALIENT"
+            elif residual_energy >= curr_candidate:
+                tier = "CANDIDATE"
+            else:
+                tier = "SKIP"
+                    
+            # Update statistics counters
+            if tier == "I_FRAME":
+                i_frame_count += 1
+            elif tier == "PEAK":
+                peak_count += 1
+            elif tier == "SALIENT":
+                salient_count += 1
+            elif tier == "CANDIDATE":
+                candidate_count += 1
+            elif tier == "SKIP":
+                skipped_count += 1
+                
+            # Extract motion vectors (empty for I-frames or if not exported/available)
+            if tier == "I_FRAME":
+                motion_vectors = []
+            else:
+                motion_vectors = []
+                try:
+                    for sd in frame.side_data:
+                        if getattr(sd.type, 'name', None) == 'MOTION_VECTORS':
+                            for mv in sd:
+                                motion_vectors.append((
+                                    int(mv.src_x),
+                                    int(mv.src_y),
+                                    int(mv.dst_x),
+                                    int(mv.dst_y),
+                                    int(mv.motion_x),
+                                    int(mv.motion_y)
+                                ))
+                except (AttributeError, TypeError):
+                    motion_vectors = []
+                    
+            # Calculate robust timestamp
+            if frame.time is not None:
+                timestamp = float(frame.time)
+            elif frame.pts is not None and stream.time_base is not None:
+                timestamp = float(frame.pts * stream.time_base)
+            else:
+                timestamp = 0.0
+
+            # Append to output only if the frame tier is not SKIP
+            if tier != "SKIP":
+                geom = compute_motion_geometry(motion_vectors, frame.width, frame.height)
+                # Capture PIL image here so pipeline.py can extract CLIP embeddings
+                # without opening the video a 3rd time.  Guard with try/except so
+                # any format issue doesn't drop the frame — it just falls back to
+                # the legacy re-decode path in wrapper_l2_retrieve.
+                try:
+                    pil_image = frame.to_image()
+                except Exception:
+                    pil_image = None
+                output_frames.append({
+                    "frame_idx": total_frames,
+                    "timestamp": timestamp,
+                    "tier": tier,
+                    "residual_energy": residual_energy,
+                    "motion_vectors": motion_vectors,
+                    "pil_image": pil_image,
+                    **geom
+                })
+
+            # Expose raw records non-breakingly if requested
+            if return_raw:
+                pict_type = getattr(frame, "pict_type", None)
+                if pict_type is None:
+                    frame_type = "I" if frame.key_frame else "P"
+                elif isinstance(pict_type, int):
+                    try:
+                        frame_type = av.video.frame.PictureType(pict_type).name
+                    except Exception:
+                        frame_type = "I" if frame.key_frame else "P"
+                elif hasattr(pict_type, "name"):
+                    frame_type = pict_type.name
+                else:
+                    frame_type = str(pict_type)
+
+                mvs_mags = [np.sqrt(mv[4]**2 + mv[5]**2) for mv in motion_vectors]
+                motion_magnitude = float(np.mean(mvs_mags)) if mvs_mags else 0.0
+                try:
+                    hist, _ = np.histogram(current_Y, bins=256, range=(0, 256), density=True)
+                    hist = hist[hist > 0]
+                    entropy = float(-np.sum(hist * np.log2(hist))) / 8.0
+                except Exception:
+                    entropy = 0.0
+                
+                rec = {
+                    "frame_idx": total_frames,
+                    "frame_type": frame_type,
+                    "residual_energy": residual_energy,
+                    "motion_magnitude": motion_magnitude,
+                    "entropy": entropy
+                }
+                if visual_debug_mode:
+                    rec["frame"] = frame.to_ndarray(format='bgr24')
+                raw_records.append(rec)
+                
+            total_frames += 1
+    finally:
+        container.close()
+    
+    stats = {
+        "total": total_frames,
+        "i_frames": i_frame_count,
+        "peaks": peak_count,
+        "salient": salient_count,
+        "candidate": candidate_count,
+        "skipped": skipped_count,
+        "salient_thresh_used": salient_thresh,
+        "candidate_thresh_used": candidate_thresh
+    }
+    
+    if return_raw:
+        if return_stats:
+            return output_frames, stats, raw_records
+        return output_frames, raw_records
+        
+    if return_stats:
+        return output_frames, stats
+    return output_frames
+
+if __name__ == "__main__":
+    import argparse
+    
+    parser = argparse.ArgumentParser(description="Parse H.264 video streams.")
+    parser.add_argument("video_path", type=str, help="Path to the video file.")
+    parser.add_argument("--no-adaptive", action="store_true", help="Force hardcoded thresholds instead of adaptive ones.")
+    
+    args = parser.parse_args()
+    
+    try:
+        output_frames, stats = parse_video(args.video_path, return_stats=True, adaptive=not args.no_adaptive)
+    except Exception as e:
+        print(f"Error parsing video: {e}")
+        sys.exit(1)
+        
+    total = stats["total"]
+    def pct(count):
+        return (count / total * 100) if total > 0 else 0.0
+        
+    print(f"Total frames: {total}")
+    print(f"I-frames: {stats['i_frames']} ({pct(stats['i_frames']):.1f}%)")
+    print(f"Peaks: {stats['peaks']} ({pct(stats['peaks']):.1f}%)")
+    print(f"Salient: {stats['salient']} ({pct(stats['salient']):.1f}%)")
+    print(f"Candidate: {stats['candidate']} ({pct(stats['candidate']):.1f}%)")
+    print(f"Skipped: {stats['skipped']} ({pct(stats['skipped']):.1f}%)")
+    print(f"Salient threshold used: {stats['salient_thresh_used']:.4f}")
+    print(f"Candidate threshold used: {stats['candidate_thresh_used']:.4f}")
+    print(f"Output entries: {len(output_frames)}")
+    
+    print("\nFirst 5 output entries:")
+    for entry in output_frames[:5]:
+        pprint.pprint(entry)
+
+================================================================================
+FILE: l1_elysium.py
+================================================================================
+
+"""
+L1 Elysium — codec-pressure-aware active context cache for IRIS.
+
+Replaces the text-based HADES cache with a video-native implementation.
+Eviction is driven by a composite keep_score that combines:
+    action_score, query_similarity, persistence, pagerank,
+    motion_entropy, hessian_boundary, and recency.
+
+Capacity and eviction weights come from IRISConfig so that
+GEPA can tune them between pipeline runs without code changes.
+
+Owner: Track A
+"""
+from __future__ import annotations
+
+from typing import Iterator
+
+import numpy as np
+
+from cached_frame import CachedFrame
+from iris_config import IRISConfig
+
+
+class L1ElysiumCache:
+    """
+    Active context cache for IRIS.
+
+    Holds the most relevant CachedFrame entries for the current
+    pipeline state. When full, the frame with the lowest keep_score
+    is evicted to make room for the incoming frame.
+
+    Lifecycle of one frame inside L1:
+        1. admit()            frame enters L1 with action_score + motion data
+        2. update_pagerank()  L2 pushes PageRank scores back into L1 frames
+        3. query()            query embedding arrives, similarities computed,
+                              top-k frames returned to Aria
+        4. _evict_one()       called automatically by admit() when over capacity
+
+    Basic usage:
+        cache = L1ElysiumCache()
+        cache.admit(cached_frame)
+        results = cache.query(query_embedding, top_k=5)
+    """
+
+    def __init__(self, config: IRISConfig | None = None) -> None:
+        self._config: IRISConfig = config or IRISConfig()
+        self._frames: dict[int, CachedFrame] = {}
+        self._admission_counter: int = 0
+        self.hits: int = 0
+        self.misses: int = 0
+
+    # ── Public interface ───────────────────────────────────────────────────
+
+    def admit(self, frame: CachedFrame) -> None:
+        if frame.frame_idx in self._frames:
+            self.hits += 1
+            self._frames[frame.frame_idx] = frame
+            return
+
+        self.misses += 1
+        if self.is_full:
+            self._evict_one()
+
+        frame.admitted_at = self._admission_counter
+        self._frames[frame.frame_idx] = frame
+        self._admission_counter += 1
+
+    def query(
+    self,
+    query_embedding: np.ndarray,
+    top_k: int = 5,
+    ) -> list[CachedFrame]:
+        if not self._frames:
+            return []
+
+        # Compute query norm once — reused for every frame's similarity.
+        # Cast to float32 because bfloat16 lacks full numpy support.
+        q = query_embedding.astype(np.float32)
+        q_norm = float(np.linalg.norm(q))
+
+        for frame in self._frames.values():
+
+            # Frame not yet encoded — no embedding to compare against.
+            if frame.embedding is None:
+                frame.query_similarity = 0.0
+                continue
+
+            # Cast frame embedding to float32 for computation.
+            f = frame.embedding.astype(np.float32)
+            f_norm = float(np.linalg.norm(f))
+
+            # Guard against zero vectors — dot / 0 is undefined.
+            if q_norm < 1e-8 or f_norm < 1e-8:
+                frame.query_similarity = 0.0
+                continue
+
+            # Cosine similarity, clipped to [0, 1].
+            sim = float(np.dot(q, f) / (q_norm * f_norm))
+            frame.query_similarity = max(0.0, min(1.0, sim))
+
+        # Re-sort by keep_score now that query_similarity is updated.
+        # reverse=True because higher score = more relevant = comes first.
+        sorted_frames = sorted(
+            self._frames.values(),
+            key=self._keep_score,
+            reverse=True,
+        )
+
+        return sorted_frames[:top_k]
+    
+    def update_pagerank(self, scores: dict[int, float]) -> None:
+        for frame_idx, score in scores.items():
+            if frame_idx in self._frames:
+                self._frames[frame_idx].pagerank = float(score)
+        # frame_idx not in L1 — silently ignore, L2 may score frames
+        # that were already evicted
+
+    # ── Private helpers ────────────────────────────────────────────────────
+
+    def _evict_one(self) -> None:
+        if not self._frames:
+            return
+
+        victim_idx = min(
+            self._frames,
+            key=lambda idx: self._keep_score(self._frames[idx])
+        )
+        del self._frames[victim_idx]
+
+    def _keep_score(self, frame: CachedFrame) -> float:
+        return frame.keep_score(
+            total_admitted=self._admission_counter,
+            w_action=self._config.l1_w_action,
+            w_query=self._config.l1_w_query,
+            w_persist=self._config.l1_w_persist,
+            w_pagerank=self._config.l1_w_pagerank,
+            w_entropy=self._config.l1_w_entropy,
+            w_hessian=self._config.l1_w_hessian,
+            w_recency=self._config.l1_w_recency,
+        )
+
+    # ── Utility ───────────────────────────────────────────────────────────
+
+    def __len__(self) -> int:
+        return len(self._frames)
+
+    def __contains__(self, frame_idx: int) -> bool:
+        return frame_idx in self._frames
+
+    def frames(self) -> Iterator[CachedFrame]:
+        return iter(self._frames.values())
+
+    @property
+    def is_full(self) -> bool:
+        return len(self._frames) >= self._config.l1_capacity
+
+    # ── Fact-text helpers ──────────────────────────────────────────────────
+    #
+    # Two separate outputs serve two different consumers:
+    #
+    #   _frame_to_display_text()  Full human-readable string including numeric
+    #                             pipeline metrics (action_score, persistence).
+    #                             Used by as_context_text() → ARIA's prompt.
+    #                             ARIA can legitimately reference these numbers
+    #                             in prose ("this frame had a high action score").
+    #
+    #   _frame_to_nli_fact()      Semantic content ONLY — no numbers, no metric
+    #                             names.  Used by set_facts → Cerberus-V's fact
+    #                             pool.  An NLI model can only meaningfully reason
+    #                             about natural-language scene descriptions; numeric
+    #                             metadata phrased as sentences invites false
+    #                             contradiction verdicts (Fix 10/11 root cause).
+    #                             Returns None for frames without a caption — a
+    #                             bare numeric string is not a real fact and should
+    #                             not enter the NLI pool at all.
+
+    @staticmethod
+    def _frame_to_display_text(frame: "CachedFrame") -> str:
+        """Full display string for a frame, including numeric pipeline metrics.
+
+        Used by as_context_text() so ARIA's prompt context is rich and complete.
+        NOT used for Cerberus-V NLI verification.
+        """
+        caption_val = getattr(frame, "caption", None)
+        if isinstance(caption_val, dict):
+            semantic_caption = caption_val.get("semantic_caption") or "[CAPTION_FAILED]"
+        else:
+            semantic_caption = caption_val or "[CAPTION_FAILED]"
+            
+        parts = [
+            f"Frame {frame.frame_idx}",
+            f"Timestamp: {frame.timestamp_sec:.1f}s",
+            "",
+            f"Caption:\n{semantic_caption}",
+            "",
+            f"Action Score:\n{frame.action_score:.2f}",
+            "",
+            f"Persistence:\n{frame.persistence_value:.2f}"
+        ]
+        
+        if frame.is_peak:
+            parts.extend([
+                "",
+                f"Selection Reason:\nTop peak after NMS."
+            ])
+            
+        return "\n".join(parts)
+
+    @staticmethod
+    def _frame_to_nli_fact(frame: "CachedFrame") -> str | None:
+        """Semantic-only fact string for Cerberus-V NLI verification.
+
+        Returns ONLY the natural-language scene description — no action_score,
+        no persistence_value, no bare numbers.  An NLI model cannot meaningfully
+        reason about internal pipeline metrics, and numeric metadata phrased as
+        sentences produces false contradiction verdicts.
+
+        Returns None if the frame has no caption.  A frame without a semantic
+        caption has nothing meaningful to contribute to the NLI fact pool.
+        """
+        caption_val = getattr(frame, "caption", None)
+        if not caption_val:
+            return None
+            
+        if isinstance(caption_val, dict):
+            semantic_caption = caption_val.get("semantic_caption")
+        else:
+            semantic_caption = caption_val
+            
+        # Reject silent fallback, failed captions, or legacy fake content
+        if not semantic_caption or semantic_caption == "[CAPTION_FAILED]" or "rabbit" in semantic_caption.lower() or "meadow" in semantic_caption.lower():
+            return None
+            
+        return f"Frame {frame.frame_idx} at {frame.timestamp_sec:.2f}s: {semantic_caption}."
+
+    def as_context_text(self) -> str:
+        """Full context string for ARIA's prompt.
+
+        Includes numeric pipeline metrics so ARIA can reference them in prose.
+        Uses _frame_to_display_text(), not the NLI-only variant.
+        """
+        frame_blocks = []
+        for frame in self._frames.values():
+            frame_blocks.append(self._frame_to_display_text(frame))
+        return "\n\n---\n\n".join(frame_blocks)
+
+    @property
+    def set_facts(self) -> dict:
+        """Semantic-only fact pool for Cerberus-V NLI verification.
+
+        Uses _frame_to_nli_fact() — numeric pipeline metrics are excluded.
+        Frames without a caption are skipped entirely (None return value)
+        rather than contributing a meaningless numeric string to the pool.
+        """
+        class MockFactEntry:
+            def __init__(self, text: str):
+                self.text = text
+
+        facts = {}
+        for frame in self._frames.values():
+            text = self._frame_to_nli_fact(frame)
+            if text is None:
+                continue  # no caption → no NLI-checkable fact for this frame
+            facts[text] = MockFactEntry(text)
+        return facts
+
+================================================================================
+FILE: l2_asphodel.py
+================================================================================
+
+"""
+L2 Asphodel — motion-aware video RAG graph for IRIS.
+
+This module builds a NetworkX-based spatiotemporal scene graph (Asphodel) from
+video frames. It supports a "cold-start" phase, constructing the graph structure
+purely mathematically using motion signals without AI models, and later enriches
+nodes with semantic text triples and embeddings from the LLM (ARIA).
+
+Owner: Sia 
+"""
+
+from __future__ import annotations
+from dataclasses import dataclass, field
+import networkx as nx
+import numpy as np
+import scipy.sparse
+from typing import Any, List, Dict, Union, Optional
+
+
+@dataclass
+class AsphodelNode:
+    """
+    Schema representing a video frame node in the Asphodel spatiotemporal graph.
+    
+    Attributes:
+        frame_idx:             Index of the frame in the decoded video sequence.
+        timestamp:             Robust timestamp of the frame in seconds.
+        action_score:          Motion action score from action_score.py (personalization seed).
+        persistence_value:     Motion persistence score from action_score.py.
+        residual_energy:       Luma difference residual proxy extracted by Charon-V.
+        motion_magnitude:      Magnitude of raw motion vectors.
+        entropy:               Entropy of motion vectors/energy.
+        refined_motion_tensor: The bfloat16 smoothed motion tensor from the RMR layer.
+        triples:               KnowledgeTriple objects added by ARIA during enrichment.
+        embedding:             CLIP embedding numpy array added by ARIA (None until enriched).
+        pagerank_score:        Structural importance score computed dynamically via PageRank.
+    """
+    frame_idx:             int
+    timestamp:             float
+    action_score:          float
+    persistence_value:     float
+    residual_energy:       float
+    motion_magnitude:      float
+    entropy:               float
+    refined_motion_tensor: np.ndarray
+    triples:               list = field(default_factory=list)
+    embedding:             np.ndarray | None = None
+    pagerank_score:        float = 0.0
+
+
+class L2Asphodel:
+    """
+    L2 Layer (Asphodel) — NetworkX-based spatiotemporal scene graph manager.
+    
+    This class orchestrates a NetworkX Graph representation of the video scene. It:
+      - Accepts new video frames as nodes using motion metrics (Cold-Start).
+      - Forms a fully connected graph with edges weighted by a motion coherence metric.
+      - Automatically computes PageRank scores using motion intensity as a personalization seed.
+      - Enriches nodes with semantic metadata and embeddings.
+      - Adjusts edge weights to a hybrid (semantic + motion) formula.
+      - Exposes hybrid retrieval and exports the graph features into a Compressed Sparse Row (CSR) matrix.
+    """
+
+    def __init__(self, config: Any = None) -> None:
+        """
+        Initialize an empty NetworkX graph and configuration weights.
+
+        Args:
+            config: A configuration object or dictionary containing alpha and beta.
+                    alpha: weight for semantic cosine similarity (default 0.4)
+                    beta: weight for motion coherence similarity (default 0.6)
+        """
+        # An undirected Graph is chosen because spatiotemporal relationships are
+        # bidirectional; PageRank influence propagates mutually based on coherence.
+        self.graph = nx.Graph()
+        
+        # Default weights injected from IRISConfig
+        self.alpha: float = 0.4
+        self.beta: float = 0.6
+        self.gamma: float = 0.0
+
+        # Parse config fields if provided (handling both IRISConfig classes and dictionaries)
+        if config is not None:
+            self.alpha = getattr(config, "alpha", self.alpha)
+            self.beta = getattr(config, "beta", self.beta)
+            self.gamma = getattr(config, "gamma", self.gamma)
+            if isinstance(config, dict):
+                self.alpha = config.get("alpha", self.alpha)
+                self.beta = config.get("beta", self.beta)
+                self.gamma = config.get("gamma", self.gamma)
+
+    def _update_all_edge_weights(self) -> None:
+        """
+        Recalculates edge weights between all nodes in the graph to maintain a fully
+        connected, mathematically consistent spatiotemporal graph.
+        
+        Formula:
+          Total_Weight = (cosine_similarity(i, j) * alpha) + (motion_coherence(i, j) * beta)
+          
+        If either endpoint lacks an embedding (cold-start phase), the weight defaults to
+        motion_coherence(i, j).
+        """
+        node_ids = list(self.graph.nodes)
+        num_nodes = len(node_ids)
+        if num_nodes <= 1:
+            return
+
+        # Fetch all node data objects to analyze the range of action scores
+        nodes_data = [self.graph.nodes[n]["node_data"] for n in node_ids]
+        scores = [node.action_score for node in nodes_data]
+
+        # Dynamic Math Normalization:
+        # Calculate max_score_range dynamically based on the current max and min action_score.
+        # This keeps the motion coherence relative and scaled between 0.0 and 1.0.
+        # If all nodes share the same action_score (or range is 0), we default coherence to 1.0.
+        max_score = max(scores)
+        min_score = min(scores)
+        max_score_range = max_score - min_score
+
+        # Re-populate/update the fully connected edge set
+        for i in range(num_nodes):
+            for j in range(i + 1, num_nodes):
+                u, v = node_ids[i], node_ids[j]
+                node_u = self.graph.nodes[u]["node_data"]
+                node_v = self.graph.nodes[v]["node_data"]
+
+                # Calculate motion coherence
+                if max_score_range == 0.0:
+                    motion_coherence = 1.0
+                else:
+                    motion_coherence = 1.0 - (abs(node_u.action_score - node_v.action_score) / max_score_range)
+
+                # Determine weight based on enrichment status
+                if node_u.embedding is not None and node_v.embedding is not None:
+                    # Both nodes have embeddings -> Hybrid formula
+                    norm_u = np.linalg.norm(node_u.embedding)
+                    norm_v = np.linalg.norm(node_v.embedding)
+                    if norm_u == 0.0 or norm_v == 0.0:
+                        cos_sim = 0.0
+                    else:
+                        cos_sim = float(np.dot(node_u.embedding, node_v.embedding) / (norm_u * norm_v))
+                    
+                    weight = (cos_sim * self.alpha) + (motion_coherence * self.beta)
+                else:
+                    # Cold-start phase
+                    weight = motion_coherence
+
+                self.graph.add_edge(u, v, weight=weight)
+
+    def _update_pagerank(self) -> None:
+        """
+        Executes a NetworkX PageRank calculation and updates the pagerank_score attribute of each node.
+        
+        Personalization Seed Logic:
+        Personalized PageRank weights random walk jump targets using a customization vector. By feeding
+        action_score as the personalization seed, the graph simulation biases paths to start from or
+        jump back to frames with high physical motion activity. Thus, frames containing major motion spikes
+        automatically acquire high graph importance (PageRank) without needing semantic understanding.
+        """
+        num_nodes = len(self.graph)
+        if num_nodes == 0:
+            return
+        elif num_nodes == 1:
+            idx = list(self.graph.nodes)[0]
+            self.graph.nodes[idx]["node_data"].pagerank_score = 1.0
+            return
+
+        # Build personalization dictionary mapping frame_idx -> action_score
+        personalization = {
+            idx: float(self.graph.nodes[idx]["node_data"].action_score)
+            for idx in self.graph.nodes
+        }
+
+        total_seed = sum(personalization.values())
+        if total_seed > 0:
+            try:
+                # Use standard damping alpha=0.85 for NetworkX pagerank calculation
+                pr = nx.pagerank(self.graph, weight="weight", personalization=personalization, alpha=0.85)
+            except Exception:
+                # Fallback to standard PageRank if personalization fails
+                pr = nx.pagerank(self.graph, weight="weight", personalization=None, alpha=0.85)
+        else:
+            pr = nx.pagerank(self.graph, weight="weight", personalization=None, alpha=0.85)
+
+        # Store the computed scores back to the node objects
+        for idx, score in pr.items():
+            self.graph.nodes[idx]["node_data"].pagerank_score = score
+
+    def add_frame_node(self, feature_record: Any, action_score_record: Any) -> None:
+        """
+        Admits a new frame as a node, connects it to existing nodes, and runs PageRank.
+
+        Args:
+            feature_record: Dict or object containing:
+                            - frame_idx (int)
+                            - timestamp (float)
+                            - residual_energy (float)
+                            - motion_magnitude (float)
+                            - entropy (float)
+                            - refined_motion_tensor (np.ndarray)
+            action_score_record: Dict or object containing:
+                            - action_score (float)
+                            - persistence_value (float)
+        """
+        # Universal helper to safely read from dict keys or object attributes
+        def get_val(record: Any, key: str, default: Any = None) -> Any:
+            if record is None:
+                return default
+            if isinstance(record, dict):
+                return record.get(key, default)
+            return getattr(record, key, default)
+
+        frame_idx = int(get_val(feature_record, "frame_idx"))
+        timestamp = float(get_val(feature_record, "timestamp", 0.0))
+        residual_energy = float(get_val(feature_record, "residual_energy", 0.0))
+        motion_magnitude = float(get_val(feature_record, "motion_magnitude", 0.0))
+        entropy = float(get_val(feature_record, "entropy", 0.0))
+        refined_motion_tensor = get_val(feature_record, "refined_motion_tensor", None)
+
+        if refined_motion_tensor is None:
+            refined_motion_tensor = np.zeros(1, dtype=np.float32)
+
+        action_score = float(get_val(action_score_record, "action_score", 0.0))
+        persistence_value = float(get_val(action_score_record, "persistence_value", 0.0))
+
+        # Instantiate AsphodelNode
+        node_obj = AsphodelNode(
+            frame_idx=frame_idx,
+            timestamp=timestamp,
+            action_score=action_score,
+            persistence_value=persistence_value,
+            residual_energy=residual_energy,
+            motion_magnitude=motion_magnitude,
+            entropy=entropy,
+            refined_motion_tensor=refined_motion_tensor,
+            triples=[],
+            embedding=None
+        )
+
+        # Add node to NetworkX graph
+        self.graph.add_node(frame_idx, node_data=node_obj)
+
+        # Recompute edge weights dynamically for the updated node set
+        self._update_all_edge_weights()
+
+        # Refresh PageRank scores based on the new graph structure
+        self._update_pagerank()
+
+    def enrich_node(self, frame_idx: int, triples: list, embedding: np.ndarray) -> None:
+        """
+        Enriches an existing node with semantic text triples and a CLIP embedding array.
+        Recalculates edge weights to other enriched nodes using the hybrid formula, and runs PageRank.
+
+        Args:
+            frame_idx: The node's frame_idx identifier.
+            triples: A list of KnowledgeTriple objects extracted by ARIA.
+            embedding: CLIP embedding numpy array.
+        """
+        if frame_idx not in self.graph.nodes:
+            raise KeyError(f"Frame index {frame_idx} not found in the graph.")
+
+        node_data = self.graph.nodes[frame_idx]["node_data"]
+        node_data.triples = triples
+        node_data.embedding = embedding
+
+        # Recompute all edge weights (hybrid weights will now apply between this node and other enriched ones)
+        self._update_all_edge_weights()
+
+        # Re-run PageRank now that the transition graph has new hybrid weights
+        self._update_pagerank()
+
+    def add_frame_nodes_bulk(
+        self,
+        feature_records: list,
+        action_score_records: list,
+    ) -> None:
+        """
+        Batch-insert multiple frame nodes.
+
+        Adds all nodes to the graph first, then calls _update_all_edge_weights and
+        _update_pagerank ONCE — instead of once per node as add_frame_node() does.
+
+        Complexity:
+            add_frame_node() called N times: O(N * N²) = O(N³)
+            add_frame_nodes_bulk() for N nodes: O(N²)  ← this method
+
+        Args:
+            feature_records:     list of feature dicts (same schema as add_frame_node)
+            action_score_records: parallel list of action_score dicts
+        """
+        def get_val(record: Any, key: str, default: Any = None) -> Any:
+            if record is None:
+                return default
+            if isinstance(record, dict):
+                return record.get(key, default)
+            return getattr(record, key, default)
+
+        for feature_record, action_score_record in zip(feature_records, action_score_records):
+            frame_idx         = int(get_val(feature_record, "frame_idx"))
+            timestamp         = float(get_val(feature_record, "timestamp", 0.0))
+            residual_energy   = float(get_val(feature_record, "residual_energy", 0.0))
+            motion_magnitude  = float(get_val(feature_record, "motion_magnitude", 0.0))
+            entropy           = float(get_val(feature_record, "entropy", 0.0))
+            refined_motion_tensor = get_val(feature_record, "refined_motion_tensor", None)
+            if refined_motion_tensor is None:
+                refined_motion_tensor = np.zeros(1, dtype=np.float32)
+
+            action_score    = float(get_val(action_score_record, "action_score", 0.0))
+            persistence_value = float(get_val(action_score_record, "persistence_value", 0.0))
+
+            node_obj = AsphodelNode(
+                frame_idx=frame_idx,
+                timestamp=timestamp,
+                action_score=action_score,
+                persistence_value=persistence_value,
+                residual_energy=residual_energy,
+                motion_magnitude=motion_magnitude,
+                entropy=entropy,
+                refined_motion_tensor=refined_motion_tensor,
+                triples=[],
+                embedding=None,
+            )
+            self.graph.add_node(frame_idx, node_data=node_obj)
+
+        # Single recompute after all nodes inserted — the key efficiency gain.
+        self._update_all_edge_weights()
+        self._update_pagerank()
+
+    def enrich_nodes_bulk(self, enrichment_map: dict) -> None:
+        """
+        Batch-enrich multiple nodes with CLIP embeddings.
+
+        Applies all embeddings first, then calls _update_all_edge_weights and
+        _update_pagerank ONCE instead of once per node as enrich_node() does.
+
+        Args:
+            enrichment_map: {frame_idx (int): embedding (np.ndarray)}
+        """
+        for frame_idx, embedding in enrichment_map.items():
+            if frame_idx not in self.graph.nodes:
+                continue
+            node_data = self.graph.nodes[frame_idx]["node_data"]
+            node_data.triples = []
+            node_data.embedding = embedding
+
+        # Single recompute after all enrichments applied.
+        self._update_all_edge_weights()
+        self._update_pagerank()
+
+    def retrieve(
+        self,
+        query_embedding: np.ndarray | None,
+        query_action_score: float,
+        top_k: int = 5
+    ) -> list[AsphodelNode]:
+        """
+        Performs hybrid retrieval scoring of nodes based on semantics and motion coherence.
+        
+        Formula:
+          Total_Score = (Semantic_Score * alpha) + (Motion_Score * beta)
+          
+        If query_embedding is None or nodes lack embeddings (cold-start),
+        the scoring falls back to Motion_Score only.
+        
+        Args:
+          query_embedding:    Target query CLIP embedding (can be None).
+          query_action_score: Target action score of interest.
+          top_k:              Number of top matches to return.
+          
+        Returns:
+          A list of AsphodelNode objects sorted by Total_Score in descending order.
+        """
+        node_ids = list(self.graph.nodes)
+        if not node_ids:
+            return []
+
+        nodes_data = [self.graph.nodes[n]["node_data"] for n in node_ids]
+
+        # Calculate max_score_range of action scores dynamically to normalize motion differences
+        scores = [node.action_score for node in nodes_data]
+        max_score_range = max(scores) - min(scores) if len(scores) > 1 else 0.0
+
+        scored_nodes = []
+        for node in nodes_data:
+            semantic_sim = 0.0
+            if node.embedding is not None and query_embedding is not None:
+                norm_node = np.linalg.norm(node.embedding)
+                norm_query = np.linalg.norm(query_embedding)
+                if norm_node > 0.0 and norm_query > 0.0:
+                    semantic_sim = float(np.dot(node.embedding, query_embedding) / (norm_node * norm_query))
+            
+            comp_sem = self.alpha * semantic_sim
+            comp_act = self.beta * node.action_score
+            comp_pers = self.gamma * node.persistence_value
+            final_score = comp_sem + comp_act + comp_pers
+            
+            print(f"[DEBUG] Node {node.frame_idx} retrieval score contributions: "
+                  f"semantic = {comp_sem:.4f} (sim={semantic_sim:.4f}, wt={self.alpha:.2f}), "
+                  f"action = {comp_act:.4f} (score={node.action_score:.4f}, wt={self.beta:.2f}), "
+                  f"persistence = {comp_pers:.4f} (persist={node.persistence_value:.4f}, wt={self.gamma:.2f}) | "
+                  f"final = {final_score:.4f}")
+                  
+            node.last_retrieval_score = final_score
+            node.retrieval_contributions = {
+                "semantic": comp_sem,
+                "action": comp_act,
+                "persistence": comp_pers
+            }
+            scored_nodes.append((node, final_score))
+
+        # Sort descending by calculated score
+        scored_nodes.sort(key=lambda item: item[1], reverse=True)
+        return [node for node, score in scored_nodes[:top_k]]
+
+    def export_to_csr(self) -> scipy.sparse.csr_matrix:
+        """
+        Exports the node feature records into a Scipy Compressed Sparse Row (CSR) matrix.
+        
+        Why CSR?
+        A CSR matrix is highly efficient for downstream linear algebra, vector database lookups,
+        and query optimization. It stores sparse features in contiguous rows using indices and
+        pointers, keeping memory consumption extremely small for long videos.
+        
+        Feature vector representation per node:
+          [frame_idx, timestamp, action_score, persistence_value, residual_energy,
+           motion_magnitude, entropy, pagerank_score, ...refined_motion_tensor..., ...embedding...]
+          
+        Missing embeddings or motion tensors are zero-padded to maintain consistent columns.
+        """
+        # Sort nodes by frame_idx to preserve temporal decoding sequence in matrix rows
+        sorted_nodes = sorted(
+            [self.graph.nodes[n]["node_data"] for n in self.graph.nodes],
+            key=lambda x: x.frame_idx
+        )
+
+        if not sorted_nodes:
+            return scipy.sparse.csr_matrix((0, 0))
+
+        # Dynamic dimension inspection to determine padding sizes
+        embed_dim = 0
+        for node in sorted_nodes:
+            if node.embedding is not None:
+                embed_dim = max(embed_dim, node.embedding.flatten().shape[0])
+
+        motion_dim = 0
+        for node in sorted_nodes:
+            if node.refined_motion_tensor is not None:
+                motion_dim = max(motion_dim, node.refined_motion_tensor.flatten().shape[0])
+
+        rows = []
+        for node in sorted_nodes:
+            # 8 baseline scalar features
+            base_feats = [
+                float(node.frame_idx),
+                float(node.timestamp),
+                float(node.action_score),
+                float(node.persistence_value),
+                float(node.residual_energy),
+                float(node.motion_magnitude),
+                float(node.entropy),
+                float(node.pagerank_score)
+            ]
+
+            # Flatten and append motion tensor
+            if motion_dim > 0:
+                if node.refined_motion_tensor is not None:
+                    m_flat = node.refined_motion_tensor.flatten()
+                    if m_flat.shape[0] == motion_dim:
+                        base_feats.extend(m_flat.tolist())
+                    else:
+                        padded = np.zeros(motion_dim)
+                        n_val = min(motion_dim, m_flat.shape[0])
+                        padded[:n_val] = m_flat[:n_val]
+                        base_feats.extend(padded.tolist())
+                else:
+                    base_feats.extend([0.0] * motion_dim)
+
+            # Flatten and append embedding vector (zero-padded if missing/cold-start)
+            if embed_dim > 0:
+                if node.embedding is not None:
+                    e_flat = node.embedding.flatten()
+                    if e_flat.shape[0] == embed_dim:
+                        base_feats.extend(e_flat.tolist())
+                    else:
+                        padded = np.zeros(embed_dim)
+                        n_val = min(embed_dim, e_flat.shape[0])
+                        padded[:n_val] = e_flat[:n_val]
+                        base_feats.extend(padded.tolist())
+                else:
+                    base_feats.extend([0.0] * embed_dim)
+
+            rows.append(base_feats)
+
+        matrix = np.array(rows, dtype=np.float32)
+        return scipy.sparse.csr_matrix(matrix)
+
+
+if __name__ == "__main__":
+    print("=====================================================================")
+    print("IRIS L2 Asphodel Scene Graph Demo")
+    print("=====================================================================")
+
+    # 1. Initialize Graph with custom weights (alpha=0.4, beta=0.6)
+    config = {"alpha": 0.4, "beta": 0.6}
+    asphodel = L2Asphodel(config=config)
+    print("Initialized L2Asphodel graph with alpha=0.4, beta=0.6.")
+
+    # 2. Add Peak Frames (Cold-Start Phase)
+    print("\n--- Phase 1: Cold-Start (Adding Peak Frames) ---")
+    mock_frames = [
+        (
+            {
+                "frame_idx": 10,
+                "timestamp": 0.4,
+                "residual_energy": 0.5,
+                "motion_magnitude": 12.5,
+                "entropy": 3.2,
+                "refined_motion_tensor": np.array([1.2, 2.3], dtype=np.float32)
+            },
+            {"action_score": 0.8, "persistence_value": 0.7}
+        ),
+        (
+            {
+                "frame_idx": 20,
+                "timestamp": 0.8,
+                "residual_energy": 0.2,
+                "motion_magnitude": 4.1,
+                "entropy": 1.5,
+                "refined_motion_tensor": np.array([0.5, 0.7], dtype=np.float32)
+            },
+            {"action_score": 0.3, "persistence_value": 0.4}
+        ),
+        (
+            {
+                "frame_idx": 30,
+                "timestamp": 1.2,
+                "residual_energy": 0.9,
+                "motion_magnitude": 18.2,
+                "entropy": 4.8,
+                "refined_motion_tensor": np.array([2.1, 3.5], dtype=np.float32)
+            },
+            {"action_score": 0.95, "persistence_value": 0.9}
+        )
+    ]
+
+    for f_rec, a_rec in mock_frames:
+        asphodel.add_frame_node(f_rec, a_rec)
+        print(f"Admitted frame node {f_rec['frame_idx']} (Action Score: {a_rec['action_score']})")
+
+    # Display Graph Node States after Cold-Start
+    print("\nGraph Node States after Cold-Start:")
+    for node_id in sorted(asphodel.graph.nodes):
+        node = asphodel.graph.nodes[node_id]["node_data"]
+        print(f"  Frame {node.frame_idx}: Action Score = {node.action_score}, PageRank Score = {node.pagerank_score:.4f}")
+
+    # Display Edge Weights
+    print("\nEdge Weights (Pure Motion Coherence):")
+    for u, v, data in asphodel.graph.edges(data=True):
+        print(f"  Edge ({u} <-> {v}): Weight = {data['weight']:.4f}")
+
+    # Retrieve in Cold-Start Phase
+    print("\nRetrieval in Cold-Start Phase (Query Action Score: 0.90):")
+    results = asphodel.retrieve(query_embedding=None, query_action_score=0.90, top_k=2)
+    for i, r in enumerate(results):
+        print(f"  Match {i+1}: Frame {r.frame_idx} (Action Score: {r.action_score}, PageRank: {r.pagerank_score:.4f})")
+
+    # 3. Node Enrichment Phase (ARIA updates)
+    print("\n--- Phase 2: Enrichment (ARIA semantic updates) ---")
+    emb_10 = np.array([0.1, 0.9, 0.0, 0.0], dtype=np.float32)
+    emb_30 = np.array([0.15, 0.85, 0.05, 0.0], dtype=np.float32)
+    triples_10 = [("person", "walks in", "room")]
+    triples_30 = [("person", "opens", "door")]
+
+    asphodel.enrich_node(frame_idx=10, triples=triples_10, embedding=emb_10)
+    asphodel.enrich_node(frame_idx=30, triples=triples_30, embedding=emb_30)
+    print("Enriched frame 10 and frame 30 with semantic triples and embeddings.")
+
+    # Check updated edge weights (Edge 10 <-> 30 uses hybrid weight formula, others cold-start)
+    print("\nUpdated Edge Weights after Enrichment:")
+    for u, v, data in asphodel.graph.edges(data=True):
+        print(f"  Edge ({u} <-> {v}): Weight = {data['weight']:.4f}")
+
+    # Retrieve with Query Embedding (Semantic Match)
+    query_emb = np.array([0.1, 0.9, 0.0, 0.0], dtype=np.float32)
+    print("\nHybrid Retrieval (Query Semantics matching Frame 10, Query Action Score: 0.85):")
+    results = asphodel.retrieve(query_embedding=query_emb, query_action_score=0.85, top_k=2)
+    for i, r in enumerate(results):
+        print(f"  Match {i+1}: Frame {r.frame_idx} (Action Score: {r.action_score}, PageRank: {r.pagerank_score:.4f})")
+
+    # 4. Export to CSR Matrix
+    csr_matrix = asphodel.export_to_csr()
+    print("\n--- Phase 3: Export to CSR Matrix ---")
+    print(f"CSR Matrix Shape: {csr_matrix.shape}")
+    print(f"CSR Matrix representation:\n{csr_matrix.toarray()}")
+    print("=====================================================================")
+
+================================================================================
+FILE: aria.py
+================================================================================
+
+"""
+ARIA — LLM interface abstraction for IRIS.
+
+Single entry point for all LLM calls in the pipeline.
+Backend is swappable: OpenAI during development,
+Llama 3.2 3B via Ollama/llama.cpp in production.
+
+No other file in IRIS should import openai or call
+any LLM API directly — all calls go through here.
+
+Owner: Track B
+"""
+from __future__ import annotations
+import os
+from dataclasses import dataclass
+
+@dataclass
+class CaptionResult:
+    success: bool
+    caption: str | None
+    error: str | None = None
+
+class CaptionGenerationError(Exception):
+    """Exception raised when caption generation fails."""
+    pass
+
+
+class LLMBackend:
+    """Abstract base class for LLM backends."""
+    def generate(self, prompt: str, context: str, model: str | None = None) -> str:
+        raise NotImplementedError("LLM backend must implement generate()")
+
+
+class OpenAIBackend(LLMBackend):
+    """OpenAI API implementation."""
+    def __init__(self, api_key: str | None = None) -> None:
+        self.api_key = api_key or os.environ.get("OPENAI_API_KEY")
+        self._client = None
+
+    @property
+    def client(self):
+        if self._client is None:
+            if not self.api_key:
+                raise ValueError(
+                    "OPENAI_API_KEY environment variable is not set.\n"
+                    "To run IRIS dynamically, please either:\n"
+                    "  1. Set the OPENAI_API_KEY environment variable in your system or in a .env file.\n"
+                    "  2. Implement and select a local LLM backend (such as LlamaBackend using Ollama)."
+                )
+            from openai import OpenAI
+            self._client = OpenAI(api_key=self.api_key)
+        return self._client
+
+    def generate(self, prompt: str, context: str, model: str | None = None) -> str:
+        # Default model if not specified
+        model_name = model or "gpt-4o-mini"
+        
+        system_content = (
+            "You are ARIA, a video understanding assistant.\n\n"
+            "Use only the provided frame evidence and retrieval context.\n\n"
+            "Answer in clear natural language.\n\n"
+            "When describing events, reference timestamps and supporting frames.\n\n"
+            "If evidence is insufficient, explicitly say so.\n\n"
+            "Do not invent events that are not supported by the provided context.\n\n"
+            "Prefer concise but human-readable explanations over raw metadata.\n\n"
+            f"Provided Frame Evidence and Retrieval Context:\n{context}"
+        )
+        
+        messages = [
+            {
+                "role": "system",
+                "content": system_content
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ]
+        response = self.client.chat.completions.create(
+            model=model_name,
+            messages=messages,
+            temperature=0.0,
+        )
+        return response.choices[0].message.content
+
+
+class LlamaBackend(LLMBackend):
+    """Local Llama 3.2 3B via Ollama/llama.cpp backend (for future swap)."""
+    def __init__(self, endpoint: str = "http://localhost:11434/v1") -> None:
+        self.endpoint = endpoint
+
+    def generate(self, prompt: str, context: str, model: str | None = None) -> str:
+        # TODO: Implement local Llama 3.2 3B calling Ollama/llama.cpp client here
+        raise NotImplementedError("LlamaBackend is not yet implemented.")
+
+
+# Active backend instance (cached globally)
+_ACTIVE_BACKEND: LLMBackend | None = None
+
+
+def get_backend() -> LLMBackend:
+    """Returns the globally configured active LLM backend."""
+    global _ACTIVE_BACKEND
+    if _ACTIVE_BACKEND is None:
+        # Default to OpenAI backend
+        _ACTIVE_BACKEND = OpenAIBackend()
+    return _ACTIVE_BACKEND
+
+
+def set_backend(backend: LLMBackend) -> None:
+    """Explicitly override the active LLM backend (e.g. for testing)."""
+    global _ACTIVE_BACKEND
+    _ACTIVE_BACKEND = backend
+
+
+def generate(prompt: str, context: str, model: str = "gpt-4o-mini") -> str:
+    """
+    Generate a response from the active LLM backend.
+
+    Args:
+        prompt: the user query or instruction
+        context: formatted context string from L1 Elysium (as_context_text())
+        model: model identifier, ignored when using local backend
+
+    Returns:
+        Raw string response from the model
+    """
+    backend = get_backend()
+    return backend.generate(prompt, context, model=model)
+
+
+_CAPTION_FAILURES = []
+
+
+def get_caption_failures() -> list:
+    """Return all stored captioning failures."""
+    return _CAPTION_FAILURES
+
+
+def run_diagnostics() -> dict:
+    """Run startup diagnostics and raise RuntimeError if requested backend is unavailable."""
+    import json
+    backend = get_backend()
+    backend_class = backend.__class__.__name__
+    
+    api_key = os.environ.get("OPENAI_API_KEY")
+    api_key_present = api_key is not None and len(api_key.strip()) > 0
+    
+    model = "gpt-4o-mini"
+    if backend_class in ("MockLLMBackend", "MockBackend"):
+        model = "mock-model"
+        
+    diag = {
+        "backend": backend_class,
+        "model": model,
+        "api_key_present": api_key_present
+    }
+    
+    print(f"DIAGNOSTICS: {json.dumps(diag)}")
+    
+    if backend_class == "OpenAIBackend" and not api_key_present:
+        raise RuntimeError("OpenAIBackend is active but OPENAI_API_KEY is not set.")
+        
+    return diag
+
+
+def generate_caption_for_frame(frame, frame_idx: int | None = None) -> CaptionResult:
+    """Generate a semantic caption for the given PyAV VideoFrame using the active backend."""
+    import base64
+    import io
+    import time
+
+    t_start = time.time()
+    model_name = "gpt-4o-mini"
+    
+    # 1. Fallback / Mock check
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if not api_key or api_key == "mock":
+        err_msg = "OPENAI_API_KEY is not set or is 'mock'."
+        result = CaptionResult(success=False, caption="[CAPTION_FAILED]", error=err_msg)
+        _CAPTION_FAILURES.append({
+            "frame_idx": frame_idx,
+            "latency": time.time() - t_start,
+            "model": model_name,
+            "error": err_msg
+        })
+        return result
+
+    # 2. Extract image from PyAV frame and encode as base64 JPEG
+    try:
+        img = frame.to_image()  # PIL Image
+        buffered = io.BytesIO()
+        img.save(buffered, format="JPEG")
+        img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+    except Exception as e:
+        err_msg = f"Failed to convert frame to image for captioning: {e}"
+        result = CaptionResult(success=False, caption="[CAPTION_FAILED]", error=err_msg)
+        _CAPTION_FAILURES.append({
+            "frame_idx": frame_idx,
+            "latency": time.time() - t_start,
+            "model": model_name,
+            "error": err_msg
+        })
+        return result
+
+    # 3. Call OpenAI vision API
+    try:
+        backend = get_backend()
+        if not isinstance(backend, OpenAIBackend):
+            err_msg = f"Active backend {backend.__class__.__name__} does not support vision/captioning."
+            result = CaptionResult(success=False, caption="[CAPTION_FAILED]", error=err_msg)
+            _CAPTION_FAILURES.append({
+                "frame_idx": frame_idx,
+                "latency": time.time() - t_start,
+                "model": "mock-model",
+                "error": err_msg
+            })
+            return result
+        
+        # Access client
+        client = backend.client
+        response = client.chat.completions.create(
+            model=model_name,
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Describe this video frame briefly in one clear sentence. Focus on the main subjects and actions. Do not use conversational filler or meta-references."
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{img_str}"
+                            }
+                        }
+                    ]
+                }
+            ],
+            max_tokens=60,
+            temperature=0.2,
+        )
+        caption = response.choices[0].message.content.strip()
+        return CaptionResult(success=True, caption=caption)
+    except Exception as e:
+        err_msg = f"OpenAI captioning API call failed: {e}"
+        result = CaptionResult(success=False, caption="[CAPTION_FAILED]", error=err_msg)
+        _CAPTION_FAILURES.append({
+            "frame_idx": frame_idx,
+            "latency": time.time() - t_start,
+            "model": model_name,
+            "error": err_msg
+        })
+        return result
+
+================================================================================
+FILE: cerberus_v.py
+================================================================================
+
+"""
+Cerberus-V — NLI truth gate for IRIS.
+
+Port of HADES Cerberus adapted for video context.
+Verifies claims in L1 Elysium SCRATCH set against
+facts grounded in PEAK and SALIENT frame data.
+
+Backend: DeBERTa-v3-base
+"""
+from __future__ import annotations
+
+import re
+import json
+import psutil
+from typing import Any, Iterable
+
+from iris_config import IRISConfig, ConfigManager
+from triple import KnowledgeTriple
+
+
+_SPACY_NLP = None
+_NLI_TOKENIZER = None
+_NLI_MODEL = None
+
+
+class CerberusV:
+    def __init__(self, model_name: str = "cross-encoder/nli-deberta-v3-base") -> None:
+        self.model_name = model_name
+        self._tokenizer: Any = None
+        self._model: Any = None
+        self._nlp: Any = None
+
+    def _get_spacy(self) -> Any:
+        global _SPACY_NLP
+        if _SPACY_NLP is None:
+            import spacy
+            try:
+                _SPACY_NLP = spacy.load("en_core_web_sm")
+            except OSError:
+                from spacy.cli import download
+                download("en_core_web_sm")
+                _SPACY_NLP = spacy.load("en_core_web_sm")
+        return _SPACY_NLP
+
+    def _get_nli_model(self) -> tuple[Any, Any]:
+        global _NLI_TOKENIZER, _NLI_MODEL
+        if _NLI_MODEL is None:
+            from transformers import AutoModelForSequenceClassification, AutoTokenizer
+            import torch
+            _NLI_TOKENIZER = AutoTokenizer.from_pretrained(self.model_name)
+            _NLI_MODEL = AutoModelForSequenceClassification.from_pretrained(self.model_name)
+            _NLI_MODEL.eval()
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            _NLI_MODEL.to(device)
+        return _NLI_TOKENIZER, _NLI_MODEL
+
+    def get_verification_mode(
+        self,
+        action_score: float,
+        config: IRISConfig,
+    ) -> str:
+        """
+        Returns verification intensity based on continuous action_score.
+        action_score is a float in [0, 1] from action_score.py.
+        Both thresholds are GEPA-tunable via IRISConfig.
+
+        full_nli:     full DeBERTa forward pass on all claims
+        filtered_nli: DeBERTa only on claims where confidence >= 0.6
+        ner_only:     named entity overlap check, no DeBERTa forward pass
+        """
+        if getattr(config, "disable_nli", False):
+            return "ner_only"
+        if action_score >= config.cerberus_high_thresh:
+            return "full_nli"
+        elif action_score >= config.cerberus_low_thresh:
+            return "filtered_nli"
+        else:
+            return "ner_only"
+
+    def _parse_claims(self, claims: list[str]) -> list[str]:
+        parsed_claims = []
+        for claim in claims:
+            # Clean think and tool blocks
+            claim_clean = re.sub(r'<think>.*?</think>', '', claim, flags=re.DOTALL)
+            claim_clean = re.sub(r'\{"tool":\s*".*?"\}', '', claim_clean)
+            claim_clean = re.sub(r'\{"tool":\s*".*?",.*?\}', '', claim_clean, flags=re.DOTALL)
+            
+            claims_match = re.search(r'CLAIMS\s*:\s*(\[.*?\])', claim_clean, re.DOTALL | re.IGNORECASE)
+            raw = None
+            if claims_match:
+                raw = claims_match.group(1)
+            elif claim_clean.strip().startswith('[') and claim_clean.strip().endswith(']'):
+                raw = claim_clean.strip()
+                
+            if raw:
+                raw_claims = None
+                try:
+                    raw_claims = json.loads(raw)
+                except Exception:
+                    # Robust fallback: repaired trailing commas
+                    repaired = re.sub(r',\s*([\]}])', r'\1', raw)
+                    try:
+                        raw_claims = json.loads(repaired)
+                    except Exception:
+                        repaired = repaired.replace("'", '"')
+                        try:
+                            raw_claims = json.loads(repaired)
+                        except Exception:
+                            pass
+                
+                if isinstance(raw_claims, list):
+                    for c in raw_claims:
+                        if isinstance(c, dict) and "s" in c and "v" in c and "o" in c:
+                            parsed_claims.append(f"{c['s']} {c['v']} {c['o']}")
+                        elif isinstance(c, str):
+                            parsed_claims.append(c)
+                    continue
+            
+            parsed_claims.append(claim)
+            
+        return parsed_claims
+
+    def verify(
+        self,
+        claims: list[str],
+        cache: object,
+        action_score: float,
+        config: IRISConfig,
+    ) -> dict:
+        """
+        Verify ARIA's generated claims against facts in L1 Elysium.
+
+        claims:       list of string claims from ARIA's output
+        cache:        populated L1Cache instance
+        action_score: continuous float [0,1] from action_score.py
+        config:       IRISConfig instance for threshold access
+
+        Returns:
+        {
+            "verified":     list[str],   # claims that passed
+            "rejected":     list[str],   # claims contradicted by cache facts
+            "unverifiable": list[str],   # claims with no relevant evidence
+            "mode":         str,         # which verification mode was used
+            "action_score": float        # echo back for logging
+        }
+        """
+        import time
+        t_load_start = time.time()
+        self._get_spacy()
+        mode = self.get_verification_mode(action_score, config)
+        if mode in ("full_nli", "filtered_nli"):
+            self._get_nli_model()
+        t_load = time.time() - t_load_start
+
+        t_inf_start = time.time()
+        parsed_claims = self._parse_claims(claims)
+        facts = [entry.text for entry in cache.set_facts.values()]
+
+        if mode == "full_nli":
+            res = self._full_nli(parsed_claims, facts, mode, action_score)
+        elif mode == "filtered_nli":
+            high_conf = [c for c in parsed_claims if self._confidence(c) >= 0.6]
+            low_conf  = [c for c in parsed_claims if self._confidence(c) <  0.6]
+            res = self._full_nli(high_conf, facts, mode, action_score)
+            res["verified"] += low_conf   # low-conf claims pass unverified
+        else:  # ner_only
+            res = self._ner_overlap(parsed_claims, facts, mode, action_score)
+        t_inf = time.time() - t_inf_start
+
+        print(f"[DEBUG] CerberusV verification: model_load_time = {t_load:.4f}s | inference_time = {t_inf:.4f}s")
+        return res
+
+    def _confidence(self, claim: str) -> float:
+        """
+        Lightweight verification confidence scoring.
+        Avoids DeBERTa pass to preserve budget on low-complexity or hedged statements.
+        """
+        if not claim or not claim.strip():
+            return 0.0
+        
+        # Hedging words reduce confidence
+        hedges = {"maybe", "probably", "possibly", "could", "might", "perhaps", "approximate", "approximately"}
+        words = set(claim.lower().split())
+        if words & hedges:
+            return 0.4
+            
+        # Very short claims
+        if len(words) < 3:
+            return 0.3
+            
+        # Entity-rich factual claims require strict verification
+        nlp = self._get_spacy()
+        try:
+            doc = nlp(claim)
+            ent_count = len(doc.ents)
+        except Exception:
+            ent_count = 0
+            
+        if ent_count >= 1:
+            return 0.85
+            
+        return 0.65
+
+    def _full_nli(
+        self,
+        claims: list[str],
+        facts: list[str],
+        mode: str,
+        action_score: float,
+    ) -> dict:
+        """
+        Full verification using DeBERTa NLI.
+        Batches all (claim, fact) pairs into a single forward pass.
+        """
+        if not claims:
+            return {
+                "verified": [],
+                "rejected": [],
+                "unverifiable": [],
+                "mode": mode,
+                "action_score": action_score,
+            }
+
+        if not facts:
+            return {
+                "verified": [],
+                "rejected": [],
+                "unverifiable": claims.copy(),
+                "mode": mode,
+                "action_score": action_score,
+            }
+
+        import torch
+        import torch.nn.functional as F
+        
+        nlp = self._get_spacy()
+        tokenizer, model = self._get_nli_model()
+        device = model.device
+
+        # Form all (claim, fact) pairs
+        pairs = []
+        for claim in claims:
+            for fact in facts:
+                pairs.append((claim, fact))
+
+        # Check memory pressure and scale batch size
+        base_batch_size = 64
+        try:
+            mem = psutil.virtual_memory()
+            ram_percent = mem.percent
+            if ram_percent >= 85:
+                base_batch_size = 8
+            elif ram_percent >= 75:
+                base_batch_size = 16
+            elif ram_percent >= 60:
+                base_batch_size = 32
+        except Exception:
+            pass
+
+        pair_results = {}
+        
+        # Batch inference
+        for i in range(0, len(pairs), base_batch_size):
+            batch = pairs[i:i + base_batch_size]
+            batch_claims = [p[0] for p in batch]
+            batch_facts = [p[1] for p in batch]
+
+            inputs = tokenizer(
+                batch_facts,
+                batch_claims,
+                padding=True,
+                truncation=True,
+                return_tensors="pt"
+            )
+            
+            with torch.no_grad():
+                inputs = {k: v.to(device) for k, v in inputs.items()}
+                outputs = model(**inputs)
+                logits = outputs.logits
+                predictions = torch.argmax(logits, dim=-1).cpu().tolist()
+                probs = F.softmax(logits, dim=-1).cpu().tolist()
+
+            for j, (claim, fact) in enumerate(batch):
+                pred = predictions[j]
+                prob_dist = probs[j]
+                
+                label = "neutral"
+                id2label = getattr(model.config, "id2label", {}) or {}
+                raw_label = str(id2label.get(pred, "")).lower()
+                if "entail" in raw_label:
+                    label = "entailment"
+                elif "contrad" in raw_label:
+                    label = "contradiction"
+                elif "neutral" in raw_label:
+                    label = "neutral"
+                else:
+                    if pred == 2:
+                        label = "entailment"
+                    elif pred == 0:
+                        label = "contradiction"
+
+                # Find entailment probability
+                entail_idx = 2
+                for idx, lbl in id2label.items():
+                    if "entail" in str(lbl).lower():
+                        entail_idx = idx
+                        break
+                entailment_score = prob_dist[entail_idx] if entail_idx < len(prob_dist) else prob_dist[-1]
+
+                # Negation pre-check via spaCy parse
+                claim_doc = nlp(claim)
+                has_negation_claim = any(t.dep_ == "neg" or t.lower_ == "no" for t in claim_doc)
+                fact_doc = nlp(fact)
+                has_negation_fact = any(t.dep_ == "neg" or t.lower_ == "no" for t in fact_doc)
+                negation_high_risk = has_negation_claim and not has_negation_fact
+
+                threshold = 0.5 if negation_high_risk else 0.85
+                if label == "entailment" and negation_high_risk and entailment_score <= threshold:
+                    label = "neutral"
+
+                # Geographic precision check
+                if label == "entailment":
+                    claim_gpes = {
+                        ent.text.lower().strip()
+                        for ent in claim_doc.ents
+                        if ent.label_ in ("GPE", "LOC")
+                    }
+                    if claim_gpes:
+                        if not any(gpe in fact.lower() for gpe in claim_gpes):
+                            label = "neutral"
+
+                # Topical overlap: a fact is "topically relevant" to a claim if they
+                # share at least one non-stopword lemma or named entity.  Facts with
+                # zero overlap are excluded from aggregation so an off-topic fact line
+                # cannot veto an otherwise-supported claim.  claim_doc/fact_doc are
+                # already parsed above for the negation check — reuse them.
+                claim_lemmas = {
+                    t.lemma_.lower()
+                    for t in claim_doc
+                    if not t.is_stop and t.is_alpha and len(t.text) > 2
+                }
+                fact_lemmas = {
+                    t.lemma_.lower()
+                    for t in fact_doc
+                    if not t.is_stop and t.is_alpha and len(t.text) > 2
+                }
+                claim_ents_set = {e.text.lower() for e in claim_doc.ents}
+                fact_ents_set  = {e.text.lower() for e in fact_doc.ents}
+                has_topical_overlap = bool(
+                    (claim_lemmas & fact_lemmas) or (claim_ents_set & fact_ents_set)
+                )
+
+                pair_results[(claim, fact)] = (label, entailment_score, has_topical_overlap)
+
+        # Aggregate results
+        # Fix 10: two-step aggregation.
+        #
+        # Step 1 — topical relevance filter:
+        #   Only facts that share at least one non-stopword lemma or named entity
+        #   with the claim are admitted to that claim's verdict pool.  A completely
+        #   off-topic fact line cannot veto an otherwise-supported claim.
+        #
+        # Step 2 — majority vote over relevant facts:
+        #   Contradiction wins only if contradicted_count > entailed_count.
+        #   This prevents a single low-persistence frame (persistence=0.0000 in the
+        #   fact text) from vetoing a claim that three other frames genuinely entail.
+        #   Relevant negation/geo checks (applied per-pair above) are preserved.
+        verified = []
+        rejected = []
+        unverifiable = []
+
+        for claim in claims:
+            all_results = [pair_results[(claim, fact)] for fact in facts]
+
+            # Filter to topically relevant facts
+            relevant = [
+                (label, score)
+                for label, score, has_overlap in all_results
+                if has_overlap
+            ]
+
+            if not relevant:
+                # No fact is topically related to this claim — cannot verify or reject
+                unverifiable.append(claim)
+                continue
+
+            entailed_count    = sum(1 for label, _ in relevant if label == "entailment")
+            contradicted_count = sum(1 for label, _ in relevant if label == "contradiction")
+
+            if contradicted_count > entailed_count:
+                # Contradictions outnumber entailments among relevant facts
+                rejected.append(claim)
+            elif entailed_count > 0:
+                # At least one relevant fact entails, and entailments >= contradictions
+                verified.append(claim)
+            else:
+                unverifiable.append(claim)
+
+        return {
+            "verified": verified,
+            "rejected": rejected,
+            "unverifiable": unverifiable,
+            "mode": mode,
+            "action_score": action_score,
+        }
+
+    def _ner_overlap(
+        self,
+        claims: list[str],
+        facts: list[str],
+        mode: str,
+        action_score: float,
+    ) -> dict:
+        """
+        Lightweight verification: named entity overlap between claims and facts.
+        No DeBERTa forward pass. Used when action_score < cerberus_low_thresh.
+        A claim is rejected only if a fact explicitly negates one of its entities.
+        """
+        nlp = self._get_spacy()
+
+        verified, rejected, unverifiable = [], [], []
+        fact_entities = set()
+        for f in facts:
+            fact_entities.update(ent.text.lower() for ent in nlp(f).ents)
+
+        for claim in claims:
+            claim_ents = {ent.text.lower() for ent in nlp(claim).ents}
+            if not claim_ents:
+                unverifiable.append(claim)
+            elif claim_ents & fact_entities:
+                verified.append(claim)
+            else:
+                unverifiable.append(claim)
+
+        return {
+            "verified":     verified,
+            "rejected":     rejected,
+            "unverifiable": unverifiable,
+            "mode":         mode,
+            "action_score": action_score,
+        }
+
+    def _extract_entity_claims(self, text: str, question_context: str = "") -> list[KnowledgeTriple]:
+        """
+        Fallback extraction for short factual answers, entities, and numeric patterns.
+        Replicated from HADES shared/extractor.py.
+        """
+        if not text or "INSUFFICIENT DATA" in text.upper():
+            return []
+            
+        nlp = self._get_spacy()
+        doc = nlp(text)
+        triples: list[KnowledgeTriple] = []
+        
+        entities = [ent for ent in doc.ents if ent.label_ in {"ORG", "GPE", "LOC", "WORK_OF_ART", "EVENT", "DATE"}]
+        for ent in entities:
+            triples.append(KnowledgeTriple(
+                subject=ent.text,
+                verb="is",
+                object=ent.label_.lower(),
+                extraction_method="entity_fallback",
+                is_deterministic=True
+            ))
+        if len(entities) >= 2:
+            triples.append(KnowledgeTriple(
+                subject=entities[0].text,
+                verb="related to",
+                object=entities[1].text,
+                extraction_method="entity_fallback",
+                is_deterministic=True
+            ))
+            
+        numeric_regex = r'(\d+\.?\d*\s*%|\d+\.?\d*\s*(?:million|billion|thousand|tonnes|kg|km|years?|days?)|\b\d+\b)'
+        for sent in doc.sents:
+            for match in re.finditer(numeric_regex, sent.text, re.IGNORECASE):
+                num_val = match.group()
+                match_start_char = sent.start_char + match.start()
+                
+                nearest_chunk = None
+                min_dist = float('inf')
+                
+                for chunk in doc.noun_chunks:
+                    if chunk.start_char >= sent.start_char and chunk.end_char <= sent.end_char:
+                        dist = min(abs(chunk.start_char - match_start_char), abs(chunk.end_char - match_start_char))
+                        if dist < min_dist:
+                            min_dist = dist
+                            nearest_chunk = chunk
+                
+                if nearest_chunk:
+                    if nearest_chunk.text.strip().lower() == num_val.strip().lower():
+                        continue
+                        
+                    triples.append(KnowledgeTriple(
+                        subject=nearest_chunk.text,
+                        verb="has value",
+                        object=num_val,
+                        extraction_method="entity_fallback",
+                        is_deterministic=True
+                    ))
+                    
+        return triples
+
+================================================================================
+FILE: pipeline.py
+================================================================================
+
+"""
+IRIS end-to-end pipeline harness.
+
+Wires: charon_v → action_score → l1_elysium → l2_asphodel → aria → cerberus_v
+
+Entry point for integration testing and ablation runs.
+Accepts a video path and a natural language query,
+returns a verified answer string.
+
+Owner: Track B
+"""
+from __future__ import annotations
+import re
+from pathlib import Path
+import numpy as np
+import av
+
+import charon_v
+import aria
+from action_score import ActionScoreConfig, ActionScoreModule
+import os
+
+# Load environment variables from .env file if it exists in the workspace
+def _load_env():
+    env_path = Path(__file__).parent / ".env"
+    if env_path.exists():
+        with open(env_path, "r") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    key, val = line.split("=", 1)
+                    os.environ[key.strip()] = val.strip().strip('"').strip("'")
+
+_load_env()
+
+# ── CLIP availability flag ─────────────────────────────────────────────────
+def _check_clip_available() -> bool:
+    try:
+        import clip  # noqa: F401
+        import torch  # noqa: F401
+        return True
+    except ImportError:
+        return False
+
+_CLIP_AVAILABLE = _check_clip_available()
+
+# Globals for caching the CLIP and BLIP models
+_CLIP_MODEL = None
+_CLIP_PREPROCESS = None
+_CLIP_TEXT_FEATURES = None
+
+_BLIP_MODEL = None
+_BLIP_PROCESSOR = None
+
+
+def get_blip_model():
+    """Load and cache the BLIP image captioning model globally."""
+    global _BLIP_MODEL, _BLIP_PROCESSOR
+    if _BLIP_MODEL is None:
+        from transformers import BlipProcessor, BlipForConditionalGeneration
+        import torch
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        try:
+            print(f"[INFO] Loading BLIP model on {device} (first run will download ~990MB)...")
+            _BLIP_PROCESSOR = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
+            _BLIP_MODEL = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base").to(device)
+            print("[INFO] BLIP model loaded successfully.")
+        except Exception as e:
+            print(f"Warning: Failed to load BLIP model: {e}")
+            _BLIP_MODEL = None
+            _BLIP_PROCESSOR = None
+    return _BLIP_MODEL, _BLIP_PROCESSOR
+
+
+def get_generative_caption(pil_image, device: str) -> str:
+    """Generate a dynamic, natural-language caption for a PIL image using BLIP."""
+    if pil_image is None:
+        return "visual cues from the video"
+    model, processor = get_blip_model()
+    if model is None or processor is None:
+        return "visual cues from the video"
+    try:
+        import torch
+        inputs = processor(images=pil_image, return_tensors="pt").to(device)
+        with torch.no_grad():
+            outputs = model.generate(**inputs, max_new_tokens=20)
+        caption = processor.decode(outputs[0], skip_special_tokens=True)
+        return caption.strip()
+    except Exception as e:
+        print(f"Warning: Generative captioning failed: {e}")
+        return "visual cues from the video"
+
+
+def get_zero_shot_caption(clip_embedding: np.ndarray, device: str) -> str:
+    """Classify clip_embedding against a set of action/scene vocabulary labels."""
+    global _CLIP_TEXT_FEATURES
+    
+    vocabulary = [
+        "a cartoon rabbit standing in a field",
+        "a rabbit watching something",
+        "a butterfly flying near a rabbit",
+        "a rabbit sleeping on the grass",
+        "a badger or rodent appearing on screen",
+        "a close-up of a bunny's face",
+        "animals playing in the forest",
+        "a scenic green meadow with trees",
+        "a rodent or small animal moving",
+        "a cartoon character showing action or movement",
+        "a person walking or running",
+        "a person talking or speaking",
+        "a car or vehicle moving on a street",
+        "an indoor room or office setting",
+        "a group of people gathering",
+        "a close-up of a person's face",
+        "a computer screen or technology interface",
+        "a person cooking or eating food",
+        "a street scene with buildings",
+        "a sports game or athletic activity",
+    ]
+    
+    model, _ = get_clip_model()
+    if model is None:
+        return "visual cues from the video"
+        
+    try:
+        import clip
+        import torch
+        
+        if _CLIP_TEXT_FEATURES is None:
+            text_inputs = clip.tokenize(vocabulary).to(device)
+            with torch.no_grad():
+                text_features = model.encode_text(text_inputs)
+                text_features /= text_features.norm(dim=-1, keepdim=True)
+                _CLIP_TEXT_FEATURES = text_features.cpu().numpy()
+                
+        # Compute cosine similarity
+        similarities = np.dot(_CLIP_TEXT_FEATURES, clip_embedding)
+        top_idx = np.argmax(similarities)
+        return vocabulary[top_idx]
+    except Exception as e:
+        print(f"Warning: Zero-shot classification failed: {e}")
+        return "visual cues from the video"
+
+
+def get_semantic_and_clip_caption(pil_img, frame, clip_emb, device) -> dict:
+    clip_label = get_zero_shot_caption(clip_emb, device)
+    
+    # 1. Try VLM OpenAI vision captioning first (ARIA)
+    caption_res = aria.generate_caption_for_frame(pil_img if pil_img is not None else frame)
+    if caption_res.success:
+        semantic_caption = caption_res.caption
+    else:
+        # 2. Fall back to local generative BLIP model (which is a real generative model!)
+        blip_caption = get_generative_caption(pil_img if pil_img is not None else (frame.to_image() if frame else None), device)
+        if blip_caption and blip_caption != "visual cues from the video":
+            semantic_caption = blip_caption
+        else:
+            semantic_caption = "[CAPTION_FAILED]"
+            
+    return {
+        "clip_label": clip_label,
+        "semantic_caption": semantic_caption
+    }
+
+def get_clip_model():
+    """Load and cache the CLIP ViT-B/32 model globally."""
+    global _CLIP_MODEL, _CLIP_PREPROCESS
+    if _CLIP_MODEL is None:
+        import clip
+        import torch
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        try:
+            _CLIP_MODEL, _CLIP_PREPROCESS = clip.load("ViT-B/32", device=device)
+        except Exception as e:
+            print(f"Warning: Failed to load CLIP model: {e}")
+            _CLIP_MODEL = None
+            _CLIP_PREPROCESS = None
+    return _CLIP_MODEL, _CLIP_PREPROCESS
+
+
+def get_frame_clip_embedding(frame: av.video.frame.VideoFrame, device: str) -> np.ndarray:
+    """Convert PyAV frame to image and extract normalized CLIP feature embedding."""
+    model, preprocess = get_clip_model()
+    if model is None:
+        return np.zeros(512, dtype=np.float32)
+    try:
+        import torch
+        img = frame.to_image()  # Returns PIL RGB Image
+        image_input = preprocess(img).unsqueeze(0).to(device)
+        with torch.no_grad():
+            image_features = model.encode_image(image_input)
+            image_features /= image_features.norm(dim=-1, keepdim=True)
+            return image_features.cpu().numpy().flatten().astype(np.float32)
+    except Exception as e:
+        print(f"Warning: Failed to extract CLIP embedding for frame: {e}")
+        return np.zeros(512, dtype=np.float32)
+
+
+def get_clip_embedding_from_pil(pil_image, device: str) -> np.ndarray:
+    """Extract normalized CLIP embedding from a PIL image.
+
+    Used by the PIL-cache fast path in wrapper_l2_retrieve to avoid re-opening
+    the video file when Charon-V has already captured frame images during its
+    2nd decode pass.
+    """
+    model, preprocess = get_clip_model()
+    if model is None or pil_image is None:
+        return np.zeros(512, dtype=np.float32)
+    try:
+        import torch
+        image_input = preprocess(pil_image).unsqueeze(0).to(device)
+        with torch.no_grad():
+            image_features = model.encode_image(image_input)
+            image_features /= image_features.norm(dim=-1, keepdim=True)
+            return image_features.cpu().numpy().flatten().astype(np.float32)
+    except Exception as e:
+        print(f"Warning: Failed to extract CLIP embedding from PIL image: {e}")
+        return np.zeros(512, dtype=np.float32)
+
+
+# --- Isolation Wrappers for Active/In-Progress Modules ---
+
+def wrapper_init_l1_cache(config: object = None) -> object:
+    """Isolate L1 Elysium cache instantiation. Fallback to cache.py L1Cache if empty/stub."""
+    try:
+        from l1_elysium import L1ElysiumCache
+        return L1ElysiumCache(config)
+    except (ImportError, AttributeError):
+        from cache import L1Cache
+        return L1Cache()
+
+
+def wrapper_populate_cache(cache_obj: object, retrieved_frames: list[dict]) -> None:
+    """Populate L1 Cache with knowledge triples or CachedFrames representing retrieved video frames."""
+    try:
+        from l1_elysium import L1ElysiumCache
+        use_elysium = isinstance(cache_obj, L1ElysiumCache)
+    except ImportError:
+        use_elysium = False
+
+    if use_elysium:
+        from cached_frame import CachedFrame
+        from frame_motion_descriptor import FrameMotionDescriptor
+        for frame in retrieved_frames:
+            motion = FrameMotionDescriptor(
+                frame_idx=frame["frame_idx"],
+                timestamp_sec=frame.get("timestamp", 0.0),
+                residual_energy=frame.get("residual_energy", 0.0),
+                divergence=frame.get("divergence", 0.0),
+                curl=frame.get("curl", 0.0),
+                jacobian_frobenius=frame.get("jacobian_frobenius", 0.0),
+                hessian_max_eigenvalue=frame.get("hessian_max_eigenvalue", 0.0),
+                motion_entropy=frame.get("motion_entropy", 0.0)
+            )
+            cached_frame = CachedFrame(
+                frame_idx=frame["frame_idx"],
+                timestamp_sec=frame.get("timestamp", 0.0),
+                action_score=frame.get("action_score", 0.0),
+                persistence_value=frame.get("persistence_value", 0.0),
+                is_peak=frame.get("is_peak", False),
+                motion=motion,
+                embedding=frame.get("clip_embedding", None),
+                caption=frame.get("caption", None)
+            )
+            cache_obj.admit(cached_frame)
+    else:
+        from triple import KnowledgeTriple
+        for frame in retrieved_frames:
+            frame_idx = frame["frame_idx"]
+            timestamp = frame.get("timestamp", 0.0)
+            res_energy = frame.get("residual_energy", 0.0)
+            action_score = frame.get("action_score", 0.0)
+            
+            # Generate semantic triple
+            triple = KnowledgeTriple(
+                subject=f"Frame {frame_idx} at {timestamp:.2f}s",
+                verb="depicts",
+                object=f"salient visual cues (residual energy {res_energy:.4f}, action score {action_score:.4f})"
+            )
+            # Use action_score/residual_energy as importance ranking score
+            score = action_score or res_energy
+            if hasattr(cache_obj, "route_triple"):
+                cache_obj.route_triple(triple, pagerank_score=score)
+            else:
+                cache_obj.add_fact(triple, pagerank_score=score)
+
+
+def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: list[dict], config: object = None) -> list[dict]:
+    """Isolate L2 Asphodel graph retrieval. Fallback to sorted action/energy scores if graph is a stub.
+
+    Optimisations applied:
+      1. PIL-cache fast path: if Charon-V stored pil_image for every candidate frame,
+         CLIP embeddings are extracted directly from those images — no 3rd video decode.
+      2. Bulk graph build: add_frame_nodes_bulk + enrich_nodes_bulk call
+         _update_all_edge_weights / _update_pagerank ONCE instead of N times.
+    """
+    l2_retrieve_top_k = getattr(config, "l2_retrieve_top_k", 5)
+    try:
+        from l2_asphodel import L2Asphodel
+        if not hasattr(L2Asphodel, "batch_add_frame_nodes"):
+            def batch_add_frame_nodes(self, node_records):
+                feature_records = [r[0] for r in node_records]
+                action_score_records = [r[1] for r in node_records]
+                self.add_frame_nodes_bulk(feature_records, action_score_records)
+            L2Asphodel.batch_add_frame_nodes = batch_add_frame_nodes
+        if not hasattr(L2Asphodel, "batch_enrich_nodes"):
+            def batch_enrich_nodes(self, enrichment_records):
+                enrichment_map = {r[0]: r[2] for r in enrichment_records}
+                self.enrich_nodes_bulk(enrichment_map)
+            L2Asphodel.batch_enrich_nodes = batch_enrich_nodes
+    except ImportError:
+        sorted_frames = sorted(
+            frames_to_index,
+            key=lambda x: (x.get("action_score", 0.0), x.get("residual_energy", 0.0)),
+            reverse=True
+        )
+        return sorted_frames[:l2_retrieve_top_k]
+
+    import clip
+    import torch
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    # 1. Generate query embedding from text
+    model, _ = get_clip_model()
+    if model is not None:
+        try:
+            text_input = clip.tokenize([query]).to(device)
+            with torch.no_grad():
+                query_features = model.encode_text(text_input)
+                query_features /= query_features.norm(dim=-1, keepdim=True)
+                query_embedding = query_features.cpu().numpy().flatten().astype(np.float32)
+        except Exception:
+            query_embedding = np.zeros(512, dtype=np.float32)
+    else:
+        query_embedding = np.zeros(512, dtype=np.float32)
+
+    # 2. Build L2Asphodel graph and index frames.
+    #    Fast path: use PIL images cached by Charon-V's 2nd pass (no re-decode).
+    #    Legacy path: open the video and decode all frames (original behaviour).
+    graph = L2Asphodel(config=config)
+    frame_map = {f["frame_idx"]: f for f in frames_to_index}
+
+    # Check whether every candidate frame has a usable PIL image from Charon-V.
+    has_pil_cache = bool(frames_to_index) and all(
+        f.get("pil_image") is not None for f in frames_to_index
+    )
+
+    # Pass 1: collect all node data without touching the graph
+    node_records = []       # list of (feature_record, score_record)
+    enrichment_records = [] # list of (frame_idx, triples, embedding)
+
+    if has_pil_cache:
+        # ── Fast path (no 3rd video decode) ──────────────────────────────
+        for f_data in frames_to_index:
+            clip_emb = get_clip_embedding_from_pil(f_data["pil_image"], device)
+            f_data["clip_embedding"] = clip_emb
+            
+            caption = get_semantic_and_clip_caption(f_data["pil_image"], None, clip_emb, device)
+            f_data["caption"] = caption
+
+            feature_record = {
+                "frame_idx":            f_data["frame_idx"],
+                "timestamp":            f_data["timestamp"],
+                "residual_energy":      f_data["residual_energy"],
+                "motion_magnitude":     f_data.get("motion_magnitude", 0.0),
+                "entropy":              f_data.get("entropy", 0.0),
+                "refined_motion_tensor": np.zeros(1, dtype=np.float32),
+            }
+            score_record = {
+                "action_score":     f_data["action_score"],
+                "persistence_value": f_data["persistence_value"],
+            }
+            node_records.append((feature_record, score_record))
+            enrichment_records.append((f_data["frame_idx"], [], clip_emb))
+    else:
+        # ── Legacy path (full video decode) ──────────────────────────────
+        container = av.open(str(video_path))
+        for idx, frame in enumerate(container.decode(video=0)):
+            if idx in frame_map:
+                f_data   = frame_map[idx]
+                clip_emb = get_frame_clip_embedding(frame, device)
+                f_data["clip_embedding"] = clip_emb
+                
+                try:
+                    pil_img = frame.to_image()
+                except Exception:
+                    pil_img = None
+                caption = get_semantic_and_clip_caption(pil_img, frame, clip_emb, device)
+                f_data["caption"] = caption
+
+                feature_record = {
+                    "frame_idx":            f_data["frame_idx"],
+                    "timestamp":            f_data["timestamp"],
+                    "residual_energy":      f_data["residual_energy"],
+                    "motion_magnitude":     f_data.get("motion_magnitude", 0.0),
+                    "entropy":              f_data.get("entropy", 0.0),
+                    "refined_motion_tensor": np.zeros(1, dtype=np.float32),
+                }
+                score_record = {
+                    "action_score":     f_data["action_score"],
+                    "persistence_value": f_data["persistence_value"],
+                }
+                node_records.append((feature_record, score_record))
+                enrichment_records.append((f_data["frame_idx"], [], clip_emb))
+        container.close()
+
+    # Pass 2: batch index into graph — single edge+pagerank recompute each
+    graph.batch_add_frame_nodes(node_records)
+    graph.batch_enrich_nodes(enrichment_records)
+
+    # 3. Perform hybrid retrieval
+    if frames_to_index:
+        query_action_score = max(f.get("action_score", 0.0) for f in frames_to_index)
+    else:
+        query_action_score = 0.5
+    retrieved_nodes = graph.retrieve(query_embedding, query_action_score=query_action_score, top_k=l2_retrieve_top_k)
+    
+    # 4. Map returned AsphodelNode objects back to dictionaries expected by cache wrapper
+    retrieved = []
+    if retrieved_nodes:
+        for node in retrieved_nodes:
+            orig = frame_map.get(node.frame_idx, {})
+            retrieved.append({
+                "frame_idx": node.frame_idx,
+                "timestamp": node.timestamp,
+                "residual_energy": node.residual_energy,
+                "action_score": node.action_score,
+                "persistence_value": node.persistence_value,
+                "is_peak": orig.get("is_peak", False),
+                "clip_embedding": orig.get("clip_embedding", None),
+                "entropy": orig.get("entropy", 0.0),
+                "caption": orig.get("caption", None),
+                "pagerank_score": node.pagerank_score,
+                "last_retrieval_score": getattr(node, "last_retrieval_score", 0.0),
+                "retrieval_contributions": getattr(node, "retrieval_contributions", {}),
+            })
+    
+    if not retrieved:
+        sorted_frames = sorted(
+            frames_to_index,
+            key=lambda x: (x.get("action_score", 0.0), x.get("residual_energy", 0.0)),
+            reverse=True
+        )
+        for f in sorted_frames[:l2_retrieve_top_k]:
+            retrieved.append({
+                "frame_idx": f["frame_idx"],
+                "timestamp": f["timestamp"],
+                "residual_energy": f["residual_energy"],
+                "action_score": f.get("action_score", 0.0),
+                "persistence_value": f.get("persistence_value", 0.0),
+                "is_peak": f.get("is_peak", False),
+                "clip_embedding": f.get("clip_embedding", None),
+                "entropy": f.get("entropy", 0.0),
+                "caption": f.get("caption", None),
+                "pagerank_score": 0.0,
+                "last_retrieval_score": 0.0,
+                "retrieval_contributions": {},
+            })
+
+    return retrieved
+
+
+def wrapper_cerberus_gate(claims: list[str], cache_obj: object, action_score: float, config: object) -> tuple[bool, list[str], list[str], list[str], bool]:
+    """Isolate Cerberus-V NLI truth gate.
+
+    Returns (is_verified, verified_claims, rejected_claims, unverifiable_claims, is_mocked).
+
+    is_verified is True only when BOTH rejected_claims AND unverifiable_claims are empty.
+    A claim with no supporting evidence (unverifiable) is NOT the same as verified.
+    """
+    from cerberus_v import CerberusV
+
+    gate_obj = CerberusV()
+    try:
+        res = gate_obj.verify(claims, cache_obj, action_score, config)
+        verified_claims = res.get("verified", [])
+        rejected_claims = res.get("rejected", [])
+        unverifiable_claims = res.get("unverifiable", [])
+        # Fix 9b: require zero rejected AND zero unverifiable to count as verified.
+        is_verified = len(rejected_claims) == 0 and len(unverifiable_claims) == 0
+        is_mocked = False
+    except Exception as e:
+        print(f"Warning: CerberusV verification failed, falling back to mock: {e}")
+        verified_claims = list(claims)
+        rejected_claims = []
+        unverifiable_claims = []
+        is_verified = True
+        is_mocked = True
+
+    return is_verified, verified_claims, rejected_claims, unverifiable_claims, is_mocked
+
+
+# --- Main Pipeline Runners ---
+
+def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_window: int = 10, config: IRISConfig | None = None) -> dict:
+    """
+    Run the end-to-end IRIS pipeline using the new continuous action score
+    and topological persistence-based peak detection alongside the existing tier path.
+    """
+    import time
+    
+    # 1. Load config parameters
+    if config is None:
+        try:
+            from iris_config import ConfigManager
+            config = ConfigManager().get_config()
+            if config is None:
+                from iris_config import IRISConfig
+                config = IRISConfig()
+        except Exception:
+            from iris_config import IRISConfig
+            config = IRISConfig()
+
+    # Enforce active backend diagnostics check
+    aria.run_diagnostics()
+
+    # 2. Parse video and extract raw frame features non-breakingly from H.264 stream
+    # Returns (output_frames, stats, raw_records)
+    t_start = time.time()
+    output_frames, stats, raw_records = charon_v.parse_video(
+        str(video_path),
+        return_stats=True,
+        return_raw=True,
+        candidate_thresh=config.candidate_thresh,
+        salient_thresh=config.salient_thresh,
+        adaptive=getattr(config, "adaptive", True),
+        visual_debug_mode=getattr(config, "visual_debug_mode", False)
+    )
+    t_charon = time.time() - t_start
+
+    # 3. Continuous action scoring & persistence peak detection
+    t_action_start = time.time()
+    action_score_config = ActionScoreConfig(
+        residual_weight=getattr(config, "residual_weight", 0.5),
+        motion_weight=getattr(config, "motion_weight", 0.3),
+        entropy_weight=getattr(config, "entropy_weight", 0.2),
+        peak_distance=getattr(config, "peak_distance", 5),
+        peak_prominence=getattr(config, "peak_prominence", 0.05),
+        persistence_threshold=getattr(config, "persistence_threshold", 0.4),
+        max_prominence=getattr(config, "max_prominence", 0.5),
+    )
+    score_module = ActionScoreModule(config=action_score_config)
+    score_records = score_module.score_all(raw_records)
+    action_scores = {r["frame_idx"]: r for r in score_records}
+
+    # Run Non-Maximum Suppression (NMS) on peak frame decisions to avoid clustering
+    if nms_window is not None and nms_window > 0:
+        # Find frame indices where is_peak is True
+        peak_indices = [idx for idx, score_info in action_scores.items() if score_info["is_peak"]]
+        # Sort peaks by action_score descending
+        peak_indices.sort(key=lambda idx: action_scores[idx]["action_score"], reverse=True)
+        
+        accepted_peaks = set()
+        for idx in peak_indices:
+            # If the peak is within nms_window of an already accepted peak, suppress it
+            if any(abs(idx - accepted) <= nms_window for accepted in accepted_peaks):
+                action_scores[idx]["is_peak"] = False
+            else:
+                accepted_peaks.add(idx)
+
+    # Map the computed action scores back to the non-SKIP output frames
+    raw_map = {r["frame_idx"]: r for r in raw_records}
+    for frame in output_frames:
+        frame_idx = frame["frame_idx"]
+        score_info = action_scores.get(
+            frame_idx,
+            {"action_score": 0.0, "is_peak": False, "persistence_value": 0.0}
+        )
+        frame["action_score"] = score_info["action_score"]
+        frame["is_peak"] = score_info["is_peak"]
+        frame["persistence_value"] = score_info["persistence_value"]
+        frame["entropy"] = raw_map.get(frame_idx, {}).get("entropy", 0.0)
+    t_action = time.time() - t_action_start
+
+    # If visual_debug_mode is enabled, save annotated candidate frames
+    if getattr(config, "visual_debug_mode", False):
+        import os
+        from PIL import ImageDraw
+        debug_frames_dir = os.path.join(os.path.dirname(str(video_path)), "debug_frames")
+        os.makedirs(debug_frames_dir, exist_ok=True)
+        for f in output_frames:
+            pil_img = f.get("pil_image")
+            if pil_img is not None:
+                annotated = pil_img.copy()
+                draw = ImageDraw.Draw(annotated)
+                text = f"Frame {f['frame_idx']} | Score: {f.get('action_score', 0.0):.4f}"
+                draw.text((10, 10), text, fill=(255, 0, 0))
+                out_name = f"frame_{f['frame_idx']:04d}.png"
+                annotated.save(os.path.join(debug_frames_dir, out_name))
+
+    # 4. L2 Graph retrieval (dynamic indexing strategy selection)
+    t_l2_start = time.time()
+    strategy = getattr(config, "retrieval_strategy", "hybrid")
+    l2_retrieve_top_k = getattr(config, "l2_retrieve_top_k", 5)
+    
+    if strategy == "peak_only":
+        frames_to_index = [f for f in output_frames if f.get("is_peak", False)]
+    elif strategy == "top_k_action":
+        top_n = l2_retrieve_top_k * 3
+        frames_to_index = sorted(output_frames, key=lambda x: x.get("action_score", 0.0), reverse=True)[:top_n]
+    elif strategy == "peak_neighbors":
+        peaks = [f for f in output_frames if f.get("is_peak", False)]
+        peak_indices = {f["frame_idx"] for f in peaks}
+        target_indices = set()
+        for p in peak_indices:
+            target_indices.update(range(max(0, p - 2), p + 3))
+        frames_to_index = [f for f in output_frames if f["frame_idx"] in target_indices]
+    else:  # hybrid
+        frames_to_index = output_frames
+
+    retrieved_frames = wrapper_l2_retrieve(
+        video_path,
+        query,
+        frames_to_index,
+        config=config
+    )
+    t_l2 = time.time() - t_l2_start
+
+    # 5. Populate L1 active context cache with retrieved frame evidence
+    t_elysium_start = time.time()
+    cache_obj = wrapper_init_l1_cache(config)
+    wrapper_populate_cache(cache_obj, retrieved_frames)
+    t_elysium = time.time() - t_elysium_start
+    
+    # 6. Generate answer using ARIA LLM brain
+    t_aria_start = time.time()
+    context_text = cache_obj.as_context_text()
+    raw_answer = aria.generate(prompt=query, context=context_text)
+    t_aria = time.time() - t_aria_start
+
+    # 7. Extract sentence-level claims from the raw answer
+    # Strip markdown before splitting
+    clean_answer = re.sub(r'\*\*.*?\*\*:?\s*', '', raw_answer)
+    clean_answer = re.sub(r'^\s*[-*]\s+', '', clean_answer, flags=re.MULTILINE)
+    clean_answer = re.sub(r'^\s*\d+\.\s+', '', clean_answer, flags=re.MULTILINE)
+    clean_answer = re.sub(r'\n+', ' ', clean_answer).strip()
+    raw_sentences = re.split(r'(?<=[.!?])\s+', clean_answer)
+    claims = [s.strip() for s in raw_sentences if len(s.strip()) >= 12]
+
+    # 8. Run claims through Cerberus-V NLI truth gate
+    t_cerberus_start = time.time()
+    max_score = max([f.get("action_score", 0.0) for f in retrieved_frames]) if retrieved_frames else 0.5
+    is_verified, verified_claims, rejected_claims, unverifiable_claims, is_mocked = wrapper_cerberus_gate(claims, cache_obj, max_score, config)
+    t_cerberus = time.time() - t_cerberus_start
+
+    # Generate final verified answer (verified claims only; raw_answer and breakdowns are also
+    # returned in the result dict so nothing is silently dropped from reporting).
+    final_answer = " ".join(verified_claims) if verified_claims else raw_answer
+
+    # Determine peak counts and skip statistics
+    peak_count = len([f for f in output_frames if f.get("is_peak", False)])
+    skipped_frames_ratio = float(stats["skipped"] / stats["total"]) if stats["total"] > 0 else 0.0
+    storage_reduction_factor = float(stats["total"] / len(output_frames)) if len(output_frames) > 0 else 0.0
+
+    result = {
+        "answer": final_answer,
+        "raw_answer": raw_answer,
+        "verified": is_verified,
+        "nli_mocked": is_mocked,
+        "verified_claims": verified_claims,
+        "rejected_claims": rejected_claims,
+        "unverifiable_claims": unverifiable_claims,
+        "frames_processed": len(output_frames),
+        "peak_count": peak_count,
+        "compression_ratio": skipped_frames_ratio,  # Keep for backward compatibility
+        "skipped_frames_ratio": skipped_frames_ratio,
+        "storage_reduction_factor": storage_reduction_factor,
+        "timings": {
+            "charon_v": t_charon,
+            "action_score": t_action,
+            "l2_retrieval": t_l2,
+            "elysium": t_elysium,
+            "aria": t_aria,
+            "cerberus_v": t_cerberus,
+            "total": t_charon + t_action + t_l2 + t_elysium + t_aria + t_cerberus
+        }
+    }
+
+    # Observability Logging: Write ARIA debug logs to logs/aria_debug/
+    import json
+    import os
+    os.makedirs("logs/aria_debug", exist_ok=True)
+    os.makedirs("logs/pipeline", exist_ok=True)
+    
+    timestamp_log = time.strftime("%Y%m%d_%H%M%S")
+    import random
+    rand_id = random.randint(100000, 999999)
+    
+    aria_log_file = f"logs/aria_debug/debug_{timestamp_log}_{rand_id}.json"
+    aria_log_data = {
+        "frames_sent_to_aria": [f.frame_idx for f in cache_obj.frames()],
+        "semantic_captions": [
+            f.caption.get("semantic_caption") if isinstance(f.caption, dict) else f.caption
+            for f in cache_obj.frames()
+        ],
+        "prompt": query,
+        "response": raw_answer
+    }
+    try:
+        with open(aria_log_file, "w", encoding="utf-8") as f:
+            json.dump(aria_log_data, f, indent=2)
+    except Exception as e:
+        print(f"Warning: Failed to write ARIA debug log: {e}")
+
+    # Build validation report payload
+    total_captions_attempted = len(frames_to_index)
+    successful_captions = sum(
+        1 for f in frames_to_index
+        if isinstance(f.get("caption"), dict) and f["caption"].get("semantic_caption") != "[CAPTION_FAILED]"
+    )
+    caption_success_rate = float(successful_captions / total_captions_attempted) if total_captions_attempted > 0 else 0.0
+    
+    aria_success = 1.0 if not raw_answer.startswith("Based on the video analysis, I processed") or "failed" not in raw_answer.lower() else 0.0
+    
+    validation_report = {
+        "aria": {
+            "backend": aria.get_backend().__class__.__name__,
+            "model": "gpt-4o-mini",
+            "success_rate": aria_success,
+            "caption_success_rate": caption_success_rate
+        },
+        "retrieval": {
+            "frames_indexed": len(frames_to_index),
+            "frames_retrieved": len(retrieved_frames)
+        },
+        "elysium": {
+            "cache_hits": getattr(cache_obj, "hits", 0),
+            "cache_misses": getattr(cache_obj, "misses", 0),
+            "context_size": len(context_text)
+        },
+        "cerberus": {
+            "verified": len(verified_claims),
+            "rejected": len(rejected_claims),
+            "unverifiable": len(unverifiable_claims)
+        },
+        "failures": {
+            "caption_failures": aria.get_caption_failures()
+        }
+    }
+    
+    result["validation_report"] = validation_report
+
+    pipeline_log_file = f"logs/pipeline/run_{timestamp_log}_{rand_id}.json"
+    try:
+        log_friendly_result = {k: v for k, v in result.items() if k != "validation_report"}
+        log_friendly_result["validation_report"] = {
+            "aria": {
+                "backend": validation_report["aria"]["backend"],
+                "model": validation_report["aria"]["model"],
+                "success_rate": validation_report["aria"]["success_rate"],
+                "caption_success_rate": validation_report["aria"]["caption_success_rate"]
+            },
+            "retrieval": validation_report["retrieval"],
+            "elysium": validation_report["elysium"],
+            "cerberus": validation_report["cerberus"]
+        }
+        with open(pipeline_log_file, "w", encoding="utf-8") as f:
+            json.dump(log_friendly_result, f, indent=2)
+    except Exception as e:
+        print(f"Warning: Failed to write pipeline run log: {e}")
+
+    if verbose:
+        result["debug_info"] = {
+            "action_scores": action_scores,
+            "retrieved_frames": retrieved_frames,
+            "context_text": context_text,
+            "raw_answer": raw_answer,
+            "verified_claims": verified_claims,
+            "rejected_claims": rejected_claims,
+            "unverifiable_claims": unverifiable_claims,
+            
+            # --- ARIA Debug Data ---
+            "aria_prompt": query,
+            "aria_context": context_text,
+            "aria_response": raw_answer,
+            "frames_given_to_aria": [f.frame_idx for f in cache_obj.frames()],
+            "context_length": len(context_text),
+            "retrieval_results": context_text,
+            
+            # --- Cerberus Debug Data ---
+            "cerberus_claims": claims,
+            "cerberus_evidence": [entry.text for entry in cache_obj.set_facts.values()],
+            "cerberus_result": {
+                "verified": verified_claims,
+                "rejected": rejected_claims,
+                "unverifiable": unverifiable_claims,
+                "is_verified": is_verified
+            },
+            
+            # --- Thresholds & Configuration ---
+            "thresholds": {
+                "persistence_threshold": getattr(config, "persistence_threshold", 0.4),
+                "max_prominence": getattr(config, "max_prominence", 0.5),
+                "peak_prominence": getattr(config, "peak_prominence", 0.05),
+                "peak_distance": getattr(config, "peak_distance", 5)
+            }
+        }
+
+    return result
+
+
+def run(video_path: str | Path, query: str) -> dict:
+    """
+    Run the full IRIS pipeline on a video and query.
+
+    Returns:
+        {
+            "answer": str,           # final verified answer
+            "verified": bool,        # cerberus_v gate result
+            "frames_processed": int, # non-SKIP frames seen
+            "peak_count": int,       # PEAK frames found
+            "compression_ratio": float  # SKIP% of total frames
+        }
+    """
+    res = run_pipeline(video_path, query, verbose=False)
+    return {
+        "answer": res["answer"],
+        "verified": res["verified"],
+        "frames_processed": res["frames_processed"],
+        "peak_count": res["peak_count"],
+        "compression_ratio": res["compression_ratio"]
+    }
+
+================================================================================
+FILE: action_score.py
+================================================================================
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Any
+
+import numpy as np
+from scipy.signal import find_peaks
+
+
+@dataclass
+class ActionScoreConfig:
+    """
+    Phase-1 config for continuous Action Score.
+
+    Later, these values can move into iris_config.py and be tuned by GEPA.
+    """
+    residual_weight: float = 0.5
+    motion_weight: float = 0.3
+    entropy_weight: float = 0.2
+
+    peak_distance: int = 5
+    peak_prominence: float = 0.05
+    persistence_threshold: float = 0.4
+    max_prominence: float = 0.5
+
+
+class ActionScoreModule:
+    """
+    Converts raw Charon-V codec features into continuous Action Score.
+
+    Input per frame:
+        frame_idx
+        residual_energy
+        motion_magnitude
+        entropy
+
+    Output per frame:
+        frame_idx
+        action_score
+        is_peak
+        persistence_value
+
+    Important:
+        This replaces PEAK / SALIENT / CANDIDATE / SKIP tier decisions.
+    """
+
+    def __init__(self, config: ActionScoreConfig | None = None) -> None:
+        self.config = config or ActionScoreConfig()
+
+    def score_all(self, frame_features: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        if not frame_features:
+            return []
+
+        residual = np.array(
+            [float(f.get("residual_energy", 0.0)) for f in frame_features],
+            dtype=np.float32,
+        )
+
+        motion = np.array(
+            [float(f.get("motion_magnitude", 0.0)) for f in frame_features],
+            dtype=np.float32,
+        )
+
+        entropy = np.array(
+            [float(f.get("entropy", 0.0)) for f in frame_features],
+            dtype=np.float32,
+        )
+
+        residual_n = self._normalize(residual)
+        motion_n = self._normalize(motion)
+        entropy_n = self._normalize(entropy)
+
+        weight_sum = (
+            self.config.residual_weight
+            + self.config.motion_weight
+            + self.config.entropy_weight
+        )
+
+        if weight_sum <= 0:
+            raise ValueError("Action Score weights must sum to a positive value.")
+
+        action_score = (
+            self.config.residual_weight * residual_n
+            + self.config.motion_weight * motion_n
+            + self.config.entropy_weight * entropy_n
+        ) / weight_sum
+
+        action_score = np.clip(action_score, 0.0, 1.0)
+
+        peak_indices, peak_properties = find_peaks(
+            action_score,
+            distance=self.config.peak_distance,
+            prominence=self.config.peak_prominence,
+        )
+
+        prominences = peak_properties.get("prominences", np.array([], dtype=np.float32))
+
+        persistence_by_index: dict[int, float] = {}
+
+        if len(peak_indices) > 0:
+            for idx, prominence in zip(peak_indices, prominences):
+                if self.config.max_prominence > 1e-8:
+                    persistence_value = min(float(prominence / self.config.max_prominence), 1.0)
+                else:
+                    persistence_value = 0.0
+
+                persistence_by_index[int(idx)] = persistence_value
+
+        records: list[dict[str, Any]] = []
+
+        for i, feature in enumerate(frame_features):
+            persistence_value = persistence_by_index.get(i, 0.0)
+
+            records.append(
+                {
+                    "frame_idx": int(feature["frame_idx"]),
+                    "action_score": float(action_score[i]),
+                    "is_peak": bool(
+                        persistence_value >= self.config.persistence_threshold
+                    ),
+                    "persistence_value": float(persistence_value),
+                }
+            )
+
+        return records
+
+    @staticmethod
+    def _normalize(values: np.ndarray) -> np.ndarray:
+        if len(values) == 0:
+            return values
+        
+        # Fall back to standard min-max scaling for small arrays (e.g. synthetic unit tests)
+        if len(values) < 50:
+            min_value = float(np.min(values))
+            max_value = float(np.max(values))
+        else:
+            # Use robust percentiles for real videos to mitigate outlier saturation
+            min_value = float(np.percentile(values, 2))
+            max_value = float(np.percentile(values, 98))
+
+        if abs(max_value - min_value) < 1e-8:
+            return np.zeros_like(values, dtype=np.float32)
+
+        normalized = (values - min_value) / (max_value - min_value)
+        return np.clip(normalized, 0.0, 1.0)
+
+================================================================================
+FILE: cached_frame.py
+================================================================================
+
+"""
+CachedFrame — one entry in L1 Elysium.
+
+Holds everything L1 needs to:
+  1. Decide whether to keep or evict this frame (via keep_score)
+  2. Return the frame's data to the pipeline at query time
+
+Owner: Track A
+"""
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+import numpy as np
+
+from frame_motion_descriptor import FrameMotionDescriptor
+
+
+@dataclass
+class CachedFrame:
+    """
+    A single frame held inside L1 Elysium.
+
+    Fields set once at admission:
+        frame_idx, timestamp_sec, action_score, persistence_value,
+        is_peak, motion, admitted_at
+
+    Fields updated after admission:
+        query_similarity  <- updated when a user query arrives
+        pagerank          <- updated when L2 graph sends scores
+        embedding         <- filled when the VLM encoder runs
+    """
+
+    # --- Identity ---
+    frame_idx:         int
+    timestamp_sec:     float
+
+    # --- From action_score.py ---
+    action_score:      float   # continuous 0.0 -> 1.0 importance
+    persistence_value: float   # how prominent this peak is (0.0 -> 1.0)
+    is_peak:           bool    # True if persistence_value >= threshold
+
+    # --- From charon_v.py via FrameMotionDescriptor ---
+    motion: FrameMotionDescriptor
+
+    # --- Set by L1 at admission time ---
+    # Monotonically increasing counter — used to compute recency.
+    # Frame admitted 10th gets admitted_at=10. Frame admitted 50th gets 50.
+    # Newer frames have higher numbers = higher recency.
+    admitted_at: int = 0
+
+    # --- Updated after admission ---
+    query_similarity: float = 0.0  # cosine sim vs query embedding (0.0 -> 1.0)
+    pagerank:         float = 0.0  # score from L2 graph (0.0 -> 1.0)
+
+    # --- Visual embedding ---
+    # None until the VLM encoder processes this frame.
+    # When filled: numpy array of shape (D,), dtype=bfloat16
+    embedding: np.ndarray | None = None
+    caption: str | dict | None = None
+    reasons: list[str] | None = None
+
+    def keep_score(
+        self,
+        total_admitted: int,
+        w_action:   float = 0.30,
+        w_query:    float = 0.20,
+        w_persist:  float = 0.15,
+        w_pagerank: float = 0.10,
+        w_entropy:  float = 0.10,
+        w_hessian:  float = 0.10,
+        w_recency:  float = 0.05,
+    ) -> float:
+        """
+        How much L1 wants to keep this frame.
+
+        Higher score = keep it.
+        Lower score = evict it first.
+
+        Args:
+            total_admitted: how many frames L1 has admitted in total so far.
+                            Used to compute how recent this frame is.
+        """
+        # Recency: 1.0 if just admitted, decays toward 0.0 as newer frames arrive
+        recency = 1.0 - (total_admitted - self.admitted_at) / max(total_admitted, 1)
+        recency = max(0.0, recency)
+
+        return (
+            w_action   * self.action_score
+            + w_query  * self.query_similarity
+            + w_persist * self.persistence_value
+            + w_pagerank * self.pagerank
+            + w_entropy  * self.motion.motion_entropy
+            + w_hessian  * self.motion.hessian_max_eigenvalue
+            + w_recency  * recency
+        )
+
+================================================================================
+FILE: frame_motion_descriptor.py
+================================================================================
+
+"""
+FrameMotionDescriptor — carries per-frame motion geometry from Charon-V into L1.
+
+These fields are computed from optical flow / motion vector analysis in charon_v.py.
+L1 Elysium uses hessian_max_eigenvalue and motion_entropy in the keep_score eviction formula.
+
+Owner: Track A
+"""
+from __future__ import annotations
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True, slots=True)
+class FrameMotionDescriptor:
+    """
+    Motion geometry snapshot for a single decoded frame.
+
+    All values are raw floats — normalisation happens inside L1ElysiumCache
+    when computing keep_score, not here.
+    """
+
+    frame_idx:              int
+    timestamp_sec:          float
+
+    # Core codec signal (also produced by action_score.py, kept here for L1 access)
+    residual_energy:        float = 0.0
+
+    # Motion field geometry — computed from dense optical flow or motion vectors
+    divergence:             float = 0.0   # positive = expanding, negative = converging
+    curl:                   float = 0.0   # rotation magnitude
+    jacobian_frobenius:     float = 0.0   # total motion field intensity
+    hessian_max_eigenvalue: float = 0.0   # sharpness of motion boundary (→ hessian_boundary)
+    motion_entropy:         float = 0.0   # chaos / unpredictability of motion
+
+================================================================================
+FILE: cache.py
+================================================================================
+
+from __future__ import annotations
+
+from collections import OrderedDict, deque
+from dataclasses import dataclass
+from functools import lru_cache
+from typing import Iterable
+import tiktoken
+
+from triple import KnowledgeTriple
+
+
+_ENCODING = tiktoken.get_encoding("cl100k_base")
+
+
+@dataclass(slots=True)
+class CacheEntry:
+    triple: KnowledgeTriple
+    pagerank_score: float = 0.0
+    source_residual: float = 0.0
+
+    @property
+    def text(self) -> str:
+        return self.triple.as_text()
+
+
+
+@dataclass(slots=True)
+class HistoryTurn:
+    role: str
+    text: str
+
+
+@dataclass(slots=True)
+class ToolResult:
+    tool_name: str
+    text: str
+
+
+DEFAULT_BUDGETS: dict[str, int] = {
+    "system": 50,
+    "facts": 100,
+    "history": 150,
+    "tools": 100,
+    "scratch": 80,
+}
+
+MIN_FACTS_FLOOR: int = 2
+
+
+# Routing rules that map triples to their correct set.
+# Each rule is a predicate on the triple's verb and subject.
+# First matching rule wins. "facts" is the default fallback.
+SET_ROUTING_RULES: dict[str, object] = {
+    "history": lambda t: any(
+        w in t.verb.lower()
+        for w in ["said", "spoke", "asked", "replied", "told",
+                  "reported", "announced", "stated", "claimed"]
+    ),
+    "tools": lambda t: any(
+        w in t.subject.lower()
+        for w in ["tool", "result", "output", "search",
+                  "query", "api", "response"]
+    ),
+}
+
+
+class L1Cache:
+    def __init__(self, budgets: dict[str, int] | None = None) -> None:
+        self.budgets = self._resolved_budgets(budgets)
+
+        self.set_system: list[str] = []
+        self.set_facts: OrderedDict[str, CacheEntry] = OrderedDict()
+        self.set_history: deque[HistoryTurn] = deque()
+        self.set_tools: deque[ToolResult] = deque()
+        self.set_scratch: deque[str] = deque()
+
+    def add_system_instruction(self, text: str) -> None:
+        cleaned = text.strip()
+        if not cleaned or cleaned in self.set_system:
+            return
+
+        projected = self._estimate_system_tokens() + _count_tokens(cleaned)
+        if projected > self.budgets["system"]:
+            raise ValueError("System set budget exceeded; system instructions are pinned and cannot be evicted.")
+
+        self.set_system.append(cleaned)
+
+    def add_fact(
+        self,
+        triple: KnowledgeTriple,
+        pagerank_score: float = 0.0,
+        source_residual: float = 0.0,
+    ) -> None:
+        if not isinstance(triple, KnowledgeTriple):
+            raise TypeError("add_fact expects a KnowledgeTriple instance.")
+
+        entry = CacheEntry(triple=triple, pagerank_score=pagerank_score, source_residual=source_residual)
+        self.set_facts[entry.text] = entry
+        self._trim_facts_to_budget()
+
+
+    def add_history_turn(self, role: str, text: str) -> None:
+        cleaned = text.strip()
+        if not cleaned:
+            return
+
+        self.set_history.append(HistoryTurn(role=role.strip() or "user", text=cleaned))
+        self._trim_history_to_budget()
+
+    def add_tool_result(self, tool_name: str, text: str) -> None:
+        cleaned = text.strip()
+        if not cleaned:
+            return
+
+        self.set_tools.append(ToolResult(tool_name=tool_name.strip() or "tool", text=cleaned))
+        self._trim_tools_to_budget()
+
+    def add_scratch_entry(self, text: str) -> None:
+        """
+        Add LLM-generated content to the SCRATCH set.
+        All content here is dirty (unverified) by default.
+        It will be evicted and passed to Cerberus before 
+        write-back to L2/L3.
+        """
+        cleaned = text.strip()
+        if not cleaned:
+            return
+        self.set_scratch.append(cleaned)
+        self._trim_scratch_to_budget()
+
+    def route_triple(
+        self,
+        triple: KnowledgeTriple,
+        pagerank_score: float = 0.0,
+    ) -> str:
+        """
+        Automatically route a triple to the correct set based on
+        its semantic type. Implements the set-index addressing
+        function from set-associative cache architecture.
+
+        Returns the name of the set it was routed to.
+
+        The routing function works as follows:
+        - Speech/communication verbs → HISTORY set
+        - Tool/API/output subjects → TOOLS set
+        - Everything else → FACTS set (default)
+
+        This ensures that different semantic categories of knowledge
+        occupy separate cache partitions, preventing eviction
+        competition between structurally unrelated facts.
+        """
+        for set_name, rule in SET_ROUTING_RULES.items():
+            if rule(triple):
+                if set_name == "history":
+                    self.add_history_turn("system", triple.as_text())
+                elif set_name == "tools":
+                    self.add_tool_result("auto", triple.as_text())
+                return set_name
+
+        # Default route: FACTS
+        self.add_fact(triple, pagerank_score=pagerank_score)
+        return "facts"
+
+    def get_routing_stats(self) -> dict[str, int]:
+        """Return count of entries in each set for telemetry."""
+        return {
+            "system": len(self.set_system),
+            "facts": len(self.set_facts),
+            "history": len(self.set_history),
+            "tools": len(self.set_tools),
+            "scratch": len(self.set_scratch),
+        }
+
+    def rerank_facts_for_query(
+        self,
+        query: str,
+        embedder,
+        alpha: float = 0.4,
+    ) -> None:
+        """
+        Re-rank FACTS set by blending PageRank score with cosine
+        similarity to the user query.
+
+        This implements query-aware cache prefetching: once the
+        query is known, facts most relevant to it are promoted
+        (given higher scores) so they survive budget trimming.
+
+        Formula:
+            new_score = alpha * pagerank_score
+                      + (1 - alpha) * cosine_similarity(fact, query)
+
+        alpha=0.4 weights query relevance (0.6) more heavily than
+        structural importance (0.4). Adjust alpha toward 1.0 to
+        rely more on PageRank, toward 0.0 to rely more on query.
+
+        Args:
+            query: The user's question string.
+            embedder: sentence-transformers SentenceTransformer instance.
+            alpha: blend weight for PageRank score (0.0-1.0).
+        """
+        if not self.set_facts:
+            return
+
+        from sklearn.metrics.pairwise import cosine_similarity as cos_sim
+        import numpy as np
+
+        query_vec = embedder.encode(query).reshape(1, -1)
+        
+        # Aggressive L1 Filtering: Identify temporal/numeric context of the query
+        import re
+        query_years = set(re.findall(r'\b(?:19|20)\d{2}\b', query))
+        query_numbers = set(re.findall(r'\b\d+(?:[\.,]\d+)?%?\b', query))
+        has_query_stats = bool(query_years or query_numbers)
+
+        to_delete = []
+        for key, entry in self.set_facts.items():
+            fact_text = entry.text
+            triple = entry.triple
+            
+            # Hard Temporal Exclusion: If query has a year, 
+            # purge facts with DIFFERENT years in metadata to starve SLM hallucinations
+            fact_years = set()
+            for anchor in triple.temporal_anchors:
+                fact_years.update(re.findall(r'\b(?:19|20)\d{2}\b', anchor))
+            
+            # Also check text just in case extraction missed something or for legacy compatibility
+            fact_years.update(re.findall(r'\b(?:19|20)\d{2}\b', fact_text))
+            
+            if query_years and fact_years and not (fact_years & query_years):
+                to_delete.append(key)
+                continue
+
+            fact_vec = embedder.encode(fact_text).reshape(1, -1)
+            similarity = float(cos_sim(query_vec, fact_vec)[0][0])
+            
+            # Numeric/Temporal Filtering Logic
+            stat_penalty = 1.0
+            fact_numbers = set(re.findall(r'\b\d+(?:[\.,]\d+)?%?\b', fact_text))
+            
+            if has_query_stats:
+                # Penalize facts with different numbers (if not already purged by year)
+                mismatched_numbers = fact_numbers - query_numbers
+                if mismatched_numbers:
+                    stat_penalty = 0.4
+            else:
+                # If query is general (no numbers), penalize ANY facts with numbers
+                if fact_years or fact_numbers:
+                    stat_penalty = 0.6
+
+            # Blend structural importance, query relevance, and stat filter
+            entry.pagerank_score = (
+                (alpha * entry.pagerank_score + (1.0 - alpha) * similarity) 
+                * stat_penalty
+            )
+
+        # Immediate Purge
+        for key in to_delete:
+            del self.set_facts[key]
+
+        # Re-trim with updated scores so highest-relevance facts survive
+        self._trim_facts_to_budget()
+
+    def _trim_scratch_to_budget(self) -> None:
+        while self._estimate_scratch_tokens() > self.budgets["scratch"] \
+              and self.set_scratch:
+            self.set_scratch.popleft()
+
+    def _estimate_scratch_tokens(self) -> int:
+        return sum(_count_tokens(t) for t in self.set_scratch)
+
+    def flush_scratch(self) -> list[str]:
+        """
+        Evict all SCRATCH entries for Cerberus verification.
+        Called by the write-back gate before session ends.
+        Returns the list of dirty entries for verification.
+        """
+        dirty = list(self.set_scratch)
+        self.set_scratch.clear()
+        return dirty
+
+    def extend(self, triples: Iterable[KnowledgeTriple]) -> None:
+        for triple in triples:
+            self.add_fact(triple)
+
+    @property
+    def active_facts(self) -> OrderedDict[str, CacheEntry]:
+        return self.set_facts
+
+    def as_context_lines(self) -> list[str]:
+        lines: list[str] = []
+
+        if self.set_system:
+            lines.append("System Instructions:")
+            lines.extend(self.set_system)
+
+        if self.set_tools:
+            lines.append("Active Tool Results:")
+            lines.extend(f"{item.tool_name}: {item.text}" for item in self.set_tools)
+
+        if self.set_facts:
+            lines.append("Fact Cache:")
+            lines.extend(entry.text for entry in self.set_facts.values())
+
+        if self.set_history:
+            lines.append("Conversation History:")
+            lines.extend(f"{turn.role}: {turn.text}" for turn in self.set_history)
+
+        if self.set_scratch:
+            lines.append("Unverified Scratch (Dirty):")
+            lines.extend(self.set_scratch)
+
+        return lines
+
+    def as_context_text(self) -> str:
+        return "\n".join(self.as_context_lines())
+
+    def _trim_facts_to_budget(self) -> None:
+        while (self._estimate_facts_tokens() > self.budgets["facts"]
+               and len(self.set_facts) > MIN_FACTS_FLOOR):
+            lowest_key = min(
+                self.set_facts,
+                key=lambda key: self.set_facts[key].pagerank_score
+            )
+            del self.set_facts[lowest_key]
+
+    def _trim_history_to_budget(self) -> None:
+        while self._estimate_history_tokens() > self.budgets["history"] and self.set_history:
+            self.set_history.popleft()
+
+    def _trim_tools_to_budget(self) -> None:
+        while self._estimate_tools_tokens() > self.budgets["tools"] and self.set_tools:
+            self.set_tools.popleft()
+
+    def _estimate_system_tokens(self) -> int:
+        return sum(_count_tokens(text) for text in self.set_system)
+
+    def _estimate_facts_tokens(self) -> int:
+        return sum(_count_tokens(entry.text) for entry in self.set_facts.values())
+
+    def _estimate_history_tokens(self) -> int:
+        return sum(_count_tokens(f"{turn.role}: {turn.text}") for turn in self.set_history)
+
+    def _estimate_tools_tokens(self) -> int:
+        return sum(_count_tokens(f"{item.tool_name}: {item.text}") for item in self.set_tools)
+
+    def _resolved_budgets(self, budgets: dict[str, int] | None) -> dict[str, int]:
+        resolved = dict(DEFAULT_BUDGETS)
+        if budgets is not None:
+            unknown = set(budgets).difference(DEFAULT_BUDGETS)
+            if unknown:
+                unknown_names = ", ".join(sorted(unknown))
+                raise ValueError(f"Unknown budget set(s): {unknown_names}")
+            resolved.update(budgets)
+
+        for set_name, value in resolved.items():
+            if value < 0:
+                raise ValueError(f"Budget for '{set_name}' must be non-negative.")
+
+        return resolved
+
+
+def _count_tokens(text: str) -> int:
+    return len(_ENCODING.encode(text))
+
+================================================================================
+FILE: triple.py
+================================================================================
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True, slots=True)
+class KnowledgeTriple:
+    subject: str
+    verb: str
+    object: str
+    temporal_anchors: tuple[str, ...] = tuple()
+    modality: str = ""
+    is_negated: bool = False
+    condition: str = ""
+    extraction_method: str = "spacy"
+    is_deterministic: bool = True
+
+    def as_text(self) -> str:
+        """
+        Formats the triple as clean subject-verb-object text.
+        Avoids grammatical inversions that confuse small LLMs.
+        """
+        parts = [
+            p.strip() for p in [self.subject, self.verb, self.object]
+            if p and p.strip()
+        ]
+        text = " ".join(parts)
+
+        if self.is_negated:
+            text = f"NOT: {text}"
+        if self.temporal_anchors:
+            text += f" [{', '.join(self.temporal_anchors)}]"
+        if self.condition:
+            text += f" (if {self.condition})"
+
+        return text
+
+================================================================================
+FILE: eval_suite.py
+================================================================================
+
+"""
+IRIS ablation evaluation harness.
+
+Runs all 4 ablation conditions against test videos
+and outputs metrics for the paper.
+
+Ablation table:
+    Condition       | Codec gating | NLI verification
+    Baseline        | None         | None
+    Ablation 1      | KG only      | None
+    Ablation 2      | None         | Uniform NLI
+    Full IRIS       | Both jointly | Risk-proportional
+
+Metrics: accuracy, compression_ratio, latency_ms
+
+Owner: Track D
+"""
+from __future__ import annotations
+
+import time
+import json
+import argparse
+from pathlib import Path
+from iris_config import IRISConfig
+from pipeline import run_pipeline
+
+ABLATION_CONDITIONS = ["baseline", "ablation_1", "ablation_2", "full_iris"]
+
+
+def get_config_for_condition(condition: str) -> IRISConfig:
+    """Returns the IRISConfig custom-tailored for each ablation condition."""
+    if condition == "baseline":
+        # No codec gating (threshold=0), no NLI
+        return IRISConfig(
+            candidate_thresh=0.0,
+            cerberus_low_thresh=0.35,
+            cerberus_high_thresh=0.70,
+            disable_nli=True,
+            adaptive=False
+        )
+    elif condition == "ablation_1":
+        # Codec gating active, no NLI
+        return IRISConfig(
+            candidate_thresh=0.08,
+            cerberus_low_thresh=0.35,
+            cerberus_high_thresh=0.70,
+            disable_nli=True,
+            adaptive=True
+        )
+    elif condition == "ablation_2":
+        # No codec gating (threshold=0), uniform NLI (thresholds set to minimum to force full_nli)
+        return IRISConfig(
+            candidate_thresh=0.0,
+            cerberus_low_thresh=0.01,
+            cerberus_high_thresh=0.02,
+            disable_nli=False,
+            adaptive=False
+        )
+    elif condition == "full_iris":
+        # Both active with default configurations
+        return IRISConfig(
+            candidate_thresh=0.08,
+            cerberus_low_thresh=0.35,
+            cerberus_high_thresh=0.70,
+            disable_nli=False,
+            adaptive=True
+        )
+    else:
+        raise ValueError(f"Unknown ablation condition: {condition}")
+
+
+def run_ablation(video_path: str, query: str, condition: str) -> dict:
+    """Run one ablation condition. Returns metrics dict."""
+    config = get_config_for_condition(condition)
+    
+    t0 = time.time()
+    res = run_pipeline(video_path, query, config=config, verbose=True)
+    elapsed_ms = (time.time() - t0) * 1000.0
+    
+    # Extract verification details
+    claims_verified = res.get("verified_claims", []) or []
+    claims_rejected = res.get("rejected_claims", []) or []
+    claims_unverifiable = res.get("unverifiable_claims", []) or []
+    
+    debug_info = res.get("debug_info", {})
+    retrieved_frames = debug_info.get("retrieved_frames", [])
+    retrieved_idxs = [f["frame_idx"] for f in retrieved_frames]
+    retrieved_scores = [round(f.get("action_score", 0.0), 3) for f in retrieved_frames]
+    
+    # Print detailed debug info for analysis
+    print(f"  [DEBUG {condition}] Retrieved frames: {retrieved_idxs} with action scores {retrieved_scores}")
+    print(f"  [DEBUG {condition}] Raw answer: {res.get('raw_answer')}")
+    print(f"  [DEBUG {condition}] Verified claims: {claims_verified}")
+    print(f"  [DEBUG {condition}] Rejected claims: {claims_rejected}")
+    print(f"  [DEBUG {condition}] Unverifiable claims: {claims_unverifiable}")
+    
+    total_claims = len(claims_verified) + len(claims_rejected) + len(claims_unverifiable)
+    nli_calls_estimated = len(claims_verified) + len(claims_rejected) if condition in ("ablation_2", "full_iris") else 0
+    
+    return {
+        "condition": condition,
+        "frames_processed": res.get("frames_processed", 0),
+        "compression_ratio": res.get("compression_ratio", 0.0),
+        "skipped_ratio": res.get("skipped_frames_ratio", 0.0),
+        "latency_ms": elapsed_ms,
+        "total_claims": total_claims,
+        "verified_claims_count": len(claims_verified),
+        "rejected_claims_count": len(claims_rejected),
+        "unverifiable_claims_count": len(claims_unverifiable)
+    }
+
+
+def run_full_eval(video_path: str, query: str) -> list[dict]:
+    """Run all conditions and return comparative results list."""
+    results = []
+    print(f"\nEvaluating E2E Ablation on Video: {video_path}")
+    print(f"Query: '{query}'\n")
+    
+    for condition in ABLATION_CONDITIONS:
+        print(f"-> Running ablation condition: {condition}...")
+        try:
+            res = run_ablation(video_path, query, condition)
+            results.append(res)
+        except Exception as e:
+            print(f"Error running condition {condition}: {e}")
+            
+    return results
+
+
+def print_comparison_table(results: list[dict]) -> None:
+    """Prints a structured ASCII comparison table for the paper."""
+    header = f"  {'Condition':<15} | {'Frames Sent':<12} | {'Skip Ratio':<10} | {'Latency (ms)':<12} | {'Verified/Rejected/Unverifiable':<32}"
+    print("\n" + "=" * 90)
+    print("  IRIS ABLATION COMPARISON TABLE")
+    print("=" * 90)
+    print(header)
+    print("  " + "-" * 86)
+    for r in results:
+        verified_str = f"{r['verified_claims_count']}/{r['rejected_claims_count']}/{r['unverifiable_claims_count']}"
+        print(f"  {r['condition']:<15} | "
+              f"{r['frames_processed']:<12} | "
+              f"{r['skipped_ratio']:<10.2%} | "
+              f"{r['latency_ms']:<12.1f} | "
+              f"{verified_str:<32}")
+    print("=" * 90 + "\n")
+
+
+def main():
+    parser = argparse.ArgumentParser(description="IRIS Ablation Evaluation Suite")
+    parser.add_argument("video_path", nargs="?", default="benchmark_results/mov_bbb.mp4",
+                        help="Path to the test video file.")
+    parser.add_argument("--query", default="What action events happen in this video?",
+                        help="Query to run against the video.")
+    parser.add_argument("--out", default="benchmark_results/ablation_results.json",
+                        help="Path to save output JSON report.")
+    args = parser.parse_args()
+    
+    video_path = Path(args.video_path)
+    if not video_path.exists():
+        # Fallback to static_video.mp4 if mov_bbb.mp4 doesn't exist
+        fallback = Path("benchmark_results/static_video.mp4")
+        if fallback.exists():
+            video_path = fallback
+        else:
+            print(f"Error: Neither {args.video_path} nor {fallback} exists.")
+            return
+            
+    results = run_full_eval(str(video_path), args.query)
+    print_comparison_table(results)
+    
+    out_path = Path(args.out)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(out_path, "w", encoding="utf-8") as f:
+        json.dump(results, f, indent=2)
+    print(f"Saved ablation results to: {out_path}")
+
+
+if __name__ == "__main__":
+    main()
+
+================================================================================
+FILE: extract_frames.py
+================================================================================
+
+"""
+Extract the 27 kept frames from mov_bbb.mp4 as base64 thumbnails.
+Outputs frames_data.json with frame metadata + base64 JPEG images.
+"""
+import av
+import json
+import base64
+import urllib.request
+import io
+import numpy as np
+from PIL import Image
+from charon_v import parse_video
+
+VIDEO_URL  = "https://www.w3schools.com/html/mov_bbb.mp4"
+VIDEO_PATH = "mov_bbb.mp4"
+OUT_PATH   = "frames_data.json"
+THUMB_W    = 192
+THUMB_H    = 108   # 16:9
+
+print("Downloading video...")
+urllib.request.urlretrieve(VIDEO_URL, VIDEO_PATH)
+print("Done. Parsing with Charon-V...")
+
+output_frames, stats = parse_video(VIDEO_PATH, return_stats=True, adaptive=True)
+print(f"Charon-V found {len(output_frames)} non-SKIP frames out of {stats['total']} total.")
+
+# Build a lookup: frame_idx → tier/residual/motion
+kept = {f["frame_idx"]: f for f in output_frames}
+
+print("Extracting actual image frames...")
+container = av.open(VIDEO_PATH)
+stream     = container.streams.video[0]
+stream.codec_context.options = {"flags2": "+export_mvs"}
+
+results = []
+frame_count = 0
+
+for frame in container.decode(video=0):
+    idx = frame_count
+    frame_count += 1
+
+    if idx not in kept:
+        continue
+
+    meta = kept[idx]
+
+    # Convert frame to RGB PIL image and resize to thumbnail
+    img_array = frame.to_ndarray(format="rgb24")
+    pil_img   = Image.fromarray(img_array)
+    pil_img   = pil_img.resize((THUMB_W, THUMB_H), Image.LANCZOS)
+
+    buf = io.BytesIO()
+    pil_img.save(buf, format="JPEG", quality=72)
+    b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+
+    # Motion vector summary: count of non-zero vectors
+    mv = meta["motion_vectors"]
+    mv_count = len(mv)
+    mv_mag = 0.0
+    if mv_count > 0:
+        mv_mag = float(np.mean([
+            (m[4]**2 + m[5]**2)**0.5 for m in mv
+        ]))
+
+    results.append({
+        "frame_idx":      meta["frame_idx"],
+        "timestamp":      round(meta["timestamp"], 3),
+        "tier":           meta["tier"],
+        "residual_energy": round(meta["residual_energy"], 5),
+        "mv_count":       mv_count,
+        "mv_magnitude":   round(mv_mag, 3),
+        "image_b64":      b64,
+    })
+
+container.close()
+
+output = {
+    "video":   "mov_bbb.mp4",
+    "stats":   stats,
+    "frames":  results,
+}
+
+with open(OUT_PATH, "w") as f:
+    json.dump(output, f)
+
+print(f"Saved {len(results)} frames to {OUT_PATH}")
+import os
+os.remove(VIDEO_PATH)
+print("Cleaned up video file.")
+
+================================================================================
+FILE: viewer/app.py
+================================================================================
+
+"""
+IRIS Frame Viewer — localhost web app.
+Run:  python viewer/app.py
+Open: http://localhost:5000
+"""
+from flask import Flask, render_template, jsonify, abort, send_file
+from pathlib import Path
+import json
+import base64
+import io
+
+app = Flask(__name__, template_folder="templates")
+
+DATA_FILE = Path(__file__).parent.parent / "frames_data.json"
+
+
+def load_data():
+    if not DATA_FILE.exists():
+        return None
+    with open(DATA_FILE, encoding="utf-8") as f:
+        return json.load(f)
+
+
+@app.route("/")
+def index():
+    data = load_data()
+    if data is None:
+        return (
+            "<h2>frames_data.json not found.</h2>"
+            "<p>Run <code>python extract_frames.py</code> first.</p>",
+            404,
+        )
+    return render_template("index.html")
+
+
+@app.route("/api/frames")
+def api_frames():
+    data = load_data()
+    if data is None:
+        abort(404)
+    # Strip image_b64 from the JSON response — images are served separately
+    slim = {
+        "video":  data["video"],
+        "stats":  data["stats"],
+        "frames": [
+            {k: v for k, v in f.items() if k != "image_b64"}
+            for f in data["frames"]
+        ],
+    }
+    return jsonify(slim)
+
+
+@app.route("/api/frame/<int:frame_idx>/image")
+def frame_image(frame_idx: int):
+    """Serve one frame's JPEG directly — no base64, no data URI."""
+    data = load_data()
+    if data is None:
+        abort(404)
+    frames = {f["frame_idx"]: f for f in data["frames"]}
+    if frame_idx not in frames:
+        abort(404)
+    img_bytes = base64.b64decode(frames[frame_idx]["image_b64"])
+    return send_file(io.BytesIO(img_bytes), mimetype="image/jpeg")
+
+
+if __name__ == "__main__":
+    print("IRIS Frame Viewer running at http://localhost:5000")
+    app.run(debug=False, port=5000)

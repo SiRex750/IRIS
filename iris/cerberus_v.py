@@ -14,8 +14,8 @@ import json
 import psutil
 from typing import Any, Iterable
 
-from iris_config import IRISConfig, ConfigManager
-from triple import KnowledgeTriple
+from iris.iris_config import IRISConfig, ConfigManager
+from iris.triple import KnowledgeTriple
 
 
 _SPACY_NLP = None

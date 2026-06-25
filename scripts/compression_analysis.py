@@ -19,13 +19,13 @@ from pathlib import Path
 import numpy as np
 
 # ── IRIS imports ──────────────────────────────────────────────────────────
-import charon_v
-from action_score import ActionScoreModule, ActionScoreConfig
-from frame_motion_descriptor import FrameMotionDescriptor
-from cached_frame import CachedFrame
-from iris_config import IRISConfig
-from l1_elysium import L1ElysiumCache
-from l2_index import L2TieredIndex, FrameTier
+import iris.charon_v as charon_v
+from iris.action_score import ActionScoreModule, ActionScoreConfig
+from iris.frame_motion_descriptor import FrameMotionDescriptor
+from iris.cached_frame import CachedFrame
+from iris.iris_config import IRISConfig
+from iris.l1_elysium import L1ElysiumCache
+from iris.l2_index import L2TieredIndex, FrameTier
 
 
 def run_compression_analysis(video_path: str, l1_capacity: int = 32) -> dict:

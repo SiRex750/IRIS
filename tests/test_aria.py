@@ -5,8 +5,8 @@ Owner: Track B
 """
 from __future__ import annotations
 import pytest
-import aria
-from aria import LLMBackend, set_backend, get_backend, generate
+import iris.aria as aria
+from iris.aria import LLMBackend, set_backend, get_backend, generate
 
 
 class MockBackend(LLMBackend):
@@ -53,8 +53,8 @@ def test_generate_delegation():
 def test_captioning_result_and_diagnostics():
     import os
     import pytest
-    import aria
-    from aria import CaptionResult, CaptionGenerationError
+    import iris.aria as aria
+    from iris.aria import CaptionResult, CaptionGenerationError
     
     # Save original key
     orig_key = os.environ.get("OPENAI_API_KEY")

@@ -21,8 +21,8 @@ import time
 import json
 import argparse
 from pathlib import Path
-from iris_config import IRISConfig
-from pipeline import run_pipeline
+from iris.iris_config import IRISConfig
+from iris.pipeline import run_pipeline
 
 ABLATION_CONDITIONS = ["baseline", "ablation_1", "ablation_2", "full_iris"]
 

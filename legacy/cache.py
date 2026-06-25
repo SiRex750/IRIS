@@ -6,7 +6,7 @@ from functools import lru_cache
 from typing import Iterable
 import tiktoken
 
-from triple import KnowledgeTriple
+from legacy.triple import KnowledgeTriple
 
 
 _ENCODING = tiktoken.get_encoding("cl100k_base")

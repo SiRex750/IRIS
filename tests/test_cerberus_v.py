@@ -5,10 +5,10 @@ Owner: Track D
 """
 from __future__ import annotations
 
-from triple import KnowledgeTriple
-from cache import L1Cache
-from cerberus_v import CerberusV
-from iris_config import IRISConfig
+from legacy.triple import KnowledgeTriple
+from legacy.cache import L1Cache
+from iris.cerberus_v import CerberusV
+from iris.iris_config import IRISConfig
 
 
 def test_cerberus_gating_and_ner_verification() -> None:

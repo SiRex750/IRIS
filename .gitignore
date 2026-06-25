@@ -16,3 +16,5 @@ venv/
 *.bin
 *.safetensors
 configs/gepa_*.json
+logs/
+

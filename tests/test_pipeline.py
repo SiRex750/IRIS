@@ -8,9 +8,9 @@ import os
 import urllib.request
 import pytest
 import numpy as np
-import aria
-from aria import LLMBackend
-from pipeline import run_pipeline, run
+import iris.aria as aria
+from iris.aria import LLMBackend
+from iris.pipeline import run_pipeline, run
 
 
 class MockLLMBackend(LLMBackend):
@@ -159,7 +159,7 @@ def test_pipeline_visual_debug_mode(bbb_video):
     aria.set_backend(MockLLMBackend())
     
     from unittest.mock import patch
-    from iris_config import IRISConfig
+    from iris.iris_config import IRISConfig
     
     # Create a config with visual_debug_mode enabled
     debug_config = IRISConfig()
@@ -167,7 +167,7 @@ def test_pipeline_visual_debug_mode(bbb_video):
     
     try:
         # Patch ConfigManager.get_config to return our debug_config
-        with patch('iris_config.ConfigManager.get_config', return_value=debug_config):
+        with patch('iris.iris_config.ConfigManager.get_config', return_value=debug_config):
             # Run the pipeline with verbose=True
             result = run_pipeline(bbb_video, "Summarize the action events.", verbose=True)
             

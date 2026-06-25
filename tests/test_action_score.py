@@ -1,4 +1,4 @@
-from action_score import ActionScoreConfig, ActionScoreModule
+from iris.action_score import ActionScoreConfig, ActionScoreModule
 
 
 def test_uniform_pan_not_peak():
@@ -145,4 +145,4 @@ def test_persistence_clustering_regression():
     assert p1 != p2, "Expected distinct persistence values"
     
     # Assert (c): sharper peak gets higher persistence_value than gentler one
-    assert p1 > p2, f"Expected sharper peak persistence {p1} to be > gentler peak persistence {p2}"
+    assert p1 > p2, f"Expected sharper peak persistence {p1} to be > gentler peak persistence {p2}"

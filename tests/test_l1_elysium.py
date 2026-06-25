@@ -14,10 +14,10 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from cached_frame import CachedFrame
-from frame_motion_descriptor import FrameMotionDescriptor
-from iris_config import IRISConfig
-from l1_elysium import L1ElysiumCache
+from iris.cached_frame import CachedFrame
+from iris.frame_motion_descriptor import FrameMotionDescriptor
+from iris.iris_config import IRISConfig
+from iris.l1_elysium import L1ElysiumCache
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────

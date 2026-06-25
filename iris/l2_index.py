@@ -24,7 +24,7 @@ from typing import Any
 import faiss
 import numpy as np
 
-from iris_config import IRISConfig
+from iris.iris_config import IRISConfig
 
 logger = logging.getLogger(__name__)
 

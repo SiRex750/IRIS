@@ -41,7 +41,7 @@ if str(_THIS_DIR) not in sys.path:
     sys.path.insert(0, str(_THIS_DIR))
 
 # Lazy import so startup doesn't block (CLIP model loads on first call)
-from pipeline import run_pipeline  # noqa: E402
+from iris.pipeline import run_pipeline  # noqa: E402
 
 # ── App setup ─────────────────────────────────────────────────────────────────
 app = FastAPI(

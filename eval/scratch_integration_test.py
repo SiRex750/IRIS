@@ -7,8 +7,8 @@ import numpy as np
 # Ensure root directory is in python path
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
-import aria
-from pipeline import run_pipeline
+import iris.aria as aria
+from iris.pipeline import run_pipeline
 
 def load_env():
     """Manually load .env file from the same directory as the test script."""

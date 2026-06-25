@@ -7,9 +7,9 @@ import numpy as np
 # Ensure root directory is in python path
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
-import aria
-from aria import LLMBackend
-from pipeline import run_pipeline
+import iris.aria as aria
+from iris.aria import LLMBackend
+from iris.pipeline import run_pipeline
 
 
 class MockLLMBackend(LLMBackend):

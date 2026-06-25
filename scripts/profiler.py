@@ -44,11 +44,11 @@ def profiled_run(video_path: str, query: str) -> dict:
     Replays the pipeline stage-by-stage with fine-grained timers.
     Returns a dict of sub-stage timings and search pool counts.
     """
-    from iris_config import IRISConfig
-    import charon_v
-    from action_score import ActionScoreConfig, ActionScoreModule
-    import aria
-    from pipeline import (
+    from iris.iris_config import IRISConfig
+    import iris.charon_v as charon_v
+    from iris.action_score import ActionScoreConfig, ActionScoreModule
+    import iris.aria as aria
+    from iris.pipeline import (
         get_clip_model,
         get_clip_embedding_from_pil,
         get_zero_shot_caption,
@@ -56,7 +56,7 @@ def profiled_run(video_path: str, query: str) -> dict:
         wrapper_populate_cache,
         wrapper_cerberus_gate,
     )
-    from l2_asphodel import L2Asphodel
+    from iris.l2_asphodel import L2Asphodel
     import av
     import re
     import clip
@@ -216,7 +216,7 @@ def profiled_run(video_path: str, query: str) -> dict:
 
     # ── Stage 10: ARIA inference ──────────────────────────────────────────
     with Timer() as t_aria_inf:
-        import aria
+        import iris.aria as aria
         raw_answer = aria.generate(prompt=query, context=context_text)
     timings["aria_inference"] = t_aria_inf.ms
 

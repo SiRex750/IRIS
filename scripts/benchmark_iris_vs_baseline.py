@@ -82,7 +82,7 @@ def uniform_baseline_frame_count(total_frames: int, fps: float, sample_fps: floa
 
 def run_iris_pipeline(video_path: str, query: str) -> dict:
     """Calls the real IRIS pipeline and returns its actual measured results."""
-    import pipeline
+    import iris.pipeline as pipeline
     t0 = time.time()
     result = pipeline.run_pipeline(video_path, query, verbose=False)
     elapsed = time.time() - t0

@@ -2,7 +2,7 @@ import urllib.request
 import os
 import sys
 import socket
-from charon_v import parse_video
+from iris.charon_v import parse_video
 
 def test_peak_tier(video_path: str = "mov_bbb.mp4"):
     if not os.path.exists(video_path):

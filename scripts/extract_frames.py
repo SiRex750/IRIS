@@ -9,7 +9,7 @@ import urllib.request
 import io
 import numpy as np
 from PIL import Image
-from charon_v import parse_video
+from iris.charon_v import parse_video
 
 VIDEO_URL  = "https://www.w3schools.com/html/mov_bbb.mp4"
 VIDEO_PATH = "mov_bbb.mp4"

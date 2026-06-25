@@ -10,7 +10,7 @@ import numpy as np
 import scipy.sparse
 import networkx as nx
 
-from l2_asphodel import L2Asphodel, AsphodelNode
+from iris.l2_asphodel import L2Asphodel, AsphodelNode
 
 
 def test_init_and_config():
