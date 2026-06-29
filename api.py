@@ -102,8 +102,8 @@ def _build_graph_data(debug_info: dict, retrieved_frames: list) -> dict:
             "timestamp": round(float(f.get("timestamp", 0.0)), 3),
             "action_score": round(float(f.get("action_score", 0.0)), 4),
             "persistence_value": round(float(f.get("persistence_value", 0.0)), 4),
-            "residual_energy": round(float(f.get("residual_energy", 0.0)), 4),
-            "entropy": round(float(f.get("entropy", 0.0)), 4),
+            "luma_diff_energy": round(float(f.get("luma_diff_energy", 0.0)), 4),
+            "luma_entropy": round(float(f.get("luma_entropy", 0.0)), 4),
             "is_peak": bool(f.get("is_peak", False)),
             "caption": (
                 f.get("caption").get("semantic_caption") or f.get("caption").get("clip_label") or "—"

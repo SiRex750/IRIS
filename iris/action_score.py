@@ -14,9 +14,9 @@ class ActionScoreConfig:
 
     Later, these values can move into iris_config.py and be tuned by GEPA.
     """
-    residual_weight: float = 0.5
+    luma_diff_weight: float = 0.5  # weights the codec packet-size residual; field rename deferred to Phase 7 (pipeline.py retirement)
     motion_weight: float = 0.3
-    entropy_weight: float = 0.2
+    luma_entropy_weight: float = 0.2
 
     peak_distance: int = 5
     peak_prominence: float = 0.05
@@ -30,9 +30,10 @@ class ActionScoreModule:
 
     Input per frame:
         frame_idx
-        residual_energy
+        packet_size        (codec coded packet size — residual channel)
         motion_magnitude
-        entropy
+        luma_entropy
+        luma_diff_energy   (diagnostic only; not consumed by scorer)
 
     Output per frame:
         frame_idx
@@ -52,7 +53,7 @@ class ActionScoreModule:
             return []
 
         residual = np.array(
-            [float(f.get("residual_energy", 0.0)) for f in frame_features],
+            [float(f.get("packet_size", 0.0)) for f in frame_features],
             dtype=np.float32,
         )
 
@@ -61,28 +62,28 @@ class ActionScoreModule:
             dtype=np.float32,
         )
 
-        entropy = np.array(
-            [float(f.get("entropy", 0.0)) for f in frame_features],
+        luma_entropy = np.array(
+            [float(f.get("luma_entropy", 0.0)) for f in frame_features],
             dtype=np.float32,
         )
 
         residual_n = self._normalize(residual)
         motion_n = self._normalize(motion)
-        entropy_n = self._normalize(entropy)
+        entropy_n = self._normalize(luma_entropy)
 
         weight_sum = (
-            self.config.residual_weight
+            self.config.luma_diff_weight
             + self.config.motion_weight
-            + self.config.entropy_weight
+            + self.config.luma_entropy_weight
         )
 
         if weight_sum <= 0:
             raise ValueError("Action Score weights must sum to a positive value.")
 
         action_score = (
-            self.config.residual_weight * residual_n
+            self.config.luma_diff_weight * residual_n
             + self.config.motion_weight * motion_n
-            + self.config.entropy_weight * entropy_n
+            + self.config.luma_entropy_weight * entropy_n
         ) / weight_sum
 
         action_score = np.clip(action_score, 0.0, 1.0)
@@ -98,12 +99,12 @@ class ActionScoreModule:
         persistence_by_index: dict[int, float] = {}
 
         if len(peak_indices) > 0:
-            for idx, prominence in zip(peak_indices, prominences):
-                if self.config.max_prominence > 1e-8:
-                    persistence_value = min(float(prominence / self.config.max_prominence), 1.0)
-                else:
-                    persistence_value = 0.0
+            max_prominence = float(np.max(prominences)) if len(prominences) else 1.0
+            if max_prominence < 1e-8:
+                max_prominence = 1.0
 
+            for idx, prominence in zip(peak_indices, prominences):
+                persistence_value = max(0.0, min(float(prominence / max_prominence), 1.0))
                 persistence_by_index[int(idx)] = persistence_value
 
         records: list[dict[str, Any]] = []
@@ -139,7 +140,14 @@ class ActionScoreModule:
             max_value = float(np.percentile(values, 98))
 
         if abs(max_value - min_value) < 1e-8:
-            return np.zeros_like(values, dtype=np.float32)
+            # Percentile range collapsed — fall back to global min/max
+            min_value = float(np.min(values))
+            max_value = float(np.max(values))
+            if abs(max_value - min_value) < 1e-8:
+                # Truly constant signal — return neutral constant
+                return np.full_like(values, 0.5, dtype=np.float32)
+            normalized = (values - min_value) / (max_value - min_value)
+            return np.clip(normalized, 0.0, 1.0)
 
         normalized = (values - min_value) / (max_value - min_value)
         return np.clip(normalized, 0.0, 1.0)

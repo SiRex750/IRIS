@@ -240,7 +240,7 @@ def make_frame_with_motion(
     frame_idx: int,
     action_score: float = 0.5,
     persistence_value: float = 0.5,
-    residual_energy: float = 1.0,
+    luma_diff_energy: float = 1.0,
     divergence: float = 0.5,
     curl: float = 0.3,
     jacobian_frobenius: float = 0.8,
@@ -252,7 +252,7 @@ def make_frame_with_motion(
     motion = FrameMotionDescriptor(
         frame_idx=frame_idx,
         timestamp_sec=float(frame_idx),
-        residual_energy=residual_energy,
+        luma_diff_energy=luma_diff_energy,
         divergence=divergence,
         curl=curl,
         jacobian_frobenius=jacobian_frobenius,
@@ -288,7 +288,7 @@ def test_build_motion_embedding_zero_vector():
     motion = FrameMotionDescriptor(
         frame_idx=0,
         timestamp_sec=0.0,
-        residual_energy=0.0,
+        luma_diff_energy=0.0,
         divergence=0.0,
         curl=0.0,
         jacobian_frobenius=0.0,
@@ -317,7 +317,7 @@ def test_dual_vector_query_combines_similarities():
     # Frame 0: good visual match, bad motion match
     f0 = make_frame_with_motion(
         0,
-        residual_energy=0.0, divergence=0.0, curl=0.0,
+        luma_diff_energy=0.0, divergence=0.0, curl=0.0,
         jacobian_frobenius=0.0, hessian=0.0, motion_entropy=1.0,
         embedding=np.array([1.0, 0.0, 0.0], dtype=np.float32),
     )
@@ -326,7 +326,7 @@ def test_dual_vector_query_combines_similarities():
     # Frame 1: bad visual match, good motion match
     f1 = make_frame_with_motion(
         1,
-        residual_energy=1.0, divergence=0.5, curl=0.3,
+        luma_diff_energy=1.0, divergence=0.5, curl=0.3,
         jacobian_frobenius=0.8, hessian=0.6, motion_entropy=0.7,
         embedding=np.array([0.0, 1.0, 0.0], dtype=np.float32),
     )
@@ -373,7 +373,7 @@ def test_dual_vector_gepa_weight_shift():
         # Frame 0: perfect visual match, zero motion
         f0 = make_frame_with_motion(
             0,
-            residual_energy=0.0, divergence=0.0, curl=0.0,
+            luma_diff_energy=0.0, divergence=0.0, curl=0.0,
             jacobian_frobenius=0.0, hessian=0.0, motion_entropy=0.0,
             embedding=np.array([1.0, 0.0, 0.0], dtype=np.float32),
         )
@@ -383,7 +383,7 @@ def test_dual_vector_gepa_weight_shift():
         # Frame 1: zero visual match, strong motion
         f1 = make_frame_with_motion(
             1,
-            residual_energy=1.0, divergence=0.5, curl=0.3,
+            luma_diff_energy=1.0, divergence=0.5, curl=0.3,
             jacobian_frobenius=0.8, hessian=0.6, motion_entropy=0.7,
             embedding=np.array([0.0, 0.0, 1.0], dtype=np.float32),
         )

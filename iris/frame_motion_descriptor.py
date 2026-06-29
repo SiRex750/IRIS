@@ -23,7 +23,7 @@ class FrameMotionDescriptor:
     timestamp_sec:          float
 
     # Core codec signal (also produced by action_score.py, kept here for L1 access)
-    residual_energy:        float = 0.0
+    luma_diff_energy:        float = 0.0
 
     # Motion field geometry — computed from dense optical flow or motion vectors
     divergence:             float = 0.0   # positive = expanding, negative = converging

@@ -85,9 +85,9 @@ def profiled_run(video_path: str, query: str) -> dict:
     # ── Stage 2: ActionScore ─────────────────────────────────────────────
     with Timer() as t_norm:
         as_config = ActionScoreConfig(
-            residual_weight=config.residual_weight,
+            luma_diff_weight=config.luma_diff_weight,
             motion_weight=config.motion_weight,
-            entropy_weight=config.entropy_weight,
+            luma_entropy_weight=config.luma_entropy_weight,
             peak_distance=config.peak_distance,
             peak_prominence=config.peak_prominence,
             persistence_threshold=config.persistence_threshold,
@@ -119,7 +119,7 @@ def profiled_run(video_path: str, query: str) -> dict:
         frame["action_score"]     = si["action_score"]
         frame["is_peak"]          = si["is_peak"]
         frame["persistence_value"] = si["persistence_value"]
-        frame["entropy"]           = raw_map.get(fidx, {}).get("entropy", 0.0)
+        frame["luma_entropy"]           = raw_map.get(fidx, {}).get("luma_entropy", 0.0)
 
     peak_frames = len([f for f in output_frames if f.get("is_peak", False)])
 
@@ -145,9 +145,9 @@ def profiled_run(video_path: str, query: str) -> dict:
         feature_records = [{
             "frame_idx":             f["frame_idx"],
             "timestamp":             f["timestamp"],
-            "residual_energy":       f["residual_energy"],
+            "luma_diff_energy":       f["luma_diff_energy"],
             "motion_magnitude":      f.get("motion_magnitude", 0.0),
-            "entropy":               f.get("entropy", 0.0),
+            "luma_entropy":               f.get("luma_entropy", 0.0),
             "refined_motion_tensor": np.zeros(1, dtype=np.float32),
         } for f in output_frames]
         score_recs = [{
@@ -189,12 +189,12 @@ def profiled_run(video_path: str, query: str) -> dict:
         retrieved_frames.append({
             "frame_idx":       node.frame_idx,
             "timestamp":       node.timestamp,
-            "residual_energy": node.residual_energy,
+            "luma_diff_energy": node.luma_diff_energy,
             "action_score":    node.action_score,
             "persistence_value": node.persistence_value,
             "is_peak":         orig.get("is_peak", False),
             "clip_embedding":  orig.get("clip_embedding", None),
-            "entropy":         orig.get("entropy", 0.0),
+            "luma_entropy":         orig.get("luma_entropy", 0.0),
             "caption":         orig.get("caption", None),
         })
     if not retrieved_frames:

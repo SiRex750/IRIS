@@ -2,7 +2,15 @@ import urllib.request
 import os
 import sys
 import socket
-from iris.charon_v import parse_video
+from iris.charon_v import parse_video, PEAK_WINDOW_SECONDS
+
+
+def _get_scene_thresh(stats: dict, frame_idx: int) -> tuple[float, float]:
+    """Return (salient, candidate) threshold for the scene whose [start,end) contains frame_idx."""
+    for (start, end), salient in stats["salient_thresh_per_scene"].items():
+        if start <= frame_idx < end:
+            return salient, stats["candidate_thresh_per_scene"][(start, end)]
+    raise KeyError(f"frame_idx {frame_idx} not found in any scene range")
 
 def test_peak_tier(video_path: str = "mov_bbb.mp4"):
     if not os.path.exists(video_path):
@@ -18,23 +26,36 @@ def test_peak_tier(video_path: str = "mov_bbb.mp4"):
     peaks = [f for f in frames if f["tier"] == "PEAK"]
     salients = [f for f in frames if f["tier"] == "SALIENT"]
     
-    # All peaks must be above the actual threshold used
-    assert all(f["residual_energy"] >= actual_salient_thresh for f in peaks), \
-        f"Peak frame found below salient_thresh floor ({actual_salient_thresh:.4f})"
-    
-    # PEAK should be sparser than SALIENT
-    if len(salients) > 0:
-        assert len(peaks) < len(salients), \
-            f"Too many peaks ({len(peaks)}) vs salients ({len(salients)}) — tune order parameter"
-    
-    # No I_FRAME reclassified as PEAK
+    # Every PEAK survivor must be at or above its own scene's salient threshold
+    for f in peaks:
+        scene_salient, _ = _get_scene_thresh(stats, f["frame_idx"])
+        assert f["packet_size"] >= scene_salient, (
+            f"PEAK frame {f['frame_idx']} packet_size {f['packet_size']:.1f} < "
+            f"scene salient_thresh {scene_salient:.1f}"
+        )
+
+    # Peaks are a subset of non-I-frame survivors
     iframe_ids = {f["frame_idx"] for f in frames if f["tier"] == "I_FRAME"}
     peak_ids = {f["frame_idx"] for f in peaks}
-    assert iframe_ids.isdisjoint(peak_ids), \
-        "I_FRAME was reclassified as PEAK — check tier priority order"
-    
+    non_i_ids = {f["frame_idx"] for f in frames if f["tier"] != "I_FRAME"}
+    assert peak_ids.issubset(non_i_ids), \
+        "PEAK frame_idx found outside non-I survivors — check tier priority order"
+
+    # Peak density is sane: peaks must be < 20 % of all frames
+    assert len(peaks) < 0.2 * stats["total"], \
+        f"Peak density too high: {len(peaks)} peaks out of {stats['total']} total frames"
+
+    # peak_order_used is >= 3 and fps-derived (not the old literal 15 for a ~24fps clip)
+    order_used = stats["peak_order_used"]
+    assert order_used >= 3, \
+        f"peak_order_used must be >= 3, got {order_used}"
+    assert order_used != 15, (
+        f"peak_order_used={order_used} looks like the old hardcoded literal; "
+        f"expected max(3, round({PEAK_WINDOW_SECONDS}*fps)) ≈ 12 for a 24fps clip"
+    )
+
     print(f"Adaptive salient_thresh: {actual_salient_thresh:.4f}")
-    print(f"PEAK: {len(peaks)}, SALIENT: {len(salients)}")
+    print(f"PEAK: {len(peaks)}, SALIENT: {len(salients)}, peak_order_used: {order_used}")
 
 def main():
     socket.setdefaulttimeout(5.0)
@@ -69,7 +90,7 @@ def main():
         assert all(isinstance(f, dict) for f in output), "All output elements must be dicts"
         
         # Assert: All dicts have the required keys
-        required_keys = {"frame_idx", "timestamp", "tier", "residual_energy", "motion_vectors"}
+        required_keys = {"frame_idx", "timestamp", "tier", "luma_diff_energy", "motion_vectors"}
         for f in output:
             assert required_keys.issubset(f.keys()), f"Dict missing required keys: {f.keys()}"
             
@@ -91,13 +112,10 @@ def main():
         assert "salient_thresh_used" in stats, "stats missing salient_thresh_used"
         assert "candidate_thresh_used" in stats, "stats missing candidate_thresh_used"
         
-        # Verify correctness assertions requested by user
-        salient_thresh_default = 0.35
-        candidate_thresh_default = 0.08
-        
+        # Verify correctness assertions requested by user (byte-scale thresholds since Phase 4)
         print(f"Adaptive thresholds used: Salient={stats['salient_thresh_used']:.4f}, Candidate={stats['candidate_thresh_used']:.4f}")
-        assert stats['salient_thresh_used'] < salient_thresh_default, f"salient_thresh_used ({stats['salient_thresh_used']}) should be less than {salient_thresh_default}"
-        assert stats['candidate_thresh_used'] < candidate_thresh_default, f"candidate_thresh_used ({stats['candidate_thresh_used']}) should be less than {candidate_thresh_default}"
+        assert stats['salient_thresh_used'] > 1.0, f"salient_thresh_used ({stats['salient_thresh_used']}) should be byte-scale (> 1.0)"
+        assert stats['candidate_thresh_used'] > 1.0, f"candidate_thresh_used ({stats['candidate_thresh_used']}) should be byte-scale (> 1.0)"
         assert stats['salient_thresh_used'] > stats['candidate_thresh_used'], "salient threshold must be greater than candidate threshold"
         
         # Test adaptive=False behavior

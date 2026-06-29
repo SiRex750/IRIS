@@ -2,11 +2,13 @@
 ARIA — LLM interface abstraction for IRIS.
 
 Single entry point for all LLM calls in the pipeline.
-Backend is swappable: OpenAI during development,
-Llama 3.2 3B via Ollama/llama.cpp in production.
 
-No other file in IRIS should import openai or call
-any LLM API directly — all calls go through here.
+Captioning:  BLIPCaptioner  — local Salesforce/blip-image-captioning-base
+Text gen:    LlamaBackend   — local Ollama at localhost:11434 (default)
+             OpenAIBackend  — OpenAI API (opt-in via set_backend)
+
+No other file in IRIS should import openai, transformers, or call
+any LLM/VLM API directly — all calls go through here.
 
 Owner: Track B
 """
@@ -14,15 +16,83 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 
+
 @dataclass
 class CaptionResult:
     success: bool
     caption: str | None
     error: str | None = None
 
+
 class CaptionGenerationError(Exception):
     """Exception raised when caption generation fails."""
     pass
+
+
+# ---------------------------------------------------------------------------
+# Vision captioning — BLIP
+# ---------------------------------------------------------------------------
+
+class BLIPCaptioner:
+    """Local image captioner using Salesforce BLIP (via HuggingFace transformers)."""
+
+    DEFAULT_MODEL = "Salesforce/blip-image-captioning-base"
+
+    def __init__(self, model_name: str | None = None) -> None:
+        self.model_name = model_name or self.DEFAULT_MODEL
+        self._processor = None
+        self._model = None
+        self._device = None
+
+    def _load(self) -> None:
+        if self._model is not None:
+            return
+        from transformers import BlipProcessor, BlipForConditionalGeneration
+        import torch
+        self._processor = BlipProcessor.from_pretrained(self.model_name)
+        self._model = BlipForConditionalGeneration.from_pretrained(self.model_name)
+        self._device = "cuda" if torch.cuda.is_available() else "cpu"
+        self._model = self._model.to(self._device)
+
+    def caption(self, pil_image) -> str:
+        import torch
+        self._load()
+        inputs = self._processor(pil_image, return_tensors="pt").to(self._device)
+        with torch.no_grad():
+            out = self._model.generate(**inputs, max_new_tokens=50)
+        return self._processor.decode(out[0], skip_special_tokens=True)
+
+
+_ACTIVE_CAPTIONER: BLIPCaptioner | None = None
+
+
+def get_captioner() -> BLIPCaptioner:
+    """Returns the globally configured captioner (lazy-initialised)."""
+    global _ACTIVE_CAPTIONER
+    if _ACTIVE_CAPTIONER is None:
+        _ACTIVE_CAPTIONER = BLIPCaptioner()
+    return _ACTIVE_CAPTIONER
+
+
+def set_captioner(captioner: BLIPCaptioner) -> None:
+    """Override the active captioner (e.g. for testing)."""
+    global _ACTIVE_CAPTIONER
+    _ACTIVE_CAPTIONER = captioner
+
+
+# ---------------------------------------------------------------------------
+# Text generation — LLM backends
+# ---------------------------------------------------------------------------
+
+_SYSTEM_PROMPT = (
+    "You are ARIA, a video understanding assistant.\n\n"
+    "Use only the provided frame evidence and retrieval context.\n\n"
+    "Answer in clear natural language.\n\n"
+    "When describing events, reference timestamps and supporting frames.\n\n"
+    "If evidence is insufficient, explicitly say so.\n\n"
+    "Do not invent events that are not supported by the provided context.\n\n"
+    "Prefer concise but human-readable explanations over raw metadata.\n\n"
+)
 
 
 class LLMBackend:
@@ -31,50 +101,29 @@ class LLMBackend:
         raise NotImplementedError("LLM backend must implement generate()")
 
 
-class OpenAIBackend(LLMBackend):
-    """OpenAI API implementation."""
-    def __init__(self, api_key: str | None = None) -> None:
-        self.api_key = api_key or os.environ.get("OPENAI_API_KEY")
+class LlamaBackend(LLMBackend):
+    """Local LLM via Ollama (OpenAI-compatible endpoint at localhost:11434)."""
+
+    DEFAULT_TEXT_MODEL = "llama3.2:3b"
+
+    def __init__(self, endpoint: str = "http://localhost:11434/v1",
+                 text_model: str | None = None) -> None:
+        self.endpoint = endpoint
+        self.text_model = text_model or self.DEFAULT_TEXT_MODEL
         self._client = None
 
     @property
     def client(self):
         if self._client is None:
-            if not self.api_key:
-                raise ValueError(
-                    "OPENAI_API_KEY environment variable is not set.\n"
-                    "To run IRIS dynamically, please either:\n"
-                    "  1. Set the OPENAI_API_KEY environment variable in your system or in a .env file.\n"
-                    "  2. Implement and select a local LLM backend (such as LlamaBackend using Ollama)."
-                )
             from openai import OpenAI
-            self._client = OpenAI(api_key=self.api_key)
+            self._client = OpenAI(base_url=self.endpoint, api_key="ollama")
         return self._client
 
     def generate(self, prompt: str, context: str, model: str | None = None) -> str:
-        # Default model if not specified
-        model_name = model or "gpt-4o-mini"
-        
-        system_content = (
-            "You are ARIA, a video understanding assistant.\n\n"
-            "Use only the provided frame evidence and retrieval context.\n\n"
-            "Answer in clear natural language.\n\n"
-            "When describing events, reference timestamps and supporting frames.\n\n"
-            "If evidence is insufficient, explicitly say so.\n\n"
-            "Do not invent events that are not supported by the provided context.\n\n"
-            "Prefer concise but human-readable explanations over raw metadata.\n\n"
-            f"Provided Frame Evidence and Retrieval Context:\n{context}"
-        )
-        
+        model_name = model or self.text_model
         messages = [
-            {
-                "role": "system",
-                "content": system_content
-            },
-            {
-                "role": "user",
-                "content": prompt
-            }
+            {"role": "system", "content": _SYSTEM_PROMPT + f"Provided Frame Evidence and Retrieval Context:\n{context}"},
+            {"role": "user", "content": prompt},
         ]
         response = self.client.chat.completions.create(
             model=model_name,
@@ -84,17 +133,44 @@ class OpenAIBackend(LLMBackend):
         return response.choices[0].message.content
 
 
-class LlamaBackend(LLMBackend):
-    """Local Llama 3.2 3B via Ollama/llama.cpp backend (for future swap)."""
-    def __init__(self, endpoint: str = "http://localhost:11434/v1") -> None:
-        self.endpoint = endpoint
+class OpenAIBackend(LLMBackend):
+    """OpenAI API implementation."""
+
+    DEFAULT_TEXT_MODEL = "gpt-4o-mini"
+
+    def __init__(self, api_key: str | None = None) -> None:
+        self.api_key = api_key or os.environ.get("OPENAI_API_KEY")
+        self.text_model = self.DEFAULT_TEXT_MODEL
+        self._client = None
+
+    @property
+    def client(self):
+        if self._client is None:
+            if not self.api_key:
+                raise ValueError(
+                    "OPENAI_API_KEY environment variable is not set.\n"
+                    "To run IRIS dynamically, please either:\n"
+                    "  1. Set the OPENAI_API_KEY environment variable.\n"
+                    "  2. Use the local LlamaBackend via Ollama (default)."
+                )
+            from openai import OpenAI
+            self._client = OpenAI(api_key=self.api_key)
+        return self._client
 
     def generate(self, prompt: str, context: str, model: str | None = None) -> str:
-        # TODO: Implement local Llama 3.2 3B calling Ollama/llama.cpp client here
-        raise NotImplementedError("LlamaBackend is not yet implemented.")
+        model_name = model or self.text_model
+        messages = [
+            {"role": "system", "content": _SYSTEM_PROMPT + f"Provided Frame Evidence and Retrieval Context:\n{context}"},
+            {"role": "user", "content": prompt},
+        ]
+        response = self.client.chat.completions.create(
+            model=model_name,
+            messages=messages,
+            temperature=0.0,
+        )
+        return response.choices[0].message.content
 
 
-# Active backend instance (cached globally)
 _ACTIVE_BACKEND: LLMBackend | None = None
 
 
@@ -102,8 +178,7 @@ def get_backend() -> LLMBackend:
     """Returns the globally configured active LLM backend."""
     global _ACTIVE_BACKEND
     if _ACTIVE_BACKEND is None:
-        # Default to OpenAI backend
-        _ACTIVE_BACKEND = OpenAIBackend()
+        _ACTIVE_BACKEND = LlamaBackend()
     return _ACTIVE_BACKEND
 
 
@@ -113,23 +188,26 @@ def set_backend(backend: LLMBackend) -> None:
     _ACTIVE_BACKEND = backend
 
 
-def generate(prompt: str, context: str, model: str = "gpt-4o-mini") -> str:
+def generate(prompt: str, context: str, model: str | None = None) -> str:
     """
     Generate a response from the active LLM backend.
 
     Args:
-        prompt: the user query or instruction
+        prompt:  the user query or instruction
         context: formatted context string from L1 Elysium (as_context_text())
-        model: model identifier, ignored when using local backend
+        model:   model identifier; if None, uses the backend's default
 
     Returns:
         Raw string response from the model
     """
-    backend = get_backend()
-    return backend.generate(prompt, context, model=model)
+    return get_backend().generate(prompt, context, model=model)
 
 
-_CAPTION_FAILURES = []
+# ---------------------------------------------------------------------------
+# Caption failures log
+# ---------------------------------------------------------------------------
+
+_CAPTION_FAILURES: list = []
 
 
 def get_caption_failures() -> list:
@@ -137,119 +215,79 @@ def get_caption_failures() -> list:
     return _CAPTION_FAILURES
 
 
+# ---------------------------------------------------------------------------
+# Diagnostics
+# ---------------------------------------------------------------------------
+
 def run_diagnostics() -> dict:
-    """Run startup diagnostics and raise RuntimeError if requested backend is unavailable."""
+    """Run startup diagnostics; raises RuntimeError if a required backend is misconfigured."""
     import json
+
     backend = get_backend()
     backend_class = backend.__class__.__name__
-    
+
     api_key = os.environ.get("OPENAI_API_KEY")
-    api_key_present = api_key is not None and len(api_key.strip()) > 0
-    
-    model = "gpt-4o-mini"
-    if backend_class in ("MockLLMBackend", "MockBackend"):
+    api_key_present = bool(api_key and api_key.strip())
+
+    if hasattr(backend, "text_model"):
+        model = backend.text_model
+    elif backend_class in ("MockLLMBackend", "MockBackend"):
         model = "mock-model"
-        
+    else:
+        model = "unknown"
+
+    captioner = get_captioner()
+    captioner_class = captioner.__class__.__name__
+    captioner_model = getattr(captioner, "model_name", "unknown")
+
     diag = {
         "backend": backend_class,
         "model": model,
-        "api_key_present": api_key_present
+        "captioner": captioner_class,
+        "captioner_model": captioner_model,
+        "api_key_present": api_key_present,
     }
-    
+
     print(f"DIAGNOSTICS: {json.dumps(diag)}")
-    
+
     if backend_class == "OpenAIBackend" and not api_key_present:
         raise RuntimeError("OpenAIBackend is active but OPENAI_API_KEY is not set.")
-        
+
     return diag
 
 
+# ---------------------------------------------------------------------------
+# Frame captioning entry point
+# ---------------------------------------------------------------------------
+
 def generate_caption_for_frame(frame, frame_idx: int | None = None) -> CaptionResult:
-    """Generate a semantic caption for the given PyAV VideoFrame using the active backend."""
-    import base64
-    import io
+    """Generate a semantic caption for a PyAV VideoFrame or PIL Image using BLIP."""
     import time
 
     t_start = time.time()
-    model_name = "gpt-4o-mini"
-    
-    # 1. Fallback / Mock check
-    api_key = os.environ.get("OPENAI_API_KEY")
-    if not api_key or api_key == "mock":
-        err_msg = "OPENAI_API_KEY is not set or is 'mock'."
+
+    if frame is None:
+        err_msg = "No frame provided for captioning."
         result = CaptionResult(success=False, caption="[CAPTION_FAILED]", error=err_msg)
-        _CAPTION_FAILURES.append({
-            "frame_idx": frame_idx,
-            "latency": time.time() - t_start,
-            "model": model_name,
-            "error": err_msg
-        })
+        _CAPTION_FAILURES.append({"frame_idx": frame_idx, "latency": 0.0, "error": err_msg})
         return result
 
-    # 2. Extract image from PyAV frame and encode as base64 JPEG
+    # 1. Extract PIL image from PyAV frame if needed
     try:
-        img = frame.to_image()  # PIL Image
-        buffered = io.BytesIO()
-        img.save(buffered, format="JPEG")
-        img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+        img = frame.to_image() if hasattr(frame, "to_image") else frame
     except Exception as e:
         err_msg = f"Failed to convert frame to image for captioning: {e}"
         result = CaptionResult(success=False, caption="[CAPTION_FAILED]", error=err_msg)
-        _CAPTION_FAILURES.append({
-            "frame_idx": frame_idx,
-            "latency": time.time() - t_start,
-            "model": model_name,
-            "error": err_msg
-        })
+        _CAPTION_FAILURES.append({"frame_idx": frame_idx, "latency": time.time() - t_start, "error": err_msg})
         return result
 
-    # 3. Call OpenAI vision API
+    # 2. Caption with BLIP
     try:
-        backend = get_backend()
-        if not isinstance(backend, OpenAIBackend):
-            err_msg = f"Active backend {backend.__class__.__name__} does not support vision/captioning."
-            result = CaptionResult(success=False, caption="[CAPTION_FAILED]", error=err_msg)
-            _CAPTION_FAILURES.append({
-                "frame_idx": frame_idx,
-                "latency": time.time() - t_start,
-                "model": "mock-model",
-                "error": err_msg
-            })
-            return result
-        
-        # Access client
-        client = backend.client
-        response = client.chat.completions.create(
-            model=model_name,
-            messages=[
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "Describe this video frame briefly in one clear sentence. Focus on the main subjects and actions. Do not use conversational filler or meta-references."
-                        },
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:image/jpeg;base64,{img_str}"
-                            }
-                        }
-                    ]
-                }
-            ],
-            max_tokens=60,
-            temperature=0.2,
-        )
-        caption = response.choices[0].message.content.strip()
+        captioner = get_captioner()
+        caption = captioner.caption(img)
         return CaptionResult(success=True, caption=caption)
     except Exception as e:
-        err_msg = f"OpenAI captioning API call failed: {e}"
+        err_msg = f"BLIP captioning failed: {e}"
         result = CaptionResult(success=False, caption="[CAPTION_FAILED]", error=err_msg)
-        _CAPTION_FAILURES.append({
-            "frame_idx": frame_idx,
-            "latency": time.time() - t_start,
-            "model": model_name,
-            "error": err_msg
-        })
+        _CAPTION_FAILURES.append({"frame_idx": frame_idx, "latency": time.time() - t_start, "error": err_msg})
         return result

@@ -1,0 +1,368 @@
+Fixed params: window_radius=2  alphas=[0.15, 0.3, 0.5]  top_k=8
+
+######################################################################
+VIDEO: mov_bbb.mp4
+Running ingest...
+DIAGNOSTICS: {"backend": "LlamaBackend", "model": "llama3.2:3b", "captioner": "BLIPCaptioner", "captioner_model": "Salesforce/blip-image-captioning-base", "api_key_present": false}
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/473 [00:00<?, ?it/s]Loading weights: 100%|##########| 473/473 [00:00<00:00, 20654.07it/s]
+[1mBlipForConditionalGeneration LOAD REPORT[0m from: Salesforce/blip-image-captioning-base
+Key                                       | Status     |  | 
+------------------------------------------+------------+--+-
+text_decoder.bert.embeddings.position_ids | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+N_nodes = 28
+codec_conf distribution: min=0.1000  max=1.0000  mean=0.5035  std=0.3274
+G_complete edges: 378
+G_temporal edges: 53  connected=True
+  seed_xQ_jaccard(S_sem) = 0.2133  (fallbacks=0/5)
+  seed_xQ_jaccard(S_codec) = 1.0000  (fallbacks=0/5)
+  seed_xQ_jaccard(S_codeconly) = 1.0000  (fallbacks=0/5)
+
+===DIAG4_BEGIN===
+VIDEO: mov_bbb.mp4  N=28
+
+============================================================
+TOPOLOGY: G_complete
+
+  S_sem  a=0.15
+    xQ_jaccard        = 0.2704
+    overlap_pureseed   = 0.7750
+    overlap_S_sem_pure = 0.7750
+
+  S_sem  a=0.30
+    xQ_jaccard        = 0.4615
+    overlap_pureseed   = 0.5750
+    overlap_S_sem_pure = 0.5750
+
+  S_sem  a=0.50
+    xQ_jaccard        = 0.7911
+    overlap_pureseed   = 0.4250
+    overlap_S_sem_pure = 0.4250
+
+  S_codec  a=0.15
+    xQ_jaccard        = 1.0000
+    overlap_pureseed   = 1.0000
+    overlap_S_sem_pure = 0.3750
+
+  S_codec  a=0.30
+    xQ_jaccard        = 1.0000
+    overlap_pureseed   = 1.0000
+    overlap_S_sem_pure = 0.3750
+
+  S_codec  a=0.50
+    xQ_jaccard        = 1.0000
+    overlap_pureseed   = 1.0000
+    overlap_S_sem_pure = 0.3750
+
+  S_codeconly  a=0.15
+    xQ_jaccard        = 1.0000
+    overlap_pureseed   = 1.0000
+    overlap_S_sem_pure = 0.3750
+
+  S_codeconly  a=0.30
+    xQ_jaccard        = 1.0000
+    overlap_pureseed   = 1.0000
+    overlap_S_sem_pure = 0.3750
+
+  S_codeconly  a=0.50
+    xQ_jaccard        = 1.0000
+    overlap_pureseed   = 1.0000
+    overlap_S_sem_pure = 0.3750
+
+============================================================
+TOPOLOGY: G_temporal
+
+  S_sem  a=0.15
+    xQ_jaccard        = 0.3353
+    overlap_pureseed   = 0.7250
+    overlap_S_sem_pure = 0.7250
+
+  S_sem  a=0.30
+    xQ_jaccard        = 0.4348
+    overlap_pureseed   = 0.5500
+    overlap_S_sem_pure = 0.5500
+
+  S_sem  a=0.50
+    xQ_jaccard        = 0.6394
+    overlap_pureseed   = 0.4250
+    overlap_S_sem_pure = 0.4250
+
+  S_codec  a=0.15
+    xQ_jaccard        = 1.0000
+    overlap_pureseed   = 1.0000
+    overlap_S_sem_pure = 0.3750
+    Per-question top-8:
+      Q1 'what is moving in the scene'
+        PPR_TOP8:  [34, 68, 66, 36, 30, 70, 72, 28]
+        SEED_TOP8: [34, 72, 66, 68, 36, 70, 30, 28]
+        overlap:   1.0000
+      Q2 'describe the main action'
+        PPR_TOP8:  [34, 68, 66, 72, 30, 36, 70, 28]
+        SEED_TOP8: [72, 34, 66, 68, 36, 30, 70, 28]
+        overlap:   1.0000
+      Q3 'what happens at the end'
+        PPR_TOP8:  [34, 68, 30, 72, 66, 36, 70, 28]
+        SEED_TOP8: [72, 34, 66, 68, 30, 36, 70, 28]
+        overlap:   1.0000
+      Q4 'is there water or a stream'
+        PPR_TOP8:  [66, 68, 36, 30, 34, 70, 72, 28]
+        SEED_TOP8: [66, 36, 68, 30, 70, 34, 72, 28]
+        overlap:   1.0000
+      Q5 'show a wide landscape shot'
+        PPR_TOP8:  [68, 34, 66, 30, 36, 70, 72, 28]
+        SEED_TOP8: [66, 68, 36, 34, 30, 72, 70, 28]
+        overlap:   1.0000
+
+  S_codec  a=0.30
+    xQ_jaccard        = 1.0000
+    overlap_pureseed   = 1.0000
+    overlap_S_sem_pure = 0.3750
+
+  S_codec  a=0.50
+    xQ_jaccard        = 0.8667
+    overlap_pureseed   = 0.8250
+    overlap_S_sem_pure = 0.4000
+    Per-question top-8:
+      Q1 'what is moving in the scene'
+        PPR_TOP8:  [34, 30, 68, 36, 66, 70, 42, 72]
+        SEED_TOP8: [34, 72, 66, 68, 36, 70, 30, 28]
+        overlap:   0.8750
+      Q2 'describe the main action'
+        PPR_TOP8:  [34, 30, 68, 36, 66, 70, 42, 72]
+        SEED_TOP8: [72, 34, 66, 68, 36, 30, 70, 28]
+        overlap:   0.8750
+      Q3 'what happens at the end'
+        PPR_TOP8:  [34, 30, 68, 36, 66, 70, 42, 72]
+        SEED_TOP8: [72, 34, 66, 68, 30, 36, 70, 28]
+        overlap:   0.8750
+      Q4 'is there water or a stream'
+        PPR_TOP8:  [34, 30, 68, 36, 66, 70, 42, 48]
+        SEED_TOP8: [66, 36, 68, 30, 70, 34, 72, 28]
+        overlap:   0.7500
+      Q5 'show a wide landscape shot'
+        PPR_TOP8:  [34, 30, 68, 36, 66, 70, 42, 48]
+        SEED_TOP8: [66, 68, 36, 34, 30, 72, 70, 28]
+        overlap:   0.7500
+
+  S_codeconly  a=0.15
+    xQ_jaccard        = 1.0000
+    overlap_pureseed   = 1.0000
+    overlap_S_sem_pure = 0.3750
+
+  S_codeconly  a=0.30
+    xQ_jaccard        = 1.0000
+    overlap_pureseed   = 1.0000
+    overlap_S_sem_pure = 0.3750
+
+  S_codeconly  a=0.50
+    xQ_jaccard        = 1.0000
+    overlap_pureseed   = 0.8750
+    overlap_S_sem_pure = 0.3750
+
+============================================================
+SUMMARY GRID — mov_bbb.mp4  N=28
+  seed_xQ_jaccard  S_sem=0.2133  S_codec=1.0000  S_codeconly=1.0000
+  row                                    xQ_jacc   ov_pure   ov_S_sem
+  -------------------------------------------------------------------
+  G_complete  S_sem  a=0.15               0.2704    0.7750     0.7750
+  G_complete  S_sem  a=0.30               0.4615    0.5750     0.5750
+  G_complete  S_sem  a=0.50               0.7911    0.4250     0.4250
+  G_complete  S_codec  a=0.15             1.0000    1.0000     0.3750
+  G_complete  S_codec  a=0.30             1.0000    1.0000     0.3750
+  G_complete  S_codec  a=0.50             1.0000    1.0000     0.3750
+  G_complete  S_codeconly  a=0.15         1.0000    1.0000     0.3750
+  G_complete  S_codeconly  a=0.30         1.0000    1.0000     0.3750
+  G_complete  S_codeconly  a=0.50         1.0000    1.0000     0.3750
+  G_temporal  S_sem  a=0.15               0.3353    0.7250     0.7250
+  G_temporal  S_sem  a=0.30               0.4348    0.5500     0.5500
+  G_temporal  S_sem  a=0.50               0.6394    0.4250     0.4250
+  G_temporal  S_codec  a=0.15             1.0000    1.0000     0.3750
+  G_temporal  S_codec  a=0.30             1.0000    1.0000     0.3750
+  G_temporal  S_codec  a=0.50             0.8667    0.8250     0.4000
+  G_temporal  S_codeconly  a=0.15         1.0000    1.0000     0.3750
+  G_temporal  S_codeconly  a=0.30         1.0000    1.0000     0.3750
+  G_temporal  S_codeconly  a=0.50         1.0000    0.8750     0.3750
+
+===DIAG4_END===
+
+######################################################################
+VIDEO: videoplayback.mp4
+Running ingest...
+DIAGNOSTICS: {"backend": "LlamaBackend", "model": "llama3.2:3b", "captioner": "BLIPCaptioner", "captioner_model": "Salesforce/blip-image-captioning-base", "api_key_present": false}
+N_nodes = 220
+codec_conf distribution: min=0.1000  max=1.0000  mean=0.5797  std=0.1921
+G_complete edges: 24090
+G_temporal edges: 437  connected=True
+  seed_xQ_jaccard(S_sem) = 0.2045  (fallbacks=0/5)
+  seed_xQ_jaccard(S_codec) = 0.7289  (fallbacks=0/5)
+  seed_xQ_jaccard(S_codeconly) = 1.0000  (fallbacks=0/5)
+
+===DIAG4_BEGIN===
+VIDEO: videoplayback.mp4  N=220
+
+============================================================
+TOPOLOGY: G_complete
+
+  S_sem  a=0.15
+    xQ_jaccard        = 0.2187
+    overlap_pureseed   = 0.8750
+    overlap_S_sem_pure = 0.8750
+
+  S_sem  a=0.30
+    xQ_jaccard        = 0.3068
+    overlap_pureseed   = 0.7750
+    overlap_S_sem_pure = 0.7750
+
+  S_sem  a=0.50
+    xQ_jaccard        = 0.3804
+    overlap_pureseed   = 0.5750
+    overlap_S_sem_pure = 0.5750
+
+  S_codec  a=0.15
+    xQ_jaccard        = 0.7289
+    overlap_pureseed   = 1.0000
+    overlap_S_sem_pure = 0.0250
+
+  S_codec  a=0.30
+    xQ_jaccard        = 0.7289
+    overlap_pureseed   = 0.9750
+    overlap_S_sem_pure = 0.0250
+
+  S_codec  a=0.50
+    xQ_jaccard        = 0.7152
+    overlap_pureseed   = 0.9250
+    overlap_S_sem_pure = 0.0250
+
+  S_codeconly  a=0.15
+    xQ_jaccard        = 1.0000
+    overlap_pureseed   = 1.0000
+    overlap_S_sem_pure = 0.0000
+
+  S_codeconly  a=0.30
+    xQ_jaccard        = 1.0000
+    overlap_pureseed   = 1.0000
+    overlap_S_sem_pure = 0.0000
+
+  S_codeconly  a=0.50
+    xQ_jaccard        = 1.0000
+    overlap_pureseed   = 0.8750
+    overlap_S_sem_pure = 0.0000
+
+============================================================
+TOPOLOGY: G_temporal
+
+  S_sem  a=0.15
+    xQ_jaccard        = 0.1752
+    overlap_pureseed   = 0.7500
+    overlap_S_sem_pure = 0.7500
+
+  S_sem  a=0.30
+    xQ_jaccard        = 0.2561
+    overlap_pureseed   = 0.5250
+    overlap_S_sem_pure = 0.5250
+
+  S_sem  a=0.50
+    xQ_jaccard        = 0.4206
+    overlap_pureseed   = 0.3000
+    overlap_S_sem_pure = 0.3000
+
+  S_codec  a=0.15
+    xQ_jaccard        = 0.7289
+    overlap_pureseed   = 1.0000
+    overlap_S_sem_pure = 0.0250
+    Per-question top-8:
+      Q1 'what is moving in the scene'
+        PPR_TOP8:  [193, 1090, 176, 1117, 680, 583, 476, 179]
+        SEED_TOP8: [193, 1090, 176, 1117, 680, 476, 583, 179]
+        overlap:   1.0000
+      Q2 'describe the main action'
+        PPR_TOP8:  [1090, 1117, 193, 476, 680, 583, 176, 1093]
+        SEED_TOP8: [1090, 1117, 476, 193, 680, 176, 583, 1093]
+        overlap:   1.0000
+      Q3 'what happens at the end'
+        PPR_TOP8:  [1090, 1117, 583, 193, 176, 680, 476, 179]
+        SEED_TOP8: [1090, 1117, 193, 583, 476, 176, 680, 179]
+        overlap:   1.0000
+      Q4 'is there water or a stream'
+        PPR_TOP8:  [1090, 1117, 476, 176, 680, 193, 844, 583]
+        SEED_TOP8: [1090, 476, 1117, 193, 176, 680, 844, 583]
+        overlap:   1.0000
+      Q5 'show a wide landscape shot'
+        PPR_TOP8:  [193, 176, 1090, 1117, 767, 583, 586, 680]
+        SEED_TOP8: [193, 176, 1090, 1117, 583, 680, 767, 586]
+        overlap:   1.0000
+
+  S_codec  a=0.30
+    xQ_jaccard        = 0.7220
+    overlap_pureseed   = 0.9000
+    overlap_S_sem_pure = 0.0250
+
+  S_codec  a=0.50
+    xQ_jaccard        = 0.8267
+    overlap_pureseed   = 0.8250
+    overlap_S_sem_pure = 0.0250
+    Per-question top-8:
+      Q1 'what is moving in the scene'
+        PPR_TOP8:  [1090, 176, 193, 1117, 179, 1093, 680, 583]
+        SEED_TOP8: [193, 1090, 176, 1117, 680, 476, 583, 179]
+        overlap:   0.8750
+      Q2 'describe the main action'
+        PPR_TOP8:  [1090, 1117, 1093, 583, 680, 176, 193, 179]
+        SEED_TOP8: [1090, 1117, 476, 193, 680, 176, 583, 1093]
+        overlap:   0.8750
+      Q3 'what happens at the end'
+        PPR_TOP8:  [1090, 1117, 1093, 583, 179, 176, 680, 193]
+        SEED_TOP8: [1090, 1117, 193, 583, 476, 176, 680, 179]
+        overlap:   0.8750
+      Q4 'is there water or a stream'
+        PPR_TOP8:  [1090, 1117, 1093, 176, 680, 583, 179, 844]
+        SEED_TOP8: [1090, 476, 1117, 193, 176, 680, 844, 583]
+        overlap:   0.7500
+      Q5 'show a wide landscape shot'
+        PPR_TOP8:  [176, 1090, 1093, 193, 767, 179, 583, 1117]
+        SEED_TOP8: [193, 176, 1090, 1117, 583, 680, 767, 586]
+        overlap:   0.7500
+
+  S_codeconly  a=0.15
+    xQ_jaccard        = 1.0000
+    overlap_pureseed   = 0.8750
+    overlap_S_sem_pure = 0.0000
+
+  S_codeconly  a=0.30
+    xQ_jaccard        = 1.0000
+    overlap_pureseed   = 0.8750
+    overlap_S_sem_pure = 0.0000
+
+  S_codeconly  a=0.50
+    xQ_jaccard        = 1.0000
+    overlap_pureseed   = 0.7500
+    overlap_S_sem_pure = 0.0000
+
+============================================================
+SUMMARY GRID — videoplayback.mp4  N=220
+  seed_xQ_jaccard  S_sem=0.2045  S_codec=0.7289  S_codeconly=1.0000
+  row                                    xQ_jacc   ov_pure   ov_S_sem
+  -------------------------------------------------------------------
+  G_complete  S_sem  a=0.15               0.2187    0.8750     0.8750
+  G_complete  S_sem  a=0.30               0.3068    0.7750     0.7750
+  G_complete  S_sem  a=0.50               0.3804    0.5750     0.5750
+  G_complete  S_codec  a=0.15             0.7289    1.0000     0.0250
+  G_complete  S_codec  a=0.30             0.7289    0.9750     0.0250
+  G_complete  S_codec  a=0.50             0.7152    0.9250     0.0250
+  G_complete  S_codeconly  a=0.15         1.0000    1.0000     0.0000
+  G_complete  S_codeconly  a=0.30         1.0000    1.0000     0.0000
+  G_complete  S_codeconly  a=0.50         1.0000    0.8750     0.0000
+  G_temporal  S_sem  a=0.15               0.1752    0.7500     0.7500
+  G_temporal  S_sem  a=0.30               0.2561    0.5250     0.5250
+  G_temporal  S_sem  a=0.50               0.4206    0.3000     0.3000
+  G_temporal  S_codec  a=0.15             0.7289    1.0000     0.0250
+  G_temporal  S_codec  a=0.30             0.7220    0.9000     0.0250
+  G_temporal  S_codec  a=0.50             0.8267    0.8250     0.0250
+  G_temporal  S_codeconly  a=0.15         1.0000    0.8750     0.0000
+  G_temporal  S_codeconly  a=0.30         1.0000    0.8750     0.0000
+  G_temporal  S_codeconly  a=0.50         1.0000    0.7500     0.0000
+
+===DIAG4_END===

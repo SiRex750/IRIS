@@ -245,7 +245,7 @@ def wrapper_populate_cache(cache_obj: object, retrieved_frames: list[dict]) -> N
             motion = FrameMotionDescriptor(
                 frame_idx=frame["frame_idx"],
                 timestamp_sec=frame.get("timestamp", 0.0),
-                residual_energy=frame.get("residual_energy", 0.0),
+                luma_diff_energy=frame.get("luma_diff_energy", 0.0),
                 divergence=frame.get("divergence", 0.0),
                 curl=frame.get("curl", 0.0),
                 jacobian_frobenius=frame.get("jacobian_frobenius", 0.0),
@@ -268,7 +268,7 @@ def wrapper_populate_cache(cache_obj: object, retrieved_frames: list[dict]) -> N
         for frame in retrieved_frames:
             frame_idx = frame["frame_idx"]
             timestamp = frame.get("timestamp", 0.0)
-            res_energy = frame.get("residual_energy", 0.0)
+            res_energy = frame.get("luma_diff_energy", 0.0)
             action_score = frame.get("action_score", 0.0)
             
             # Generate semantic triple
@@ -277,7 +277,7 @@ def wrapper_populate_cache(cache_obj: object, retrieved_frames: list[dict]) -> N
                 verb="depicts",
                 object=f"salient visual cues (residual energy {res_energy:.4f}, action score {action_score:.4f})"
             )
-            # Use action_score/residual_energy as importance ranking score
+            # Use action_score/luma_diff_energy as importance ranking score
             score = action_score or res_energy
             if hasattr(cache_obj, "route_triple"):
                 cache_obj.route_triple(triple, pagerank_score=score)
@@ -311,7 +311,7 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
     except ImportError:
         sorted_frames = sorted(
             frames_to_index,
-            key=lambda x: (x.get("action_score", 0.0), x.get("residual_energy", 0.0)),
+            key=lambda x: (x.get("action_score", 0.0), x.get("luma_diff_energy", 0.0)),
             reverse=True
         )
         return sorted_frames[:l2_retrieve_top_k]
@@ -361,9 +361,9 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
             feature_record = {
                 "frame_idx":            f_data["frame_idx"],
                 "timestamp":            f_data["timestamp"],
-                "residual_energy":      f_data["residual_energy"],
+                "luma_diff_energy":      f_data["luma_diff_energy"],
                 "motion_magnitude":     f_data.get("motion_magnitude", 0.0),
-                "entropy":              f_data.get("entropy", 0.0),
+                "luma_entropy":              f_data.get("luma_entropy", 0.0),
                 "refined_motion_tensor": np.zeros(1, dtype=np.float32),
             }
             score_record = {
@@ -391,9 +391,9 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
                 feature_record = {
                     "frame_idx":            f_data["frame_idx"],
                     "timestamp":            f_data["timestamp"],
-                    "residual_energy":      f_data["residual_energy"],
+                    "luma_diff_energy":      f_data["luma_diff_energy"],
                     "motion_magnitude":     f_data.get("motion_magnitude", 0.0),
-                    "entropy":              f_data.get("entropy", 0.0),
+                    "luma_entropy":              f_data.get("luma_entropy", 0.0),
                     "refined_motion_tensor": np.zeros(1, dtype=np.float32),
                 }
                 score_record = {
@@ -423,12 +423,12 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
             retrieved.append({
                 "frame_idx": node.frame_idx,
                 "timestamp": node.timestamp,
-                "residual_energy": node.residual_energy,
+                "luma_diff_energy": node.luma_diff_energy,
                 "action_score": node.action_score,
                 "persistence_value": node.persistence_value,
                 "is_peak": orig.get("is_peak", False),
                 "clip_embedding": orig.get("clip_embedding", None),
-                "entropy": orig.get("entropy", 0.0),
+                "luma_entropy": orig.get("luma_entropy", 0.0),
                 "caption": orig.get("caption", None),
                 "pagerank_score": node.pagerank_score,
                 "last_retrieval_score": getattr(node, "last_retrieval_score", 0.0),
@@ -438,19 +438,19 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
     if not retrieved:
         sorted_frames = sorted(
             frames_to_index,
-            key=lambda x: (x.get("action_score", 0.0), x.get("residual_energy", 0.0)),
+            key=lambda x: (x.get("action_score", 0.0), x.get("luma_diff_energy", 0.0)),
             reverse=True
         )
         for f in sorted_frames[:l2_retrieve_top_k]:
             retrieved.append({
                 "frame_idx": f["frame_idx"],
                 "timestamp": f["timestamp"],
-                "residual_energy": f["residual_energy"],
+                "luma_diff_energy": f["luma_diff_energy"],
                 "action_score": f.get("action_score", 0.0),
                 "persistence_value": f.get("persistence_value", 0.0),
                 "is_peak": f.get("is_peak", False),
                 "clip_embedding": f.get("clip_embedding", None),
-                "entropy": f.get("entropy", 0.0),
+                "luma_entropy": f.get("luma_entropy", 0.0),
                 "caption": f.get("caption", None),
                 "pagerank_score": 0.0,
                 "last_retrieval_score": 0.0,
@@ -480,12 +480,13 @@ def wrapper_cerberus_gate(claims: list[str], cache_obj: object, action_score: fl
         is_verified = len(rejected_claims) == 0 and len(unverifiable_claims) == 0
         is_mocked = False
     except Exception as e:
-        print(f"Warning: CerberusV verification failed, falling back to mock: {e}")
-        verified_claims = list(claims)
+        error_msg = str(e)
+        print(f"Error: CerberusV verification failed — gate closed, all claims unverifiable: {error_msg}")
+        verified_claims = []
         rejected_claims = []
-        unverifiable_claims = []
-        is_verified = True
-        is_mocked = True
+        unverifiable_claims = list(claims)
+        is_verified = False
+        is_mocked = False
 
     return is_verified, verified_claims, rejected_claims, unverifiable_claims, is_mocked
 
@@ -531,9 +532,9 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
     # 3. Continuous action scoring & persistence peak detection
     t_action_start = time.time()
     action_score_config = ActionScoreConfig(
-        residual_weight=getattr(config, "residual_weight", 0.5),
+        luma_diff_weight=getattr(config, "luma_diff_weight", 0.5),
         motion_weight=getattr(config, "motion_weight", 0.3),
-        entropy_weight=getattr(config, "entropy_weight", 0.2),
+        luma_entropy_weight=getattr(config, "luma_entropy_weight", 0.2),
         peak_distance=getattr(config, "peak_distance", 5),
         peak_prominence=getattr(config, "peak_prominence", 0.05),
         persistence_threshold=getattr(config, "persistence_threshold", 0.4),
@@ -569,7 +570,7 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
         frame["action_score"] = score_info["action_score"]
         frame["is_peak"] = score_info["is_peak"]
         frame["persistence_value"] = score_info["persistence_value"]
-        frame["entropy"] = raw_map.get(frame_idx, {}).get("entropy", 0.0)
+        frame["luma_entropy"] = raw_map.get(frame_idx, {}).get("luma_entropy", 0.0)
     t_action = time.time() - t_action_start
 
     # If visual_debug_mode is enabled, save annotated candidate frames
@@ -645,7 +646,10 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
 
     # Generate final verified answer (verified claims only; raw_answer and breakdowns are also
     # returned in the result dict so nothing is silently dropped from reporting).
-    final_answer = " ".join(verified_claims) if verified_claims else raw_answer
+    if verified_claims:
+        final_answer = " ".join(verified_claims)
+    else:
+        final_answer = "Insufficient verified evidence to answer this question."
 
     # Determine peak counts and skip statistics
     peak_count = len([f for f in output_frames if f.get("is_peak", False)])

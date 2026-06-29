@@ -16,8 +16,8 @@ from pathlib import Path
 @dataclass
 class IRISConfig:
     # ── Charon-V ──────────────────────────────────────────────────────────
-    salient_thresh:   float = 0.35   # residual floor for SALIENT tier
-    candidate_thresh: float = 0.08   # residual floor for CANDIDATE tier
+    salient_thresh:   float = 0.35   # luma-diff floor for SALIENT tier
+    candidate_thresh: float = 0.08   # luma-diff floor for CANDIDATE tier
     peak_order:       int   = 3      # argrelextrema window for PEAK detection
     adaptive:         bool  = True   # Whether Charon-V uses adaptive thresholding
 
@@ -27,6 +27,8 @@ class IRISConfig:
     beta:  float = 0.3   # motion weight in L2 retrieval blend
     gamma: float = 0.3   # persistence weight in L2 retrieval blend
     retrieval_strategy: str = "hybrid"  # strategy: "peak_only", "top_k_action", "peak_neighbors", "hybrid"
+    ranking_mode: str = "legacy"  # "legacy" = α·sem+β·action+γ·persist; "ppr" = query-conditioned Personalized PageRank
+    codec_conf_source: str = "packet_size"  # "packet_size" = true demux size; "action_score" = proxy (Phase-6 diag fallback)
 
     # ── Cerberus-V ────────────────────────────────────────────────────────
     cerberus_high_thresh: float = 0.70  # action_score >= this → full NLI
@@ -34,9 +36,9 @@ class IRISConfig:
     disable_nli:          bool  = False # completely bypass DeBERTa NLI, use ner_only
 
     # ── Action Score Module ────────────────────────────────────────────────
-    residual_weight:        float = 0.5
+    luma_diff_weight:        float = 0.5
     motion_weight:          float = 0.3
-    entropy_weight:         float = 0.2
+    luma_entropy_weight:         float = 0.2
     peak_distance:          int   = 5
     peak_prominence:        float = 0.05
     persistence_threshold:  float = 0.4
@@ -101,10 +103,10 @@ class IRISConfig:
             "l1_capacity must be a positive integer"
         )
 
-        assert self.residual_weight >= 0 and self.motion_weight >= 0 and self.entropy_weight >= 0, (
+        assert self.luma_diff_weight >= 0 and self.motion_weight >= 0 and self.luma_entropy_weight >= 0, (
             "Action score weights must be non-negative"
         )
-        assert (self.residual_weight + self.motion_weight + self.entropy_weight) > 0, (
+        assert (self.luma_diff_weight + self.motion_weight + self.luma_entropy_weight) > 0, (
             "Action score weights must sum to a positive value"
         )
         assert self.peak_distance > 0, "peak_distance must be positive"
@@ -117,6 +119,12 @@ class IRISConfig:
         assert self.gamma >= 0.0, "gamma must be non-negative"
         assert self.retrieval_strategy in {"peak_only", "top_k_action", "peak_neighbors", "hybrid"}, (
             f"Invalid retrieval_strategy '{self.retrieval_strategy}'"
+        )
+        assert self.ranking_mode in {"legacy", "ppr"}, (
+            f"Invalid ranking_mode '{self.ranking_mode}'"
+        )
+        assert self.codec_conf_source in {"packet_size", "action_score"}, (
+            f"Invalid codec_conf_source '{self.codec_conf_source}'"
         )
 
         l1_weight_sum = round(

@@ -59,30 +59,29 @@ def test_captioning_result_and_diagnostics():
     # Save original key
     orig_key = os.environ.get("OPENAI_API_KEY")
     try:
-        # Check diagnostics with fake/temp environment key
-        os.environ["OPENAI_API_KEY"] = "fake-key"
+        # Check diagnostics — backend may be LlamaBackend, OpenAIBackend, or a mock
         diag = aria.run_diagnostics()
-        assert diag["backend"] in ("MockLLMBackend", "MockBackend", "OpenAIBackend")
-        
-        # Enforce key missing failure
+        assert diag["backend"] in ("MockLLMBackend", "MockBackend", "OpenAIBackend", "LlamaBackend")
+        assert diag["captioner"] in ("BLIPCaptioner", "MockCaptioner")
+
+        # Enforce key missing failure only when OpenAIBackend is active
         os.environ["OPENAI_API_KEY"] = ""
-        # Diagnostics should throw RuntimeError if OpenAIBackend is active and key is empty
         backend_class = aria.get_backend().__class__.__name__
         if backend_class == "OpenAIBackend":
             with pytest.raises(RuntimeError):
                 aria.run_diagnostics()
-                
-        # Test generate_caption_for_frame Mock/Fallback behavior
+
+        # Test generate_caption_for_frame fallback: passing None frame should fail gracefully
         res = aria.generate_caption_for_frame(None)
         assert isinstance(res, CaptionResult)
         assert res.success is False
         assert res.caption == "[CAPTION_FAILED]"
-        assert "OPENAI_API_KEY" in res.error
-        
+        assert res.error is not None and len(res.error) > 0
+
         # Verify failure was logged
         failures = aria.get_caption_failures()
         assert len(failures) > 0
-        assert any("OPENAI_API_KEY" in f["error"] for f in failures)
+        assert all(f["error"] for f in failures)
     finally:
         if orig_key is not None:
             os.environ["OPENAI_API_KEY"] = orig_key

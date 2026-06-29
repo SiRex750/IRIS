@@ -27,9 +27,9 @@ class AsphodelNode:
         timestamp:             Robust timestamp of the frame in seconds.
         action_score:          Motion action score from action_score.py (personalization seed).
         persistence_value:     Motion persistence score from action_score.py.
-        residual_energy:       Luma difference residual proxy extracted by Charon-V.
+        luma_diff_energy:       Luma difference residual proxy extracted by Charon-V.
         motion_magnitude:      Magnitude of raw motion vectors.
-        entropy:               Entropy of motion vectors/energy.
+        luma_entropy:               Luma (Y-plane) histogram entropy.
         refined_motion_tensor: The bfloat16 smoothed motion tensor from the RMR layer.
         triples:               KnowledgeTriple objects added by ARIA during enrichment.
         embedding:             CLIP embedding numpy array added by ARIA (None until enriched).
@@ -39,13 +39,14 @@ class AsphodelNode:
     timestamp:             float
     action_score:          float
     persistence_value:     float
-    residual_energy:       float
+    luma_diff_energy:       float
     motion_magnitude:      float
-    entropy:               float
+    luma_entropy:               float
     refined_motion_tensor: np.ndarray
     triples:               list = field(default_factory=list)
     embedding:             np.ndarray | None = None
     pagerank_score:        float = 0.0
+    packet_size:           float = 0.0
 
 
 class L2Asphodel:
@@ -194,9 +195,9 @@ class L2Asphodel:
             feature_record: Dict or object containing:
                             - frame_idx (int)
                             - timestamp (float)
-                            - residual_energy (float)
+                            - luma_diff_energy (float)
                             - motion_magnitude (float)
-                            - entropy (float)
+                            - luma_entropy (float)
                             - refined_motion_tensor (np.ndarray)
             action_score_record: Dict or object containing:
                             - action_score (float)
@@ -212,9 +213,9 @@ class L2Asphodel:
 
         frame_idx = int(get_val(feature_record, "frame_idx"))
         timestamp = float(get_val(feature_record, "timestamp", 0.0))
-        residual_energy = float(get_val(feature_record, "residual_energy", 0.0))
+        luma_diff_energy = float(get_val(feature_record, "luma_diff_energy", 0.0))
         motion_magnitude = float(get_val(feature_record, "motion_magnitude", 0.0))
-        entropy = float(get_val(feature_record, "entropy", 0.0))
+        luma_entropy = float(get_val(feature_record, "luma_entropy", 0.0))
         refined_motion_tensor = get_val(feature_record, "refined_motion_tensor", None)
 
         if refined_motion_tensor is None:
@@ -229,9 +230,9 @@ class L2Asphodel:
             timestamp=timestamp,
             action_score=action_score,
             persistence_value=persistence_value,
-            residual_energy=residual_energy,
+            luma_diff_energy=luma_diff_energy,
             motion_magnitude=motion_magnitude,
-            entropy=entropy,
+            luma_entropy=luma_entropy,
             refined_motion_tensor=refined_motion_tensor,
             triples=[],
             embedding=None
@@ -298,27 +299,29 @@ class L2Asphodel:
         for feature_record, action_score_record in zip(feature_records, action_score_records):
             frame_idx         = int(get_val(feature_record, "frame_idx"))
             timestamp         = float(get_val(feature_record, "timestamp", 0.0))
-            residual_energy   = float(get_val(feature_record, "residual_energy", 0.0))
+            luma_diff_energy   = float(get_val(feature_record, "luma_diff_energy", 0.0))
             motion_magnitude  = float(get_val(feature_record, "motion_magnitude", 0.0))
-            entropy           = float(get_val(feature_record, "entropy", 0.0))
+            luma_entropy           = float(get_val(feature_record, "luma_entropy", 0.0))
             refined_motion_tensor = get_val(feature_record, "refined_motion_tensor", None)
             if refined_motion_tensor is None:
                 refined_motion_tensor = np.zeros(1, dtype=np.float32)
 
             action_score    = float(get_val(action_score_record, "action_score", 0.0))
             persistence_value = float(get_val(action_score_record, "persistence_value", 0.0))
+            packet_size     = float(get_val(feature_record, "packet_size", 0.0))
 
             node_obj = AsphodelNode(
                 frame_idx=frame_idx,
                 timestamp=timestamp,
                 action_score=action_score,
                 persistence_value=persistence_value,
-                residual_energy=residual_energy,
+                luma_diff_energy=luma_diff_energy,
                 motion_magnitude=motion_magnitude,
-                entropy=entropy,
+                luma_entropy=luma_entropy,
                 refined_motion_tensor=refined_motion_tensor,
                 triples=[],
                 embedding=None,
+                packet_size=packet_size,
             )
             self.graph.add_node(frame_idx, node_data=node_obj)
 
@@ -412,6 +415,68 @@ class L2Asphodel:
         scored_nodes.sort(key=lambda item: item[1], reverse=True)
         return [node for node, score in scored_nodes[:top_k]]
 
+    def retrieve_ppr(
+        self,
+        query_embedding: np.ndarray | None,
+        top_k: int = 5,
+        damping: float = 0.85,
+    ) -> list[AsphodelNode]:
+        """
+        Query-conditioned Personalized PageRank retrieval.
+
+        Teleport weights are seeded by ReLU-clamped cosine similarity between
+        query_embedding and each node's stored embedding. Falls back to uniform
+        teleport when query_embedding is None/zero or no enriched nodes exist.
+
+        Returns top-top_k AsphodelNodes sorted by PPR score descending.
+        Same return type as retrieve(). No per-node print().
+        """
+        node_ids = list(self.graph.nodes)
+        if not node_ids:
+            return []
+
+        n = len(node_ids)
+        teleport_fallback = False
+
+        personalization: dict = {}
+        for nid in node_ids:
+            node = self.graph.nodes[nid]["node_data"]
+            sem = 0.0
+            if query_embedding is not None and node.embedding is not None:
+                norm_node = np.linalg.norm(node.embedding)
+                norm_query = np.linalg.norm(query_embedding)
+                if norm_node > 0.0 and norm_query > 0.0:
+                    sem = float(
+                        np.dot(node.embedding, query_embedding) / (norm_node * norm_query)
+                    )
+            personalization[nid] = max(0.0, sem)
+
+        total = sum(personalization.values())
+        if total > 0.0:
+            personalization = {k: v / total for k, v in personalization.items()}
+        else:
+            personalization = {k: 1.0 / n for k in node_ids}
+            teleport_fallback = True
+
+        try:
+            pr = nx.pagerank(
+                self.graph,
+                weight="weight",
+                personalization=personalization,
+                alpha=damping,
+            )
+        except Exception:
+            pr = nx.pagerank(self.graph, weight="weight", personalization=None, alpha=damping)
+            teleport_fallback = True
+
+        for nid, score in pr.items():
+            node = self.graph.nodes[nid]["node_data"]
+            node.last_retrieval_score = score
+            node.retrieval_contributions = {"ppr": score, "teleport_fallback": teleport_fallback}
+
+        sorted_ids = sorted(pr, key=lambda k: pr[k], reverse=True)
+        return [self.graph.nodes[k]["node_data"] for k in sorted_ids[:top_k]]
+
     def export_to_csr(self) -> scipy.sparse.csr_matrix:
         """
         Exports the node feature records into a Scipy Compressed Sparse Row (CSR) matrix.
@@ -422,8 +487,8 @@ class L2Asphodel:
         pointers, keeping memory consumption extremely small for long videos.
         
         Feature vector representation per node:
-          [frame_idx, timestamp, action_score, persistence_value, residual_energy,
-           motion_magnitude, entropy, pagerank_score, ...refined_motion_tensor..., ...embedding...]
+          [frame_idx, timestamp, action_score, persistence_value, luma_diff_energy,
+           motion_magnitude, luma_entropy, pagerank_score, ...refined_motion_tensor..., ...embedding...]
           
         Missing embeddings or motion tensors are zero-padded to maintain consistent columns.
         """
@@ -455,9 +520,9 @@ class L2Asphodel:
                 float(node.timestamp),
                 float(node.action_score),
                 float(node.persistence_value),
-                float(node.residual_energy),
+                float(node.luma_diff_energy),
                 float(node.motion_magnitude),
-                float(node.entropy),
+                float(node.luma_entropy),
                 float(node.pagerank_score)
             ]
 
@@ -512,9 +577,9 @@ if __name__ == "__main__":
             {
                 "frame_idx": 10,
                 "timestamp": 0.4,
-                "residual_energy": 0.5,
+                "luma_diff_energy": 0.5,
                 "motion_magnitude": 12.5,
-                "entropy": 3.2,
+                "luma_entropy": 3.2,
                 "refined_motion_tensor": np.array([1.2, 2.3], dtype=np.float32)
             },
             {"action_score": 0.8, "persistence_value": 0.7}
@@ -523,9 +588,9 @@ if __name__ == "__main__":
             {
                 "frame_idx": 20,
                 "timestamp": 0.8,
-                "residual_energy": 0.2,
+                "luma_diff_energy": 0.2,
                 "motion_magnitude": 4.1,
-                "entropy": 1.5,
+                "luma_entropy": 1.5,
                 "refined_motion_tensor": np.array([0.5, 0.7], dtype=np.float32)
             },
             {"action_score": 0.3, "persistence_value": 0.4}
@@ -534,9 +599,9 @@ if __name__ == "__main__":
             {
                 "frame_idx": 30,
                 "timestamp": 1.2,
-                "residual_energy": 0.9,
+                "luma_diff_energy": 0.9,
                 "motion_magnitude": 18.2,
-                "entropy": 4.8,
+                "luma_entropy": 4.8,
                 "refined_motion_tensor": np.array([2.1, 3.5], dtype=np.float32)
             },
             {"action_score": 0.95, "persistence_value": 0.9}

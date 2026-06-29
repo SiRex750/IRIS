@@ -87,9 +87,9 @@ def run_compression_analysis(video_path: str, l1_capacity: int = 32) -> dict:
     t1 = time.perf_counter()
 
     action_config = ActionScoreConfig(
-        residual_weight=config.residual_weight,
+        luma_diff_weight=config.luma_diff_weight,
         motion_weight=config.motion_weight,
-        entropy_weight=config.entropy_weight,
+        luma_entropy_weight=config.luma_entropy_weight,
         peak_distance=config.peak_distance,
         peak_prominence=config.peak_prominence,
         persistence_threshold=config.persistence_threshold,
@@ -102,9 +102,9 @@ def run_compression_analysis(video_path: str, l1_capacity: int = 32) -> dict:
     for rec in raw_records:
         feature_dicts.append({
             "frame_idx": rec["frame_idx"],
-            "residual_energy": rec["residual_energy"],
+            "luma_diff_energy": rec["luma_diff_energy"],
             "motion_magnitude": rec["motion_magnitude"],
-            "entropy": rec["entropy"],
+            "luma_entropy": rec["luma_entropy"],
         })
 
     action_records = scorer.score_all(feature_dicts)
@@ -161,7 +161,7 @@ def run_compression_analysis(video_path: str, l1_capacity: int = 32) -> dict:
         motion = FrameMotionDescriptor(
             frame_idx=fidx,
             timestamp_sec=of.get("timestamp", 0.0),
-            residual_energy=of.get("residual_energy", 0.0),
+            luma_diff_energy=of.get("luma_diff_energy", 0.0),
             divergence=of.get("divergence", 0.0),
             curl=of.get("curl", 0.0),
             jacobian_frobenius=of.get("jacobian_frobenius", 0.0),

@@ -77,12 +77,12 @@ class CachedFrame:
         queries can match on motion dynamics independently of visual content.
 
         Fields packed (in order):
-            residual_energy, divergence, curl,
+            luma_diff_energy, divergence, curl,
             jacobian_frobenius, hessian_max_eigenvalue, motion_entropy
         """
         raw = np.array(
             [
-                self.motion.residual_energy,
+                self.motion.luma_diff_energy,
                 self.motion.divergence,
                 self.motion.curl,
                 self.motion.jacobian_frobenius,

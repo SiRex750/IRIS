@@ -1,0 +1,3 @@
+video: C:\IRIS\mov_bbb.mp4  exists=True
+Starting ingest...
+DIAGNOSTICS: {"backend": "LlamaBackend", "model": "llama3.2:3b", "captioner": "BLIPCaptioner", "captioner_model": "Salesforce/blip-image-captioning-base", "api_key_present": false}

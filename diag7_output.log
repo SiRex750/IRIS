@@ -1,0 +1,81 @@
+
+######################################################################
+VIDEO: videoplayback.mp4
+Ingesting...
+DIAGNOSTICS: {"backend": "LlamaBackend", "model": "llama3.2:3b", "captioner": "BLIPCaptioner", "captioner_model": "Salesforce/blip-image-captioning-base", "api_key_present": false}
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/473 [00:00<?, ?it/s]Loading weights: 100%|##########| 473/473 [00:00<00:00, 19985.55it/s]
+[1mBlipForConditionalGeneration LOAD REPORT[0m from: Salesforce/blip-image-captioning-base
+Key                                       | Status     |  | 
+------------------------------------------+------------+--+-
+text_decoder.bert.embeddings.position_ids | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+N_nodes = 220
+pict_type counts in node set: {'B': 4, 'I': 54, 'P': 162}
+base_rate_I = 0.2455
+
+C_bytype group notes:
+  pict_type='B': 4 members
+  pict_type='I': 54 members
+  pict_type='P': 162 members
+
+Confound check (frac_I_in_top8 vs base_rate=0.245):
+  C_raw:    frac_I_top8=1.000  top8=[815, 1010, 1280, 470, 3, 578, 1051, 512]  types=['I', 'I', 'I', 'I', 'I', 'I', 'I', 'I']
+  C_bytype: frac_I_top8=0.250  top8=[815, 1090, 1405, 1117, 586, 176, 1010, 883]  types=['I', 'P', 'B', 'P', 'P', 'P', 'I', 'P']
+  C_proxy:  frac_I_top8=0.000  top8=[476, 1090, 1117, 193, 176, 844, 586, 583]  types=['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P']
+
+Seed xQ_jaccard at lambda=0.5:
+  C_raw: 0.3238
+  C_bytype: 0.3568
+  C_proxy: 0.3113
+
+===DIAG7_BEGIN===
+VIDEO: videoplayback.mp4  N=220  base_rate_I=0.2455
+lambda=0.5  alphas=[0.15, 0.5]  top_k=8  window_radius=2
+
+Seed xQ_jaccard at lambda=0.5:
+  C_raw: 0.3238
+  C_bytype: 0.3568
+  C_proxy: 0.3113
+
+C_bytype group notes:
+  pict_type='B': 4 members
+  pict_type='I': 54 members
+  pict_type='P': 162 members
+
+  variant     topology         a   frac_I  base_I   xQ_jacc    ov_sem   ov_Craw
+  -----------------------------------------------------------------------------
+  C_raw       G_complete    0.15    1.000   0.245    0.3238    0.3000    1.0000
+  C_raw       G_complete    0.50    1.000   0.245    0.3437    0.3000    1.0000
+  C_raw       G_temporal    0.15    1.000   0.245    0.3359    0.3000    1.0000
+  C_raw       G_temporal    0.50    1.000   0.245    0.3301    0.2500    1.0000
+  C_bytype    G_complete    0.15    0.250   0.245    0.3689    0.0750    0.4750
+  C_bytype    G_complete    0.50    0.250   0.245    0.4040    0.1250    0.3500
+  C_bytype    G_temporal    0.15    0.250   0.245    0.3359    0.0750    0.5750
+  C_bytype    G_temporal    0.50    0.250   0.245    0.2968    0.0750    0.7000
+  C_proxy     G_complete    0.15    0.000   0.245    0.3026    0.1250    0.3000
+  C_proxy     G_complete    0.50    0.000   0.245    0.3001    0.1750    0.2250
+  C_proxy     G_temporal    0.15    0.000   0.245    0.3301    0.0750    0.3250
+  C_proxy     G_temporal    0.50    0.000   0.245    0.2354    0.0750    0.3750
+
+============================================================
+PER-QUESTION DETAIL: C_bytype  G_temporal  alpha=0.15
+  Q1: 'what is moving in the scene'
+       top8=[1405, 3, 1389, 680, 1401, 673, 1371, 193]
+       types=['B', 'I', 'P', 'P', 'P', 'P', 'P', 'P']
+  Q2: 'describe the main action'
+       top8=[1090, 673, 680, 3, 1253, 1405, 1265, 1169]
+       types=['P', 'P', 'P', 'I', 'P', 'B', 'P', 'I']
+  Q3: 'what happens at the end'
+       top8=[1090, 3, 673, 583, 71, 680, 179, 874]
+       types=['P', 'I', 'P', 'P', 'P', 'P', 'P', 'I']
+  Q4: 'is there water or a stream'
+       top8=[1405, 1389, 1401, 1395, 3, 1090, 680, 673]
+       types=['B', 'P', 'P', 'P', 'I', 'P', 'P', 'P']
+  Q5: 'show a wide landscape shot'
+       top8=[1389, 3, 1405, 71, 768, 1401, 1395, 176]
+       types=['P', 'I', 'B', 'P', 'I', 'P', 'P', 'P']
+
+===DIAG7_END===

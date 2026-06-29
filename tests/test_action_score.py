@@ -14,9 +14,9 @@ def test_uniform_pan_not_peak():
         frames.append(
             {
                 "frame_idx": i,
-                "residual_energy": 0.4,
+                "packet_size": 0.4,
                 "motion_magnitude": 0.4,
-                "entropy": 0.05,
+                "luma_entropy": 0.05,
             }
         )
 
@@ -40,9 +40,9 @@ def test_action_spike_becomes_peak():
         frames.append(
             {
                 "frame_idx": i,
-                "residual_energy": value,
+                "packet_size": value,
                 "motion_magnitude": value,
-                "entropy": value,
+                "luma_entropy": value,
             }
         )
 
@@ -55,94 +55,118 @@ def test_action_spike_becomes_peak():
     assert peaks[0]["persistence_value"] >= 0.4
 
 
-def test_single_dominant_peak_option_b():
-    # Test that with Option B, we use max_prominence as the divisor
-    # and a peak's persistence is relative to config.max_prominence.
+def test_dominant_peak_normalizes_to_one():
+    # Per-video normalization: the strongest peak always gets persistence_value == 1.0,
+    # regardless of its raw prominence value.
     config = ActionScoreConfig(
         peak_distance=2,
         peak_prominence=0.05,
         persistence_threshold=0.4,
-        max_prominence=0.5,
     )
     scorer = ActionScoreModule(config)
-    
+
     values = [0.1, 0.1, 0.1, 0.9, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
-    frames = []
-    for i, val in enumerate(values):
-        frames.append({
-            "frame_idx": i,
-            "residual_energy": val,
-            "motion_magnitude": val,
-            "entropy": val,
-        })
-        
+    frames = [
+        {"frame_idx": i, "packet_size": v, "motion_magnitude": v, "luma_entropy": v}
+        for i, v in enumerate(values)
+    ]
+
     records = scorer.score_all(frames)
-    peaks = [record for record in records if record["is_peak"]]
-    
+    peaks = [r for r in records if r["is_peak"]]
+
     assert len(peaks) == 1
     assert peaks[0]["frame_idx"] == 3
-    # Prominence of index 3 (value 1.0 after normalization vs 0.0 neighbors) is 1.0.
-    # persistence_value = min(1.0 / 0.5, 1.0) = 1.0.
+    # Sole peak is the maximum: prominence / max_prominence = 1.0.
     assert peaks[0]["persistence_value"] == 1.0
-    
-    # If the peak is weaker, e.g. prominence is 0.1875, persistence is 0.1875 / 0.5 = 0.375.
-    # 0.375 < 0.4 persistence_threshold, so it should not be considered a peak.
+
+    # Two-peak case: dominant at frame 6 (prominence 1.0), weak at frame 3 (prominence 0.1875).
+    # data-derived max_prominence = 1.0.
+    # Frame 3 persistence = 0.1875 < threshold 0.4 → not a peak.
+    # Frame 6 persistence = 1.0 >= threshold → is a peak.
     values_weak = [0.1, 0.1, 0.1, 0.25, 0.1, 0.1, 0.9, 0.1, 0.1, 0.1]
-    frames_weak = []
-    for i, val in enumerate(values_weak):
-        frames_weak.append({
-            "frame_idx": i,
-            "residual_energy": val,
-            "motion_magnitude": val,
-            "entropy": val,
-        })
+    frames_weak = [
+        {"frame_idx": i, "packet_size": v, "motion_magnitude": v, "luma_entropy": v}
+        for i, v in enumerate(values_weak)
+    ]
     records_weak = scorer.score_all(frames_weak)
-    peaks_weak = [record for record in records_weak if record["is_peak"]]
+    peaks_weak = [r for r in records_weak if r["is_peak"]]
+
     assert len(peaks_weak) == 1
     assert peaks_weak[0]["frame_idx"] == 6
+    assert peaks_weak[0]["persistence_value"] == 1.0
 
 
 def test_persistence_clustering_regression():
-    # Build synthetic residual energy series with 2 distinct peaks of different sharpness
+    # Two distinct peaks with different sharpness; verify per-video normalization.
     config = ActionScoreConfig(
         peak_distance=5,
         peak_prominence=0.05,
-        persistence_threshold=0.15,  # Lower to admit both as peaks
-        max_prominence=2.0,          # Set higher to ensure fractional values without clipping
+        persistence_threshold=0.15,
     )
     scorer = ActionScoreModule(config)
-    
+
     # Base: 0.1. Sharp peak at 6: 0.4. Gentler peak at 16: 0.22.
     values = [
-        0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.4, 0.1, 0.1, 0.1, 
+        0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.4, 0.1, 0.1, 0.1,
         0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.22, 0.1, 0.1, 0.1, 0.1
     ]
-    
+
     frames = []
     for i, val in enumerate(values):
         frames.append({
             "frame_idx": i,
-            "residual_energy": val,
+            "packet_size": val,
             "motion_magnitude": val,
-            "entropy": val,
+            "luma_entropy": val,
         })
-        
+
     records = scorer.score_all(frames)
-    
-    # Assert (a): non-peak candidate indices (not in find_peaks) have persistence_value == 0.0
+
+    # Non-peak frames must have persistence_value == 0.0.
     for idx, r in enumerate(records):
         if idx not in (6, 16):
             assert r["persistence_value"] == 0.0, f"Expected 0.0 persistence at non-peak frame {idx}"
-            
-    # Assert (b): peak frames have distinct, non-degenerate fractional persistence values
+
     p1 = records[6]["persistence_value"]
     p2 = records[16]["persistence_value"]
-    
-    # Peak 1 (normalized value 1.0, prominence 1.0): 1.0 / 2.0 = 0.5
-    # Peak 2 (normalized value 0.4, prominence 0.4): 0.4 / 2.0 = 0.2
-    assert 0.0 < p1 < 1.0, f"Expected fractional persistence for peak 1, got {p1}"
-    assert 0.0 < p2 < 1.0, f"Expected fractional persistence for peak 2, got {p2}"
-    assert p1 != p2, "Expected distinct persistence values"
-    
-    # Assert (c): sharper peak gets higher persistence_value than gentler one
-    assert p1 > p2, f"Expected sharper peak persistence {p1} to be > gentler peak persistence {p2}"
+
+    # Peak 6: normalized prominence 1.0, data-derived max_prominence 1.0 → persistence = 1.0.
+    # Peak 16: normalized prominence 0.4, max_prominence 1.0 → persistence = 0.4.
+    assert p1 == 1.0, f"Dominant peak should normalize to 1.0, got {p1}"
+    assert 0.0 < p2 < 1.0, f"Expected fractional persistence for weaker peak, got {p2}"
+    assert p1 > p2, f"Expected dominant peak persistence {p1} > weaker peak persistence {p2}"
+
+
+def test_data_derived_divisor_not_hardcoded():
+    # Regression: max prominence is ~0.8, not the old hardcoded config default of 0.5.
+    # OLD behavior (divisor=0.5): weaker peak persistence = min(0.4/0.5, 1.0) = 0.8.
+    # NEW behavior (divisor=data max=0.8): weaker peak persistence = 0.4/0.8 = 0.5.
+    # Asserting 0.5 (not 0.8) proves the divisor is data-derived, not hardcoded.
+    config = ActionScoreConfig(
+        peak_distance=5,
+        peak_prominence=0.05,
+        persistence_threshold=0.3,
+    )
+    scorer = ActionScoreModule(config)
+
+    # Dip at frame 0 (0.0), baseline 0.2, main peak 1.0 at frame 5, secondary 0.6 at frame 11.
+    # After min-max normalization the signal is unchanged (min=0.0, max=1.0).
+    # Prominences: main peak = 1.0 - 0.2 = 0.8, secondary = 0.6 - 0.2 = 0.4.
+    # data-derived max_prominence = 0.8.
+    values = [0.0, 0.2, 0.2, 0.2, 0.2, 1.0, 0.2, 0.2, 0.2, 0.2, 0.2, 0.6, 0.2, 0.2, 0.2]
+    frames = [
+        {"frame_idx": i, "packet_size": v, "motion_magnitude": v, "luma_entropy": v}
+        for i, v in enumerate(values)
+    ]
+
+    records = scorer.score_all(frames)
+
+    peak5 = records[5]
+    peak11 = records[11]
+
+    assert peak5["is_peak"]
+    assert peak11["is_peak"]
+    # Strongest peak: prominence 0.8 / max_prominence 0.8 = 1.0.
+    assert peak5["persistence_value"] == 1.0
+    # Weaker peak: 0.4 / 0.8 = 0.5, not 0.8 (what the old hardcoded divisor 0.5 would give).
+    assert abs(peak11["persistence_value"] - 0.5) < 0.05

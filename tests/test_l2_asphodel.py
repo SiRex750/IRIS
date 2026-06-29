@@ -45,9 +45,9 @@ def test_add_frame_node():
     feat_1 = {
         "frame_idx": 10,
         "timestamp": 1.0,
-        "residual_energy": 0.8,
+        "luma_diff_energy": 0.8,
         "motion_magnitude": 5.0,
-        "entropy": 2.0,
+        "luma_entropy": 2.0,
         "refined_motion_tensor": np.array([0.1, 0.2])
     }
     score_1 = {
@@ -69,9 +69,9 @@ def test_add_frame_node():
     feat_2 = {
         "frame_idx": 20,
         "timestamp": 2.0,
-        "residual_energy": 0.4,
+        "luma_diff_energy": 0.4,
         "motion_magnitude": 2.0,
-        "entropy": 1.0,
+        "luma_entropy": 1.0,
         "refined_motion_tensor": np.array([0.05, 0.1])
     }
     score_2 = {
@@ -193,9 +193,9 @@ def test_export_to_csr():
         {
             "frame_idx": 2,
             "timestamp": 10.0,
-            "residual_energy": 0.5,
+            "luma_diff_energy": 0.5,
             "motion_magnitude": 1.5,
-            "entropy": 0.8,
+            "luma_entropy": 0.8,
             "refined_motion_tensor": np.array([0.2, 0.3])
         },
         {"action_score": 0.7, "persistence_value": 0.6}
@@ -204,9 +204,9 @@ def test_export_to_csr():
         {
             "frame_idx": 1,
             "timestamp": 5.0,
-            "residual_energy": 0.3,
+            "luma_diff_energy": 0.3,
             "motion_magnitude": 1.0,
-            "entropy": 0.4,
+            "luma_entropy": 0.4,
             "refined_motion_tensor": np.array([0.1, 0.15])
         },
         {"action_score": 0.4, "persistence_value": 0.3}

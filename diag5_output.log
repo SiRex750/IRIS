@@ -1,0 +1,388 @@
+Fixed params: window_radius=2  alphas=[0.15, 0.5]  lambdas=[1.0, 0.7, 0.5, 0.3, 0.0]  top_k=8
+
+######################################################################
+VIDEO: mov_bbb.mp4
+Running ingest...
+DIAGNOSTICS: {"backend": "LlamaBackend", "model": "llama3.2:3b", "captioner": "BLIPCaptioner", "captioner_model": "Salesforce/blip-image-captioning-base", "api_key_present": false}
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/473 [00:00<?, ?it/s]Loading weights: 100%|##########| 473/473 [00:00<00:00, 19263.65it/s]
+[1mBlipForConditionalGeneration LOAD REPORT[0m from: Salesforce/blip-image-captioning-base
+Key                                       | Status     |  | 
+------------------------------------------+------------+--+-
+text_decoder.bert.embeddings.position_ids | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+N_nodes = 28
+codec_conf distribution: min=0.1000  max=1.0000  mean=0.5035  std=0.3274
+G_complete edges: 378
+G_temporal edges: 53  connected=True
+
+Seed xQ_jaccard (pure-seed, no graph):
+  lambda=1.0: seed_xQ_jaccard = 0.2133  (fallbacks=0/5)
+  lambda=0.5: seed_xQ_jaccard = 0.3934  (fallbacks=0/5)
+  lambda=0.0: seed_xQ_jaccard = 1.0000  (fallbacks=0/5)
+
+DUMP (G_temporal, lambda=0.5, a=0.15):
+  Q1 'what is moving in the scene'
+    PPR_TOP8:        [34, 116, 42, 120, 122, 36, 95, 68]
+    SEED_TOP8(0.5):  [34, 116, 122, 42, 120, 36, 95, 68]
+    SEED_TOP8(sem):  [106, 108, 120, 122, 116, 34, 95, 154]
+    SEED_TOP8(cod):  [66, 72, 34, 68, 36, 30, 70, 28]
+    overlap_sem=0.6250  overlap_cod=0.3750
+  Q2 'describe the main action'
+    PPR_TOP8:        [72, 34, 68, 70, 28, 66, 30, 36]
+    SEED_TOP8(0.5):  [72, 34, 68, 28, 66, 70, 36, 42]
+    SEED_TOP8(sem):  [72, 34, 108, 106, 28, 70, 68, 116]
+    SEED_TOP8(cod):  [66, 72, 34, 68, 36, 30, 70, 28]
+    overlap_sem=0.6250  overlap_cod=1.0000
+  Q3 'what happens at the end'
+    PPR_TOP8:        [72, 34, 28, 30, 68, 42, 36, 70]
+    SEED_TOP8(0.5):  [72, 34, 28, 30, 68, 42, 36, 70]
+    SEED_TOP8(sem):  [72, 106, 28, 34, 0, 108, 42, 30]
+    SEED_TOP8(cod):  [66, 72, 34, 68, 36, 30, 70, 28]
+    overlap_sem=0.6250  overlap_cod=0.8750
+  Q4 'is there water or a stream'
+    PPR_TOP8:        [66, 36, 68, 70, 48, 30, 42, 34]
+    SEED_TOP8(0.5):  [66, 36, 70, 48, 68, 42, 30, 28]
+    SEED_TOP8(sem):  [48, 36, 70, 42, 66, 0, 68, 30]
+    SEED_TOP8(cod):  [66, 72, 34, 68, 36, 30, 70, 28]
+    overlap_sem=0.8750  overlap_cod=0.7500
+  Q5 'show a wide landscape shot'
+    PPR_TOP8:        [95, 122, 106, 116, 156, 36, 108, 68]
+    SEED_TOP8(0.5):  [95, 122, 106, 116, 156, 36, 66, 68]
+    SEED_TOP8(sem):  [154, 106, 108, 95, 156, 122, 118, 158]
+    SEED_TOP8(cod):  [66, 72, 34, 68, 36, 30, 70, 28]
+    overlap_sem=0.6250  overlap_cod=0.2500
+
+===DIAG5_BEGIN===
+VIDEO: mov_bbb.mp4  N=28
+
+============================================================
+TOPOLOGY: G_complete
+
+  lambda=1.0  a=0.15
+    xQ_jaccard         = 0.2133
+    overlap_S_sem_pure = 1.0000
+    overlap_codec_pure = 0.3750
+
+  lambda=1.0  a=0.50
+    xQ_jaccard         = 0.2293
+    overlap_S_sem_pure = 0.9750
+    overlap_codec_pure = 0.3500
+
+  lambda=0.7  a=0.15
+    xQ_jaccard         = 0.2211
+    overlap_S_sem_pure = 0.9000
+    overlap_codec_pure = 0.4250
+
+  lambda=0.7  a=0.50
+    xQ_jaccard         = 0.2313
+    overlap_S_sem_pure = 0.9250
+    overlap_codec_pure = 0.4000
+
+  lambda=0.5  a=0.15
+    xQ_jaccard         = 0.3237
+    overlap_S_sem_pure = 0.7250
+    overlap_codec_pure = 0.5750
+
+  lambda=0.5  a=0.50
+    xQ_jaccard         = 0.2368
+    overlap_S_sem_pure = 0.8000
+    overlap_codec_pure = 0.5000
+
+  lambda=0.3  a=0.15
+    xQ_jaccard         = 0.6319
+    overlap_S_sem_pure = 0.4750
+    overlap_codec_pure = 0.8500
+
+  lambda=0.3  a=0.50
+    xQ_jaccard         = 0.5806
+    overlap_S_sem_pure = 0.5250
+    overlap_codec_pure = 0.8000
+
+  lambda=0.0  a=0.15
+    xQ_jaccard         = 1.0000
+    overlap_S_sem_pure = 0.3750
+    overlap_codec_pure = 1.0000
+
+  lambda=0.0  a=0.50
+    xQ_jaccard         = 1.0000
+    overlap_S_sem_pure = 0.3750
+    overlap_codec_pure = 1.0000
+
+============================================================
+TOPOLOGY: G_temporal
+
+  lambda=1.0  a=0.15
+    xQ_jaccard         = 0.2011
+    overlap_S_sem_pure = 0.9750
+    overlap_codec_pure = 0.3750
+
+  lambda=1.0  a=0.50
+    xQ_jaccard         = 0.2171
+    overlap_S_sem_pure = 0.8500
+    overlap_codec_pure = 0.4250
+
+  lambda=0.7  a=0.15
+    xQ_jaccard         = 0.2313
+    overlap_S_sem_pure = 0.8750
+    overlap_codec_pure = 0.4500
+
+  lambda=0.7  a=0.50
+    xQ_jaccard         = 0.2785
+    overlap_S_sem_pure = 0.7750
+    overlap_codec_pure = 0.5500
+
+  lambda=0.5  a=0.15
+    xQ_jaccard         = 0.3758
+    overlap_S_sem_pure = 0.6750
+    overlap_codec_pure = 0.6500
+
+  lambda=0.5  a=0.50
+    xQ_jaccard         = 0.3982
+    overlap_S_sem_pure = 0.6500
+    overlap_codec_pure = 0.6750
+
+  lambda=0.3  a=0.15
+    xQ_jaccard         = 0.6255
+    overlap_S_sem_pure = 0.4750
+    overlap_codec_pure = 0.8500
+
+  lambda=0.3  a=0.50
+    xQ_jaccard         = 0.7644
+    overlap_S_sem_pure = 0.4500
+    overlap_codec_pure = 0.8750
+
+  lambda=0.0  a=0.15
+    xQ_jaccard         = 1.0000
+    overlap_S_sem_pure = 0.3750
+    overlap_codec_pure = 1.0000
+
+  lambda=0.0  a=0.50
+    xQ_jaccard         = 1.0000
+    overlap_S_sem_pure = 0.3750
+    overlap_codec_pure = 0.8750
+
+============================================================
+SUMMARY GRID -- mov_bbb.mp4  N=28
+  seed_xQ_jaccard: lambda=1.0: 0.2133  lambda=0.5: 0.3934  lambda=0.0: 1.0000
+  row                                        xQ_jacc    ov_sem   ov_codec
+  -----------------------------------------------------------------------
+  G_complete  lam=1.0  a=0.15                 0.2133    1.0000     0.3750
+  G_complete  lam=1.0  a=0.50                 0.2293    0.9750     0.3500
+  G_complete  lam=0.7  a=0.15                 0.2211    0.9000     0.4250
+  G_complete  lam=0.7  a=0.50                 0.2313    0.9250     0.4000
+  G_complete  lam=0.5  a=0.15                 0.3237    0.7250     0.5750
+  G_complete  lam=0.5  a=0.50                 0.2368    0.8000     0.5000
+  G_complete  lam=0.3  a=0.15                 0.6319    0.4750     0.8500
+  G_complete  lam=0.3  a=0.50                 0.5806    0.5250     0.8000
+  G_complete  lam=0.0  a=0.15                 1.0000    0.3750     1.0000
+  G_complete  lam=0.0  a=0.50                 1.0000    0.3750     1.0000
+  G_temporal  lam=1.0  a=0.15                 0.2011    0.9750     0.3750
+  G_temporal  lam=1.0  a=0.50                 0.2171    0.8500     0.4250
+  G_temporal  lam=0.7  a=0.15                 0.2313    0.8750     0.4500
+  G_temporal  lam=0.7  a=0.50                 0.2785    0.7750     0.5500
+  G_temporal  lam=0.5  a=0.15                 0.3758    0.6750     0.6500
+  G_temporal  lam=0.5  a=0.50                 0.3982    0.6500     0.6750
+  G_temporal  lam=0.3  a=0.15                 0.6255    0.4750     0.8500
+  G_temporal  lam=0.3  a=0.50                 0.7644    0.4500     0.8750
+  G_temporal  lam=0.0  a=0.15                 1.0000    0.3750     1.0000
+  G_temporal  lam=0.0  a=0.50                 1.0000    0.3750     0.8750
+
+KEY CELL (lambda=0.5) -- mov_bbb.mp4
+  G_complete  a=0.15:  xQ_jaccard=0.3237  overlap_S_sem_pure=0.7250
+  G_complete  a=0.50:  xQ_jaccard=0.2368  overlap_S_sem_pure=0.8000
+  G_temporal  a=0.15:  xQ_jaccard=0.3758  overlap_S_sem_pure=0.6750
+  G_temporal  a=0.50:  xQ_jaccard=0.3982  overlap_S_sem_pure=0.6500
+
+===DIAG5_END===
+
+######################################################################
+VIDEO: videoplayback.mp4
+Running ingest...
+DIAGNOSTICS: {"backend": "LlamaBackend", "model": "llama3.2:3b", "captioner": "BLIPCaptioner", "captioner_model": "Salesforce/blip-image-captioning-base", "api_key_present": false}
+N_nodes = 220
+codec_conf distribution: min=0.1000  max=1.0000  mean=0.5797  std=0.1921
+G_complete edges: 24090
+G_temporal edges: 437  connected=True
+
+Seed xQ_jaccard (pure-seed, no graph):
+  lambda=1.0: seed_xQ_jaccard = 0.2045  (fallbacks=0/5)
+  lambda=0.5: seed_xQ_jaccard = 0.3113  (fallbacks=0/5)
+  lambda=0.0: seed_xQ_jaccard = 1.0000  (fallbacks=0/5)
+
+DUMP (G_temporal, lambda=0.5, a=0.15):
+  Q1 'what is moving in the scene'
+    PPR_TOP8:        [680, 179, 673, 193, 1401, 760, 865, 873]
+    SEED_TOP8(0.5):  [680, 193, 1401, 179, 673, 760, 865, 873]
+    SEED_TOP8(sem):  [1359, 689, 275, 299, 3, 36, 302, 293]
+    SEED_TOP8(cod):  [476, 1090, 1117, 193, 176, 844, 586, 583]
+    overlap_sem=0.0000  overlap_cod=0.1250
+  Q2 'describe the main action'
+    PPR_TOP8:        [1090, 673, 680, 667, 583, 986, 1169, 179]
+    SEED_TOP8(0.5):  [1090, 680, 673, 667, 583, 1169, 873, 986]
+    SEED_TOP8(sem):  [689, 1359, 667, 241, 652, 258, 569, 254]
+    SEED_TOP8(cod):  [476, 1090, 1117, 193, 176, 844, 586, 583]
+    overlap_sem=0.1250  overlap_cod=0.2500
+  Q3 'what happens at the end'
+    PPR_TOP8:        [1090, 583, 673, 179, 873, 680, 865, 874]
+    SEED_TOP8(0.5):  [1090, 583, 873, 179, 673, 680, 865, 667]
+    SEED_TOP8(sem):  [1359, 645, 652, 689, 996, 667, 144, 569]
+    SEED_TOP8(cod):  [476, 1090, 1117, 193, 176, 844, 586, 583]
+    overlap_sem=0.0000  overlap_cod=0.2500
+  Q4 'is there water or a stream'
+    PPR_TOP8:        [1401, 680, 1090, 760, 673, 865, 179, 476]
+    SEED_TOP8(0.5):  [1401, 1090, 680, 760, 865, 476, 673, 873]
+    SEED_TOP8(sem):  [144, 36, 37, 1359, 716, 689, 569, 652]
+    SEED_TOP8(cod):  [476, 1090, 1117, 193, 176, 844, 586, 583]
+    overlap_sem=0.0000  overlap_cod=0.2500
+  Q5 'show a wide landscape shot'
+    PPR_TOP8:        [767, 768, 760, 944, 986, 1401, 179, 193]
+    SEED_TOP8(0.5):  [767, 944, 768, 760, 1401, 986, 193, 3]
+    SEED_TOP8(sem):  [36, 768, 770, 3, 773, 741, 767, 37]
+    SEED_TOP8(cod):  [476, 1090, 1117, 193, 176, 844, 586, 583]
+    overlap_sem=0.2500  overlap_cod=0.1250
+
+===DIAG5_BEGIN===
+VIDEO: videoplayback.mp4  N=220
+
+============================================================
+TOPOLOGY: G_complete
+
+  lambda=1.0  a=0.15
+    xQ_jaccard         = 0.1821
+    overlap_S_sem_pure = 0.9750
+    overlap_codec_pure = 0.0000
+
+  lambda=1.0  a=0.50
+    xQ_jaccard         = 0.2733
+    overlap_S_sem_pure = 0.7750
+    overlap_codec_pure = 0.0000
+
+  lambda=0.7  a=0.15
+    xQ_jaccard         = 0.3037
+    overlap_S_sem_pure = 0.3500
+    overlap_codec_pure = 0.1000
+
+  lambda=0.7  a=0.50
+    xQ_jaccard         = 0.3975
+    overlap_S_sem_pure = 0.4250
+    overlap_codec_pure = 0.0500
+
+  lambda=0.5  a=0.15
+    xQ_jaccard         = 0.3026
+    overlap_S_sem_pure = 0.1250
+    overlap_codec_pure = 0.1750
+
+  lambda=0.5  a=0.50
+    xQ_jaccard         = 0.3001
+    overlap_S_sem_pure = 0.1750
+    overlap_codec_pure = 0.1000
+
+  lambda=0.3  a=0.15
+    xQ_jaccard         = 0.3404
+    overlap_S_sem_pure = 0.0250
+    overlap_codec_pure = 0.3500
+
+  lambda=0.3  a=0.50
+    xQ_jaccard         = 0.3816
+    overlap_S_sem_pure = 0.0250
+    overlap_codec_pure = 0.2000
+
+  lambda=0.0  a=0.15
+    xQ_jaccard         = 1.0000
+    overlap_S_sem_pure = 0.0000
+    overlap_codec_pure = 1.0000
+
+  lambda=0.0  a=0.50
+    xQ_jaccard         = 1.0000
+    overlap_S_sem_pure = 0.0000
+    overlap_codec_pure = 0.6250
+
+============================================================
+TOPOLOGY: G_temporal
+
+  lambda=1.0  a=0.15
+    xQ_jaccard         = 0.1445
+    overlap_S_sem_pure = 0.7250
+    overlap_codec_pure = 0.0000
+
+  lambda=1.0  a=0.50
+    xQ_jaccard         = 0.2057
+    overlap_S_sem_pure = 0.3750
+    overlap_codec_pure = 0.0000
+
+  lambda=0.7  a=0.15
+    xQ_jaccard         = 0.3075
+    overlap_S_sem_pure = 0.3000
+    overlap_codec_pure = 0.0750
+
+  lambda=0.7  a=0.50
+    xQ_jaccard         = 0.2126
+    overlap_S_sem_pure = 0.2250
+    overlap_codec_pure = 0.0000
+
+  lambda=0.5  a=0.15
+    xQ_jaccard         = 0.3301
+    overlap_S_sem_pure = 0.0750
+    overlap_codec_pure = 0.2000
+
+  lambda=0.5  a=0.50
+    xQ_jaccard         = 0.2354
+    overlap_S_sem_pure = 0.0750
+    overlap_codec_pure = 0.1750
+
+  lambda=0.3  a=0.15
+    xQ_jaccard         = 0.3626
+    overlap_S_sem_pure = 0.0250
+    overlap_codec_pure = 0.3500
+
+  lambda=0.3  a=0.50
+    xQ_jaccard         = 0.4321
+    overlap_S_sem_pure = 0.0250
+    overlap_codec_pure = 0.3000
+
+  lambda=0.0  a=0.15
+    xQ_jaccard         = 1.0000
+    overlap_S_sem_pure = 0.0000
+    overlap_codec_pure = 0.8750
+
+  lambda=0.0  a=0.50
+    xQ_jaccard         = 1.0000
+    overlap_S_sem_pure = 0.0000
+    overlap_codec_pure = 0.5000
+
+============================================================
+SUMMARY GRID -- videoplayback.mp4  N=220
+  seed_xQ_jaccard: lambda=1.0: 0.2045  lambda=0.5: 0.3113  lambda=0.0: 1.0000
+  row                                        xQ_jacc    ov_sem   ov_codec
+  -----------------------------------------------------------------------
+  G_complete  lam=1.0  a=0.15                 0.1821    0.9750     0.0000
+  G_complete  lam=1.0  a=0.50                 0.2733    0.7750     0.0000
+  G_complete  lam=0.7  a=0.15                 0.3037    0.3500     0.1000
+  G_complete  lam=0.7  a=0.50                 0.3975    0.4250     0.0500
+  G_complete  lam=0.5  a=0.15                 0.3026    0.1250     0.1750
+  G_complete  lam=0.5  a=0.50                 0.3001    0.1750     0.1000
+  G_complete  lam=0.3  a=0.15                 0.3404    0.0250     0.3500
+  G_complete  lam=0.3  a=0.50                 0.3816    0.0250     0.2000
+  G_complete  lam=0.0  a=0.15                 1.0000    0.0000     1.0000
+  G_complete  lam=0.0  a=0.50                 1.0000    0.0000     0.6250
+  G_temporal  lam=1.0  a=0.15                 0.1445    0.7250     0.0000
+  G_temporal  lam=1.0  a=0.50                 0.2057    0.3750     0.0000
+  G_temporal  lam=0.7  a=0.15                 0.3075    0.3000     0.0750
+  G_temporal  lam=0.7  a=0.50                 0.2126    0.2250     0.0000
+  G_temporal  lam=0.5  a=0.15                 0.3301    0.0750     0.2000
+  G_temporal  lam=0.5  a=0.50                 0.2354    0.0750     0.1750
+  G_temporal  lam=0.3  a=0.15                 0.3626    0.0250     0.3500
+  G_temporal  lam=0.3  a=0.50                 0.4321    0.0250     0.3000
+  G_temporal  lam=0.0  a=0.15                 1.0000    0.0000     0.8750
+  G_temporal  lam=0.0  a=0.50                 1.0000    0.0000     0.5000
+
+KEY CELL (lambda=0.5) -- videoplayback.mp4
+  G_complete  a=0.15:  xQ_jaccard=0.3026  overlap_S_sem_pure=0.1250
+  G_complete  a=0.50:  xQ_jaccard=0.3001  overlap_S_sem_pure=0.1750
+  G_temporal  a=0.15:  xQ_jaccard=0.3301  overlap_S_sem_pure=0.0750
+  G_temporal  a=0.50:  xQ_jaccard=0.2354  overlap_S_sem_pure=0.0750
+
+===DIAG5_END===

@@ -1,0 +1,172 @@
+Fixed params: window_radius=2  alphas=[0.15, 0.5]  lambdas=[1.0, 0.5]  top_k=8
+codec_conf_source: true packet_size via AsphodelNode.packet_size
+normalization: rank_percentile(packet_size) -> 0.1 + 0.9 * rank_pct
+
+######################################################################
+VIDEO: videoplayback.mp4
+Running ingest...
+DIAGNOSTICS: {"backend": "LlamaBackend", "model": "llama3.2:3b", "captioner": "BLIPCaptioner", "captioner_model": "Salesforce/blip-image-captioning-base", "api_key_present": false}
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/473 [00:00<?, ?it/s]Loading weights: 100%|##########| 473/473 [00:00<00:00, 23256.35it/s]
+[1mBlipForConditionalGeneration LOAD REPORT[0m from: Salesforce/blip-image-captioning-base
+Key                                       | Status     |  | 
+------------------------------------------+------------+--+-
+text_decoder.bert.embeddings.position_ids | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+N_nodes = 220
+packet_size distribution: min=22.0  max=23860.0  mean=5219.4  std=3733.3
+pict_type counts: {'B': 4, 'I': 54, 'P': 162}
+codec_conf(rank-ps) distribution: min=0.1000  max=1.0000  mean=0.5500  std=0.2610
+I-frame confound: base_rate=0.245  frac_I_in_top8_codec=1.000  (top8 node ids: [815, 1010, 1280, 470, 3, 578, 1051, 512]  pict_types: ['I', 'I', 'I', 'I', 'I', 'I', 'I', 'I'])
+G_complete edges: 24090
+G_temporal edges: 437  connected=True
+
+Seed xQ_jaccard (true packet_size rank, no graph):
+  lambda=1.0: seed_xQ_jaccard = 0.2045
+  lambda=0.5: seed_xQ_jaccard = 0.3238
+
+===DIAG6_BEGIN===
+VIDEO: videoplayback.mp4  N=220
+codec_conf_source: true packet_size (rank_percentile -> [0.1, 1.0])
+
+============================================================
+TOPOLOGY: G_complete
+
+  lambda=1.0  a=0.15
+    xQ_jaccard         = 0.1821
+    overlap_S_sem_pure = 0.9750
+
+  lambda=1.0  a=0.50
+    xQ_jaccard         = 0.2733
+    overlap_S_sem_pure = 0.7750
+
+  lambda=0.5  a=0.15
+    xQ_jaccard         = 0.3238
+    overlap_S_sem_pure = 0.3000
+
+  lambda=0.5  a=0.50
+    xQ_jaccard         = 0.3437
+    overlap_S_sem_pure = 0.3000
+
+============================================================
+TOPOLOGY: G_temporal
+
+  lambda=1.0  a=0.15
+    xQ_jaccard         = 0.1445
+    overlap_S_sem_pure = 0.7250
+
+  lambda=1.0  a=0.50
+    xQ_jaccard         = 0.2057
+    overlap_S_sem_pure = 0.3750
+
+  lambda=0.5  a=0.15
+    xQ_jaccard         = 0.3359
+    overlap_S_sem_pure = 0.3000
+
+  lambda=0.5  a=0.50
+    xQ_jaccard         = 0.3301
+    overlap_S_sem_pure = 0.2500
+
+============================================================
+SUMMARY GRID -- videoplayback.mp4  N=220
+  seed_xQ_jaccard: lambda=1.0: 0.2045  lambda=0.5: 0.3238
+  row                                        xQ_jacc    ov_sem
+  ------------------------------------------------------------
+  G_complete  lam=1.0  a=0.15                 0.1821    0.9750
+  G_complete  lam=1.0  a=0.50                 0.2733    0.7750
+  G_complete  lam=0.5  a=0.15                 0.3238    0.3000
+  G_complete  lam=0.5  a=0.50                 0.3437    0.3000
+  G_temporal  lam=1.0  a=0.15                 0.1445    0.7250
+  G_temporal  lam=1.0  a=0.50                 0.2057    0.3750
+  G_temporal  lam=0.5  a=0.15                 0.3359    0.3000
+  G_temporal  lam=0.5  a=0.50                 0.3301    0.2500
+
+KEY CELL (lambda=0.5) -- videoplayback.mp4
+  G_complete  a=0.15:  xQ_jaccard=0.3238  overlap_S_sem_pure=0.3000
+  G_complete  a=0.50:  xQ_jaccard=0.3437  overlap_S_sem_pure=0.3000
+  G_temporal  a=0.15:  xQ_jaccard=0.3359  overlap_S_sem_pure=0.3000
+  G_temporal  a=0.50:  xQ_jaccard=0.3301  overlap_S_sem_pure=0.2500
+
+===DIAG6_END===
+
+######################################################################
+VIDEO: mov_bbb.mp4
+Running ingest...
+DIAGNOSTICS: {"backend": "LlamaBackend", "model": "llama3.2:3b", "captioner": "BLIPCaptioner", "captioner_model": "Salesforce/blip-image-captioning-base", "api_key_present": false}
+N_nodes = 28
+packet_size distribution: min=2180.0  max=14820.0  mean=4145.4  std=2797.9
+pict_type counts: {'I': 2, 'P': 26}
+codec_conf(rank-ps) distribution: min=0.1000  max=1.0000  mean=0.5500  std=0.2693
+I-frame confound: base_rate=0.071  frac_I_in_top8_codec=0.250  (top8 node ids: [0, 95, 72, 36, 66, 34, 48, 68]  pict_types: ['I', 'I', 'P', 'P', 'P', 'P', 'P', 'P'])
+G_complete edges: 378
+G_temporal edges: 53  connected=True
+
+Seed xQ_jaccard (true packet_size rank, no graph):
+  lambda=1.0: seed_xQ_jaccard = 0.2133
+  lambda=0.5: seed_xQ_jaccard = 0.3035
+
+===DIAG6_BEGIN===
+VIDEO: mov_bbb.mp4  N=28
+codec_conf_source: true packet_size (rank_percentile -> [0.1, 1.0])
+
+============================================================
+TOPOLOGY: G_complete
+
+  lambda=1.0  a=0.15
+    xQ_jaccard         = 0.2133
+    overlap_S_sem_pure = 1.0000
+
+  lambda=1.0  a=0.50
+    xQ_jaccard         = 0.2293
+    overlap_S_sem_pure = 0.9750
+
+  lambda=0.5  a=0.15
+    xQ_jaccard         = 0.3111
+    overlap_S_sem_pure = 0.7250
+
+  lambda=0.5  a=0.50
+    xQ_jaccard         = 0.2895
+    overlap_S_sem_pure = 0.7500
+
+============================================================
+TOPOLOGY: G_temporal
+
+  lambda=1.0  a=0.15
+    xQ_jaccard         = 0.2011
+    overlap_S_sem_pure = 0.9750
+
+  lambda=1.0  a=0.50
+    xQ_jaccard         = 0.2171
+    overlap_S_sem_pure = 0.8500
+
+  lambda=0.5  a=0.15
+    xQ_jaccard         = 0.3035
+    overlap_S_sem_pure = 0.7250
+
+  lambda=0.5  a=0.50
+    xQ_jaccard         = 0.3880
+    overlap_S_sem_pure = 0.6750
+
+============================================================
+SUMMARY GRID -- mov_bbb.mp4  N=28
+  seed_xQ_jaccard: lambda=1.0: 0.2133  lambda=0.5: 0.3035
+  row                                        xQ_jacc    ov_sem
+  ------------------------------------------------------------
+  G_complete  lam=1.0  a=0.15                 0.2133    1.0000
+  G_complete  lam=1.0  a=0.50                 0.2293    0.9750
+  G_complete  lam=0.5  a=0.15                 0.3111    0.7250
+  G_complete  lam=0.5  a=0.50                 0.2895    0.7500
+  G_temporal  lam=1.0  a=0.15                 0.2011    0.9750
+  G_temporal  lam=1.0  a=0.50                 0.2171    0.8500
+  G_temporal  lam=0.5  a=0.15                 0.3035    0.7250
+  G_temporal  lam=0.5  a=0.50                 0.3880    0.6750
+
+KEY CELL (lambda=0.5) -- mov_bbb.mp4
+  G_complete  a=0.15:  xQ_jaccard=0.3111  overlap_S_sem_pure=0.7250
+  G_complete  a=0.50:  xQ_jaccard=0.2895  overlap_S_sem_pure=0.7500
+  G_temporal  a=0.15:  xQ_jaccard=0.3035  overlap_S_sem_pure=0.7250
+  G_temporal  a=0.50:  xQ_jaccard=0.3880  overlap_S_sem_pure=0.6750
+
+===DIAG6_END===

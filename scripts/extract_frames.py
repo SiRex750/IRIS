@@ -66,7 +66,7 @@ for frame in container.decode(video=0):
         "frame_idx":      meta["frame_idx"],
         "timestamp":      round(meta["timestamp"], 3),
         "tier":           meta["tier"],
-        "residual_energy": round(meta["residual_energy"], 5),
+        "luma_diff_energy": round(meta["luma_diff_energy"], 5),
         "mv_count":       mv_count,
         "mv_magnitude":   round(mv_mag, 3),
         "image_b64":      b64,
