@@ -62,6 +62,30 @@ def _device() -> str:
         return "cpu"
 
 
+def _rank_percentile(values: dict) -> dict:
+    """Average-tied rank-percentile in [0, 1] over {node_id: float}."""
+    keys = list(values.keys())
+    n = len(keys)
+    if n == 0:
+        return {}
+    if n == 1:
+        return {keys[0]: 0.5}
+    vals = np.array([values[k] for k in keys], dtype=np.float64)
+    order = np.argsort(vals, kind="stable")
+    ranks = np.empty(n, dtype=np.float64)
+    i = 0
+    while i < n:
+        j = i
+        while j < n - 1 and vals[order[j + 1]] == vals[order[j]]:
+            j += 1
+        avg = (i + j) / 2.0
+        for idx in range(i, j + 1):
+            ranks[order[idx]] = avg
+        i = j + 1
+    rp = ranks / (n - 1)
+    return {keys[idx]: float(rp[idx]) for idx in range(n)}
+
+
 def _build_graph(records: list, config: Any) -> L2Asphodel:
     """Build + PageRank an L2Asphodel from enriched records.
 
@@ -85,6 +109,7 @@ def _build_graph(records: list, config: Any) -> L2Asphodel:
             "luma_entropy":          float(_get(r, "luma_entropy", 0.0)),
             "refined_motion_tensor": np.zeros(1, dtype=np.float32),
             "packet_size":           float(_get(r, "packet_size", 0.0)),
+            "codec_conf":            float(_get(r, "codec_conf", 0.5)),
         })
         action_score_records.append({
             "action_score":      float(_get(r, "action_score", 0.0)),
@@ -192,6 +217,44 @@ def _build_index_from_records(
     # 6. Build the L2 graph (edges + PageRank) once.
     graph = _build_graph(frames_to_index, config)
 
+    # 6.5. Compute per-node codec_conf (query-independent; stored on node + FrameRecord).
+    #      Source: packet_size (true demux) or action_score (proxy ablation arm).
+    #      Normalization: per-pict-type (C_bytype) when codec_conf_pictype_norm=True,
+    #      else global rank-percentile (C_raw baseline).
+    codec_conf_source = getattr(config, "codec_conf_source", "packet_size")
+    codec_conf_pictype_norm = getattr(config, "codec_conf_pictype_norm", True)
+
+    raw_signal: dict = {}
+    pict_by_fi: dict = {}
+    for f in frames_to_index:
+        fi = f["frame_idx"]
+        if codec_conf_source == "action_score":
+            raw_signal[fi] = float(f.get("action_score", 0.0))
+        else:
+            raw_signal[fi] = float(f.get("packet_size", 0.0))
+        pict_by_fi[fi] = str(f.get("pict_type", "?"))
+
+    if codec_conf_pictype_norm:
+        groups: dict = {}
+        for fi, pt in pict_by_fi.items():
+            groups.setdefault(pt, []).append(fi)
+        rp_map: dict = {}
+        for pt, nids in groups.items():
+            if len(nids) < 2:
+                for fi in nids:
+                    rp_map[fi] = 0.5
+            else:
+                sub = {fi: raw_signal[fi] for fi in nids}
+                rp_map.update(_rank_percentile(sub))
+    else:
+        rp_map = _rank_percentile(raw_signal)
+
+    codec_conf_map = {fi: 0.1 + 0.9 * rp_map.get(fi, 0.5) for fi in raw_signal}
+
+    for fi, cc in codec_conf_map.items():
+        if fi in graph.graph.nodes:
+            graph.graph.nodes[fi]["node_data"].codec_conf = cc
+
     # 7. Project enriched frames into serializable FrameRecords (+ pagerank).
     frames: list[FrameRecord] = []
     for f in frames_to_index:
@@ -216,6 +279,7 @@ def _build_index_from_records(
             pagerank_score=float(node.pagerank_score),
             packet_size=float(f.get("packet_size", 0.0)),
             pict_type=str(f.get("pict_type", "?")),
+            codec_conf=float(codec_conf_map.get(fi, 0.5)),
         ))
 
     # 8. Video-level scalars (precomputed; index_action_score == old query_action_score)
@@ -300,6 +364,7 @@ def save_index(index: IRISIndex, path: str | Path) -> None:
             "pagerank_score":    fr.pagerank_score,
             "packet_size":       fr.packet_size,
             "pict_type":         fr.pict_type,
+            "codec_conf":        fr.codec_conf,
         })
         if fr.clip_embedding is not None:
             embeddings[f"emb_{fr.frame_idx}"] = np.asarray(fr.clip_embedding, dtype=np.float32)
@@ -352,6 +417,7 @@ def load_index(path: str | Path) -> IRISIndex:
             pagerank_score=d["pagerank_score"],
             packet_size=d.get("packet_size", 0.0),
             pict_type=d.get("pict_type", "?"),
+            codec_conf=d.get("codec_conf", 0.5),
         ))
 
     index = IRISIndex(

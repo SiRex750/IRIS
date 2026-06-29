@@ -176,7 +176,14 @@ def _build_retrieved(index: IRISIndex, query_embedding: np.ndarray, config: Any)
     ranking_mode = getattr(config, "ranking_mode", "legacy")
     if graph is not None:
         if ranking_mode == "ppr":
-            retrieved_nodes = graph.retrieve_ppr(query_embedding, top_k=l2_retrieve_top_k)
+            lambda_ = getattr(config, "ppr_lambda", 0.5)
+            damping  = getattr(config, "ppr_damping", 0.5)
+            retrieved_nodes = graph.retrieve_ppr(
+                query_embedding,
+                top_k=l2_retrieve_top_k,
+                damping=damping,
+                lambda_=lambda_,
+            )
         else:
             retrieved_nodes = graph.retrieve(
                 query_embedding,

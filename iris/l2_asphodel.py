@@ -17,6 +17,30 @@ import scipy.sparse
 from typing import Any, List, Dict, Union, Optional
 
 
+def _rank_pct(values: dict) -> dict:
+    """Average-tied rank-percentile in [0, 1] over {node_id: float}."""
+    keys = list(values.keys())
+    n = len(keys)
+    if n == 0:
+        return {}
+    if n == 1:
+        return {keys[0]: 0.5}
+    vals = np.array([values[k] for k in keys], dtype=np.float64)
+    order = np.argsort(vals, kind="stable")
+    ranks = np.empty(n, dtype=np.float64)
+    i = 0
+    while i < n:
+        j = i
+        while j < n - 1 and vals[order[j + 1]] == vals[order[j]]:
+            j += 1
+        avg = (i + j) / 2.0
+        for idx in range(i, j + 1):
+            ranks[order[idx]] = avg
+        i = j + 1
+    rp = ranks / (n - 1)
+    return {keys[idx]: float(rp[idx]) for idx in range(n)}
+
+
 @dataclass
 class AsphodelNode:
     """
@@ -47,6 +71,7 @@ class AsphodelNode:
     embedding:             np.ndarray | None = None
     pagerank_score:        float = 0.0
     packet_size:           float = 0.0
+    codec_conf:            float = 0.5
 
 
 class L2Asphodel:
@@ -309,6 +334,7 @@ class L2Asphodel:
             action_score    = float(get_val(action_score_record, "action_score", 0.0))
             persistence_value = float(get_val(action_score_record, "persistence_value", 0.0))
             packet_size     = float(get_val(feature_record, "packet_size", 0.0))
+            codec_conf      = float(get_val(feature_record, "codec_conf", 0.5))
 
             node_obj = AsphodelNode(
                 frame_idx=frame_idx,
@@ -322,6 +348,7 @@ class L2Asphodel:
                 triples=[],
                 embedding=None,
                 packet_size=packet_size,
+                codec_conf=codec_conf,
             )
             self.graph.add_node(frame_idx, node_data=node_obj)
 
@@ -419,17 +446,17 @@ class L2Asphodel:
         self,
         query_embedding: np.ndarray | None,
         top_k: int = 5,
-        damping: float = 0.85,
+        damping: float = 0.5,
+        lambda_: float = 0.5,
     ) -> list[AsphodelNode]:
         """
-        Query-conditioned Personalized PageRank retrieval.
+        Codec-discounted Personalized PageRank retrieval (6.2b mechanism).
 
-        Teleport weights are seeded by ReLU-clamped cosine similarity between
-        query_embedding and each node's stored embedding. Falls back to uniform
-        teleport when query_embedding is None/zero or no enriched nodes exist.
+        Seed = additive rank-space blend: λ·rank_pct(sem_sim) + (1-λ)·rank_pct(codec_conf),
+        ReLU-clamped, sum-normalized. codec_conf is pre-computed at ingest (per-pict-type
+        normalized when config.codec_conf_pictype_norm=True) — NOT re-normalized here.
 
-        Returns top-top_k AsphodelNodes sorted by PPR score descending.
-        Same return type as retrieve(). No per-node print().
+        Falls back to uniform teleport when all seeds are zero.
         """
         node_ids = list(self.graph.nodes)
         if not node_ids:
@@ -438,7 +465,8 @@ class L2Asphodel:
         n = len(node_ids)
         teleport_fallback = False
 
-        personalization: dict = {}
+        # Semantic similarity (ReLU-clamped cosine)
+        raw_sem: dict = {}
         for nid in node_ids:
             node = self.graph.nodes[nid]["node_data"]
             sem = 0.0
@@ -446,23 +474,33 @@ class L2Asphodel:
                 norm_node = np.linalg.norm(node.embedding)
                 norm_query = np.linalg.norm(query_embedding)
                 if norm_node > 0.0 and norm_query > 0.0:
-                    sem = float(
-                        np.dot(node.embedding, query_embedding) / (norm_node * norm_query)
-                    )
-            personalization[nid] = max(0.0, sem)
+                    sem = float(np.dot(node.embedding, query_embedding) / (norm_node * norm_query))
+            raw_sem[nid] = max(0.0, sem)
 
-        total = sum(personalization.values())
+        # Rank-percentile of semantic similarities
+        sem_rank = _rank_pct(raw_sem)
+
+        # Rank-percentile of pre-computed codec_conf (do NOT re-normalize the values themselves)
+        raw_codec = {nid: self.graph.nodes[nid]["node_data"].codec_conf for nid in node_ids}
+        codec_rank = _rank_pct(raw_codec)
+
+        # Additive rank-space blend, ReLU, sum-normalize
+        seed_raw = {
+            nid: max(0.0, lambda_ * sem_rank[nid] + (1.0 - lambda_) * codec_rank[nid])
+            for nid in node_ids
+        }
+        total = sum(seed_raw.values())
         if total > 0.0:
-            personalization = {k: v / total for k, v in personalization.items()}
+            seed = {k: v / total for k, v in seed_raw.items()}
         else:
-            personalization = {k: 1.0 / n for k in node_ids}
+            seed = {k: 1.0 / n for k in node_ids}
             teleport_fallback = True
 
         try:
             pr = nx.pagerank(
                 self.graph,
                 weight="weight",
-                personalization=personalization,
+                personalization=seed,
                 alpha=damping,
             )
         except Exception:
@@ -472,7 +510,14 @@ class L2Asphodel:
         for nid, score in pr.items():
             node = self.graph.nodes[nid]["node_data"]
             node.last_retrieval_score = score
-            node.retrieval_contributions = {"ppr": score, "teleport_fallback": teleport_fallback}
+            node.retrieval_contributions = {
+                "sem_rank":        sem_rank[nid],
+                "codec_rank":      codec_rank[nid],
+                "seed":            seed[nid],
+                "ppr":             score,
+                "lambda":          lambda_,
+                "teleport_fallback": teleport_fallback,
+            }
 
         sorted_ids = sorted(pr, key=lambda k: pr[k], reverse=True)
         return [self.graph.nodes[k]["node_data"] for k in sorted_ids[:top_k]]

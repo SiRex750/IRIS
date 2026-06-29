@@ -47,6 +47,9 @@ class FrameRecord:
     pict_type:     str   = "?"
     # L2 structural score, filled after graph build
     pagerank_score:    float = 0.0
+    # Pre-computed codec confidence signal (query-independent, stored at ingest).
+    # Per-pict-type-normalized by default; 0.5 = neutral/missing.
+    codec_conf:        float = 0.5
 
 
 @dataclass

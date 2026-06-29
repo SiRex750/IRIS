@@ -29,6 +29,9 @@ class IRISConfig:
     retrieval_strategy: str = "hybrid"  # strategy: "peak_only", "top_k_action", "peak_neighbors", "hybrid"
     ranking_mode: str = "legacy"  # "legacy" = α·sem+β·action+γ·persist; "ppr" = query-conditioned Personalized PageRank
     codec_conf_source: str = "packet_size"  # "packet_size" = true demux size; "action_score" = proxy (Phase-6 diag fallback)
+    codec_conf_pictype_norm: bool  = True   # per-pict-type normalization; False = global C_raw baseline (ablation)
+    ppr_lambda:             float = 0.5    # rank-space blend weight: λ·sem_rank + (1-λ)·codec_rank
+    ppr_damping:            float = 0.5    # PPR teleport probability α passed to nx.pagerank
 
     # ── Cerberus-V ────────────────────────────────────────────────────────
     cerberus_high_thresh: float = 0.70  # action_score >= this → full NLI
@@ -125,6 +128,12 @@ class IRISConfig:
         )
         assert self.codec_conf_source in {"packet_size", "action_score"}, (
             f"Invalid codec_conf_source '{self.codec_conf_source}'"
+        )
+        assert 0.0 <= self.ppr_lambda <= 1.0, (
+            f"ppr_lambda must be in [0.0, 1.0], got {self.ppr_lambda}"
+        )
+        assert 0.0 < self.ppr_damping < 1.0, (
+            f"ppr_damping must be in (0.0, 1.0), got {self.ppr_damping}"
         )
 
         l1_weight_sum = round(
