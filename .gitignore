@@ -18,3 +18,7 @@ venv/
 configs/gepa_*.json
 logs/
 
+
+eval/data/
+*_output.log
+*.npz
