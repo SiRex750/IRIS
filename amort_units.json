@@ -1,0 +1,68 @@
+{
+  "video": "videoplayback.mp4",
+  "config": {
+    "ranking_mode": "ppr",
+    "ppr_lambda": 0.5,
+    "ppr_damping": 0.5,
+    "codec_conf_source": "packet_size",
+    "codec_conf_pictype_norm": true,
+    "l2_retrieve_top_k": 8
+  },
+  "gated_build": {
+    "n_all": 1440,
+    "n_surv": 220,
+    "frames_actually_decoded": 220,
+    "pagerank_calls_build": 2,
+    "caption_calls_build": 0,
+    "build_wall_sec": 28.924050300003728
+  },
+  "per_frame_unit_costs": {
+    "sample_k_requested": 20,
+    "sample_k_actual": 20,
+    "per_frame_decode_sec": 0.0011660500007565134,
+    "per_frame_embed_sec": 0.07085900499951095,
+    "per_frame_caption_sec": 0.8170374699999229,
+    "caption_warmup_sec": 53.95580299998983,
+    "caption_warmup_is_large_one_time_cost": true
+  },
+  "per_query_retrieve": {
+    "pagerank_calls_query": 1,
+    "retrieve_wall_sec": 0.044880200002808124
+  },
+  "build_reconciliation": {
+    "accounted_sec": 195.59375550004188,
+    "residual_sec": -166.66970520003815,
+    "residual_frac": -5.762322478052691
+  },
+  "phase_times": {
+    "top_level_exclusive": {
+      "parse_video_sec": 6.002160400006687,
+      "parse_video_calls": 1,
+      "embed_total_sec": 19.617166799522238,
+      "embed_total_calls": 220,
+      "embed_legacy_sec": 0.0,
+      "embed_legacy_calls": 0,
+      "embed_pilcache_sec": 19.617166799522238,
+      "embed_pilcache_calls": 220,
+      "caption_total_sec": 0.0,
+      "caption_total_calls": 0,
+      "build_graph_sec": 0.3066871000046376,
+      "build_graph_calls": 1
+    },
+    "nested_annotations_not_in_sum": {
+      "compute_motion_geometry_sec": 0.32406669994816184,
+      "compute_motion_geometry_calls": 220,
+      "compute_motion_geometry_share_of_parse_video": 0.05399167605514187,
+      "get_captioner_sec": 4.4000043999403715e-06,
+      "get_captioner_calls": 1,
+      "get_backend_sec": 6.500020390376449e-06,
+      "get_backend_calls": 1
+    },
+    "phase_reconciliation": {
+      "build_wall_sec": 28.924050300003728,
+      "accounted_sec": 25.926014299533563,
+      "residual_sec": 2.998036000470165,
+      "residual_frac": 0.10365201171254286
+    }
+  }
+}

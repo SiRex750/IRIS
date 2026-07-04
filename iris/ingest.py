@@ -186,8 +186,11 @@ def _build_index_from_records(
     else:  # hybrid
         frames_to_index = output_frames
 
-    # 5. Per-video enrichment: CLIP embedding + caption (the once-per-video cost
-    #    that used to run every query inside wrapper_l2_retrieve).
+    # 5. Per-video enrichment: CLIP embedding only. Captioning is lazy — moved
+    #    to query time (iris.query._ensure_captions) so build cost scales with
+    #    survivors embedded, not survivors captioned. caption stays None here
+    #    and is populated on demand, cached by frame_idx, at most once per
+    #    retrieved frame.
     device = _device()
     has_pil_cache = bool(frames_to_index) and all(
         f.get("pil_image") is not None for f in frames_to_index
@@ -202,17 +205,13 @@ def _build_index_from_records(
                 f = frame_map[idx]
                 clip_emb = get_frame_clip_embedding(frame, device)
                 f["clip_embedding"] = clip_emb
-                try:
-                    pil_img = frame.to_image()
-                except Exception:
-                    pil_img = None
-                f["caption"] = get_semantic_and_clip_caption(pil_img, frame, clip_emb, device)
+                f["caption"] = None
         container.close()
     else:
         for f in frames_to_index:
             clip_emb = get_clip_embedding_from_pil(f["pil_image"], device)
             f["clip_embedding"] = clip_emb
-            f["caption"] = get_semantic_and_clip_caption(f["pil_image"], None, clip_emb, device)
+            f["caption"] = None
 
     # 6. Build the L2 graph (edges + PageRank) once.
     graph = _build_graph(frames_to_index, config)

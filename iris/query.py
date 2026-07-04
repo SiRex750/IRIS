@@ -22,6 +22,14 @@ import iris.aria as aria
 from iris.types import IRISIndex
 
 
+def _device() -> str:
+    try:
+        import torch
+        return "cuda" if torch.cuda.is_available() else "cpu"
+    except Exception:
+        return "cpu"
+
+
 def wrapper_init_l1_cache(config: object = None) -> object:
     """Isolate L1 Elysium cache instantiation. Fallback to cache.py L1Cache if empty/stub."""
     try:
@@ -235,6 +243,82 @@ def _build_retrieved(index: IRISIndex, query_embedding: np.ndarray, config: Any)
     return retrieved
 
 
+def _ensure_captions(index: IRISIndex, retrieved_frames: list[dict]) -> int:
+    """Lazily caption retrieved frames lacking a cached caption.
+
+    Captioning moved out of ingest() to keep build cost proportional to
+    survivors *embedded*, not survivors *captioned*. The cache lives on each
+    FrameRecord.caption (keyed by frame_idx) so a frame is captioned at most
+    once per loaded index, regardless of how many queries retrieve it.
+
+    FrameRecords deliberately drop pil_image after build, so a caption-miss
+    needs the frame's pixels back. Fetches each miss by SEEK, not a linear
+    re-decode of the whole video: container.seek() lands on the keyframe
+    at/before the target timestamp, then we decode forward only as far as
+    that GOP requires. A full re-scan on the query hot path would reintroduce
+    the exact full-decode cost the build-time gate exists to avoid, and at
+    CCTV scale (multi-hour footage) that cost is prohibitive.
+
+    Matches on pts/timestamp, not a recounted display index — display index
+    is meaningless after a seek since decode() only yields frames from the
+    seek point forward, not from frame 0.
+
+    Returns frames_decoded_for_captions: total frames actually decoded across
+    all seek-and-scan-forward targets (instrumentation for the CCTV-scale
+    cost model — should be O(GOP size * misses), not O(video length)).
+    """
+    frame_map = {fr.frame_idx: fr for fr in index.frames}
+    missing_frs = [
+        frame_map[f["frame_idx"]] for f in retrieved_frames
+        if frame_map.get(f["frame_idx"]) is not None
+        and frame_map[f["frame_idx"]].caption is None
+    ]
+    if not missing_frs:
+        return 0
+
+    import av
+    from iris._clip import get_semantic_and_clip_caption
+
+    device = _device()
+    frames_decoded_for_captions = 0
+    container = av.open(str(index.video_path))
+    try:
+        stream = container.streams.video[0]
+        fps = float(stream.average_rate) if stream.average_rate else 25.0
+        tolerance = 0.5 / fps  # half a frame-interval
+
+        for fr in missing_frs:
+            target_pts = int(round(fr.timestamp / stream.time_base))
+            container.seek(target_pts, stream=stream)  # backward=True default -> keyframe at/before
+
+            target_frame = None
+            for frame in container.decode(stream):
+                frames_decoded_for_captions += 1
+                if frame.pts is None:
+                    continue
+                frame_time = float(frame.pts * stream.time_base)
+                if frame_time >= fr.timestamp - tolerance:
+                    target_frame = frame
+                    break
+
+            if target_frame is None:
+                continue
+            try:
+                pil_img = target_frame.to_image()
+            except Exception:
+                pil_img = None
+            fr.caption = get_semantic_and_clip_caption(pil_img, target_frame, fr.clip_embedding, device)
+    finally:
+        container.close()
+
+    for f in retrieved_frames:
+        fr = frame_map.get(f["frame_idx"])
+        if fr is not None:
+            f["caption"] = fr.caption
+
+    return frames_decoded_for_captions
+
+
 def query(question: str, index: IRISIndex, config: Any = None) -> dict:
     """Answer one question against a loaded index. No video read, no graph rebuild.
     Returns the same result-dict shape as pipeline.run_pipeline (parity target)."""
@@ -244,6 +328,10 @@ def query(question: str, index: IRISIndex, config: Any = None) -> dict:
     query_embedding = _embed_query(question, config)
     retrieved_frames = _build_retrieved(index, query_embedding, config)
     t_l2 = time.time() - t_l2_start
+
+    t_caption_start = time.time()
+    frames_decoded_for_captions = _ensure_captions(index, retrieved_frames)
+    t_caption = time.time() - t_caption_start
 
     t_elysium_start = time.time()
     cache_obj = wrapper_init_l1_cache(config)
@@ -282,11 +370,13 @@ def query(question: str, index: IRISIndex, config: Any = None) -> dict:
         "skipped_frames_ratio": index.skipped_frames_ratio,
         "storage_reduction_factor": index.storage_reduction_factor,
         "retrieved_frame_idxs": [f["frame_idx"] for f in retrieved_frames],
+        "frames_decoded_for_captions": frames_decoded_for_captions,
         "timings": {
             "l2_retrieval": t_l2,
+            "lazy_caption": t_caption,
             "elysium": t_elysium,
             "aria": t_aria,
             "cerberus_v": t_cerberus,
-            "total": t_l2 + t_elysium + t_aria + t_cerberus,
+            "total": t_l2 + t_caption + t_elysium + t_aria + t_cerberus,
         },
     }
