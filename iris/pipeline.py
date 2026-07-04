@@ -52,6 +52,80 @@ _CLIP_TEXT_FEATURES = None
 _BLIP_MODEL = None
 _BLIP_PROCESSOR = None
 
+# ── Charon-V in-process decode cache ──────────────────────────────────────
+# Keyed by (video_path, candidate_thresh, salient_thresh, adaptive, visual_debug_mode).
+# Charon-V output is deterministic for a given video + config, so it only
+# needs to run once per Python process per (video, decode-config) combination.
+# This eliminates the redundant 20× re-decode in the abstention eval loop
+# (10 questions × 2 configs on the same video).
+# output_frames is deep-copied on each use so per-query mutations
+# (action_score, is_peak, clip_embedding, caption) don't bleed across calls.
+_CHARON_CACHE: dict = {}
+
+
+def _rank_percentile(values: dict) -> dict:
+    """Average-tied rank-percentile in [0, 1] over {key: float}."""
+    keys = list(values.keys())
+    n = len(keys)
+    if n == 0:
+        return {}
+    if n == 1:
+        return {keys[0]: 0.5}
+    vals = np.array([values[k] for k in keys], dtype=np.float64)
+    order = np.argsort(vals, kind="stable")
+    ranks = np.empty(n, dtype=np.float64)
+    i = 0
+    while i < n:
+        j = i
+        while j < n - 1 and vals[order[j + 1]] == vals[order[j]]:
+            j += 1
+        avg = (i + j) / 2.0
+        for idx in range(i, j + 1):
+            ranks[order[idx]] = avg
+        i = j + 1
+    rp = ranks / (n - 1)
+    return {keys[idx]: float(rp[idx]) for idx in range(n)}
+
+
+def _compute_codec_conf_map(frames: list[dict], config: object = None) -> dict:
+    """Compute query-independent codec confidence for the legacy pipeline path.
+
+    Matches the ingest path: packet-size or action-score source, optionally
+    normalized within picture type so I-frames do not dominate solely because
+    they are larger reference frames.
+    """
+    if not frames:
+        return {}
+
+    source = getattr(config, "codec_conf_source", "packet_size")
+    by_type = getattr(config, "codec_conf_pictype_norm", True)
+
+    raw_signal: dict = {}
+    pict_by_fi: dict = {}
+    for frame in frames:
+        fi = frame["frame_idx"]
+        if source == "action_score":
+            raw_signal[fi] = float(frame.get("action_score", 0.0))
+        else:
+            raw_signal[fi] = float(frame.get("packet_size", 0.0))
+        pict_by_fi[fi] = str(frame.get("pict_type", frame.get("frame_type", "?")))
+
+    if by_type:
+        rp_map: dict = {}
+        groups: dict = {}
+        for fi, pict_type in pict_by_fi.items():
+            groups.setdefault(pict_type, []).append(fi)
+        for _, group_ids in groups.items():
+            if len(group_ids) < 2:
+                for fi in group_ids:
+                    rp_map[fi] = 0.5
+            else:
+                rp_map.update(_rank_percentile({fi: raw_signal[fi] for fi in group_ids}))
+    else:
+        rp_map = _rank_percentile(raw_signal)
+
+    return {fi: 0.1 + 0.9 * rp_map.get(fi, 0.5) for fi in raw_signal}
+
 
 def get_blip_model():
     """Load and cache the BLIP image captioning model globally."""
@@ -309,6 +383,7 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
                 self.enrich_nodes_bulk(enrichment_map)
             L2Asphodel.batch_enrich_nodes = batch_enrich_nodes
     except ImportError:
+        wrapper_l2_retrieve.last_graph_data = None
         sorted_frames = sorted(
             frames_to_index,
             key=lambda x: (x.get("action_score", 0.0), x.get("luma_diff_energy", 0.0)),
@@ -348,6 +423,7 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
     # Pass 1: collect all node data without touching the graph
     node_records = []       # list of (feature_record, score_record)
     enrichment_records = [] # list of (frame_idx, triples, embedding)
+    codec_conf_map = _compute_codec_conf_map(frames_to_index, config)
 
     if has_pil_cache:
         # ── Fast path (no 3rd video decode) ──────────────────────────────
@@ -364,7 +440,18 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
                 "luma_diff_energy":      f_data["luma_diff_energy"],
                 "motion_magnitude":     f_data.get("motion_magnitude", 0.0),
                 "luma_entropy":              f_data.get("luma_entropy", 0.0),
-                "refined_motion_tensor": np.zeros(1, dtype=np.float32),
+                "refined_motion_tensor": np.asarray([
+                    float(f_data.get("motion_magnitude", 0.0)),
+                    float(f_data.get("divergence", 0.0)),
+                    float(f_data.get("curl", 0.0)),
+                    float(f_data.get("jacobian_frobenius", 0.0)),
+                    float(f_data.get("hessian_max_eigenvalue", 0.0)),
+                    float(f_data.get("motion_entropy", 0.0)),
+                ], dtype=np.float32),
+                "packet_size":          float(f_data.get("packet_size", 0.0)),
+                "codec_conf":           float(codec_conf_map.get(f_data["frame_idx"], 0.5)),
+                "pict_type":            str(f_data.get("pict_type", f_data.get("frame_type", "?"))),
+                "is_peak":              bool(f_data.get("is_peak", False)),
             }
             score_record = {
                 "action_score":     f_data["action_score"],
@@ -394,7 +481,18 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
                     "luma_diff_energy":      f_data["luma_diff_energy"],
                     "motion_magnitude":     f_data.get("motion_magnitude", 0.0),
                     "luma_entropy":              f_data.get("luma_entropy", 0.0),
-                    "refined_motion_tensor": np.zeros(1, dtype=np.float32),
+                    "refined_motion_tensor": np.asarray([
+                        float(f_data.get("motion_magnitude", 0.0)),
+                        float(f_data.get("divergence", 0.0)),
+                        float(f_data.get("curl", 0.0)),
+                        float(f_data.get("jacobian_frobenius", 0.0)),
+                        float(f_data.get("hessian_max_eigenvalue", 0.0)),
+                        float(f_data.get("motion_entropy", 0.0)),
+                    ], dtype=np.float32),
+                    "packet_size":          float(f_data.get("packet_size", 0.0)),
+                    "codec_conf":           float(codec_conf_map.get(f_data["frame_idx"], 0.5)),
+                    "pict_type":            str(f_data.get("pict_type", f_data.get("frame_type", "?"))),
+                    "is_peak":              bool(f_data.get("is_peak", False)),
                 }
                 score_record = {
                     "action_score":     f_data["action_score"],
@@ -408,12 +506,28 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
     graph.batch_add_frame_nodes(node_records)
     graph.batch_enrich_nodes(enrichment_records)
 
-    # 3. Perform hybrid retrieval
+    # 3. Perform graph-aware retrieval
     if frames_to_index:
         query_action_score = max(f.get("action_score", 0.0) for f in frames_to_index)
     else:
         query_action_score = 0.5
-    retrieved_nodes = graph.retrieve(query_embedding, query_action_score=query_action_score, top_k=l2_retrieve_top_k)
+    ranking_mode = getattr(config, "ranking_mode", "legacy")
+    if ranking_mode == "ppr":
+        retrieved_nodes = graph.retrieve_ppr(
+            query_embedding,
+            top_k=l2_retrieve_top_k,
+            damping=getattr(config, "ppr_damping", 0.5),
+            lambda_=getattr(config, "ppr_lambda", 0.5),
+        )
+    else:
+        retrieved_nodes = graph.retrieve(
+            query_embedding,
+            query_action_score=query_action_score,
+            top_k=l2_retrieve_top_k,
+        )
+    wrapper_l2_retrieve.last_graph_data = graph.export_graph_data(
+        max_edges=getattr(config, "graph_export_max_edges", 5000)
+    )
     
     # 4. Map returned AsphodelNode objects back to dictionaries expected by cache wrapper
     retrieved = []
@@ -433,6 +547,10 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
                 "pagerank_score": node.pagerank_score,
                 "last_retrieval_score": getattr(node, "last_retrieval_score", 0.0),
                 "retrieval_contributions": getattr(node, "retrieval_contributions", {}),
+                "tier": getattr(node, "tier", None),
+                "scene_id": getattr(node, "scene_id", None),
+                "pict_type": getattr(node, "pict_type", orig.get("pict_type", "?")),
+                "codec_conf": getattr(node, "codec_conf", 0.5),
             })
     
     if not retrieved:
@@ -455,6 +573,10 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
                 "pagerank_score": 0.0,
                 "last_retrieval_score": 0.0,
                 "retrieval_contributions": {},
+                "tier": "L1_PEAK" if f.get("is_peak", False) else "L3_CANDIDATE",
+                "scene_id": None,
+                "pict_type": f.get("pict_type", "?"),
+                "codec_conf": f.get("codec_conf", 0.5),
             })
 
     return retrieved
@@ -517,16 +639,36 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
 
     # 2. Parse video and extract raw frame features non-breakingly from H.264 stream
     # Returns (output_frames, stats, raw_records)
-    t_start = time.time()
-    output_frames, stats, raw_records = charon_v.parse_video(
+    # Uses _CHARON_CACHE to avoid re-decoding the same video when the same
+    # decode config is used across multiple queries (e.g. the abstention eval
+    # loop runs 20 pipeline calls on the same mov_bbb.mp4).
+    import copy
+    _charon_key = (
         str(video_path),
-        return_stats=True,
-        return_raw=True,
-        candidate_thresh=config.candidate_thresh,
-        salient_thresh=config.salient_thresh,
-        adaptive=getattr(config, "adaptive", True),
-        visual_debug_mode=getattr(config, "visual_debug_mode", False)
+        float(config.candidate_thresh),
+        float(config.salient_thresh),
+        bool(getattr(config, "adaptive", True)),
+        bool(getattr(config, "visual_debug_mode", False)),
     )
+    t_start = time.time()
+    if _charon_key not in _CHARON_CACHE:
+        _CHARON_CACHE[_charon_key] = charon_v.parse_video(
+            str(video_path),
+            return_stats=True,
+            return_raw=True,
+            candidate_thresh=config.candidate_thresh,
+            salient_thresh=config.salient_thresh,
+            adaptive=getattr(config, "adaptive", True),
+            visual_debug_mode=getattr(config, "visual_debug_mode", False)
+        )
+        print(f"[CACHE] Charon-V decoded {video_path} → cached under key {_charon_key[:2]}")
+    else:
+        print(f"[CACHE] Charon-V cache HIT for {Path(video_path).name} — skipping re-decode")
+    # Deep-copy output_frames: pipeline mutates it in-place (adds action_score,
+    # is_peak, clip_embedding, caption per query). Without the copy, the cached
+    # list would be permanently mutated after the first query.
+    cached_output_frames, stats, raw_records = _CHARON_CACHE[_charon_key]
+    output_frames = copy.deepcopy(cached_output_frames)
     t_charon = time.time() - t_start
 
     # 3. Continuous action scoring & persistence peak detection
@@ -571,6 +713,13 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
         frame["is_peak"] = score_info["is_peak"]
         frame["persistence_value"] = score_info["persistence_value"]
         frame["luma_entropy"] = raw_map.get(frame_idx, {}).get("luma_entropy", 0.0)
+        frame["pict_type"] = raw_map.get(frame_idx, {}).get("frame_type", frame.get("pict_type", "?"))
+        frame["packet_size"] = raw_map.get(frame_idx, {}).get("packet_size", frame.get("packet_size", 0.0))
+        frame["divergence"] = raw_map.get(frame_idx, {}).get("divergence", frame.get("divergence", 0.0))
+        frame["curl"] = raw_map.get(frame_idx, {}).get("curl", frame.get("curl", 0.0))
+        frame["jacobian_frobenius"] = raw_map.get(frame_idx, {}).get("jacobian_frobenius", frame.get("jacobian_frobenius", 0.0))
+        frame["hessian_max_eigenvalue"] = raw_map.get(frame_idx, {}).get("hessian_max_eigenvalue", frame.get("hessian_max_eigenvalue", 0.0))
+        frame["motion_entropy"] = raw_map.get(frame_idx, {}).get("motion_entropy", frame.get("motion_entropy", 0.0))
     t_action = time.time() - t_action_start
 
     # If visual_debug_mode is enabled, save annotated candidate frames
@@ -780,6 +929,7 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
             "frames_given_to_aria": [f.frame_idx for f in cache_obj.frames()],
             "context_length": len(context_text),
             "retrieval_results": context_text,
+            "l2_graph": getattr(wrapper_l2_retrieve, "last_graph_data", None),
             
             # --- Cerberus Debug Data ---
             "cerberus_claims": claims,

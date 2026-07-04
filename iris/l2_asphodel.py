@@ -57,7 +57,10 @@ class AsphodelNode:
         refined_motion_tensor: The bfloat16 smoothed motion tensor from the RMR layer.
         triples:               KnowledgeTriple objects added by ARIA during enrichment.
         embedding:             CLIP embedding numpy array added by ARIA (None until enriched).
-        pagerank_score:        Structural importance score computed dynamically via PageRank.
+    pagerank_score:        Structural importance score computed dynamically via PageRank.
+        tier:                  Hierarchical frame tier: L1_PEAK, L2_SALIENT, or L3_CANDIDATE.
+        pict_type:             Codec picture type, used to mark I-frame scene resets.
+        scene_id:              Monotonic scene segment id inferred from I-frames.
     """
     frame_idx:             int
     timestamp:             float
@@ -72,6 +75,11 @@ class AsphodelNode:
     pagerank_score:        float = 0.0
     packet_size:           float = 0.0
     codec_conf:            float = 0.5
+    tier:                  str = "L3_CANDIDATE"
+    pict_type:             str = "?"
+    scene_id:              int = 0
+    last_retrieval_score:  float = 0.0
+    retrieval_contributions: dict = field(default_factory=dict)
 
 
 class L2Asphodel:
@@ -104,74 +112,243 @@ class L2Asphodel:
         self.alpha: float = 0.4
         self.beta: float = 0.6
         self.gamma: float = 0.0
+        self.delta: float = 0.0
+        self.graph_edge_mode: str = "fully_connected"
+        self.graph_temporal_window: int = 1
+        self.graph_semantic_top_k: int = 4
+        self.graph_motion_top_k: int = 2
+        self.graph_semantic_threshold: float = 0.5
+        self.debug_retrieval: bool = False
+        self.salient_thresh: float = 0.35
+        self.candidate_thresh: float = 0.08
 
         # Parse config fields if provided (handling both IRISConfig classes and dictionaries)
         if config is not None:
-            self.alpha = getattr(config, "alpha", self.alpha)
-            self.beta = getattr(config, "beta", self.beta)
-            self.gamma = getattr(config, "gamma", self.gamma)
-            if isinstance(config, dict):
-                self.alpha = config.get("alpha", self.alpha)
-                self.beta = config.get("beta", self.beta)
-                self.gamma = config.get("gamma", self.gamma)
+            self.alpha = self._cfg(config, "alpha", self.alpha)
+            self.beta = self._cfg(config, "beta", self.beta)
+            self.gamma = self._cfg(config, "gamma", self.gamma)
+            self.delta = self._cfg(config, "delta", self.delta)
+            self.graph_edge_mode = self._cfg(config, "graph_edge_mode", self.graph_edge_mode)
+            self.graph_temporal_window = int(self._cfg(config, "graph_temporal_window", self.graph_temporal_window))
+            self.graph_semantic_top_k = int(self._cfg(config, "graph_semantic_top_k", self.graph_semantic_top_k))
+            self.graph_motion_top_k = int(self._cfg(config, "graph_motion_top_k", self.graph_motion_top_k))
+            self.graph_semantic_threshold = float(self._cfg(config, "graph_semantic_threshold", self.graph_semantic_threshold))
+            self.debug_retrieval = bool(self._cfg(config, "graph_debug_retrieval", self.debug_retrieval))
+            self.salient_thresh = float(self._cfg(config, "salient_thresh", self.salient_thresh))
+            self.candidate_thresh = float(self._cfg(config, "candidate_thresh", self.candidate_thresh))
+
+    @staticmethod
+    def _cfg(config: Any, key: str, default: Any) -> Any:
+        if isinstance(config, dict):
+            return config.get(key, default)
+        return getattr(config, key, default)
 
     def _update_all_edge_weights(self) -> None:
         """
-        Recalculates edge weights between all nodes in the graph to maintain a fully
-        connected, mathematically consistent spatiotemporal graph.
+        Recalculates edge weights between all nodes in the graph.
+
+        Default mode is a sparse hierarchy:
+          L1_PEAK      = peak / I-frame scene reset nodes
+          L2_SALIENT   = high-action salient nodes
+          L3_CANDIDATE = lower-action candidate nodes
+
+        Edge families:
+          - temporal: local neighbors in indexed-frame order
+          - hierarchy_peak_salient: nearest L1 parent for each L2 node
+          - hierarchy_salient_candidate: nearest L2 parent for each L3 node
+          - semantic_salient: L2↔L2 semantic cross-root edges
+          - motion_neighbor: nearest action/motion neighbors
+
+        `graph_edge_mode="fully_connected"` preserves the older dense behavior.
         
-        Formula:
-          Total_Weight = (cosine_similarity(i, j) * alpha) + (motion_coherence(i, j) * beta)
-          
-        If either endpoint lacks an embedding (cold-start phase), the weight defaults to
-        motion_coherence(i, j).
+        All edges store channel attributes (`semantic_weight`, `motion_weight`,
+        `temporal_weight`, `edge_type`) plus the final scalar `weight` used by
+        PageRank/PPR.
         """
         node_ids = list(self.graph.nodes)
         num_nodes = len(node_ids)
+        self.graph.remove_edges_from(list(self.graph.edges))
         if num_nodes <= 1:
+            self._refresh_scene_ids()
             return
 
-        # Fetch all node data objects to analyze the range of action scores
-        nodes_data = [self.graph.nodes[n]["node_data"] for n in node_ids]
-        scores = [node.action_score for node in nodes_data]
+        self._refresh_scene_ids()
+        sorted_ids = sorted(
+            node_ids,
+            key=lambda nid: (
+                self.graph.nodes[nid]["node_data"].timestamp,
+                self.graph.nodes[nid]["node_data"].frame_idx,
+            ),
+        )
+        nodes_data = [self.graph.nodes[n]["node_data"] for n in sorted_ids]
 
-        # Dynamic Math Normalization:
-        # Calculate max_score_range dynamically based on the current max and min action_score.
-        # This keeps the motion coherence relative and scaled between 0.0 and 1.0.
-        # If all nodes share the same action_score (or range is 0), we default coherence to 1.0.
+        scores = [node.action_score for node in nodes_data]
         max_score = max(scores)
         min_score = min(scores)
         max_score_range = max_score - min_score
 
-        # Re-populate/update the fully connected edge set
-        for i in range(num_nodes):
-            for j in range(i + 1, num_nodes):
-                u, v = node_ids[i], node_ids[j]
-                node_u = self.graph.nodes[u]["node_data"]
+        if self.graph_edge_mode == "fully_connected":
+            for i in range(num_nodes):
+                for j in range(i + 1, num_nodes):
+                    self._add_weighted_edge(sorted_ids[i], sorted_ids[j], "fully_connected", max_score_range)
+            return
+
+        self._add_temporal_edges(sorted_ids, max_score_range)
+        self._add_hierarchy_edges(sorted_ids, max_score_range)
+        self._add_salient_semantic_edges(sorted_ids, max_score_range)
+        self._add_motion_neighbor_edges(sorted_ids, max_score_range)
+
+    def _refresh_scene_ids(self) -> None:
+        """Infer scene segments from I-frames in temporal order."""
+        sorted_ids = sorted(
+            self.graph.nodes,
+            key=lambda nid: (
+                self.graph.nodes[nid]["node_data"].timestamp,
+                self.graph.nodes[nid]["node_data"].frame_idx,
+            ),
+        )
+        scene_id = 0
+        first = True
+        for nid in sorted_ids:
+            node = self.graph.nodes[nid]["node_data"]
+            pict = str(getattr(node, "pict_type", "?")).upper()
+            if not first and pict.startswith("I"):
+                scene_id += 1
+            node.scene_id = scene_id
+            first = False
+
+    def _semantic_similarity(self, node_u: AsphodelNode, node_v: AsphodelNode) -> float:
+        if node_u.embedding is None or node_v.embedding is None:
+            return 0.0
+        norm_u = np.linalg.norm(node_u.embedding)
+        norm_v = np.linalg.norm(node_v.embedding)
+        if norm_u == 0.0 or norm_v == 0.0:
+            return 0.0
+        return max(0.0, float(np.dot(node_u.embedding, node_v.embedding) / (norm_u * norm_v)))
+
+    def _motion_similarity(self, node_u: AsphodelNode, node_v: AsphodelNode, max_score_range: float) -> float:
+        if max_score_range == 0.0:
+            return 1.0
+        return max(0.0, 1.0 - (abs(node_u.action_score - node_v.action_score) / max_score_range))
+
+    def _temporal_proximity(self, node_u: AsphodelNode, node_v: AsphodelNode) -> float:
+        dt = abs(float(node_u.timestamp) - float(node_v.timestamp))
+        return 1.0 / (1.0 + dt)
+
+    def _edge_weight(self, semantic: float, motion: float, temporal: float, edge_type: str) -> float:
+        if edge_type.startswith("hierarchy_peak_salient"):
+            base = temporal * max(semantic, motion)
+        elif edge_type.startswith("hierarchy_salient_candidate"):
+            base = temporal * max(motion, semantic * 0.5)
+        elif edge_type == "temporal":
+            base = 0.7 * temporal + 0.3 * motion
+        elif edge_type == "semantic_salient":
+            base = 0.8 * semantic + 0.2 * temporal
+        elif edge_type == "motion_neighbor":
+            base = 0.8 * motion + 0.2 * temporal
+        elif edge_type == "fully_connected":
+            return float(self.alpha * semantic + self.beta * motion)
+        else:
+            base = self.alpha * semantic + self.beta * motion + 0.1 * temporal
+        return max(1e-6, float(base))
+
+    def _add_weighted_edge(self, u: int, v: int, edge_type: str, max_score_range: float) -> None:
+        if u == v:
+            return
+        node_u = self.graph.nodes[u]["node_data"]
+        node_v = self.graph.nodes[v]["node_data"]
+        semantic = self._semantic_similarity(node_u, node_v)
+        motion = self._motion_similarity(node_u, node_v, max_score_range)
+        temporal = self._temporal_proximity(node_u, node_v)
+        weight = self._edge_weight(semantic, motion, temporal, edge_type)
+        if self.graph.has_edge(u, v):
+            existing = self.graph[u][v]
+            if weight <= existing.get("weight", 0.0):
+                return
+        self.graph.add_edge(
+            u,
+            v,
+            weight=weight,
+            edge_type=edge_type,
+            semantic_weight=semantic,
+            motion_weight=motion,
+            temporal_weight=temporal,
+        )
+
+    def _add_temporal_edges(self, sorted_ids: list[int], max_score_range: float) -> None:
+        window = max(0, int(self.graph_temporal_window))
+        if window == 0:
+            return
+        for i, u in enumerate(sorted_ids):
+            for j in range(i + 1, min(len(sorted_ids), i + window + 1)):
+                self._add_weighted_edge(u, sorted_ids[j], "temporal", max_score_range)
+
+    def _nearest_node(self, node: AsphodelNode, candidates: list[AsphodelNode]) -> AsphodelNode | None:
+        if not candidates:
+            return None
+        return min(
+            candidates,
+            key=lambda cand: (
+                abs(float(cand.timestamp) - float(node.timestamp)),
+                abs(int(cand.frame_idx) - int(node.frame_idx)),
+            ),
+        )
+
+    def _add_hierarchy_edges(self, sorted_ids: list[int], max_score_range: float) -> None:
+        nodes = [self.graph.nodes[nid]["node_data"] for nid in sorted_ids]
+        peaks = [node for node in nodes if node.tier == "L1_PEAK"]
+        salient = [node for node in nodes if node.tier == "L2_SALIENT"]
+
+        for node in salient:
+            parent = self._nearest_node(node, peaks)
+            if parent is not None:
+                self._add_weighted_edge(parent.frame_idx, node.frame_idx, "hierarchy_peak_salient", max_score_range)
+
+        candidate_parents = salient or peaks
+        for node in nodes:
+            if node.tier != "L3_CANDIDATE":
+                continue
+            parent = self._nearest_node(node, candidate_parents)
+            if parent is not None:
+                self._add_weighted_edge(parent.frame_idx, node.frame_idx, "hierarchy_salient_candidate", max_score_range)
+
+    def _add_salient_semantic_edges(self, sorted_ids: list[int], max_score_range: float) -> None:
+        top_k = max(0, int(self.graph_semantic_top_k))
+        if top_k == 0:
+            return
+        salient_ids = [
+            nid for nid in sorted_ids
+            if self.graph.nodes[nid]["node_data"].tier == "L2_SALIENT"
+        ]
+        for u in salient_ids:
+            node_u = self.graph.nodes[u]["node_data"]
+            sims = []
+            for v in salient_ids:
+                if u == v:
+                    continue
                 node_v = self.graph.nodes[v]["node_data"]
+                semantic = self._semantic_similarity(node_u, node_v)
+                if semantic >= self.graph_semantic_threshold:
+                    sims.append((semantic, v))
+            sims.sort(reverse=True)
+            for _, v in sims[:top_k]:
+                self._add_weighted_edge(u, v, "semantic_salient", max_score_range)
 
-                # Calculate motion coherence
-                if max_score_range == 0.0:
-                    motion_coherence = 1.0
-                else:
-                    motion_coherence = 1.0 - (abs(node_u.action_score - node_v.action_score) / max_score_range)
-
-                # Determine weight based on enrichment status
-                if node_u.embedding is not None and node_v.embedding is not None:
-                    # Both nodes have embeddings -> Hybrid formula
-                    norm_u = np.linalg.norm(node_u.embedding)
-                    norm_v = np.linalg.norm(node_v.embedding)
-                    if norm_u == 0.0 or norm_v == 0.0:
-                        cos_sim = 0.0
-                    else:
-                        cos_sim = float(np.dot(node_u.embedding, node_v.embedding) / (norm_u * norm_v))
-                    
-                    weight = (cos_sim * self.alpha) + (motion_coherence * self.beta)
-                else:
-                    # Cold-start phase
-                    weight = motion_coherence
-
-                self.graph.add_edge(u, v, weight=weight)
+    def _add_motion_neighbor_edges(self, sorted_ids: list[int], max_score_range: float) -> None:
+        top_k = max(0, int(self.graph_motion_top_k))
+        if top_k == 0:
+            return
+        for u in sorted_ids:
+            node_u = self.graph.nodes[u]["node_data"]
+            sims = []
+            for v in sorted_ids:
+                if u == v:
+                    continue
+                node_v = self.graph.nodes[v]["node_data"]
+                sims.append((self._motion_similarity(node_u, node_v, max_score_range), v))
+            sims.sort(reverse=True)
+            for _, v in sims[:top_k]:
+                self._add_weighted_edge(u, v, "motion_neighbor", max_score_range)
 
     def _update_pagerank(self) -> None:
         """
@@ -248,6 +425,11 @@ class L2Asphodel:
 
         action_score = float(get_val(action_score_record, "action_score", 0.0))
         persistence_value = float(get_val(action_score_record, "persistence_value", 0.0))
+        packet_size = float(get_val(feature_record, "packet_size", 0.0))
+        codec_conf = float(get_val(feature_record, "codec_conf", 0.5))
+        pict_type = str(get_val(feature_record, "pict_type", "?"))
+        is_peak = bool(get_val(feature_record, "is_peak", False))
+        tier = self._assign_tier(action_score=action_score, is_peak=is_peak, pict_type=pict_type)
 
         # Instantiate AsphodelNode
         node_obj = AsphodelNode(
@@ -260,7 +442,11 @@ class L2Asphodel:
             luma_entropy=luma_entropy,
             refined_motion_tensor=refined_motion_tensor,
             triples=[],
-            embedding=None
+            embedding=None,
+            packet_size=packet_size,
+            codec_conf=codec_conf,
+            tier=tier,
+            pict_type=pict_type,
         )
 
         # Add node to NetworkX graph
@@ -271,6 +457,14 @@ class L2Asphodel:
 
         # Refresh PageRank scores based on the new graph structure
         self._update_pagerank()
+
+    def _assign_tier(self, action_score: float, is_peak: bool = False, pict_type: str = "?") -> str:
+        """Map codec/action signals into the peak → salient → candidate hierarchy."""
+        if is_peak or str(pict_type).upper().startswith("I"):
+            return "L1_PEAK"
+        if action_score >= self.salient_thresh:
+            return "L2_SALIENT"
+        return "L3_CANDIDATE"
 
     def enrich_node(self, frame_idx: int, triples: list, embedding: np.ndarray) -> None:
         """
@@ -335,6 +529,9 @@ class L2Asphodel:
             persistence_value = float(get_val(action_score_record, "persistence_value", 0.0))
             packet_size     = float(get_val(feature_record, "packet_size", 0.0))
             codec_conf      = float(get_val(feature_record, "codec_conf", 0.5))
+            pict_type       = str(get_val(feature_record, "pict_type", "?"))
+            is_peak         = bool(get_val(feature_record, "is_peak", False))
+            tier            = self._assign_tier(action_score=action_score, is_peak=is_peak, pict_type=pict_type)
 
             node_obj = AsphodelNode(
                 frame_idx=frame_idx,
@@ -349,6 +546,8 @@ class L2Asphodel:
                 embedding=None,
                 packet_size=packet_size,
                 codec_conf=codec_conf,
+                tier=tier,
+                pict_type=pict_type,
             )
             self.graph.add_node(frame_idx, node_data=node_obj)
 
@@ -384,13 +583,18 @@ class L2Asphodel:
         top_k: int = 5
     ) -> list[AsphodelNode]:
         """
-        Performs hybrid retrieval scoring of nodes based on semantics and motion coherence.
+        Performs hybrid retrieval scoring of nodes based on semantics, query-motion
+        similarity, persistence, and graph PageRank.
         
         Formula:
-          Total_Score = (Semantic_Score * alpha) + (Motion_Score * beta)
+          Total_Score =
+              semantic_similarity      * alpha
+            + query_motion_similarity  * beta
+            + persistence_value        * gamma
+            + pagerank_score           * delta
           
         If query_embedding is None or nodes lack embeddings (cold-start),
-        the scoring falls back to Motion_Score only.
+        the semantic contribution becomes zero.
         
         Args:
           query_embedding:    Target query CLIP embedding (can be None).
@@ -419,22 +623,38 @@ class L2Asphodel:
                 if norm_node > 0.0 and norm_query > 0.0:
                     semantic_sim = float(np.dot(node.embedding, query_embedding) / (norm_node * norm_query))
             
+            if max_score_range == 0.0:
+                motion_query_sim = 1.0
+            else:
+                motion_query_sim = max(
+                    0.0,
+                    1.0 - (abs(node.action_score - float(query_action_score)) / max_score_range),
+                )
+
             comp_sem = self.alpha * semantic_sim
-            comp_act = self.beta * node.action_score
+            comp_act = self.beta * motion_query_sim
             comp_pers = self.gamma * node.persistence_value
-            final_score = comp_sem + comp_act + comp_pers
+            comp_pr = self.delta * node.pagerank_score
+            final_score = comp_sem + comp_act + comp_pers + comp_pr
             
-            print(f"[DEBUG] Node {node.frame_idx} retrieval score contributions: "
-                  f"semantic = {comp_sem:.4f} (sim={semantic_sim:.4f}, wt={self.alpha:.2f}), "
-                  f"action = {comp_act:.4f} (score={node.action_score:.4f}, wt={self.beta:.2f}), "
-                  f"persistence = {comp_pers:.4f} (persist={node.persistence_value:.4f}, wt={self.gamma:.2f}) | "
-                  f"final = {final_score:.4f}")
+            if self.debug_retrieval:
+                print(f"[DEBUG] Node {node.frame_idx} retrieval score contributions: "
+                      f"semantic = {comp_sem:.4f} (sim={semantic_sim:.4f}, wt={self.alpha:.2f}), "
+                      f"motion_query = {comp_act:.4f} (sim={motion_query_sim:.4f}, wt={self.beta:.2f}), "
+                      f"persistence = {comp_pers:.4f} (persist={node.persistence_value:.4f}, wt={self.gamma:.2f}), "
+                      f"pagerank = {comp_pr:.4f} (pr={node.pagerank_score:.4f}, wt={self.delta:.2f}) | "
+                      f"final = {final_score:.4f}")
                   
             node.last_retrieval_score = final_score
             node.retrieval_contributions = {
                 "semantic": comp_sem,
-                "action": comp_act,
-                "persistence": comp_pers
+                "motion_query": comp_act,
+                "persistence": comp_pers,
+                "pagerank": comp_pr,
+                "semantic_similarity": semantic_sim,
+                "motion_query_similarity": motion_query_sim,
+                "tier": node.tier,
+                "scene_id": node.scene_id,
             }
             scored_nodes.append((node, final_score))
 
@@ -517,10 +737,62 @@ class L2Asphodel:
                 "ppr":             score,
                 "lambda":          lambda_,
                 "teleport_fallback": teleport_fallback,
+                "tier":            node.tier,
+                "scene_id":        node.scene_id,
             }
 
         sorted_ids = sorted(pr, key=lambda k: pr[k], reverse=True)
         return [self.graph.nodes[k]["node_data"] for k in sorted_ids[:top_k]]
+
+    def export_graph_data(self, max_edges: int | None = None) -> dict:
+        """Export the actual L2 graph for debugging/UI visualization.
+
+        This returns the NetworkX graph that retrieval/PageRank used, including
+        hierarchy tiers and edge-channel weights. It avoids the old UI problem
+        where graph visuals were reconstructed from retrieved frames only.
+        """
+        nodes = []
+        for nid in sorted(self.graph.nodes):
+            node = self.graph.nodes[nid]["node_data"]
+            nodes.append({
+                "id": int(nid),
+                "frame_idx": int(node.frame_idx),
+                "timestamp": float(node.timestamp),
+                "tier": node.tier,
+                "scene_id": int(node.scene_id),
+                "pict_type": node.pict_type,
+                "action_score": float(node.action_score),
+                "persistence_value": float(node.persistence_value),
+                "luma_diff_energy": float(node.luma_diff_energy),
+                "pagerank_score": float(node.pagerank_score),
+                "codec_conf": float(node.codec_conf),
+                "last_retrieval_score": float(getattr(node, "last_retrieval_score", 0.0)),
+            })
+
+        edge_rows = []
+        for u, v, data in self.graph.edges(data=True):
+            edge_rows.append({
+                "source": int(u),
+                "target": int(v),
+                "weight": float(data.get("weight", 0.0)),
+                "edge_type": data.get("edge_type", "unknown"),
+                "semantic_weight": float(data.get("semantic_weight", 0.0)),
+                "motion_weight": float(data.get("motion_weight", 0.0)),
+                "temporal_weight": float(data.get("temporal_weight", 0.0)),
+            })
+        edge_rows.sort(key=lambda e: e["weight"], reverse=True)
+        if max_edges is not None:
+            edge_rows = edge_rows[:max_edges]
+
+        return {
+            "nodes": nodes,
+            "edges": edge_rows,
+            "stats": {
+                "node_count": len(nodes),
+                "edge_count": self.graph.number_of_edges(),
+                "edge_mode": self.graph_edge_mode,
+            },
+        }
 
     def export_to_csr(self) -> scipy.sparse.csr_matrix:
         """

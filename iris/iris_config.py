@@ -26,12 +26,20 @@ class IRISConfig:
     alpha: float = 0.4   # semantic weight in L2 retrieval blend
     beta:  float = 0.3   # motion weight in L2 retrieval blend
     gamma: float = 0.3   # persistence weight in L2 retrieval blend
+    delta: float = 0.1   # PageRank/graph-structure weight in legacy retrieval blend
     retrieval_strategy: str = "hybrid"  # strategy: "peak_only", "top_k_action", "peak_neighbors", "hybrid"
-    ranking_mode: str = "legacy"  # "legacy" = α·sem+β·action+γ·persist; "ppr" = query-conditioned Personalized PageRank
+    ranking_mode: str = "ppr"  # "legacy" = α·sem+β·motion+γ·persist+δ·pagerank; "ppr" = query-conditioned Personalized PageRank
     codec_conf_source: str = "packet_size"  # "packet_size" = true demux size; "action_score" = proxy (Phase-6 diag fallback)
     codec_conf_pictype_norm: bool  = True   # per-pict-type normalization; False = global C_raw baseline (ablation)
     ppr_lambda:             float = 0.5    # rank-space blend weight: λ·sem_rank + (1-λ)·codec_rank
     ppr_damping:            float = 0.5    # PPR teleport probability α passed to nx.pagerank
+    graph_edge_mode: str = "hierarchical_sparse"  # "hierarchical_sparse" or "fully_connected"
+    graph_temporal_window: int = 1  # connect each indexed frame to this many temporal neighbors
+    graph_semantic_top_k: int = 4  # salient/salient semantic cross-root neighbors
+    graph_motion_top_k: int = 2  # nearest action/motion neighbors per node
+    graph_semantic_threshold: float = 0.5  # minimum cosine for salient semantic cross edges
+    graph_debug_retrieval: bool = False  # print per-node retrieval score contributions only when enabled
+    graph_export_max_edges: int = 5000  # cap debug/UI graph edge export
 
     # ── Cerberus-V ────────────────────────────────────────────────────────
     cerberus_high_thresh: float = 0.70  # action_score >= this → full NLI
@@ -120,6 +128,7 @@ class IRISConfig:
         assert self.alpha >= 0.0, "alpha must be non-negative"
         assert self.beta >= 0.0, "beta must be non-negative"
         assert self.gamma >= 0.0, "gamma must be non-negative"
+        assert self.delta >= 0.0, "delta must be non-negative"
         assert self.retrieval_strategy in {"peak_only", "top_k_action", "peak_neighbors", "hybrid"}, (
             f"Invalid retrieval_strategy '{self.retrieval_strategy}'"
         )
@@ -135,6 +144,16 @@ class IRISConfig:
         assert 0.0 < self.ppr_damping < 1.0, (
             f"ppr_damping must be in (0.0, 1.0), got {self.ppr_damping}"
         )
+        assert self.graph_edge_mode in {"hierarchical_sparse", "fully_connected"}, (
+            f"Invalid graph_edge_mode '{self.graph_edge_mode}'"
+        )
+        assert self.graph_temporal_window >= 0, "graph_temporal_window must be non-negative"
+        assert self.graph_semantic_top_k >= 0, "graph_semantic_top_k must be non-negative"
+        assert self.graph_motion_top_k >= 0, "graph_motion_top_k must be non-negative"
+        assert 0.0 <= self.graph_semantic_threshold <= 1.0, (
+            "graph_semantic_threshold must be in [0, 1]"
+        )
+        assert self.graph_export_max_edges > 0, "graph_export_max_edges must be positive"
 
         l1_weight_sum = round(
             self.l1_w_action + self.l1_w_query + self.l1_w_persist

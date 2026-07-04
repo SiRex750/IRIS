@@ -107,9 +107,18 @@ def _build_graph(records: list, config: Any) -> L2Asphodel:
             "luma_diff_energy":      float(_get(r, "luma_diff_energy", 0.0)),
             "motion_magnitude":      float(_get(r, "motion_magnitude", 0.0)),
             "luma_entropy":          float(_get(r, "luma_entropy", 0.0)),
-            "refined_motion_tensor": np.zeros(1, dtype=np.float32),
+            "refined_motion_tensor": np.asarray([
+                float(_get(r, "motion_magnitude", 0.0)),
+                float(_get(r, "divergence", 0.0)),
+                float(_get(r, "curl", 0.0)),
+                float(_get(r, "jacobian_frobenius", 0.0)),
+                float(_get(r, "hessian_max_eigenvalue", 0.0)),
+                float(_get(r, "motion_entropy", 0.0)),
+            ], dtype=np.float32),
             "packet_size":           float(_get(r, "packet_size", 0.0)),
             "codec_conf":            float(_get(r, "codec_conf", 0.5)),
+            "pict_type":             str(_get(r, "pict_type", "?")),
+            "is_peak":               bool(_get(r, "is_peak", False)),
         })
         action_score_records.append({
             "action_score":      float(_get(r, "action_score", 0.0)),
@@ -368,10 +377,26 @@ def save_index(index: IRISIndex, path: str | Path) -> None:
         if fr.clip_embedding is not None:
             embeddings[f"emb_{fr.frame_idx}"] = np.asarray(fr.clip_embedding, dtype=np.float32)
 
+    graph_edges: list[dict] = []
+    graph_obj = getattr(index, "_graph", None)
+    nx_graph = getattr(graph_obj, "graph", None)
+    if nx_graph is not None:
+        for u, v, data in nx_graph.edges(data=True):
+            graph_edges.append({
+                "source": int(u),
+                "target": int(v),
+                "weight": float(data.get("weight", 0.0)),
+                "edge_type": data.get("edge_type", "unknown"),
+                "semantic_weight": float(data.get("semantic_weight", 0.0)),
+                "motion_weight": float(data.get("motion_weight", 0.0)),
+                "temporal_weight": float(data.get("temporal_weight", 0.0)),
+            })
+
     manifest = {
         "schema_version":           index.schema_version,
         "video_path":               index.video_path,
         "frames":                   frame_dicts,
+        "graph_edges":              graph_edges,
         "index_action_score":       index.index_action_score,
         "stats":                    _json_safe(index.stats),
         "frames_processed":         index.frames_processed,
@@ -434,4 +459,22 @@ def load_index(path: str | Path) -> IRISIndex:
     # Rebuild the live graph (projection + rebuild). config_snapshot is a dict;
     # L2Asphodel accepts dict configs for alpha/beta/gamma.
     index._graph = _build_graph(index.frames, index.config_snapshot)
+    if manifest.get("graph_edges"):
+        index._graph.graph.remove_edges_from(list(index._graph.graph.edges))
+        for edge in manifest["graph_edges"]:
+            source = edge["source"]
+            target = edge["target"]
+            if source not in index._graph.graph.nodes or target not in index._graph.graph.nodes:
+                continue
+            index._graph.graph.add_edge(
+                source,
+                target,
+                weight=float(edge.get("weight", 0.0)),
+                edge_type=edge.get("edge_type", "unknown"),
+                semantic_weight=float(edge.get("semantic_weight", 0.0)),
+                motion_weight=float(edge.get("motion_weight", 0.0)),
+                temporal_weight=float(edge.get("temporal_weight", 0.0)),
+            )
+        index._graph._refresh_scene_ids()
+        index._graph._update_pagerank()
     return index

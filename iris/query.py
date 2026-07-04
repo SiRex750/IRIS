@@ -217,6 +217,10 @@ def _build_retrieved(index: IRISIndex, query_embedding: np.ndarray, config: Any)
                 "pagerank_score": node.pagerank_score,
                 "last_retrieval_score": getattr(node, "last_retrieval_score", 0.0),
                 "retrieval_contributions": getattr(node, "retrieval_contributions", {}),
+                "tier": getattr(node, "tier", None),
+                "scene_id": getattr(node, "scene_id", None),
+                "pict_type": getattr(fr, "pict_type", "?"),
+                "codec_conf": getattr(node, "codec_conf", 0.5),
             })
 
     if not retrieved:
@@ -239,6 +243,10 @@ def _build_retrieved(index: IRISIndex, query_embedding: np.ndarray, config: Any)
                 "pagerank_score": 0.0,
                 "last_retrieval_score": 0.0,
                 "retrieval_contributions": {},
+                "tier": "L1_PEAK" if fr.is_peak else "L3_CANDIDATE",
+                "scene_id": None,
+                "pict_type": getattr(fr, "pict_type", "?"),
+                "codec_conf": getattr(fr, "codec_conf", 0.5),
             })
     return retrieved
 

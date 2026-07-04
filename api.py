@@ -79,13 +79,53 @@ def _build_graph_data(debug_info: dict, retrieved_frames: list) -> dict:
     """
     Build a graph-visualisation-friendly payload from pipeline debug data.
 
-    Nodes  → one per retrieved frame with action_score, pagerank (if available),
-              caption, tier, timestamp.
-    Edges  → connect temporally adjacent retrieved frames; weight = motion coherence
-              (1 - |action_score_i - action_score_j| / max_range).
+    Preferred path: return the real L2 graph exported by L2Asphodel.
+    Fallback path: reconstruct a small graph from retrieved frames only.
 
     Returns {"nodes": [...], "edges": [...]}
     """
+    real_graph = debug_info.get("l2_graph") if debug_info else None
+    if real_graph and real_graph.get("nodes") is not None:
+        nodes = []
+        for node in real_graph.get("nodes", []):
+            node_id = str(node.get("id", node.get("frame_idx")))
+            nodes.append({
+                "id": node_id,
+                "frame_idx": node.get("frame_idx"),
+                "timestamp": round(float(node.get("timestamp", 0.0)), 3),
+                "tier": node.get("tier"),
+                "scene_id": node.get("scene_id"),
+                "pict_type": node.get("pict_type"),
+                "action_score": round(float(node.get("action_score", 0.0)), 4),
+                "persistence_value": round(float(node.get("persistence_value", 0.0)), 4),
+                "luma_diff_energy": round(float(node.get("luma_diff_energy", 0.0)), 4),
+                "pagerank_score": round(float(node.get("pagerank_score", 0.0)), 4),
+                "codec_conf": round(float(node.get("codec_conf", 0.5)), 4),
+                "last_retrieval_score": round(float(node.get("last_retrieval_score", 0.0)), 6),
+            })
+
+        edges = []
+        for edge in real_graph.get("edges", []):
+            weight = float(edge.get("weight", 0.0))
+            edge_type = edge.get("edge_type", "unknown")
+            edges.append({
+                "source": str(edge.get("source")),
+                "target": str(edge.get("target")),
+                "weight": round(weight, 4),
+                "label": edge_type,
+                "edge_type": edge_type,
+                "semantic_weight": round(float(edge.get("semantic_weight", 0.0)), 4),
+                "motion_weight": round(float(edge.get("motion_weight", 0.0)), 4),
+                "temporal_weight": round(float(edge.get("temporal_weight", 0.0)), 4),
+            })
+
+        return {
+            "nodes": nodes,
+            "edges": edges,
+            "stats": real_graph.get("stats", {}),
+            "source": "l2_asphodel",
+        }
+
     if not retrieved_frames:
         return {"nodes": [], "edges": []}
 
