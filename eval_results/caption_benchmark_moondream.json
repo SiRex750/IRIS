@@ -1,0 +1,1158 @@
+{
+  "model": "moondream-2B-int8",
+  "captioner_mode": "prompted",
+  "device": "cuda",
+  "timestamp": "2026-07-05T07:37:08.736538+00:00",
+  "virat_dir": "test_data\\Virat",
+  "summary": {
+    "total_frames": 113,
+    "total_succeeded": 113,
+    "total_failed": 0,
+    "exact_unique_count": 113,
+    "exact_uniqueness_rate": 1.0,
+    "normalized_unique_count": 113,
+    "mean_pairwise_cosine_distance": 0.13699719309806824,
+    "confabulation_flag_count": 0,
+    "confabulation_rate": 0.0,
+    "mean_latency_ms": 9636.283754867232,
+    "std_latency_ms": 1031.293137689014,
+    "min_latency_ms": 2040.3119000002334,
+    "max_latency_ms": 11344.841499999347,
+    "frames_per_second": 0.10377444515318529,
+    "peak_vram_mb": 6979.31787109375
+  },
+  "top_10_repeated": [],
+  "confabulation_flagged_captions": [],
+  "captions": [
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1,
+      "timestamp_s": 0.0,
+      "caption": "An aerial view of a spacious parking lot situated in front of a multi-story, primarily brick building. The lot is filled with numerous cars of various colors and models, neatly arranged in rows. There is some greenery and vegetation surrounding the parking lot, including trees and grass. A few smaller structures, such as picnic shelters, are also visible near the parking area. A paved road runs parallel to the parking lot. While there are several signs and markers scattered throughout the parking lot, their specific details are not discernible from this image.",
+      "latency_ms": 2040.3119000002334,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 61,
+      "timestamp_s": 2.0,
+      "caption": "An expansive parking lot is situated in the heart of a city. The lot is filled with numerous cars, mostly parked in rows, with a few cars in motion. The parking lot is surrounded by a sturdy brick wall, with multiple floors of the brick buildings visible behind it. The street adjacent to the parking lot has a yellow line painted on its surface. In the foreground, a small white building is present, and trees with green foliage can be seen near the brick buildings and in the distance. The sky above is overcast, casting a soft light over the scene.",
+      "latency_ms": 8904.319700000087,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 121,
+      "timestamp_s": 4.0,
+      "caption": "An expansive parking lot is situated in a suburban or industrial area. The lot is filled with numerous cars, mostly dark-colored, but with some red, white, and black vehicles mixed in. The parking lot is surrounded by several buildings, including a multi-story brick building and a multi-story concrete building. Many trees are scattered throughout the scene, providing a touch of greenery to the surroundings. The sky overhead is overcast, casting a soft light over the area. A small, light-colored building is visible near the left edge of the parking lot, and a paved road or driveway is seen on the right side of the image.",
+      "latency_ms": 9117.574599999898,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 181,
+      "timestamp_s": 6.0,
+      "caption": "An expansive parking lot is situated next to a multi-level brick building, possibly a school or institutional structure. The parking lot is filled with several cars, of various colors and models, neatly arranged in rows. There is some greenery and vegetation surrounding the parking lot, including trees and bushes. In the distance, the other buildings of the complex are visible against a light gray, overcast sky. A multi-lane road runs parallel to the parking lot.",
+      "latency_ms": 8553.324200000134,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 241,
+      "timestamp_s": 8.0,
+      "caption": "An aerial view of a parking lot situated in front of a multi-story brick building. The lot is filled with numerous cars, of various colors and models, neatly arranged in rows. There is some greenery around the parking lot, including trees and grass, adding a touch of nature to the urban setting. In the distance, there are other buildings visible. A smaller, white building is located on the left side of the image, and a utility box/electrical box is visible near the right edge. A paved road or driveway leads up to the parking lot, and a section of a chain-link fence is visible near the right edge as well.",
+      "latency_ms": 9023.115499999221,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 301,
+      "timestamp_s": 10.0,
+      "caption": "An aerial view of a parking lot situated in front of a multi-story brick building. The lot is filled with numerous cars, of various colors and models, neatly arranged in rows. There is some greenery around the parking lot, including trees and grass, adding a touch of nature to the urban setting. In the distance, there are other buildings visible. A smaller, white building is located on the left side of the image, and a road runs along the right edge. The sky is overcast, casting a soft light over the scene.",
+      "latency_ms": 8616.177500000049,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 361,
+      "timestamp_s": 12.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building that appears to be a college or university campus. The parking lot is filled with numerous cars of different colors and models, neatly arranged in rows. There is a smaller, possibly administrative building located near the left edge of the image. The parking lot is surrounded by lush greenery, with trees and bushes adding a touch of nature to the urban setting. There are also light posts and street signs within the parking lot and nearby areas. A road runs parallel to the parking lot on the right side of the image.",
+      "latency_ms": 8836.564199999884,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 421,
+      "timestamp_s": 14.0,
+      "caption": "An aerial view of a spacious parking lot situated in front of a large, multi-level brick building. The lot is filled with numerous cars, of various colors and models, neatly arranged in rows. There is some greenery and vegetation surrounding the parking lot, including trees and bushes.  A small, light-colored building is visible near the left edge of the parking lot, and a small grassy area with yellow markings is present beside it. A paved road runs along the right side of the parking lot, intersected by a yellow line. Several light posts are also scattered around the parking area. While the image suggests a large parking lot, it's difficult to confirm the presence of a prominent blue sign.",
+      "latency_ms": 9315.19070000013,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 481,
+      "timestamp_s": 16.0,
+      "caption": "An aerial view of a parking lot situated in front of a multi-story brick building. The lot is filled with numerous cars, of various colors and models, neatly arranged in rows. The parking lot is bordered by trees and grassy areas, with streetlights and light poles present along the edges. A smaller, white building is visible near the left edge of the parking lot, and a paved road or driveway is located to the right.  There are also signage posts or markers along the edges of the parking lot. The sky is overcast, casting a soft light over the scene.",
+      "latency_ms": 8946.88000000042,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 541,
+      "timestamp_s": 18.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building, which appears to be part of a multi-story parking structure or complex. The parking lot is filled with numerous cars, mostly dark-colored (such as black, dark blue or dark gray), with a few lighter-colored vehicles scattered throughout. The parking lot is bordered by lush green grass, and streetlights line the edges. A smaller, white structure is visible near the left edge of the parking lot. In the distance, to the left of the image, a line of trees stands tall, adding a touch of nature to the urban setting. The sky is a light gray, indicating overcast conditions.",
+      "latency_ms": 9193.267099999503,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 601,
+      "timestamp_s": 20.0,
+      "caption": "An aerial view of a parking lot situated in front of a multi-story brick building. The lot is filled with numerous cars, of various colors and models, neatly arranged in rows. There is some greenery around the parking lot, including trees and grass, adding a touch of nature to the urban setting. In the background, a few other buildings can be seen. A small, light-colored building, possibly a utility or maintenance facility, is located near the left edge of the parking lot. A paved road or driveway leads up to the parking area, with a pedestrian crossing marked on it. There are also a few streetlights and utility poles throughout the parking lot and surrounding area.",
+      "latency_ms": 9184.447600000567,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 661,
+      "timestamp_s": 22.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building with numerous windows. The parking lot is filled with various cars, and at least four individuals can be seen riding bicycles within it.  A smaller white building is located near the left edge of the parking lot. A road runs parallel to the parking lot, with several cars traveling along it. The area surrounding the parking lot includes some greenery, with trees and bushes visible. The sky is overcast, a light gray color.",
+      "latency_ms": 8660.842700000103,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 721,
+      "timestamp_s": 24.0,
+      "caption": "An expansive parking lot is situated next to a multi-level brick building with numerous windows. The parking lot is filled with cars, of various colors and sizes, neatly arranged in rows. There is some greenery surrounding the parking lot, including trees and bushes. A smaller white building is located on the left side of the image, and a road runs alongside the parking lot. The sky appears overcast, providing a soft light over the scene.",
+      "latency_ms": 8466.114199999538,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 781,
+      "timestamp_s": 26.0,
+      "caption": "An aerial view of a parking lot situated in front of a multi-story brick building. The lot is filled with numerous cars, of various colors and models, neatly arranged in rows. There is some greenery around the parking lot, including trees and grass, adding a touch of nature to the urban setting. In the distance, there are other buildings visible, suggesting a larger urban area. A smaller, white building, possibly a utility or maintenance facility, is located near the edge of the parking lot. The sky is overcast, casting a soft light over the scene. A paved road or walkway runs along the right side of the parking lot.",
+      "latency_ms": 9101.96409999935,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 841,
+      "timestamp_s": 28.0,
+      "caption": "An expansive parking lot is situated next to a multi-level brick building with numerous windows. The parking lot is filled with cars, of various colors and models, neatly arranged in rows. There is some greenery surrounding the parking lot, including trees and bushes. A smaller white building is located on the left side of the image, and a road runs alongside the parking lot. Some signs and utility poles are also visible in the parking lot.",
+      "latency_ms": 8493.658200000027,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 901,
+      "timestamp_s": 30.0,
+      "caption": "An aerial view of a parking lot situated in front of a multi-story, primarily brick building. The parking lot is filled with numerous cars of different colors and models, neatly arranged in rows. There is some greenery and vegetation surrounding the parking lot, including trees and grass. A few smaller structures, such as picnic shelters, are also visible within the lot. One individual can be seen walking near the parking lot. The sky overhead is overcast, casting a soft light over the scene. The image does not contain any discernible text.",
+      "latency_ms": 8782.688699999198,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 961,
+      "timestamp_s": 32.0,
+      "caption": "An aerial view of a parking lot situated in front of a multi-story, primarily brick building. The parking lot is filled with several cars of different colors and models, neatly arranged in rows. There is some greenery and vegetation surrounding the parking lot, including trees and bushes. A smaller, light-colored building is visible on the left side of the parking lot, and a paved road or driveway is seen on the right side of the parking area. The sky above is overcast, casting a soft light over the scene.",
+      "latency_ms": 8708.629400000063,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1021,
+      "timestamp_s": 34.0,
+      "caption": "An aerial view of a parking lot situated in front of a multi-story, primarily brick building. The parking lot is filled with numerous cars, of various colors and models, neatly arranged in rows. There is some greenery and vegetation surrounding the parking lot, including trees and bushes. A smaller, light-colored building is visible on the left side of the parking lot, and a covered area or gazebo-like structure can be seen in the mid-ground to the right of the parking lot. A road runs parallel to the parking lot on the right side. The sky overhead is overcast, and some of the cars appear to be parked in a partially uncrowded section.",
+      "latency_ms": 9193.56289999996,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1081,
+      "timestamp_s": 36.0,
+      "caption": "An aerial view of a parking lot situated in front of a multi-story brick building. The lot is filled with numerous cars, of various colors and models, neatly arranged in rows. There is some greenery surrounding the parking lot, including trees and grass. A few individuals can be seen walking near the building and parking area. A smaller, white building is visible on the left side of the image, and a paved road or driveway is seen on the right side of the parking area. The sky is overcast, casting a soft light over the scene.",
+      "latency_ms": 8709.411799999543,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1141,
+      "timestamp_s": 38.0,
+      "caption": "An aerial view of a parking lot situated in front of a multi-story brick building. The lot is filled with numerous cars, of various colors and models, neatly arranged in rows. There is some greenery surrounding the parking lot, including trees and grass. A few individuals can be seen walking near the building and around the parking area. The sky above is overcast, casting a soft light over the scene. The photograph is taken from a high angle, providing a comprehensive view of the parking lot, the building, and the surrounding environment.",
+      "latency_ms": 8703.057800000352,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1201,
+      "timestamp_s": 40.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building that appears to be a college or university campus. The parking lot is filled with numerous cars of different colors and models, neatly arranged in rows. There is a smaller, possibly administrative building located near the left edge of the parking lot. The parking lot is surrounded by lush greenery, with trees and bushes adding a touch of nature to the scene. There are also light posts and streetlights throughout the parking lot and near roads. The sky above is overcast, casting a soft light over the entire scene.",
+      "latency_ms": 8941.176199999973,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1261,
+      "timestamp_s": 42.0,
+      "caption": "An aerial view of a parking lot situated in front of a multi-story, primarily brick building. The parking lot is filled with numerous cars of different colors and models, neatly arranged in rows. There is some greenery and vegetation surrounding the parking lot, including trees and bushes. The sky is overcast, giving the scene a muted lighting. Several other buildings are visible in the distance beyond the main brick building. A small, white building, possibly a utility or storage facility, is located on the left side of the image. A road runs along the right side of the parking lot, and a pedestrian/bicycle path cuts through the scene as well. Several light poles are also visible throughout the parking lot and near the road.",
+      "latency_ms": 9435.236799999984,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1321,
+      "timestamp_s": 44.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building that appears to be a college or university campus. The parking lot is filled with various cars of different sizes and colors, parked in an orderly fashion. Scattered throughout the lot are several light posts. The sky above is overcast, casting a soft light over the scene. Trees and greenery are visible around the parking lot and building. A small, light-colored building is located near the left edge of the parking lot, and a larger, multi-story building is visible to the right of the parking lot.",
+      "latency_ms": 9666.180800000802,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1381,
+      "timestamp_s": 46.0,
+      "caption": "An aerial view of a parking lot situated in front of a multi-story brick building. The lot is filled with numerous cars, of various colors and models, neatly arranged in rows. There is some greenery surrounding the parking lot, including trees and grass. A few smaller structures, such as a booth and a possible fire station, are located near the building. A paved road or driveway leads up to the parking area. The sky is overcast, casting a soft light over the scene.",
+      "latency_ms": 10554.222599999775,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1441,
+      "timestamp_s": 48.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building with numerous windows. The parking lot is filled with various cars of different sizes and colors, parked neatly in rows. There is some greenery surrounding the parking lot, including trees and bushes. A smaller white building is visible near the edge of the parking lot on the left side of the image, and a road runs parallel to the parking lot on the right side.  A few cars are also driving in the parking lot. The sky above is overcast, casting a soft light over the scene.",
+      "latency_ms": 10618.61510000017,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1501,
+      "timestamp_s": 50.0,
+      "caption": "An aerial view of a parking lot situated in front of a multi-story brick building. The lot is filled with numerous cars, of various colors and models, neatly arranged in rows. There is some greenery surrounding the parking lot, including trees and grass. A few smaller structures, such as utility booths, are also visible near the edge of the parking area.  A paved road runs parallel to the parking lot, with a few cars traveling along it. It is possible that one of the buildings has a sign, but it is not legible in the image.",
+      "latency_ms": 10277.720600000066,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1561,
+      "timestamp_s": 52.0,
+      "caption": "An aerial view of a parking lot situated in front of a multi-story brick building. The lot is filled with numerous cars, of various colors and models, neatly arranged in rows. There is some greenery surrounding the parking lot, including trees and bushes. The brick building has multiple levels and features several windows.  A smaller, white building is visible near the left edge of the parking lot, and a road runs alongside the parking area. Some cars are in motion, driving off the paved area near the parking lot.",
+      "latency_ms": 10183.601400000043,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1621,
+      "timestamp_s": 54.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building that appears to be a college or university campus. The parking lot is filled with numerous cars of different colors and models, neatly arranged in rows. There is a smaller, possibly administrative building located near the left edge of the parking lot. The parking lot is surrounded by lush greenery, with trees and bushes adding a touch of nature to the scene. There are also light posts and streetlights present near the parking area.  A section of a roadway or driveway is visible on the right side of the image, with a few cars driving along it. The sky is overcast, casting a soft light over the entire scene.",
+      "latency_ms": 10929.98710000029,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1681,
+      "timestamp_s": 56.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building with numerous windows. The parking lot is filled with various cars of different colors and models, neatly arranged in rows. There is a smaller, possibly administrative building located near the left edge of the parking lot. The parking lot is surrounded by grassy areas and trees, providing a touch of greenery to the urban setting. The sky is overcast and light gray or white, which casts a soft light over the scene.",
+      "latency_ms": 10315.544600000067,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1741,
+      "timestamp_s": 58.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building. The parking lot is filled with numerous cars, mostly parked in rows, with a few cars in motion.  A small, white building is visible on the left side of the parking lot, and a paved road runs along the right edge. The area surrounding the parking lot includes trees and grassy areas. The sky is overcast, casting a soft light over the scene.",
+      "latency_ms": 10350.277599999572,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1801,
+      "timestamp_s": 60.0,
+      "caption": "An aerial view of a parking lot situated in front of a multi-story, primarily brick building. The parking lot is filled with numerous cars of different colors and models, neatly arranged in rows. There is some greenery surrounding the parking lot, including trees and grass. A few smaller structures, such as utility booths, are also visible near the edge of the parking area. The sky is overcast, providing soft, diffused light over the scene. The image does not contain any discernible text.",
+      "latency_ms": 10068.952000000536,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 1,
+      "timestamp_s": 0.0,
+      "caption": "An aerial view of a parking lot situated in front of a multi-story, primarily brick building. The parking lot is filled with numerous cars of different colors and models, neatly arranged in rows. There is some greenery and vegetation surrounding the parking lot, including trees and bushes. A smaller, white building or booth is located on the left side of the parking lot, and a crosswalk is visible near the bottom edge. The sky is overcast, casting a soft light over the scene.",
+      "latency_ms": 9992.863399999806,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 61,
+      "timestamp_s": 2.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building that appears to be a college or university campus. The parking lot is filled with numerous cars of different colors and models, parked in orderly rows. There is some greenery and vegetation surrounding the parking lot, including trees and bushes.  A smaller building is visible near the left edge of the image, and a road or street runs alongside the right side of the parking lot. The sky appears overcast, adding a slightly muted atmosphere to the scene.",
+      "latency_ms": 10174.846499999148,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 121,
+      "timestamp_s": 4.0,
+      "caption": "An aerial view of a spacious parking lot situated in front of a multi-story, primarily brick building. The lot is filled with numerous cars, of various colors and models, neatly arranged in rows. There is some greenery and vegetation surrounding the parking lot, including trees and grass. A smaller, white building or booth is located on the left side of the parking lot. A road runs parallel to the parking lot on the right side, separating it from the surrounding area. The sky above is overcast, casting a soft light over the scene.",
+      "latency_ms": 10342.522599999938,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 181,
+      "timestamp_s": 6.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building. The parking lot is filled with numerous cars, mostly parked in rows, with a few cars in motion. The parking lot is bordered by patches of grass, and the paved surface is marked with yellow lines. Streetlights are also present along the edge of the parking lot.  A smaller, light-colored building is visible on the left side of the image, and a road runs along the right side of the image. There are also signs and markers placed throughout the parking lot. Beyond the parking lot, a collection of trees forms the backdrop of a cloudy sky.",
+      "latency_ms": 10792.989099999431,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 241,
+      "timestamp_s": 8.0,
+      "caption": "An aerial view of a spacious parking lot situated in front of a large, multi-level brick building. The lot is filled with numerous cars, of various colors and models, neatly arranged in rows. There is some greenery and vegetation surrounding the parking lot, including trees and bushes.  A small, white building is visible on the left side of the parking lot, and a smaller building with windows can be seen on the far right. A paved road runs along the right side of the parking lot. The sky above is overcast, casting a soft light over the scene.",
+      "latency_ms": 11344.841499999347,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 301,
+      "timestamp_s": 10.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building with numerous windows. The parking lot is filled with various cars of different colors and models, neatly arranged in rows. There is a smaller, possibly administrative building located near the left edge of the parking lot. The parking lot is surrounded by grassy areas and trees. A road runs parallel to the parking lot.",
+      "latency_ms": 10039.401399999406,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 361,
+      "timestamp_s": 12.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building that appears to be a military or government facility. The parking lot is filled with numerous cars of different colors and models, parked in orderly rows. It is surrounded by greenery, including trees and grass, adding a touch of nature to the urban setting.  A smaller white building is visible near the left edge of the parking lot, and a covered area or walkway can be seen near the building on the right side of the image. The sky is overcast, casting a soft light over the scene.",
+      "latency_ms": 9987.672700000076,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 421,
+      "timestamp_s": 14.0,
+      "caption": "An aerial view of a parking lot situated in front of a multi-story, primarily brick building. The parking lot is filled with several cars of different colors and models, neatly arranged in rows. There is some greenery and vegetation surrounding the parking lot, including trees and grass. A few smaller structures, such as utility booths, are also visible near the edge of the parking area.  A road runs parallel to the parking lot, with a few cars traveling along it. In the distance, there are other buildings visible against a backdrop of trees. The sky is overcast, casting a soft light over the scene.",
+      "latency_ms": 10884.629499999392,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 481,
+      "timestamp_s": 16.0,
+      "caption": "An expansive parking lot is situated in a suburban or urban area. The lot is filled with numerous cars, mostly parked in rows, with a few vehicles navigating the lot. The parking lot is surrounded by buildings and trees, contributing to the urban landscape. The buildings in the background are primarily multi-story brick structures. A paved road runs alongside the parking lot, with a few cars traveling on it. There is some greenery and trees around the parking lot and buildings. The sky above is overcast, casting a soft light over the scene. The image appears to be taken from an elevated vantage point, providing a comprehensive view of the parking lot and its surroundings.",
+      "latency_ms": 9743.177600000308,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 541,
+      "timestamp_s": 18.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building. The parking lot is filled with numerous cars, mostly parked in rows, with a few vehicles in motion.  A small, white building is visible on the left side of the parking lot, and a paved road runs along the right edge. Several light posts are also present around the parking lot. Beyond the parking lot and building, the landscape features trees and greenery, along with another brick building. The sky is overcast, casting a soft light over the scene.",
+      "latency_ms": 9403.877699999612,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 601,
+      "timestamp_s": 20.0,
+      "caption": "An expansive parking lot is situated in a suburban or industrial area. The lot is filled with numerous cars, mostly dark-colored or black. Yellow and white signs are scattered throughout the lot, possibly providing directions or information about parking restrictions. The parking lot is surrounded by buildings and trees, including a prominent brick building left and right sides. A small white building is visible on the left side of the image, and a road runs parallel to the parking lot on the right side of the image. In the distance, there is a larger brick building along with a mix of green and brown trees. A small area of grass is also visible between the parking lot and the road.",
+      "latency_ms": 9908.758700000362,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 661,
+      "timestamp_s": 22.0,
+      "caption": "An aerial view of a spacious parking lot situated in front of a multi-story, primarily brick building. The lot is filled with numerous cars of various colors and models, parked neatly in rows. There is some greenery and vegetation surrounding the parking lot, including trees and bushes. A smaller, white building or booth is located on the left side of the parking lot. A street runs parallel to the parking lot, separated by a sidewalk. Streetlights are also visible along the street. The sky is overcast, casting a soft light over the scene.",
+      "latency_ms": 9342.268000000331,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 721,
+      "timestamp_s": 24.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building that features multiple levels and a complex roof structure. The parking lot is filled with numerous cars of different sizes and colors, parked in orderly rows. It is bordered by grassy areas and trees, providing a touch of nature to the industrial setting.  A smaller, light-colored building is visible near the left edge of the parking lot, and a light gray or silver minivan is parked near the right edge. The sky is a light, overcast color.  There are also several light posts and road markings in the parking lot area. A complex network of roads and pathways surrounds the parking lot.",
+      "latency_ms": 10458.529999999882,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 781,
+      "timestamp_s": 26.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building that features multiple levels and a complex roofline. The parking lot is primarily paved with asphalt and contains numerous cars of various colors, parked in orderly rows. Near the building, a small white building or booth is visible.  The area surrounding the building includes some grassy patches and trees, providing a touch of greenery to the urban setting. Streetlights are also present along the edge of the parking lot and near the building. The sky overhead is overcast, casting a soft light over the scene.",
+      "latency_ms": 10376.801699999305,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 841,
+      "timestamp_s": 28.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building with numerous windows. The parking lot is filled with various cars of different colors and models, neatly arranged in rows. There is a smaller, possibly administrative building located near the left edge of the parking lot. The parking lot is surrounded by grassy areas and trees. A road runs parallel to the parking lot, with a single car visible traveling along it. The sky is overcast, casting a soft light over the scene.",
+      "latency_ms": 9627.429600000141,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 901,
+      "timestamp_s": 30.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building that features multiple levels and a complex roof structure. The parking lot is filled with numerous cars of different sizes and colors, parked in neat rows. It is bordered by grassy areas and trees, providing a touch of greenery to the industrial setting. The photograph is taken from an elevated vantage point, giving a comprehensive view of the parking lot and surrounding area, including a smaller, light-colored building near the left edge of the parking lot. Several light poles are also present along the parking lot surface. The sky is overcast, casting a soft, diffused light over the scene.",
+      "latency_ms": 10532.046400000581,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1,
+      "timestamp_s": 0.0,
+      "caption": "An aerial view of a large parking lot situated in front of a multi-story, primarily brick building. The parking lot is filled with numerous cars, suggesting it may be temporarily used for parking or events.  A small, white building is visible near the left edge of the parking lot, and a paved road or driveway leads to the parking area. Trees and greenery are present around the parking lot, adding a touch of nature to the urban landscape. Several light posts are also scattered throughout the parking lot. The sky is overcast, and a distant hill with trees is visible in the background.",
+      "latency_ms": 9420.84100000011,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 61,
+      "timestamp_s": 2.0,
+      "caption": "An aerial view of a large parking lot situated in front of a multi-story, tan or beige brick building. The paved parking lot is filled with numerous cars, suggesting it may be temporarily closed or under construction. The surrounding area includes trees and grassy areas, providing a touch of nature amidst the urban setting. A smaller, white building is visible near the left edge of the parking lot, and a road runs along the right side of the parking lot. Various utility poles and streetlights are also present around the parking lot.",
+      "latency_ms": 9172.119400000156,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 121,
+      "timestamp_s": 4.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building. The parking lot is relatively empty, with a few cars parked along its edges and on the opposite side. A multi-level parking structure is located on the right side of the parking lot.  The area surrounding the parking lot includes some grass and trees, and streetlights are present throughout the parking lot and adjacent streets. A smaller building is visible on the left side of the parking lot. The sky above is overcast, casting a soft light over the scene.",
+      "latency_ms": 9271.975799999382,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 181,
+      "timestamp_s": 6.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building, which appears to be a college or university campus. Several cars are parked in the lot and along the roads that border it. The parking lot is surrounded by trees and bushes, providing a touch of greenery to the urban setting. The sky above is overcast. To the right of the building, a smaller building with a white roof is visible. The image is taken from a high vantage point, giving a comprehensive view of the parking lot, its surroundings, and the brick building.",
+      "latency_ms": 9245.71240000023,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 241,
+      "timestamp_s": 8.0,
+      "caption": "An aerial view of a large parking lot situated in front of a multi-story, tan or beige brick building. The parking lot is filled with several cars, suggesting it may be a public or commercial space. A smaller, light-colored building is visible near the left edge of the parking lot, and a small grassy area is present along an underpass/driveway. The surrounding area includes trees, but some foliage shows signs of autumn colors. Streetlights are also seen along the edge of the parking lot. A section of a roadway is visible on the right side of the image.",
+      "latency_ms": 9413.401599999816,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 301,
+      "timestamp_s": 10.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building, which appears to be a hospital or medical facility, as indicated by its multiple windows.  Several cars of different colors and models are parked within the lot. Beyond the parking lot and building, the scene includes trees, other buildings, and a cloudy sky. A smaller white building is also visible near the left edge of the image. The overall color palette of the image is dominated by shades of gray, brown, and green. The perspective suggests the photo was taken from an elevated position, possibly a building or an aircraft.",
+      "latency_ms": 9543.139399999745,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 361,
+      "timestamp_s": 12.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building. The parking lot is relatively empty, with a few cars parked within it.  A smaller white building is also visible near the edge of the parking lot. The sky above is overcast, casting a soft light over the scene. Trees can be seen in the background, providing a touch of greenery to the urban landscape. The parking lot features designated spaces for cars, with some areas having multiple spaces allocated. A section of a road is also visible next to the parking lot.",
+      "latency_ms": 10143.320099999983,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 421,
+      "timestamp_s": 14.0,
+      "caption": "An aerial view of a city parking lot shows a mix of cars of different colors and models parked in rows. The parking lot is bordered by grassy areas and roads, and features streetlights and parking space markings. In the background, a tall brick building with numerous windows is visible. Beyond the parking lot, trees rise up, providing a touch of nature in the urban landscape. The sky is overcast, with a muted light. A small, white building is located near the left edge of the parking lot, and a sign indicating \"Parking Regulations\" is visible near the right edge.",
+      "latency_ms": 10378.773499999625,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 481,
+      "timestamp_s": 16.0,
+      "caption": "An aerial view of a city parking lot shows a mix of cars and some trucks parked. The lot is primarily paved with dark grey asphalt, and there is a smaller white building on the left side. The parking lot is surrounded by trees and buildings. Specifically, there is a multi-story brick building on the right and a larger tan-colored building on the left side of the image.  A small, possibly light blue or grey, building is visible in the mid-ground. Two roads border the parking lot, one on each side, with streetlights and utility poles along the edges.",
+      "latency_ms": 9523.106499999813,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 541,
+      "timestamp_s": 18.0,
+      "caption": "An aerial view of a city parking lot shows a mix of cars, including sedans and SUVs, parked in designated spaces and away from their respective vehicles. The parking lot is partially bordered by grassy areas and trees, providing a touch of greenery to the urban landscape. Several tall, thin light poles are also present throughout the lot. In the background, a brick building, likely a government or institutional facility, adds an urban element to the scene. The sky is overcast with clouds, casting a soft light over the lot and the surrounding area. A smaller, light-colored building is situated near the left edge of the parking lot, and a road or street runs along the right edge.",
+      "latency_ms": 10005.474600000525,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 601,
+      "timestamp_s": 20.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building. The parking lot is filled with several cars, indicating it is likely a popular destination.  A person is riding a bicycle within the lot, near a sign or information board. The area surrounding the parking lot includes trees and grassy areas, providing a touch of nature amidst the urban setting. There are also other buildings visible in the background, further suggesting a city or suburban environment. A smaller, light-colored building is visible on the left side of the image, and a row of lamp posts runs along the edge of the parking lot. A road or street runs parallel to the parking lot.",
+      "latency_ms": 9782.564800000728,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 661,
+      "timestamp_s": 22.0,
+      "caption": "An aerial view of a city parking lot shows a mix of car models and colors, with some cars neatly parked and others driving in the adjacent street. The parking lot is bordered by trees and features a covered pedestrian walkway or bus stop near the center. A multi-level brick building and several smaller, single-story brick buildings are visible in the background. A small, white, gazebo-like structure is located near the larger brick building. A paved road or driveway leads to the parking lot area, where a bicycle is parked. The sky is overcast, giving the scene a muted color palette.",
+      "latency_ms": 10362.315500000477,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 721,
+      "timestamp_s": 24.0,
+      "caption": "An aerial view of a city parking lot shows a mix of car models and colors, with some cars neatly parked and others driving in the adjacent street. The parking lot is bordered by trees and features a covered structure or walkway near a brick building. It is situated within a more urban environment, with buildings and roads visible in the background. A solitary figure can be seen riding a bicycle within the parking lot. The sky overhead is overcast, casting a soft light over the scene.",
+      "latency_ms": 9899.131899999702,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 781,
+      "timestamp_s": 26.0,
+      "caption": "An aerial view of a city parking lot shows a mix of cars and some people walking or biking. The parking lot is partially surrounded by trees and buildings, including a multi-story brick building and a multi-story concrete building. Several streetlights and utility poles are also visible. The sky is overcast with gray clouds. The parking lot surfaces appear to be asphalt or concrete.",
+      "latency_ms": 9923.434799999995,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 841,
+      "timestamp_s": 28.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building. The parking lot is filled with various cars, including several police vehicles, and some trucks or trailers. The parking lot is surrounded by trees and bushes. The sky above is overcast, casting a soft light over the scene. Lampposts are scattered throughout the parking lot, and a small, light-colored building is visible near the left edge of the parking lot. A road runs along the right side of the parking lot, and a person can be seen riding a bicycle near it.",
+      "latency_ms": 10875.934400000006,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 901,
+      "timestamp_s": 30.0,
+      "caption": "An aerial view of a large parking lot situated in front of a multi-story, tan or beige brick building. The parking lot is filled with numerous cars, suggesting it may be a civilian parking area or a facility for personnel only. A small, white building is visible on the left side of the parking lot, and a guard booth is present near the right edge. A paved road borders the parking lot, and a set of 4 lanes is marked on the pavement. Trees and greenery are present around the parking lot, adding a touch of nature to the urban landscape. The sky is overcast, with a predominantly grey appearance.",
+      "latency_ms": 11149.409900000137,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 961,
+      "timestamp_s": 32.0,
+      "caption": "An aerial view of a spacious parking lot situated in front of a multi-story, primarily brick building. The lot is filled with numerous cars, suggesting it may be a parking area for a facility or event.  A small, white building is visible near the left edge of the parking lot, and a utility cart or lawn mower is parked near the left edge of the parking lot. A paved road runs along the right side of the parking lot, intersecting with a concrete median.  Several parking spaces are marked with white paint, and a small group of people can be seen near the right edge of the parking lot. The overcast sky casts a soft light over the scene, and trees in the background add a touch of green to the urban landscape.",
+      "latency_ms": 10819.964499999514,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1021,
+      "timestamp_s": 34.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building. The parking lot is filled with several cars, indicating it is likely a popular destination for vehicles. Several light posts are scattered throughout the lot, providing illumination. A smaller white building is visible on the left side of the image, and a road runs parallel to the parking lot on the right side.  Some of the trees surrounding the parking lot appear to be deciduous and show hints of autumn colors. Beyond the brick building, the landscape features more trees and potentially more buildings, creating a backdrop for this scene.",
+      "latency_ms": 10070.89300000007,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1081,
+      "timestamp_s": 36.0,
+      "caption": "An aerial view of a large parking lot situated in front of a multi-story brick building. The parking lot is filled with numerous cars of different colors and models, neatly arranged in rows. There is some greenery around the parking lot, including trees and grassy areas. A smaller building or booth is visible on the left side of the image, and a road runs along the right edge. The sky above is overcast, casting a soft light over the scene.",
+      "latency_ms": 10135.946399999739,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1141,
+      "timestamp_s": 38.0,
+      "caption": "An aerial view of a spacious parking lot situated in front of a multi-story, primarily brick building. The lot is filled with numerous cars, of various colors and models, neatly arranged in rows. There is some greenery and vegetation surrounding the parking lot, including trees and bushes. A smaller, light-colored building is visible on the left side of the parking lot, and a more prominent tan/beige building with several windows is on the right. The parking lot features multiple sections, some with numbered markings, and a paved road runs along the right edge. Street lights are also present along the edges of the parking lot. A section of a grassy area is visible between the parking lot and the main brick building.",
+      "latency_ms": 11091.71300000071,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1201,
+      "timestamp_s": 40.0,
+      "caption": "An aerial view of a city parking lot shows a mix of cars, including some in designated spots and others parked haphazardly. The parking lot is surrounded by lush green trees and features a multi-story brick building on the left and a shorter brick building on the right. A smaller, light-colored building, possibly a utility or maintenance shed, is located near the left side of the image. Various utility poles and wires are scattered throughout the lot. The sky is overcast with gray clouds, casting a soft light over the scene. The photograph is taken from a high vantage point, providing a comprehensive view of the parking lot and its surroundings.",
+      "latency_ms": 10450.72110000001,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1261,
+      "timestamp_s": 42.0,
+      "caption": "An aerial view of a city parking lot shows a mix of cars parked in designated spaces and illegally parked out in the surrounding areas. The parking lot is situated near a large brick building, which appears to have multiple floors. Trees and vegetation are visible around the parking lot, interspersed with the paved asphalt. A smaller structure, possibly a utility box, is located near the left edge of the parking lot. The sky is overcast, giving the scene a muted color palette. In the distance, there is a multi-level parking structure that extends beyond the immediate parking area.",
+      "latency_ms": 9204.085600000326,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1321,
+      "timestamp_s": 44.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building. The parking lot is filled with several cars, indicating it is likely a popular destination for vehicles. Several light posts are scattered around the parking lot, possibly providing illumination during dusk or night.  A smaller building is located on the left side of the image, and a road runs parallel to the parking lot on the right side, with cars driving along it.  The area surrounding the parking lot includes trees and greenery. The sky is overcast with clouds, suggesting that the photo was taken during the day.",
+      "latency_ms": 9773.721800000203,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1381,
+      "timestamp_s": 46.0,
+      "caption": "An aerial view of a city parking lot shows a mix of cars, including sedans, hatchbacks, and trucks, parked in designated spaces and away from their vehicles. The parking lot is bordered by lush green grass and trees, providing a natural element to the urban landscape. Beyond the parking lot, a multi-story brick building and several other structures are visible, possibly commercial or residential. A road runs parallel to the parking lot, and a pedestrian crossing is marked on the street surface. The sky is overcast, with clouds reflected in the gray asphalt of the parking lot.",
+      "latency_ms": 10712.058699999943,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1441,
+      "timestamp_s": 48.0,
+      "caption": "An aerial view of a city parking lot shows a mix of cars of different colors and models parked in rows. The lot is partially surrounded by lush green trees and is situated next to a multi-level brick building. Many of the parking spaces are empty. On the right side of the image, a road is visible, with cars traveling along it. There is some graffiti visible on one of the parking signs. A small, white building is located near the left edge of the parking lot.",
+      "latency_ms": 9475.135900000168,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1501,
+      "timestamp_s": 50.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building. The parking lot is filled with several cars, indicating it is likely a popular destination.  Smaller buildings are visible in the background, providing depth to the scene. Trees and bushes surround the parking lot and build, adding a touch of greenery to the urban setting. The sky above is overcast, casting a soft light over the entire area. Utility poles and streetlights are present throughout the parking lot and surrounding roadway. A pedestrian can be seen walking near the right edge of the image.",
+      "latency_ms": 10166.435900000579,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1561,
+      "timestamp_s": 52.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building. The parking lot is filled with several cars, indicating it is likely a popular destination.  A road runs parallel to the parking lot, separating it from the building. On the left side of the image, a small white building and a lawnmower are visible. The area surrounding the building includes trees and green spaces. The sky above is overcast, casting a soft light over the scene.",
+      "latency_ms": 9071.844400000373,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1621,
+      "timestamp_s": 54.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building. The parking lot is filled with several cars, indicating it is likely a popular destination.  A road runs parallel to the parking lot, separating it from the building. On the left side of the image, a small white building and a golf cart are visible. The area surrounding the building includes trees and green spaces. The sky is overcast, giving the scene a muted color palette. In the distance, to the right of the building, a smaller structure is also visible.",
+      "latency_ms": 9379.20479999957,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1681,
+      "timestamp_s": 56.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building, which appears to be part of a multi-level parking structure. Several cars are parked in the lot, their colors varying, including the prominent silver car. The parking lot is bordered by trees and bushes, on which several lampposts are located. A small white building is on the left side of the image, and a green lawn borders the parking lot in the lower right corner. A paved road runs along the right side of the parking lot, with a yellow line marking its edge. The sky is overcast, with clouds covering the horizon.",
+      "latency_ms": 9567.995599999449,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1741,
+      "timestamp_s": 58.0,
+      "caption": "An aerial view of a large parking lot situated in front of a multi-story brick building. The parking lot is filled with numerous cars of different colors and models, parked in neat rows. It is bordered by a paved road with yellow lane markings. Trees and greenery are present around the parking lot and building. In the distance, a smaller brick building is visible. The sky is overcast with clouds, casting a soft light over the scene.",
+      "latency_ms": 9595.11300000031,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1801,
+      "timestamp_s": 60.0,
+      "caption": "An aerial view of a spacious parking lot situated in front of a multi-story, primarily brick building. The lot is filled with numerous cars, suggesting it may be a parking area for a facility or event.  A small white building is visible near the left edge of the parking lot, and a lawnmower and several signs are present nearby. The overcast sky casts a soft light over the scene, enhancing the colors of the buildings and the parking lot. Trees in the background provide a touch of greenery to the urban landscape. The parking lot features designated lanes and markings, and two individuals can be seen near a sign or barrier within the parking area.",
+      "latency_ms": 9997.733700000026,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1861,
+      "timestamp_s": 62.0,
+      "caption": "An aerial view of a city parking lot shows a mix of car models and colors, with some parked and others driving. The parking lot is surrounded by trees and buildings, including a multi-story brick building and a multi-story concrete building. Several streetlights and utility poles are also visible throughout the lot. A small white building, possibly a utility or maintenance shed, is located near the left edge of the image. The sky is overcast with gray clouds.",
+      "latency_ms": 8897.151199999826,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1921,
+      "timestamp_s": 64.0,
+      "caption": "An aerial view of a large parking lot situated in front of a multi-story, tan or beige brick building. The parking lot is filled with several cars, of various colors and models, neatly arranged in rows. There is some greenery and vegetation surrounding the parking lot, including trees and bushes. A road runs parallel to the parking lot, with several cars traveling along it.  A small white building is visible near the edge of the parking lot, and a lawnmower is located nearby. A crosswalk is also visible near the roadway. The sky is overcast, casting a soft light over the scene.",
+      "latency_ms": 9821.129299999484,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1981,
+      "timestamp_s": 66.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building. The parking lot is filled with several cars of different colors and models, neatly arranged in rows. There are also some utility vehicles and trucks parked within the lot. A paved road runs parallel to the parking lot, with a few cars traveling along it. In the foreground, a small white building and a grassy area with signage are visible. The sky is a light gray, suggesting an overcast day, and trees are scattered around the area.",
+      "latency_ms": 9277.53819999998,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2041,
+      "timestamp_s": 68.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building. The parking lot is filled with several cars, of various colors and models, neatly arranged in rows. There are also some utility vehicles and trucks parked within the lot. A small, white building is located on the left side of the parking lot, and a tall light post stands on the right side. A paved road or driveway leads up to the parking lot, with a yellow line marking the edge of the parking area. Trees and greenery are visible around the parking lot, and in the background, a larger brick building is also visible. A small, possibly green, vehicle is parked near the building on the left.",
+      "latency_ms": 9333.893799999714,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2101,
+      "timestamp_s": 70.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building. The parking lot is relatively empty, with a few cars parked within it.  A smaller white building is also visible near the edge of the parking lot. The sky above is overcast, casting a soft light over the scene. Trees can be seen in the background, adding a touch of greenery to the urban landscape. The parking lot features designated spaces for cars, with some areas having multiple spaces allocated, and others having only one or two cars parked. A smaller, light-colored structure, possibly a utility box, is located near the left edge of the parking lot.",
+      "latency_ms": 9299.952800000028,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2161,
+      "timestamp_s": 72.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building with numerous windows. The parking lot is filled with several cars, of various colors and models, neatly arranged in rows. There is some greenery and vegetation surrounding the parking lot, including trees and bushes.  A smaller building is located on the left side of the image, and a road runs parallel to the parking lot on the right side. There is also a small white guard booth or structure near the right edge of the parking lot. The sky appears overcast, giving the scene a muted color palette.",
+      "latency_ms": 9770.296800000324,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2221,
+      "timestamp_s": 74.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building. The parking lot is relatively empty, with a few cars parked across its width and within its numerous numbered spots. Several light posts are scattered around the parking lot, and small grassy areas and trees are present near their bases. A smaller, light-colored building is visible on the left side of the image, and a covered area or walkway is located near the large brick building on the right side. A road runs along the right side of the parking lot, with a few cars traveling on it.  The overcast sky casts a soft light over the scene.",
+      "latency_ms": 11240.335200000118,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2281,
+      "timestamp_s": 76.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building, which appears to be a college or institutional campus. Several cars are parked in the lot, their metallic hues contrasting with the brown of the building. A small white building is located on the left side of the parking lot, and a lawn mower is situated near the edge. The parking lot has multiple sections, and is bordered by trees and grassy areas. The sky appears overcast, adding a somber mood to the scene.",
+      "latency_ms": 10050.662300000113,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2341,
+      "timestamp_s": 78.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building that appears to be a college or university campus. The parking lot is relatively empty, with a few cars parked within it.  A smaller white building is also visible near the edge of the parking lot. The surrounding area features trees and shrubbery, providing a touch of greenery to the urban setting. The sky is overcast, casting a soft light over the scene. The image is taken from a high vantage point, giving a comprehensive view of the parking lot, the building, and the surrounding landscape. A paved road runs along the right edge of the parking lot, with streetlights providing illumination.",
+      "latency_ms": 11002.697900000385,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2401,
+      "timestamp_s": 80.0,
+      "caption": "An expansive parking lot is situated in a suburban or industrial area. The lot is filled with numerous cars, their colors blending against the asphalt. The parking lot is surrounded by several buildings, including the main building on the left and a multi-story building with a brick facade on the right. A road runs parallel to the parking lot, with a single car visible traveling along it. A small, light-colored building is situated near the left side of the parking lot, and a yellow sign with black text is visible near the building. A of small grassy area is visible between the parking lot and the brick building.  The area beyond the parking lot and buildings includes trees, but a clear view of industrial structures is not present.",
+      "latency_ms": 11224.403500000335,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2461,
+      "timestamp_s": 82.0,
+      "caption": "An expansive parking lot is situated in a suburban or urban area. The lot is filled with numerous cars, their metallic hues contrasting with the patchwork of green grass and brown dirt that surrounds it. A small, white building is located on the left side of the parking lot, and a larger brick building stands on the right. Several light poles are scattered throughout the lot, and small utility/service poles are present near the buildings. A paved road with yellow lines runs through the right side of the parking lot. A chain-link fence is visible in the mid-ground, partially separating the parking lot from a wooded area with trees and green bushes. In the distance, the outlines of taller buildings can be seen, their windows reflecting the overcast sky.",
+      "latency_ms": 10569.670799999585,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2521,
+      "timestamp_s": 84.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building. The parking lot is filled with several cars, some of which are parked in designated spots and others are randomly placed, awaiting their owners. The cars are primarily black and silver in color. To the right of the parking lot, a smaller building can be seen. The surrounding area is lush with trees, providing a natural contrast to the brick buildings. A paved road runs parallel to the parking lot, and a smaller road or driveway leads to the main building. There are also utility poles and streetlights in the area, and a small white structure, possibly a utility box, is located near the left edge of the parking lot.",
+      "latency_ms": 10324.5823999996,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2581,
+      "timestamp_s": 86.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building. The parking lot is relatively empty, with a few cars parked along its edges and on the opposite side. A road runs parallel to the parking lot, and a small white building is situated near the roadside. The area surrounding the building includes trees and green spaces. The sky is overcast, casting a soft light over the scene. The photograph is taken from a high vantage point, giving a comprehensive view of the parking lot, the building, and the surrounding environment, including a crosswalk near the white building.",
+      "latency_ms": 10391.126100000292,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2641,
+      "timestamp_s": 88.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building that appears to be a college or university campus. The asphalt surface is dotted with several cars of different colors.  A small, light-colored building is situated on the left side of the parking lot, and a utility cart or lawn tractor is parked nearby. A paved road or driveway leads to the parking lot, with a pedestrian crossing marked by white stripes. Several tall, thin light poles are also present throughout the parking lot. The sky appears overcast, and there are trees and other greenery surrounding the parking lot and building. A utility box or electrical equipment is visible near the left edge of the brick building.",
+      "latency_ms": 10010.662000000593,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2701,
+      "timestamp_s": 90.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building, which appears to be a school or similar institution, given the presence of a guard booth. The parking lot is relatively empty, with a few cars parked within and outside. The surrounding area features trees and landscaping.  A smaller, light-colored building is visible near the left edge of the image, and a paved road or walkway runs along the right edge.",
+      "latency_ms": 9390.11389999996,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2761,
+      "timestamp_s": 92.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building. The parking lot is relatively empty, with a few cars parked along its edges and on the opposite side. A multi-level parking structure is visible in the background, and a small, light-colored building is located near the left edge of the parking lot. The area surrounding the parking lot includes trees and grassy areas. A paved road runs along the right side of the parking lot.",
+      "latency_ms": 9370.135000000118,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2821,
+      "timestamp_s": 94.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building. The parking lot is relatively empty, with a few cars parked along its edges and within the lot itself.  A smaller white building is located near the left edge of the parking lot, and a covered structure, possibly a bus shelter, is visible in the middle-right of the image.  The lot is bordered by trees and grassy areas. The sky is overcast, with a light gray or white appearance.",
+      "latency_ms": 8643.389199999547,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2881,
+      "timestamp_s": 96.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building that appears to be a college or university campus. The asphalt surface is marked with white lines and numbers to organize the parking. Various cars of different colors and models are parked within the lot. Near the building, a small white building or shed is visible, and a white vehicle that seems to be a golf cart or utility vehicle is parked nearby. There are also a few people walking in the parking lot. A line of trees runs along the edge of the building, providing a natural border to the parking lot and surrounding area. The sky above is overcast, casting a soft light over the scene. The image is taken from a high vantage point, giving a comprehensive view of the parking lot, the building, and the surrounding landscape.",
+      "latency_ms": 9898.265700000593,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2941,
+      "timestamp_s": 98.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building, which appears to be a school or similar institution, given the presence of a quad. Various cars of different colors are parked across the lot, and a small white building is visible near the left edge of the image. There's also a grassy area and a paved road or walkway running alongside the parking lot. A few people are visible in the vicinity. The cloudy sky casts a gray hue over the scene, creating a somewhat overcast atmosphere. The photograph is taken from a high vantage point, providing a comprehensive view of the parking lot and its surroundings.",
+      "latency_ms": 9656.125200000133,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 1,
+      "timestamp_s": 0.0,
+      "caption": "An aerial view of a large parking lot situated in front of a multi-story brick building. The parking lot is filled with several cars, of various colors and models, neatly arranged in rows. There is some greenery and vegetation surrounding the parking lot, including trees and bushes. A smaller white building, likely an administrative office, is located on the left side of the parking lot. A paved road runs parallel to the parking lot, separating it from the surrounding area. The sky overhead is overcast, creating a soft, diffused light over the scene. Several light posts are also visible around the parking lot and road.",
+      "latency_ms": 9589.53930000007,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 61,
+      "timestamp_s": 2.0,
+      "caption": "An aerial view of a large parking lot situated in front of a multi-story brick building. The parking lot is filled with several cars, of various colors and models, neatly arranged in rows. There is some greenery and vegetation surrounding the parking lot, including trees and bushes. A smaller white building, likely an administrative office, is located on the left side of the parking lot. A road runs along the right side of the parking lot, intersecting with the parking area, and a pedestrian crossing is visible near the white building. The sky is overcast, casting a soft light over the scene.",
+      "latency_ms": 9689.767300000312,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 121,
+      "timestamp_s": 4.0,
+      "caption": "An aerial view of a city parking lot shows a mix of car models and colors, including black, silver, and gray. The parking lot is mostly empty, with a few cars parked along its edges. In the background, a reddish-brown brick building is visible, contrasting with the lighter hues of the parking lot. Beyond the building, a line of trees stretches across the horizon.  A smaller, light-colored building is also visible near the left edge of the parking lot. There's a paved road or driveway in the foreground, and several light posts or lamp posts are scattered throughout the parking lot area.",
+      "latency_ms": 10960.513799999717,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 181,
+      "timestamp_s": 6.0,
+      "caption": "An aerial view of a large parking lot situated in front of a multi-story brick building. The parking lot is filled with several cars, of various colors and models, neatly arranged in rows. There is some greenery and vegetation surrounding the parking lot, including trees and bushes. A smaller building or structure is visible on the left side of the image, and a road runs along the right edge. The sky is a light gray, indicating overcast conditions.",
+      "latency_ms": 8926.118299999871,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 241,
+      "timestamp_s": 8.0,
+      "caption": "An aerial view of a large parking lot situated in front of a multi-story, primarily brick building. The parking lot is filled with several cars, indicating it is used for vehicle parking. The surrounding area includes trees and grassy areas, providing a touch of greenery to the urban setting. The sky is overcast, casting a soft light over the scene.  A smaller, single-story building is visible on the left side of the parking lot, and a section of a roadway with a yellow dividing line is seen on the right. There are also several light posts and signs around the parking lot.",
+      "latency_ms": 9492.291899999145,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 301,
+      "timestamp_s": 10.0,
+      "caption": "An aerial view of a large parking lot situated in front of a multi-story brick building. The parking lot is filled with several cars, of various colors and models, neatly arranged in rows. There is some greenery and vegetation surrounding the parking lot, including trees and bushes. A smaller white building, possibly a utility shed, is located on the left side of the image, and a road runs parallel to the parking lot. Some signs are also visible near the road and around the parking area. The sky overhead is overcast, casting a soft light over the scene.",
+      "latency_ms": 9358.236099999885,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 361,
+      "timestamp_s": 12.0,
+      "caption": "An aerial view of a large parking lot situated in front of a multi-story, primarily brick building. The parking lot is filled with several cars, mostly parked in a grid-like pattern with some cars moving. A small, light-colored building is visible near the left edge of the parking lot, and a paved road runs along the right edge.  A section of a grassy area runs along the edge of the parking lot. Trees and greenery are also visible in the background. The sky is overcast, casting a soft light over the scene.",
+      "latency_ms": 9246.781299999384,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 421,
+      "timestamp_s": 14.0,
+      "caption": "An aerial view of a city parking lot shows a mix of car models and colors, with some cars neatly parked and others driving in the wet asphalt. A multi-level brick building with white windows is visible on the left side, and trees are scattered throughout the lot. A smaller white building, possibly a utility or maintenance shed, is located near the left edge. The parking lot is bordered by grassy areas and paved roads or driveways. Streetlights are also seen lining the parking lots. A road or street runs parallel to the parking lot, with a few cars traveling along it. The sky overhead is overcast, casting a soft light over the scene.",
+      "latency_ms": 9925.088400000277,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 481,
+      "timestamp_s": 16.0,
+      "caption": "An aerial view of a city parking lot shows a mix of car models and colors, with some cars parked and others driving. The parking lot is bordered by grassy areas and roads, and features multiple parking spaces. In the background, a reddish-brown brick building is visible, along with other structures and buildings in the distance. It is likely that the parking lot is part of a larger institutional or commercial complex.",
+      "latency_ms": 8110.54360000071,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 541,
+      "timestamp_s": 18.0,
+      "caption": "An aerial view of a city parking lot shows a mix of parked cars and various building types. In the background, a multi-story brick building is visible, along with other structures and buildings. The parking lot itself is paved and features numerous empty spaces. A road runs alongside the parking lot, and a small white building, possibly a utility shed, is located near the left edge of the image. The scene is captured during the day under an overcast sky, with natural light illuminating the urban landscape.",
+      "latency_ms": 8534.52229999948,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 601,
+      "timestamp_s": 20.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building. The parking lot is largely empty, with a few cars parked along its edges and on the opposite side. A small, white building is located near the left edge of the parking lot. The sky appears overcast, and trees are visible in the background. The area surrounding the parking lot includes paved roads and some grassy areas.",
+      "latency_ms": 8168.220999999903,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 661,
+      "timestamp_s": 22.0,
+      "caption": "An aerial view of a city parking lot shows a mix of parked cars of various colors and models, including several dark-colored ones. The parking lot is bordered by grassy areas and trees, and is surrounded by several brick buildings. A road runs parallel to the parking lot, and a small white building, possibly a security booth, is located near the roadside. The sky is overcast, giving the scene a muted color palette.",
+      "latency_ms": 8372.934299999542,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 721,
+      "timestamp_s": 24.0,
+      "caption": "An aerial view of a city parking lot shows a mix of parked cars and various building types.  Several multi-story buildings, including a prominent reddish-brown brick building, are visible in the background.  The parking lot is paved with dark gray asphalt and contains street lights and signage.  A small, light-colored building, possibly a utility or maintenance shed, is located near the left edge of the image. The surrounding area includes trees and greenery. The sky is overcast, casting a soft, diffused light over the scene.",
+      "latency_ms": 8833.884399999988,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 781,
+      "timestamp_s": 26.0,
+      "caption": "An aerial view of a large parking lot situated in front of a multi-story, primarily brick building. The parking lot is filled with several cars, indicating it is likely a popular destination for drivers. The cars are parked in an orderly fashion, and there are also a few smaller, utility-style buildings scattered around the lot. A road runs parallel to the parking lot, and there are multiple utility poles and streetlights throughout the parking area.  Some greenery and trees are present near the parking lot and buildings. The sky above is overcast, casting a soft light over the scene.",
+      "latency_ms": 9730.12269999981,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 841,
+      "timestamp_s": 28.0,
+      "caption": "An expansive parking lot is situated in front of a large brick building. The parking lot is largely empty, with a few cars parked along its edges and on the opposite side. A smaller white building is located near the left edge of the parking lot. The sky appears overcast, and trees are visible in the background. The area surrounding the parking lot includes roadways and some greenery. The overall scene suggests an industrial or commercial setting.",
+      "latency_ms": 9389.4750999998,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 901,
+      "timestamp_s": 30.0,
+      "caption": "An aerial view of a large parking lot situated in front of a multi-story, primarily brick building. The parking lot is filled with several cars, suggesting it may be temporarily used for parking or events. The cars are parked in a somewhat organized manner, with some facing the building and others facing away. The parking lot is bordered by trees and grassy areas, providing a touch of greenery to the urban setting. Streetlights are also visible along the edge of the parking lot. A smaller, white building is visible on the left side of the parking lot, and a road runs parallel to the parking lot on the right side. In the distance, there are other buildings and structures, indicating the parking lot's location in an area with some infrastructure.",
+      "latency_ms": 9931.396200000563,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    }
+  ]
+}

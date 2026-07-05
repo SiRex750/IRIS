@@ -19,6 +19,28 @@ import torch
 
 from iris.aria import BLIPCaptioner
 
+
+class MoondreamCaptioner:
+    def __init__(self):
+        self._model = None
+        self._device = "cpu"
+
+    def _load(self):
+        import moondream as md
+        import torch
+        self._device = "cuda" if torch.cuda.is_available() else "cpu"
+        # local=True uses the local PhotonVL backend (kestrel engine).
+        # Valid local model names: 'moondream2', 'moondream3-preview'
+        # (NOT 'moondream-2B-int8.mf' — that is the cloud API filename)
+        self._model = md.vl(local=True, model="moondream2")
+
+    def caption(self, pil_image):
+        if self._model is None:
+            self._load()
+        encoded = self._model.encode_image(pil_image)
+        result = self._model.caption(encoded, length="normal", stream=False)
+        return result["caption"].strip()
+
 # Pre-defined search paths
 SEARCH_PATHS = [
     Path(r"C:\IRIS\test_data"),
@@ -78,8 +100,10 @@ def check_confabulation(caption):
 
 def main():
     print("Started main()", flush=True)
-    parser = argparse.ArgumentParser(description="BLIP Caption Benchmark")
+    parser = argparse.ArgumentParser(description="Caption Benchmark")
     parser.add_argument("--virat-dir", type=str, help="Path to VIRAT directory")
+    parser.add_argument("--model", type=str, default="blip", choices=["blip", "moondream"],
+                        help="Captioner to use: 'blip' (default) or 'moondream'")
     args = parser.parse_args()
     
     print("Finding VIRAT dir...", flush=True)
@@ -139,15 +163,25 @@ def main():
         
     print(f"Sampled {len(sampled_frames)} frames total.")
     
-    # 3. BLIP Captioning
-    print("Loading BLIP...")
-    captioner = BLIPCaptioner()
+    # 3. Captioning
+    if args.model == "moondream":
+        model_label = "moondream-2B-int8"
+        captioner_mode = "prompted"
+        out_filename = "caption_benchmark_moondream.json"
+        print("Loading Moondream2...", flush=True)
+        captioner = MoondreamCaptioner()
+    else:
+        model_label = "Salesforce/blip-image-captioning-base"
+        captioner_mode = "unconditional"
+        out_filename = "caption_benchmark_blip.json"
+        print("Loading BLIP...")
+        captioner = BLIPCaptioner()
     # Trigger load lazily
     first_img = sampled_frames[0][0]
     try:
         _ = captioner.caption(first_img)
     except Exception as e:
-        print(f"Error during initial BLIP load: {e}")
+        print(f"Error during initial model load: {e}")
     
     if torch.cuda.is_available():
         torch.cuda.reset_peak_memory_stats()
@@ -160,11 +194,15 @@ def main():
         t0 = time.perf_counter()
         failed = False
         caption_text = ""
+        _first_error_printed = getattr(main, "_first_error_printed", False)
         try:
             caption_text = captioner.caption(img)
-        except Exception:
+        except Exception as exc:
             caption_text = "[CAPTION_FAILED]"
             failed = True
+            if not _first_error_printed:
+                print(f"[CAPTION ERROR] {type(exc).__name__}: {exc}", flush=True)
+                main._first_error_printed = True
         t1 = time.perf_counter()
         print(f"Done frame {f_idx}. Failed={failed}", flush=True)
         
@@ -206,6 +244,13 @@ def main():
     max_latency = 0.0
     fps = 0.0
     
+    # Initialize device/vram before the succeeded block so they are always defined
+    device = getattr(captioner, "_device", "cpu")
+    if torch.cuda.is_available() and str(device) != "cpu":
+        peak_vram_mb = torch.cuda.max_memory_allocated() / (1024 ** 2)
+    else:
+        peak_vram_mb = None
+    
     if total_succeeded > 0:
         captions = [r["caption"] for r in succeeded_results]
         exact_unique = set(captions)
@@ -229,11 +274,7 @@ def main():
         
         # Semantic diversity
         # Free up memory before loading sentence transformers to avoid silent OOM aborts
-        device = getattr(captioner, "_device", "cpu")
-        if str(device) != "cpu" and torch.cuda.is_available():
-            peak_vram_mb = torch.cuda.max_memory_allocated() / (1024 ** 2)
-        else:
-            peak_vram_mb = None
+        # (device and peak_vram_mb already set above)
             
         del captioner
         if torch.cuda.is_available():
@@ -267,8 +308,8 @@ def main():
             mean_pairwise_cosine = float(pairwise_distances.mean().item())
             
     # 5. Output
-    print("\n===== BLIP CAPTION BENCHMARK =====")
-    print("Model:        Salesforce/blip-image-captioning-base")
+    print(f"\n===== CAPTION BENCHMARK ({model_label.upper()}) =====")
+    print(f"Model:        {model_label}")
     print(f"Device:       {device}")
     print(f"Videos:       {len(video_files)}")
     print(f"Frames:       {total_frames} / {total_succeeded} / {total_failed}")
@@ -296,11 +337,11 @@ def main():
     
     out_dir = Path("eval_results")
     out_dir.mkdir(exist_ok=True)
-    out_file = out_dir / "caption_benchmark_blip.json"
+    out_file = out_dir / out_filename
     
     out_data = {
-        "model": "Salesforce/blip-image-captioning-base",
-        "captioner_mode": "unconditional",
+        "model": model_label,
+        "captioner_mode": captioner_mode,
         "device": str(device),
         "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         "virat_dir": str(virat_dir),
