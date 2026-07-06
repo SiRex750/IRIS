@@ -6,6 +6,18 @@ from scipy.signal import argrelextrema
 
 PEAK_WINDOW_SECONDS = 0.5
 
+
+def get_stream_fps(video_path: str) -> float:
+    """Zero-decode: read the video stream's average frame rate from container
+    metadata (no packet demux, no pixel decode)."""
+    container = av.open(video_path)
+    try:
+        stream = container.streams.video[0]
+        fps = float(stream.average_rate) if stream.average_rate else 25.0
+    finally:
+        container.close()
+    return fps
+
 def compute_motion_geometry(motion_vectors: list, width: int, height: int) -> dict:
     """
     Computes physical motion geometry descriptors from raw H.264 motion vectors.
@@ -472,6 +484,55 @@ def _demux_packet_curve(
             energies.append(size)
 
     return all_frame_energies, iframe_indices, energies
+
+
+def compute_valley_scene_boundaries(
+    all_frame_energies: list[tuple[int, float]],
+    iframe_indices: list[int],
+    fps: float,
+    valley_percentile: float = 25.0,
+) -> list[tuple[int, int]]:
+    """
+    Zero-decode scene boundaries from the packet-size curve: a boundary is a
+    local minimum of the non-keyframe packet curve below valley_percentile of
+    that curve. Pure function of the curve (and the stated percentile/fps) —
+    survivor-independent, deterministic, no size cap (callers apply the cap
+    downstream since it depends on survivor population).
+
+    fps: real stream average_rate (see get_stream_fps), used only to size the
+    argrelextrema order window (mirrors detect_peaks' PEAK_WINDOW_SECONDS
+    window) — not read from the curve itself.
+
+    Returns (start_idx, end_idx) spans in display order covering [0, N).
+    """
+    n_frames = len(all_frame_energies)
+    if n_frames == 0:
+        return []
+
+    iframe_set = set(iframe_indices)
+    non_kf = [(idx, size) for idx, size in all_frame_energies if idx not in iframe_set]
+
+    if not non_kf:
+        return [(0, n_frames)]
+
+    indices = np.array([idx for idx, _ in non_kf])
+    sizes = np.array([size for _, size in non_kf])
+
+    order = max(3, round(PEAK_WINDOW_SECONDS * fps))
+    local_min_positions = argrelextrema(sizes, np.less, order=order)[0]
+    thresh = np.percentile(sizes, valley_percentile)
+
+    boundaries = sorted(
+        int(indices[pos]) for pos in local_min_positions if sizes[pos] < thresh
+    )
+
+    ends = sorted(set([0] + boundaries + [n_frames]))
+    scenes: list[tuple[int, int]] = []
+    for i in range(len(ends) - 1):
+        start, end = ends[i], ends[i + 1]
+        if end > start:
+            scenes.append((start, end))
+    return scenes
 
 
 if __name__ == "__main__":

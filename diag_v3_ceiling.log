@@ -1,0 +1,49 @@
+====================================================================================================
+(1) RECOVERY CEILING: rejected real claims with >= 1 entailment pair
+====================================================================================================
+  ceiling count: 2
+  hypothesis under test (exactly 2): CONFIRMED
+
+    query='Is there a car in the parking lot?'
+      claim='Based on the provided frame evidence, it appears that there is indeed a car in the parking lot.'
+      max_entailment_score=0.9704
+      fact_text='Frame 25069 at 836.47s: a car parked in a parking lot.'
+    query='Is there a car in the parking lot?'
+      claim='These frames provide strong evidence for the presence of a car in the parking lot.'
+      max_entailment_score=0.6881
+      fact_text='Frame 25069 at 836.47s: a car parked in a parking lot.'
+
+====================================================================================================
+(2) CLAIM TAXONOMY TABLE
+====================================================================================================
+  class              | verified | rejected | unverifiable |  total |  has_entailment_pair
+  ---------------------------------------------------------------------------------------
+  metadata           |        0 |        8 |            7 |     15 |                    0
+  meta_commentary    |        0 |        0 |            1 |      1 |                    0
+  visual_assertion   |        5 |        8 |            6 |     19 |                    7
+
+====================================================================================================
+(3) FLIP AUDIT at tau=p75, k=3 (visual scoping)
+====================================================================================================
+  tau (p75) = 0.2698  k = 3
+
+  claim                                              | class              | live -> scoped              
+  ------------------------------------------------------------------------------------------------------
+  Based on the provided frame evidence, it appear... | visual_assertion   | rejected     -> verified    
+  These frames provide strong evidence for the pr... | visual_assertion   | rejected     -> verified    
+  Specifically: Frame 25069 shows a car parked in... | metadata           | rejected     -> unverifiable
+  However, it's worth noting that Frame 24934 sho... | visual_assertion   | rejected     -> unverifiable
+  These frames suggest that the car has been stat... | visual_assertion   | verified     -> unverifiable
+  There is no frame with high action scores showi... | metadata           | rejected     -> unverifiable
+  The captions consistently show a "red brick bui... | visual_assertion+absence | rejected     -> unverifiable
+  Yes, based on the provided frames, it appears t... | visual_assertion   | rejected     -> unverifiable
+  However, there are some frames where the presen... | visual_assertion   | verified     -> unverifiable
+  Based on the provided frame evidence, I couldn'... | visual_assertion+absence | rejected     -> unverifiable
+  The frames show people walking down sidewalks a... | visual_assertion   | rejected     -> unverifiable
+  Based on the provided frame evidence, there is ... | visual_assertion+absence | verified     -> unverifiable
+  The action scores for all frames show people wa... | metadata           | rejected     -> unverifiable
+  The timestamps and captions suggest that the gr... | visual_assertion   | rejected     -> unverifiable
+
+  total flips vs live verdict:                                    14
+  rejected->unverifiable flips on metadata/meta_commentary/absence claims: 5
+

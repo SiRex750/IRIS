@@ -45,6 +45,9 @@ class FrameRecord:
     # Defaults are safe for old serialized indices and the legacy parity path.
     packet_size:   float = 0.0
     pict_type:     str   = "?"
+    # Zero-decode packet-curve valley-scene assignment (Phase 6 scene-sparse
+    # groundwork). -1 = unassigned (old serialized indices; flat graph never sets it).
+    scene_id:      int   = -1
     # L2 structural score, filled after graph build
     pagerank_score:    float = 0.0
     # Pre-computed codec confidence signal (query-independent, stored at ingest).
@@ -76,3 +79,8 @@ class IRISIndex:
     schema_version:           int = 1
     # in-memory only; excluded from serialization, equality, and repr
     _graph:                   Any = field(default=None, repr=False, compare=False)
+    # Edgeless per-scene centroid index (Phase 6 scene-sparse groundwork): NOT a
+    # rep graph, no rep-rep edges. {scene_id: mean CLIP embedding}. Deterministic
+    # function of frames+scene_id, so it is rebuilt (not serialized) on load,
+    # same lifecycle as _graph.
+    _scene_centroids:         Any = field(default=None, repr=False, compare=False)

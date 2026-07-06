@@ -115,16 +115,23 @@ class L2Asphodel:
                 self.beta = config.get("beta", self.beta)
                 self.gamma = config.get("gamma", self.gamma)
 
-    def _update_all_edge_weights(self) -> None:
+    def _update_all_edge_weights(self, node_groups: list[list] | None = None) -> None:
         """
-        Recalculates edge weights between all nodes in the graph to maintain a fully
-        connected, mathematically consistent spatiotemporal graph.
-        
+        Recalculates edge weights between nodes to maintain a mathematically
+        consistent spatiotemporal graph.
+
         Formula:
           Total_Weight = (cosine_similarity(i, j) * alpha) + (motion_coherence(i, j) * beta)
-          
+
         If either endpoint lacks an embedding (cold-start phase), the weight defaults to
         motion_coherence(i, j).
+
+        node_groups: if None (default), fully connect ALL nodes (flat graph, unchanged
+        behavior). If a list of node-id groups, connect ONLY pairs within the same
+        group (block-diagonal / scene-sparse graph) — no cross-group edges. The
+        max_score_range normalization is still computed over the FULL node set in
+        both cases, so the weight formula itself is identical; only which pairs get
+        an edge changes.
         """
         node_ids = list(self.graph.nodes)
         num_nodes = len(node_ids)
@@ -143,35 +150,120 @@ class L2Asphodel:
         min_score = min(scores)
         max_score_range = max_score - min_score
 
-        # Re-populate/update the fully connected edge set
-        for i in range(num_nodes):
-            for j in range(i + 1, num_nodes):
-                u, v = node_ids[i], node_ids[j]
+        def _edge_weight(u, v):
+            node_u = self.graph.nodes[u]["node_data"]
+            node_v = self.graph.nodes[v]["node_data"]
+            return self._pair_weight(node_u, node_v, max_score_range)
+
+        if node_groups is None:
+            # Re-populate/update the fully connected edge set
+            for i in range(num_nodes):
+                for j in range(i + 1, num_nodes):
+                    u, v = node_ids[i], node_ids[j]
+                    self.graph.add_edge(u, v, weight=_edge_weight(u, v))
+        else:
+            # Block-diagonal: only intra-group pairs get an edge. No cross-group edges.
+            for group in node_groups:
+                members = list(group)
+                for i in range(len(members)):
+                    for j in range(i + 1, len(members)):
+                        u, v = members[i], members[j]
+                        self.graph.add_edge(u, v, weight=_edge_weight(u, v))
+
+    def _pair_weight(self, node_u: "AsphodelNode", node_v: "AsphodelNode", max_score_range: float) -> float:
+        """The audited motion-coherence + semantic hybrid weight formula, shared
+        by _update_all_edge_weights (full/block-diagonal builds) and
+        add_cross_scene_edges (scene_sparse descent-time pool). Same formula,
+        only the caller-supplied max_score_range scoping differs."""
+        if max_score_range == 0.0:
+            motion_coherence = 1.0
+        else:
+            motion_coherence = 1.0 - (abs(node_u.action_score - node_v.action_score) / max_score_range)
+
+        if node_u.embedding is not None and node_v.embedding is not None:
+            norm_u = np.linalg.norm(node_u.embedding)
+            norm_v = np.linalg.norm(node_v.embedding)
+            if norm_u == 0.0 or norm_v == 0.0:
+                cos_sim = 0.0
+            else:
+                cos_sim = float(np.dot(node_u.embedding, node_v.embedding) / (norm_u * norm_v))
+            return (cos_sim * self.alpha) + (motion_coherence * self.beta)
+        else:
+            return motion_coherence
+
+    def add_cross_scene_edges(
+        self,
+        node_ids: list[int],
+        scene_of: dict[int, int],
+        mode: str = "all",
+        threshold_percentile: float = 75.0,
+        scene_anchors: dict[int, int] | None = None,
+        graph: "nx.Graph | None" = None,
+    ) -> int:
+        """Descent-time only (scene_sparse 2c-ii/2c-iv): add edges between
+        pooled nodes spanning >1 scene, using the SAME audited weight formula
+        _update_all_edge_weights uses, computed on the fly over the pool only.
+        Intra-scene edges already exist (block-diagonal build) -- this only
+        fills in the cross-scene gaps for the induced pool subgraph.
+
+        mode:
+          "all"       -- every cross-scene pair gets an edge (2c-ii baseline).
+          "threshold" -- only pairs whose _pair_weight is >= the
+                         threshold_percentile of THIS pool's cross-scene weight
+                         distribution (report-only sparsity sweep, 2c-iv).
+          "rep_only"  -- only pairs where BOTH endpoints are the supplied
+                         scene_anchors (highest max-sim frame per scene) --
+                         "linked only via reps" (2c-iv).
+
+        graph: if given, edges are added to THIS nx.Graph instance instead of
+        self.graph. Node weight lookups still read from self.graph (the node
+        data itself isn't duplicated). Used by sweeps/diagnostics so trying
+        multiple modes on the same pool never leaks edges between runs or
+        mutates the shared production graph. Defaults to self.graph.
+
+        Pure function of stored node features (action_score, embedding) plus
+        the caller-supplied scene_of/scene_anchors mapping -- deterministic,
+        no RNG, so build-vs-reload descent output matches exactly.
+
+        Returns the number of cross-scene edges added.
+        """
+        target = graph if graph is not None else self.graph
+        ids = list(node_ids)
+        if len(ids) <= 1:
+            return 0
+
+        nodes_data = [self.graph.nodes[n]["node_data"] for n in ids]
+        scores = [nd.action_score for nd in nodes_data]
+        max_score_range = max(scores) - min(scores)
+
+        candidates: list[tuple[int, int, float]] = []
+        for i in range(len(ids)):
+            for j in range(i + 1, len(ids)):
+                u, v = ids[i], ids[j]
+                if scene_of.get(u) == scene_of.get(v):
+                    continue  # intra-scene: edge already exists (block-diagonal)
                 node_u = self.graph.nodes[u]["node_data"]
                 node_v = self.graph.nodes[v]["node_data"]
+                weight = self._pair_weight(node_u, node_v, max_score_range)
+                candidates.append((u, v, weight))
 
-                # Calculate motion coherence
-                if max_score_range == 0.0:
-                    motion_coherence = 1.0
-                else:
-                    motion_coherence = 1.0 - (abs(node_u.action_score - node_v.action_score) / max_score_range)
+        if mode == "all":
+            selected = candidates
+        elif mode == "threshold":
+            if candidates:
+                thresh = float(np.percentile([w for _, _, w in candidates], threshold_percentile))
+                selected = [(u, v, w) for u, v, w in candidates if w >= thresh]
+            else:
+                selected = []
+        elif mode == "rep_only":
+            anchor_ids = set((scene_anchors or {}).values())
+            selected = [(u, v, w) for u, v, w in candidates if u in anchor_ids and v in anchor_ids]
+        else:
+            raise ValueError(f"unknown cross-scene edge mode {mode!r}")
 
-                # Determine weight based on enrichment status
-                if node_u.embedding is not None and node_v.embedding is not None:
-                    # Both nodes have embeddings -> Hybrid formula
-                    norm_u = np.linalg.norm(node_u.embedding)
-                    norm_v = np.linalg.norm(node_v.embedding)
-                    if norm_u == 0.0 or norm_v == 0.0:
-                        cos_sim = 0.0
-                    else:
-                        cos_sim = float(np.dot(node_u.embedding, node_v.embedding) / (norm_u * norm_v))
-                    
-                    weight = (cos_sim * self.alpha) + (motion_coherence * self.beta)
-                else:
-                    # Cold-start phase
-                    weight = motion_coherence
-
-                self.graph.add_edge(u, v, weight=weight)
+        for u, v, w in selected:
+            target.add_edge(u, v, weight=w)
+        return len(selected)
 
     def _update_pagerank(self) -> None:
         """
@@ -299,6 +391,7 @@ class L2Asphodel:
         self,
         feature_records: list,
         action_score_records: list,
+        node_groups: list[list] | None = None,
     ) -> None:
         """
         Batch-insert multiple frame nodes.
@@ -313,6 +406,8 @@ class L2Asphodel:
         Args:
             feature_records:     list of feature dicts (same schema as add_frame_node)
             action_score_records: parallel list of action_score dicts
+            node_groups: optional grouping of frame_idx for block-diagonal (scene-sparse)
+                         edge construction. None (default) = fully connected, unchanged.
         """
         def get_val(record: Any, key: str, default: Any = None) -> Any:
             if record is None:
@@ -353,10 +448,10 @@ class L2Asphodel:
             self.graph.add_node(frame_idx, node_data=node_obj)
 
         # Single recompute after all nodes inserted — the key efficiency gain.
-        self._update_all_edge_weights()
+        self._update_all_edge_weights(node_groups=node_groups)
         self._update_pagerank()
 
-    def enrich_nodes_bulk(self, enrichment_map: dict) -> None:
+    def enrich_nodes_bulk(self, enrichment_map: dict, node_groups: list[list] | None = None) -> None:
         """
         Batch-enrich multiple nodes with CLIP embeddings.
 
@@ -365,6 +460,8 @@ class L2Asphodel:
 
         Args:
             enrichment_map: {frame_idx (int): embedding (np.ndarray)}
+            node_groups: optional grouping for block-diagonal (scene-sparse) edge
+                         recompute. None (default) = fully connected, unchanged.
         """
         for frame_idx, embedding in enrichment_map.items():
             if frame_idx not in self.graph.nodes:
@@ -374,7 +471,7 @@ class L2Asphodel:
             node_data.embedding = embedding
 
         # Single recompute after all enrichments applied.
-        self._update_all_edge_weights()
+        self._update_all_edge_weights(node_groups=node_groups)
         self._update_pagerank()
 
     def retrieve(
@@ -448,6 +545,8 @@ class L2Asphodel:
         top_k: int = 5,
         damping: float = 0.5,
         lambda_: float = 0.5,
+        node_subset: list[int] | None = None,
+        graph_override: "nx.Graph | None" = None,
     ) -> list[AsphodelNode]:
         """
         Codec-discounted Personalized PageRank retrieval (6.2b mechanism).
@@ -457,8 +556,28 @@ class L2Asphodel:
         normalized when config.codec_conf_pictype_norm=True) — NOT re-normalized here.
 
         Falls back to uniform teleport when all seeds are zero.
+
+        node_subset: None (default) -> run over the full graph, EXACT prior behavior
+        (flat path unchanged). If given, run PPR over the induced subgraph on these
+        node ids only (2c-ii scene_sparse descent) -- sem_rank/codec_rank are ranked
+        OVER THE SUBSET, not the full graph; the formula, λ, and damping are identical,
+        only the node population changes.
+
+        graph_override: if given, run PPR directly on this nx.Graph instance (its node
+        set defines node_ids) instead of self.graph/self.graph.subgraph(node_subset).
+        Node data (embedding/codec_conf/action_score) is still read from self.graph --
+        only edge topology/weight comes from graph_override. Used for cross-scene edge
+        sparsity sweeps (2c-iv) so different modes never share graph state.
         """
-        node_ids = list(self.graph.nodes)
+        if graph_override is not None:
+            working_graph = graph_override
+            node_ids = list(graph_override.nodes)
+        elif node_subset is None:
+            node_ids = list(self.graph.nodes)
+            working_graph = self.graph
+        else:
+            node_ids = list(node_subset)
+            working_graph = self.graph.subgraph(node_ids)
         if not node_ids:
             return []
 
@@ -498,13 +617,13 @@ class L2Asphodel:
 
         try:
             pr = nx.pagerank(
-                self.graph,
+                working_graph,
                 weight="weight",
                 personalization=seed,
                 alpha=damping,
             )
         except Exception:
-            pr = nx.pagerank(self.graph, weight="weight", personalization=None, alpha=damping)
+            pr = nx.pagerank(working_graph, weight="weight", personalization=None, alpha=damping)
             teleport_fallback = True
 
         for nid, score in pr.items():

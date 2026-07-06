@@ -1,0 +1,188 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+####################################################################################################
+# ANALYZING PASS 2  (C:\IRIS\diag_v4_moondream_captions_pass2.jsonl)
+####################################################################################################
+
+====================================================================================================
+(A) DIVERSITY: BLIP vs Moondream over the same 55 frames
+====================================================================================================
+  -- BLIP --
+    distinct-caption ratio: 11/55 = 0.2000
+    mean caption length (chars): 29.5
+    top-5 most repeated:
+      x13: 'a red brick building.'
+      x11: 'a parking lot.'
+      x10: 'a group of people walking down a street.'
+      x9: 'a car parked in a parking lot.'
+      x4: 'a group of people walking down a sidewalk.'
+
+  -- Moondream --
+    distinct-caption ratio: 50/55 = 0.9091
+    mean caption length (chars): 336.6
+    top-5 most repeated:
+      x3: 'The image shows a large brick building with a flat roof, surrounded by trees and bushes. A group of people can be seen walking on the sidewalk in front of the building, which is located near a parking lot filled with parked bicycles. The scene appears to be captured from an aerial perspective, providing a comprehensive view of the area.'
+      x2: 'The image shows a large brick building with a flat roof, surrounded by trees and bushes. A group of people can be seen walking on the sidewalk in front of the building, which is located near a parking lot filled with parked bicycles. The scene conveys a sense of community and outdoor activity as individuals enjoy their time outdoors.'
+      x2: "The image shows a group of people walking on the sidewalk in front of a brick building with a large window and a small porch. The scene is captured from an aerial perspective, providing a bird's eye view of the activity below. There are at least six individuals visible in the frame, each engaged in their own journey down the street."
+      x2: "The image shows a group of people walking on the sidewalk in front of a brick building with a large window and a small tree nearby. The scene is captured from an aerial perspective, providing a bird's eye view of the area."
+      x1: 'The image shows a large brick building with a flat roof, surrounded by trees and bushes. A group of people can be seen walking on the sidewalk in front of the building, which is located near a parking lot. The scene appears to be captured from an aerial perspective, providing a comprehensive view of the area around the building.'
+
+  n frames compared: 55
+
+====================================================================================================
+(B) BOUND-NLI REPLAY: normalized kernel vs Moondream caption (substituted premise)
+====================================================================================================
+Loading weights:   0%|          | 0/202 [00:00<?, ?it/s]Loading weights: 100%|##########| 202/202 [00:00<00:00, 3006.51it/s]
+[1mDebertaV2ForSequenceClassification LOAD REPORT[0m from: cross-encoder/nli-deberta-v3-base
+Key                             | Status     |  | 
+--------------------------------+------------+--+-
+deberta.embeddings.position_ids | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+    query='Is there a car in the parking lot?'
+    normalized_kernel='there is a parking lot .00 .00, indicating high confidence in the presence of a car.'
+      vs frame_idx=24993 moondream_caption='The image shows a parking lot with two cars parked in the center, one silver and one black. A person is walking towards the left side of the frame, while another individual can be seen on the right side. The scene takes place near a brick building, which appears to be an apartment complex or dormitory.' -> label=entailment score=0.9721
+    ARGMAX: frame_idx=24993 label=entailment score=0.9721
+
+    query='Is there a car in the parking lot?'
+    normalized_kernel='there is a car parked in a parking lot .97 .96.'
+      vs frame_idx=25069 moondream_caption='The image shows a parking lot with several cars parked in two rows, one on the left and another on the right side of the frame. In the background, there is a brick building with a sloping roof. A person can be seen walking towards the camera from the left side of the photo.' -> label=neutral score=0.0717
+    ARGMAX: frame_idx=25069 label=neutral score=0.0717
+
+    query='Are there vehicles parked?'
+    normalized_kernel='there is a car parked in a parking lot .97 .96.'
+      vs frame_idx=25069 moondream_caption='The image shows a parking lot with several cars parked in two rows, one on the left and another on the right side of the frame. In the background, there is a brick building with a sloping roof. A person can be seen walking towards the camera from the left side of the photo.' -> label=neutral score=0.0717
+    ARGMAX: frame_idx=25069 label=neutral score=0.0717
+
+    query='Are there vehicles parked?'
+    normalized_kernel='and 3334 also show a parking lot .92 to 0.95, indicating that the presence of vehicles is likely.'
+      vs frame_idx=4384 moondream_caption='The image shows a large brick building with a flat roof and multiple windows, situated in an empty parking lot surrounded by trees. The parking lot is mostly clear of vehicles, creating a sense of tranquility. In the foreground, there are two yellow poles standing out against the greenery.' -> label=contradiction score=0.0003
+    ARGMAX: frame_idx=4384 label=contradiction score=0.0003
+
+    query='Are there vehicles parked?'
+    normalized_kernel="it's worth noting that there is only a parking lot without any visible vehicles, which might suggest that the vehicle in question has left or not been detected yet."
+      vs frame_idx=24934 moondream_caption='The image shows a parking lot with several cars parked in it, including one silver car and two black cars. The parking lot is situated next to a brick building, which has a large window on the right side of the frame. A few people can be seen walking around the area, adding life to the scene.' -> label=contradiction score=0.0000
+    ARGMAX: frame_idx=24934 label=contradiction score=0.0000
+
+    query='Is anyone loading a vehicle?'
+    normalized_kernel='The frames with high action scores (0.96 or higher) show a car parked in a parking lot at timestamps 793.4s, 795.4s, 24169s, and 24423s.'
+      vs frame_idx=23839 moondream_caption='The image shows a man standing next to his parked car in an empty parking lot, which is located near a brick building with a sloping roof and several trees nearby. The sky above appears hazy, suggesting the photo was taken during daylight hours.' -> label=neutral score=0.0010
+      vs frame_idx=23778 moondream_caption="The image shows a man standing next to his parked car in an empty parking lot, with the car's side facing the viewer. The parking lot is surrounded by brick buildings and trees, creating a serene atmosphere. In the background, there are several bicycles scattered around, suggesting that people might have used them for transportation or exercise." -> label=neutral score=0.0009
+    ARGMAX: frame_idx=23839 label=neutral score=0.0010
+
+    query='Is anyone loading a vehicle?'
+    normalized_kernel='there is a low .00, indicating that the object (in this case, the car) was not detected in the previous frame, suggesting it may have moved or disappeared from view.'
+      vs frame_idx=23760 moondream_caption='The image shows a gray car parked in front of a brick building with a triangular roof, possibly an apartment complex or a small office space. The car is positioned on the left side of the frame and appears to be facing away from the camera. In the background, there are several bicycles scattered around, indicating that this location might be a popular spot for cyclists.\n\nTwo people can be seen in the image - one person standing near the center-left part of the scene and another person closer to the right side. The presence of these individuals suggests that the area is frequented by pedestrians or residents who use various modes of transportation, such as cars and bicycles.' -> label=entailment score=0.9810
+    ARGMAX: frame_idx=23760 label=entailment score=0.9810
+
+    query='Is anyone walking?'
+    normalized_kernel='(342.4s): A group of people walking down a street .97.'
+      vs frame_idx=10263 moondream_caption="The image shows a group of people walking on the sidewalk in front of a brick building with a large window and a small tree nearby. The scene is captured from an aerial perspective, providing a bird's eye view of the area." -> label=entailment score=0.9738
+    ARGMAX: frame_idx=10263 label=entailment score=0.9738
+
+    query='Is anyone walking?'
+    normalized_kernel='(75.7s) and (76.7s): Also show a group of people walking down a street, both .00.'
+      vs frame_idx=2298 moondream_caption="The image shows a group of people walking on the sidewalk in front of a brick building with a large window and a small porch. The scene is captured from an aerial perspective, providing a bird's eye view of the activity below. There are at least six individuals visible in the frame, each engaged in their own journey down the street." -> label=neutral score=0.0117
+      vs frame_idx=2268 moondream_caption="The image shows a group of people walking on a sidewalk in front of a brick building with a large window and a small porch. The scene is captured from an aerial perspective, providing a bird's eye view of the activity below. There are at least six individuals visible in the frame, each engaged in their own journey along the sidewalk." -> label=neutral score=0.0060
+    ARGMAX: frame_idx=2298 label=neutral score=0.0117
+
+    query='Is anyone walking?'
+    normalized_kernel="it's worth noting that there is also a frame showing a parking lot, which suggests that the walking activity may have stopped or changed location around this time."
+      vs frame_idx=2793 moondream_caption='The image shows a large brick building with a flat roof and multiple windows, situated in an open area surrounded by trees. A group of people can be seen walking on the sidewalk near the building, which is located at the corner of two streets. The scene appears to be captured from an aerial perspective, providing a comprehensive view of the surrounding environment.' -> label=neutral score=0.0001
+    ARGMAX: frame_idx=2793 label=neutral score=0.0001
+
+    query='Is a person visible in the scene?'
+    normalized_kernel='For example: shows a group of people walking down a street .00, indicating high confidence in detecting people.'
+      vs frame_idx=2148 moondream_caption="The image shows a group of people walking on the sidewalk in front of a brick building with a large window and a small porch. The scene is captured from an aerial perspective, providing a bird's eye view of the area. In total, there are eight people visible in the frame, some closer to the camera while others are further away." -> label=neutral score=0.0006
+    ARGMAX: frame_idx=2148 label=neutral score=0.0006
+
+    query='Is a person visible in the scene?'
+    normalized_kernel='shows a person walking down a street in a parking lot .99, indicating high confidence in detecting people.'
+      vs frame_idx=26988 moondream_caption="The image shows a man walking on the sidewalk in front of a brick building, carrying a backpack and wearing a black jacket. The scene is captured from an aerial perspective, providing a bird's eye view of the area. In the background, there are several bicycles parked near the entrance to the building." -> label=neutral score=0.1369  ** RED FLAG: fabricated claim(s) entailed by a Moondream caption **
+
+    ARGMAX: frame_idx=26988 label=neutral score=0.1369
+
+    query='Is a person visible in the scene?'
+    normalized_kernel='also shows a group of people walking down a street .00.'
+      vs frame_idx=18708 moondream_caption="The image shows a group of people walking on the sidewalk in front of a brick building with a large window and a small porch. The scene is captured from an aerial perspective, providing a bird's eye view of the activity below. The people are moving towards the right side of the frame, creating a sense of motion and direction within the image." -> label=neutral score=0.0073
+    ARGMAX: frame_idx=18708 label=neutral score=0.0073
+
+    query='Is a person visible in the scene?'
+    normalized_kernel='there are some frames where the presence of a person is not explicitly confirmed: shows a group of people walking down a sidewalk but does not provide clear evidence of individual people.'
+      vs frame_idx=2118 moondream_caption='The image shows a brick building with a sloping roof, surrounded by trees and bushes. A group of people can be seen walking on the sidewalk in front of the building, which is located near a parking lot filled with parked bicycles. The scene appears to be captured from an aerial perspective, providing a comprehensive view of the area.' -> label=entailment score=0.7309
+    ARGMAX: frame_idx=2118 label=entailment score=0.7309
+
+    query='Is a person visible in the scene?'
+    normalized_kernel='shows a person walking down a sidewalk in a parking lot, but the Action Score is only 0.99.'
+      vs frame_idx=26913 moondream_caption="The image shows a brick building with a large glass window and a smaller one on the side, situated in an empty parking lot surrounded by trees. A few people can be seen walking around the area, including two individuals closer to the left edge of the frame and another person further back near the right edge. The scene conveys a sense of tranquility and solitude as the building stands alone amidst nature's elements." -> label=contradiction score=0.0226
+    ARGMAX: frame_idx=26913 label=contradiction score=0.0226
+
+    query='Is there an unattended bag?'
+    normalized_kernel="there is a car parked in a parking lot, which might be worth investigating further to see if there's anything unusual about the vehicle or its surroundings."
+      vs frame_idx=23748 moondream_caption='The image shows a gray car parked in front of a red brick building with a triangular roof, which appears to be a parking lot or an entrance to the building. The car is positioned on the left side of the frame and has its trunk open. Two people are walking towards the car, one closer to the center of the frame and another slightly further away from the car. In the background, there are several bicycles parked near the red brick building.' -> label=neutral score=0.0029
+    ARGMAX: frame_idx=23748 label=neutral score=0.0029
+
+====================================================================================================
+VERDICT TABLE (Moondream-substituted)
+====================================================================================================
+  claim                                         | class              | live          | binding_moondream   
+  ---------------------------------------------------------------------------------------------------------
+  Based on the provided frame evidence, it a... | visual_assertion   | rejected      | no_citation(answer-semantics)
+  Specifically, Frame 24993 shows a parking ... | metadata           | rejected      | verified_kernel     
+  Additionally, Frame 25069 also depicts a c... | metadata           | unverifiable  | unverifiable        
+  These frames provide strong evidence for t... | visual_assertion   | rejected      | no_citation(answer-semantics)
+  Based on the provided frame evidence, it a... | visual_assertion   | verified      | no_citation(answer-semantics)
+  Specifically: Frame 25069 shows a car park... | metadata           | rejected      | unverifiable        
+  Frames 4384 and 3334 also show a parking l... | metadata           | unverifiable  | rejected            
+  However, it's worth noting that Frame 2493... | visual_assertion   | rejected      | rejected            
+  Based on the provided frame evidence, it a... | visual_assertion   | unverifiable  | no_citation(answer-semantics)
+  The frames with high action scores (0.96 o... | metadata           | unverifiable  | unverifiable        
+  These frames suggest that the car has been... | visual_assertion   | verified      | no_citation(answer-semantics)
+  Additionally, frame 23760 shows a low pers... | metadata           | unverifiable  | verified_kernel     
+  There is no frame with high action scores ... | metadata           | rejected      | no_citation(answer-semantics)
+  Based on the provided frame evidence, I co... | visual_assertion   | unverifiable  | no_citation(answer-semantics)
+  The captions consistently show a "red bric... | visual_assertion   | rejected      | no_citation(answer-semantics)
+  The action scores and persistence values s... | metadata           | unverifiable  | no_citation(answer-semantics)
+  Yes, based on the provided frames, it appe... | visual_assertion   | rejected      | no_citation(answer-semantics)
+  Specifically: Frame 10263 (342.4s): A grou... | metadata           | rejected      | verified_kernel     
+  Frame 2268 (75.7s) and Frame 2298 (76.7s):... | metadata           | unverifiable  | unverifiable        
+  However, it's worth noting that there is a... | visual_assertion   | unverifiable  | unverifiable        
+  Based on the provided frame evidence, it a... | visual_assertion   | verified      | no_citation(answer-semantics)
+  For example: Frame 2148 (Timestamp: 71.7s)... | metadata           | rejected      | unverifiable        
+  Frame 26988 (Timestamp: 900.5s) shows a pe... | metadata           | rejected      | unverifiable        
+  Frame 18708 (Timestamp: 624.2s) also shows... | metadata           | unverifiable  | unverifiable        
+  However, there are some frames where the p... | visual_assertion   | verified      | verified_kernel     
+  Frame 26913 (Timestamp: 898.0s) shows a pe... | metadata           | rejected      | rejected            
+  Overall, while there are some frames that ... | visual_assertion   | unverifiable  | no_citation(answer-semantics)
+  Based on the provided frame evidence, I co... | visual_assertion   | rejected      | no_citation(answer-semantics)
+  The frames show people walking down sidewa... | visual_assertion   | rejected      | no_citation(answer-semantics)
+  However, Frame 23748 shows a car parked in... | visual_assertion   | unverifiable  | unverifiable        
+  But without more context or additional fra... | visual_assertion   | unverifiable  | no_citation(answer-semantics)
+  If you have any more frames or context, I'... | meta_commentary    | unverifiable  | no_citation(answer-semantics)
+  Based on the provided frame evidence, ther... | visual_assertion   | verified      | no_citation(answer-semantics)
+  The action scores for all frames show peop... | metadata           | rejected      | no_citation(answer-semantics)
+  The timestamps and captions suggest that t... | visual_assertion   | rejected      | no_citation(answer-semantics)
+
+  -- SUMMARY --
+  entailments under Moondream-substituted bound-NLI replay: 4
+  BLIP baseline (--kernel-normalize):                       4
+  READ: Moondream ties the BLIP baseline -- no improvement from the caption swap alone.
+
+====================================================================================================
+(C) FABRICATED PROBE: 6 fabricated claims x every Moondream caption
+====================================================================================================
+  n (claim, caption) pairs scored: 330
+  BLIP baseline fabricated accept rate (diag_v2 section E): 0.0000
+  Moondream entailed pairs found: 3
+
+  ** RED FLAG: fabricated claim(s) entailed by a Moondream caption **
+    claim='A dog runs across the parking lot.'
+    frame_idx=23760 moondream_caption='The image shows a gray car parked in front of a brick building with a triangular roof, possibly an apartment complex or a small office space. The car is positioned on the left side of the frame and appears to be facing away from the camera. In the background, there are several bicycles scattered around, indicating that this location might be a popular spot for cyclists.\n\nTwo people can be seen in the image - one person standing near the center-left part of the scene and another person closer to the right side. The presence of these individuals suggests that the area is frequented by pedestrians or residents who use various modes of transportation, such as cars and bicycles.' entailment_score=0.9868STOP: fabricated-claim entailment found -- surfacing, not tuning around.
+
+
+    claim='A fire truck is parked in the lot.'
+    frame_idx=23760 moondream_caption='The image shows a gray car parked in front of a brick building with a triangular roof, possibly an apartment complex or a small office space. The car is positioned on the left side of the frame and appears to be facing away from the camera. In the background, there are several bicycles scattered around, indicating that this location might be a popular spot for cyclists.\n\nTwo people can be seen in the image - one person standing near the center-left part of the scene and another person closer to the right side. The presence of these individuals suggests that the area is frequented by pedestrians or residents who use various modes of transportation, such as cars and bicycles.' entailment_score=0.9660
+
+    claim='A person climbs onto the roof of a car.'
+    frame_idx=873 moondream_caption='The image shows a large brick building with a sloping roof, surrounded by trees and bushes. A group of people can be seen walking on the sidewalk in front of the building, which is located near a parking lot filled with parked bicycles. The scene conveys a sense of community and outdoor activity as individuals go about their day.' entailment_score=0.5444
+
