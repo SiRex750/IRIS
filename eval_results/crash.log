@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "C:\Users\akash\Documents\Iris\eval\caption_benchmark.py", line 363, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\akash\Documents\Iris\eval\caption_benchmark.py", line 301, in main
+    print(f"Device:       {device}")
+                           ^^^^^^
+UnboundLocalError: cannot access local variable 'device' where it is not associated with a value

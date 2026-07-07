@@ -1,0 +1,262 @@
+{
+  "metadata": {
+    "dataset": "Curated NExT-QA styled benchmark",
+    "total_clips": 10,
+    "successful_clips": 4,
+    "failed_clips": 6,
+    "active_retrieval_strategy": "hybrid",
+    "timestamp": "2026-06-24 15:10:11"
+  },
+  "aggregated_metrics": {
+    "baseline": {
+      "avg_accuracy": 0.25,
+      "avg_skipped_ratio": 0.0,
+      "avg_latency_ms": 271709.43063497543,
+      "avg_frames_sent": 61.5
+    },
+    "ablation_1": {
+      "avg_accuracy": 0.0,
+      "avg_skipped_ratio": 0.8782839759763645,
+      "avg_latency_ms": 220157.9002737999,
+      "avg_frames_sent": 5.0
+    },
+    "full_iris": {
+      "avg_accuracy": 0.0,
+      "avg_skipped_ratio": 0.8782839759763645,
+      "avg_latency_ms": 222323.37993383408,
+      "avg_frames_sent": 5.0
+    }
+  },
+  "failures": [
+    {
+      "clip_id": "driver_action_recognition",
+      "error": "Error code: 401 - {'error': {'message': 'The project you are requesting has been archived and is no longer accessible', 'type': 'invalid_request_error', 'code': 'not_authorized_invalid_project', 'param': None}, 'status': 401}"
+    },
+    {
+      "clip_id": "person_bicycle_car_detection",
+      "error": "Error code: 401 - {'error': {'message': 'The project you are requesting has been archived and is no longer accessible', 'type': 'invalid_request_error', 'code': 'not_authorized_invalid_project', 'param': None}, 'status': 401}"
+    },
+    {
+      "clip_id": "people_detection",
+      "error": "Error code: 401 - {'error': {'message': 'The project you are requesting has been archived and is no longer accessible', 'type': 'invalid_request_error', 'code': 'not_authorized_invalid_project', 'param': None}, 'status': 401}"
+    },
+    {
+      "clip_id": "store_aisle_detection",
+      "error": "Error code: 401 - {'error': {'message': 'The project you are requesting has been archived and is no longer accessible', 'type': 'invalid_request_error', 'code': 'not_authorized_invalid_project', 'param': None}, 'status': 401}"
+    },
+    {
+      "clip_id": "bear_clip",
+      "error": "Error code: 401 - {'error': {'message': 'The project you are requesting has been archived and is no longer accessible', 'type': 'invalid_request_error', 'code': 'not_authorized_invalid_project', 'param': None}, 'status': 401}"
+    },
+    {
+      "clip_id": "big_buck_bunny",
+      "error": "Error code: 401 - {'error': {'message': 'The project you are requesting has been archived and is no longer accessible', 'type': 'invalid_request_error', 'code': 'not_authorized_invalid_project', 'param': None}, 'status': 401}"
+    }
+  ],
+  "detailed_runs": [
+    {
+      "condition": "baseline",
+      "answer": "The car that drives past the camera is white, as seen in frames 72 (5.8s), 84 (6.7s), and 96 (7.7s) where a white car is maneuvering and driving away in the parking lot.",
+      "raw_answer": "The car that drives past the camera is white, as seen in frames 72 (5.8s), 84 (6.7s), and 96 (7.7s) where a white car is maneuvering and driving away in the parking lot.",
+      "frames_processed": 377,
+      "frames_sent_to_llm": 32,
+      "compression_ratio": 0.9151193633952255,
+      "skipped_ratio": 0.0,
+      "latency_ms": 85184.62228775024,
+      "verified_claims_count": 1,
+      "rejected_claims_count": 0,
+      "unverifiable_claims_count": 0,
+      "accuracy": 0.0,
+      "overlap_ratio": 0.3333333333333333,
+      "clip_id": "car_detection",
+      "question_type": "descriptive"
+    },
+    {
+      "condition": "ablation_1",
+      "answer": "The provided frame evidence does not include any information about a car driving past the camera or its color. Therefore, I cannot answer your question.",
+      "raw_answer": "The provided frame evidence does not include any information about a car driving past the camera or its color. Therefore, I cannot answer your question.",
+      "frames_processed": 45,
+      "frames_sent_to_llm": 5,
+      "compression_ratio": 0.8806366047745358,
+      "skipped_ratio": 0.8806366047745358,
+      "latency_ms": 58111.38820648193,
+      "verified_claims_count": 2,
+      "rejected_claims_count": 0,
+      "unverifiable_claims_count": 0,
+      "accuracy": 0.0,
+      "overlap_ratio": 0.3333333333333333,
+      "clip_id": "car_detection",
+      "question_type": "descriptive"
+    },
+    {
+      "condition": "full_iris",
+      "answer": "The provided frame evidence does not include any information about a car driving past the camera or its color. Therefore, I cannot answer your question.",
+      "raw_answer": "The provided frame evidence does not include any information about a car driving past the camera or its color. Therefore, I cannot answer your question.",
+      "frames_processed": 45,
+      "frames_sent_to_llm": 5,
+      "compression_ratio": 0.8806366047745358,
+      "skipped_ratio": 0.8806366047745358,
+      "latency_ms": 57930.092096328735,
+      "verified_claims_count": 0,
+      "rejected_claims_count": 1,
+      "unverifiable_claims_count": 1,
+      "accuracy": 0.0,
+      "overlap_ratio": 0.3333333333333333,
+      "clip_id": "car_detection",
+      "question_type": "descriptive"
+    },
+    {
+      "condition": "baseline",
+      "answer": "The provided frame evidence does not include any information about a walkway or a second person entering it. Therefore, I cannot provide an answer to your question.",
+      "raw_answer": "The provided frame evidence does not include any information about a walkway or a second person entering it. Therefore, I cannot provide an answer to your question.",
+      "frames_processed": 1394,
+      "frames_sent_to_llm": 140,
+      "compression_ratio": 0.8995695839311334,
+      "skipped_ratio": 0.0,
+      "latency_ms": 558346.8630313873,
+      "verified_claims_count": 1,
+      "rejected_claims_count": 0,
+      "unverifiable_claims_count": 0,
+      "accuracy": 0.0,
+      "overlap_ratio": 0.0,
+      "clip_id": "one_by_one_person_detection",
+      "question_type": "temporal"
+    },
+    {
+      "condition": "ablation_1",
+      "answer": "The provided evidence does not include any information about a second person entering a walkway or their actions. Therefore, I cannot provide an answer to that question.",
+      "raw_answer": "The provided evidence does not include any information about a second person entering a walkway or their actions. Therefore, I cannot provide an answer to that question.",
+      "frames_processed": 221,
+      "frames_sent_to_llm": 5,
+      "compression_ratio": 0.8414634146341463,
+      "skipped_ratio": 0.8414634146341463,
+      "latency_ms": 314336.092710495,
+      "verified_claims_count": 2,
+      "rejected_claims_count": 0,
+      "unverifiable_claims_count": 0,
+      "accuracy": 0.0,
+      "overlap_ratio": 0.0,
+      "clip_id": "one_by_one_person_detection",
+      "question_type": "temporal"
+    },
+    {
+      "condition": "full_iris",
+      "answer": "The provided evidence does not include any information about a second person entering a walkway or their actions. Therefore, I cannot provide an answer regarding what they do.",
+      "raw_answer": "The provided evidence does not include any information about a second person entering a walkway or their actions. Therefore, I cannot provide an answer regarding what they do.",
+      "frames_processed": 221,
+      "frames_sent_to_llm": 5,
+      "compression_ratio": 0.8414634146341463,
+      "skipped_ratio": 0.8414634146341463,
+      "latency_ms": 318557.48081207275,
+      "verified_claims_count": 0,
+      "rejected_claims_count": 0,
+      "unverifiable_claims_count": 2,
+      "accuracy": 0.0,
+      "overlap_ratio": 0.0,
+      "clip_id": "one_by_one_person_detection",
+      "question_type": "temporal"
+    },
+    {
+      "condition": "baseline",
+      "answer": "The blue water bottles are arranged in various positions on the table throughout the frames. For example, at 0.0s (Frame 0), three clear water bottles with blue caps are arranged in a row. By 6.8s (Frame 203), a hand is moving one of the water bottles towards two others on the table. Later, at 13.6s (Frame 406), three clear plastic water bottles with blue caps are again arranged in a row. \n\nHowever, the specific placement of a single blue water bottle on the table is not detailed in the provided frames. The evidence does not specify the exact position of any individual blue water bottle at any given time.",
+      "raw_answer": "The blue water bottles are arranged in various positions on the table throughout the frames. For example, at 0.0s (Frame 0), three clear water bottles with blue caps are arranged in a row. By 6.8s (Frame 203), a hand is moving one of the water bottles towards two others on the table. Later, at 13.6s (Frame 406), three clear plastic water bottles with blue caps are again arranged in a row. \n\nHowever, the specific placement of a single blue water bottle on the table is not detailed in the provided frames. The evidence does not specify the exact position of any individual blue water bottle at any given time.",
+      "frames_processed": 1189,
+      "frames_sent_to_llm": 41,
+      "compression_ratio": 0.9655172413793104,
+      "skipped_ratio": 0.0,
+      "latency_ms": 121554.58927154541,
+      "verified_claims_count": 1,
+      "rejected_claims_count": 0,
+      "unverifiable_claims_count": 0,
+      "accuracy": 0.0,
+      "overlap_ratio": 0.3333333333333333,
+      "clip_id": "bottle_detection",
+      "question_type": "descriptive"
+    },
+    {
+      "condition": "ablation_1",
+      "answer": "The provided frame evidence does not include any information about the location of a blue water bottle on the table. Therefore, I cannot determine where it is placed.",
+      "raw_answer": "The provided frame evidence does not include any information about the location of a blue water bottle on the table. Therefore, I cannot determine where it is placed.",
+      "frames_processed": 124,
+      "frames_sent_to_llm": 5,
+      "compression_ratio": 0.8957106812447435,
+      "skipped_ratio": 0.8957106812447435,
+      "latency_ms": 167570.91307640076,
+      "verified_claims_count": 2,
+      "rejected_claims_count": 0,
+      "unverifiable_claims_count": 0,
+      "accuracy": 0.0,
+      "overlap_ratio": 0.3333333333333333,
+      "clip_id": "bottle_detection",
+      "question_type": "descriptive"
+    },
+    {
+      "condition": "full_iris",
+      "answer": "The provided evidence does not include any information about the location of a blue water bottle on a table. Therefore, I cannot determine where it is placed.",
+      "raw_answer": "The provided evidence does not include any information about the location of a blue water bottle on a table. Therefore, I cannot determine where it is placed.",
+      "frames_processed": 124,
+      "frames_sent_to_llm": 5,
+      "compression_ratio": 0.8957106812447435,
+      "skipped_ratio": 0.8957106812447435,
+      "latency_ms": 168873.35467338562,
+      "verified_claims_count": 0,
+      "rejected_claims_count": 1,
+      "unverifiable_claims_count": 1,
+      "accuracy": 0.0,
+      "overlap_ratio": 0.3333333333333333,
+      "clip_id": "bottle_detection",
+      "question_type": "descriptive"
+    },
+    {
+      "condition": "baseline",
+      "answer": "The provided evidence does not include specific reactions from the students when the teacher asks a question. However, there are instances where one individual raises their hand (Frame 540 at 18.0s and Frame 570 at 19.0s), which may indicate a willingness to respond or participate. Other frames show individuals appearing engaged or attentive, but there are no detailed descriptions of their reactions to a specific question. Therefore, the evidence is insufficient to provide a comprehensive answer about their reactions.",
+      "raw_answer": "The provided evidence does not include specific reactions from the students when the teacher asks a question. However, there are instances where one individual raises their hand (Frame 540 at 18.0s and Frame 570 at 19.0s), which may indicate a willingness to respond or participate. Other frames show individuals appearing engaged or attentive, but there are no detailed descriptions of their reactions to a specific question. Therefore, the evidence is insufficient to provide a comprehensive answer about their reactions.",
+      "frames_processed": 984,
+      "frames_sent_to_llm": 33,
+      "compression_ratio": 0.9664634146341463,
+      "skipped_ratio": 0.0,
+      "latency_ms": 321751.64794921875,
+      "verified_claims_count": 1,
+      "rejected_claims_count": 0,
+      "unverifiable_claims_count": 0,
+      "accuracy": 1.0,
+      "overlap_ratio": 0.75,
+      "clip_id": "classroom",
+      "question_type": "causal"
+    },
+    {
+      "condition": "ablation_1",
+      "answer": "The provided frame evidence does not include any information about students' reactions to a teacher's question. Therefore, I cannot describe their reactions based on the available context.",
+      "raw_answer": "The provided frame evidence does not include any information about students' reactions to a teacher's question. Therefore, I cannot describe their reactions based on the available context.",
+      "frames_processed": 103,
+      "frames_sent_to_llm": 5,
+      "compression_ratio": 0.8953252032520326,
+      "skipped_ratio": 0.8953252032520326,
+      "latency_ms": 340613.2071018219,
+      "verified_claims_count": 2,
+      "rejected_claims_count": 0,
+      "unverifiable_claims_count": 0,
+      "accuracy": 0.0,
+      "overlap_ratio": 0.25,
+      "clip_id": "classroom",
+      "question_type": "causal"
+    },
+    {
+      "condition": "full_iris",
+      "answer": "The provided frame evidence does not include any information about students' reactions to a teacher's question. Therefore, I cannot describe their reactions based on the available context.",
+      "raw_answer": "The provided frame evidence does not include any information about students' reactions to a teacher's question. Therefore, I cannot describe their reactions based on the available context.",
+      "frames_processed": 103,
+      "frames_sent_to_llm": 5,
+      "compression_ratio": 0.8953252032520326,
+      "skipped_ratio": 0.8953252032520326,
+      "latency_ms": 343932.5921535492,
+      "verified_claims_count": 0,
+      "rejected_claims_count": 0,
+      "unverifiable_claims_count": 2,
+      "accuracy": 0.0,
+      "overlap_ratio": 0.25,
+      "clip_id": "classroom",
+      "question_type": "causal"
+    }
+  ]
+}

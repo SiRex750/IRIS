@@ -23,23 +23,31 @@ from iris.aria import BLIPCaptioner
 class MoondreamCaptioner:
     def __init__(self):
         self._model = None
+        self._tokenizer = None
         self._device = "cpu"
 
     def _load(self):
-        import moondream as md
-        import torch
-        self._device = "cuda" if torch.cuda.is_available() else "cpu"
-        # local=True uses the local PhotonVL backend (kestrel engine).
-        # Valid local model names: 'moondream2', 'moondream3-preview'
-        # (NOT 'moondream-2B-int8.mf' — that is the cloud API filename)
-        self._model = md.vl(local=True, model="moondream2")
+        from transformers import AutoModelForCausalLM, AutoTokenizer, PreTrainedModel
+        if not hasattr(PreTrainedModel, "all_tied_weights_keys"):
+            PreTrainedModel.all_tied_weights_keys = property(lambda self: [])
+        self._tokenizer = AutoTokenizer.from_pretrained(
+            "vikhyatk/moondream2", trust_remote_code=True
+        )
+        self._model = AutoModelForCausalLM.from_pretrained(
+            "vikhyatk/moondream2",
+            trust_remote_code=True,
+            device_map="cpu"
+        )
 
     def caption(self, pil_image):
         if self._model is None:
             self._load()
-        encoded = self._model.encode_image(pil_image)
-        result = self._model.caption(encoded, length="normal", stream=False)
-        return result["caption"].strip()
+        enc = self._model.encode_image(pil_image)
+        return self._model.answer_question(
+            enc,
+            "Describe only what is visually present in this single image. State objects, people, colors, and positions. Do not describe motion or changes.",
+            self._tokenizer
+        ).strip()
 
 # Pre-defined search paths
 SEARCH_PATHS = [
