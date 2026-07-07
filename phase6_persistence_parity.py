@@ -8,9 +8,15 @@ tune ppr_lambda/damping or "fix" rankings to force a pass here — report the
 divergence and stop.
 
 Usage: python phase6_persistence_parity.py
+       python phase6_persistence_parity.py --graph_mode scene_sparse
+
+NOTE: in scene_sparse mode, retrieve_ppr runs over the block-diagonal graph.
+This is NOT real cross-scene descent (that's 2c) — it only exercises the
+build == reload round-trip for the scene_sparse structure itself.
 """
 from __future__ import annotations
 
+import argparse
 import sys
 import tempfile
 from pathlib import Path
@@ -36,6 +42,10 @@ TOP_K = 8
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--graph_mode", default="flat", choices=["flat", "scene_sparse"])
+    args = parser.parse_args()
+
     vpath = REPO_ROOT / "videoplayback.mp4"
     if not vpath.exists():
         print(f"ERROR: {vpath} not found")
@@ -48,9 +58,10 @@ def main() -> None:
         ppr_lambda=0.5,
         ppr_damping=0.5,
         l2_retrieve_top_k=TOP_K,
+        graph_mode=args.graph_mode,
     )
 
-    print("Ingesting videoplayback.mp4 with production ppr config...")
+    print(f"Ingesting videoplayback.mp4 with production ppr config (graph_mode={args.graph_mode})...")
     sys.stdout.flush()
     built = iris_ingest.ingest(str(vpath), config=cfg)
 

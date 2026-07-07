@@ -1,0 +1,6 @@
+distinct fact_text strings: 55
+distinct frame_idx values:  55
+Reusing cached index: C:\IRIS\eval\data\virat\index_cache\VIRAT_S_000102.npz
+resolved visual embeddings for all 55 frame_idx values
+distinct claims (all claim_types): 41
+wrote C:\IRIS\diag_v3_embeds.npz: 55 frame visual embeds, 41 claim text embeds, 55 fact->frame_idx entries

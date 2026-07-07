@@ -1,0 +1,38 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Reusing cached index: C:\IRIS\eval\data\virat\index_cache\VIRAT_S_000102.npz
+num_survivors=3077  num_scenes=740
+queries (deduped): 8
+CAPTURE query: 'Is there a car in the parking lot?'
+[scene_retrieval] shortlisted 28/740 scenes, margin=0.0037 tau=0.015 branch=descend base_pool=153 post_pull_pool=153 cross_scene_edges_added=378
+Loading weights:   0%|          | 0/473 [00:00<?, ?it/s]Loading weights: 100%|##########| 473/473 [00:00<00:00, 19030.82it/s]
+[1mBlipForConditionalGeneration LOAD REPORT[0m from: Salesforce/blip-image-captioning-base
+Key                                       | Status     |  | 
+------------------------------------------+------------+--+-
+text_decoder.bert.embeddings.position_ids | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Loading weights:   0%|          | 0/202 [00:00<?, ?it/s]Loading weights: 100%|##########| 202/202 [00:00<00:00, 2206.08it/s]
+[1mDebertaV2ForSequenceClassification LOAD REPORT[0m from: cross-encoder/nli-deberta-v3-base
+Key                             | Status     |  | 
+--------------------------------+------------+--+-
+deberta.embeddings.position_ids | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+CAPTURE query: 'Are there vehicles parked?'
+[scene_retrieval] shortlisted 28/740 scenes, margin=0.0011 tau=0.015 branch=descend base_pool=131 post_pull_pool=131 cross_scene_edges_added=378
+CAPTURE query: 'Is anyone loading a vehicle?'
+[scene_retrieval] shortlisted 28/740 scenes, margin=0.0014 tau=0.015 branch=descend base_pool=147 post_pull_pool=147 cross_scene_edges_added=378
+CAPTURE query: 'Is there a fire or smoke?'
+[scene_retrieval] shortlisted 28/740 scenes, margin=0.0066 tau=0.015 branch=descend base_pool=111 post_pull_pool=113 cross_scene_edges_added=406
+CAPTURE query: 'Is anyone walking?'
+[scene_retrieval] shortlisted 28/740 scenes, margin=0.0008 tau=0.015 branch=descend base_pool=126 post_pull_pool=128 cross_scene_edges_added=406
+CAPTURE query: 'Is a person visible in the scene?'
+[scene_retrieval] shortlisted 28/740 scenes, margin=0.0021 tau=0.015 branch=descend base_pool=150 post_pull_pool=150 cross_scene_edges_added=378
+CAPTURE query: 'Is there an unattended bag?'
+[scene_retrieval] shortlisted 28/740 scenes, margin=0.0005 tau=0.015 branch=descend base_pool=104 post_pull_pool=105 cross_scene_edges_added=406
+CAPTURE query: 'Is anyone running or fleeing?'
+[scene_retrieval] shortlisted 28/740 scenes, margin=0.0007 tau=0.015 branch=descend base_pool=165 post_pull_pool=165 cross_scene_edges_added=378
+wrote 664 records to C:\IRIS\diag_v2_capture.jsonl
+wrote embeddings (41 claims, 11 captions, 55 facts) to C:\IRIS\diag_v2_embeds.npz

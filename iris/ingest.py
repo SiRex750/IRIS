@@ -95,6 +95,21 @@ def _build_graph(records: list, config: Any) -> L2Asphodel:
     Calls the public *_bulk methods directly — behavior-identical to the
     batch_* runtime shim in pipeline.wrapper_l2_retrieve, minus tuple packing.
     """
+    graph_mode = _get(config, "graph_mode", "flat")
+
+    node_groups: list[list] | None = None
+    if graph_mode == "scene_sparse":
+        groups: dict[int, list] = {}
+        for r in records:
+            sid = int(_get(r, "scene_id", -1))
+            if sid < 0:
+                raise ValueError(
+                    "scene_sparse requires a scene_id-assigned index; "
+                    "reingest or use graph_mode='flat'"
+                )
+            groups.setdefault(sid, []).append(int(_get(r, "frame_idx")))
+        node_groups = list(groups.values())
+
     graph = L2Asphodel(config=config)
     feature_records: list[dict] = []
     action_score_records: list[dict] = []
@@ -125,9 +140,27 @@ def _build_graph(records: list, config: Any) -> L2Asphodel:
             "persistence_value": float(_get(r, "persistence_value", 0.0)),
         })
         enrichment_map[fi] = _get(r, "clip_embedding", None)
-    graph.add_frame_nodes_bulk(feature_records, action_score_records)
-    graph.enrich_nodes_bulk(enrichment_map)
+    graph.add_frame_nodes_bulk(feature_records, action_score_records, node_groups=node_groups)
+    graph.enrich_nodes_bulk(enrichment_map, node_groups=node_groups)
     return graph
+
+
+def _compute_scene_centroids(frames: list) -> dict:
+    """Edgeless per-scene centroid index: {scene_id: mean CLIP embedding}.
+    Deterministic function of frames+scene_id -- called identically at build
+    time and at load time, so it round-trips exactly (no serialization needed).
+    Frames with scene_id < 0 or no clip_embedding are excluded."""
+    by_scene: dict = {}
+    for fr in frames:
+        sid = int(_get(fr, "scene_id", -1))
+        emb = _get(fr, "clip_embedding", None)
+        if sid < 0 or emb is None:
+            continue
+        by_scene.setdefault(sid, []).append(np.asarray(emb, dtype=np.float32))
+    return {
+        sid: np.mean(np.stack(embs), axis=0)
+        for sid, embs in by_scene.items()
+    }
 
 
 def _build_index_from_records(
@@ -137,10 +170,17 @@ def _build_index_from_records(
     video_path: str | Path,
     config: Any,
     nms_window: int,
+    packet_curve: tuple[list, list, float] | None = None,
 ) -> IRISIndex:
     """Pure-compute core: scoring -> NMS -> selection -> enrich -> graph ->
     project -> IRISIndex. No video read (parse_video happens in ingest()).
-    Testable with synthetic records."""
+    Testable with synthetic records.
+
+    packet_curve: optional (all_frame_energies, iframe_indices, fps) precomputed
+    by ingest() (the one place that legitimately reads the video) and used only
+    for zero-decode scene_id assignment. None -> scene_id stays unassigned (-1),
+    which is exactly the synthetic/test path's hermetic contract.
+    """
 
     # 1. Continuous action scoring (lifted from run_pipeline)
     asc = ActionScoreConfig(
@@ -194,6 +234,26 @@ def _build_index_from_records(
         frames_to_index = [f for f in output_frames if f["frame_idx"] in target]
     else:  # hybrid
         frames_to_index = output_frames
+
+    # 4.5. Zero-decode scene_id assignment (Phase 6 scene-sparse groundwork).
+    #      Pure function of the packet curve; survivor-independent. Flat graph
+    #      (below) does not read scene_id -- assignment only, no behavior change.
+    #      packet_curve is None on the hermetic/synthetic-records path (no real
+    #      video to demux) -- scene_id stays unassigned (-1) there.
+    if packet_curve is not None:
+        all_frame_energies, iframe_indices, fps = packet_curve
+        scene_spans = charon_v.compute_valley_scene_boundaries(all_frame_energies, iframe_indices, fps)
+        for f in frames_to_index:
+            fi = f["frame_idx"]
+            for scene_idx, (start, end) in enumerate(scene_spans):
+                if start <= fi < end:
+                    f["scene_id"] = scene_idx
+                    break
+            else:
+                f["scene_id"] = -1
+    else:
+        for f in frames_to_index:
+            f["scene_id"] = -1
 
     # 5. Per-video enrichment: CLIP embedding only. Captioning is lazy — moved
     #    to query time (iris.query._ensure_captions) so build cost scales with
@@ -288,6 +348,7 @@ def _build_index_from_records(
             packet_size=float(f.get("packet_size", 0.0)),
             pict_type=str(f.get("pict_type", "?")),
             codec_conf=float(codec_conf_map.get(fi, 0.5)),
+            scene_id=int(f.get("scene_id", -1)),
         ))
 
     # 8. Video-level scalars (precomputed; index_action_score == old query_action_score)
@@ -311,6 +372,7 @@ def _build_index_from_records(
         storage_reduction_factor=storage_reduction_factor,
         config_snapshot=config_snapshot,
         _graph=graph,
+        _scene_centroids=_compute_scene_centroids(frames),
     )
 
 
@@ -327,7 +389,13 @@ def ingest(video_path: str | Path, config: Any = None, *, nms_window: int = 10) 
         adaptive=getattr(config, "adaptive", True),
         visual_debug_mode=getattr(config, "visual_debug_mode", False),
     )
-    return _build_index_from_records(output_frames, raw_records, stats, video_path, config, nms_window)
+    all_frame_energies, iframe_indices, _ = charon_v._demux_packet_curve(str(video_path))
+    fps = charon_v.get_stream_fps(str(video_path))
+    packet_curve = (all_frame_energies, iframe_indices, fps)
+    return _build_index_from_records(
+        output_frames, raw_records, stats, video_path, config, nms_window,
+        packet_curve=packet_curve,
+    )
 
 
 # ── Serialization ──────────────────────────────────────────────────────────
@@ -373,6 +441,7 @@ def save_index(index: IRISIndex, path: str | Path) -> None:
             "packet_size":       fr.packet_size,
             "pict_type":         fr.pict_type,
             "codec_conf":        fr.codec_conf,
+            "scene_id":          fr.scene_id,
         })
         if fr.clip_embedding is not None:
             embeddings[f"emb_{fr.frame_idx}"] = np.asarray(fr.clip_embedding, dtype=np.float32)
@@ -442,6 +511,7 @@ def load_index(path: str | Path) -> IRISIndex:
             packet_size=d.get("packet_size", 0.0),
             pict_type=d.get("pict_type", "?"),
             codec_conf=d.get("codec_conf", 0.5),
+            scene_id=d.get("scene_id", -1),
         ))
 
     index = IRISIndex(
@@ -477,4 +547,5 @@ def load_index(path: str | Path) -> IRISIndex:
             )
         index._graph._refresh_scene_ids()
         index._graph._update_pagerank()
+    index._scene_centroids = _compute_scene_centroids(index.frames)
     return index

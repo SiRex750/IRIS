@@ -40,6 +40,16 @@ class IRISConfig:
     graph_semantic_threshold: float = 0.5  # minimum cosine for salient semantic cross edges
     graph_debug_retrieval: bool = False  # print per-node retrieval score contributions only when enabled
     graph_export_max_edges: int = 5000  # cap debug/UI graph edge export
+    graph_mode:             str   = "flat"  # "flat" | "scene_sparse" — INERT until 2b-ii wires _build_graph
+    scene_shortlist_width:  int   = 0      # scene_sparse coarse-prune width; 0 = auto max(4, ceil(sqrt(num_scenes)))
+    scene_shortcut_margin:  float = 0.015  # REPORT-NOT-TUNE. Restated from 2c-iii's observed margin
+                                            # distribution (~10th-percentile-from-top cut, not a target fit).
+                                            # margin > tau -> short-circuit (no PPR descent).
+    scene_neighbor_window:  int   = 30     # REPORT-NOT-TUNE. anchor +/- N frames pulled into descent pool
+    scene_diag:             bool  = False  # 2c-iii: measurement-only divergence instrumentation. OFF in production.
+    scene_crossscene_mode:  str   = "rep_only"  # 2c-iv PRODUCTION DEFAULT (promoted from sweep): "all" | "threshold" | "rep_only".
+                                                 # rep_only ("linked only via reps") was sparsest + kept PPR non-cosmetic.
+    scene_crossscene_threshold_pctile: float = 75.0  # REPORT-NOT-TUNE. only used when scene_crossscene_mode="threshold"
 
     # ── Cerberus-V ────────────────────────────────────────────────────────
     cerberus_high_thresh: float = 0.70  # action_score >= this → full NLI
@@ -154,6 +164,20 @@ class IRISConfig:
             "graph_semantic_threshold must be in [0, 1]"
         )
         assert self.graph_export_max_edges > 0, "graph_export_max_edges must be positive"
+        assert self.graph_mode in {"flat", "scene_sparse"}, (
+            f"Invalid graph_mode '{self.graph_mode}'"
+        )
+        assert self.scene_shortlist_width >= 0, (
+            "scene_shortlist_width must be non-negative (0 = auto)"
+        )
+        assert self.scene_shortcut_margin >= 0.0, "scene_shortcut_margin must be non-negative"
+        assert self.scene_neighbor_window >= 0, "scene_neighbor_window must be non-negative"
+        assert self.scene_crossscene_mode in {"all", "threshold", "rep_only"}, (
+            f"Invalid scene_crossscene_mode '{self.scene_crossscene_mode}'"
+        )
+        assert 0.0 <= self.scene_crossscene_threshold_pctile <= 100.0, (
+            "scene_crossscene_threshold_pctile must be in [0, 100]"
+        )
 
         l1_weight_sum = round(
             self.l1_w_action + self.l1_w_query + self.l1_w_persist

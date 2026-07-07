@@ -1,0 +1,251 @@
+====================================================================================================
+(1) CITATION PARSE
+====================================================================================================
+  claims with >=1 resolvable citation: 16
+  uncited claims:                      19
+
+    CITED    query='Is there a car in the parking lot?' claim='Specifically, Frame 24993 shows a parking lot with an action score of 1.00 and persistence of 1.00, indicating high confidence in the presence of a car.' -> frame_idxs=[24993]
+    CITED    query='Is there a car in the parking lot?' claim='Additionally, Frame 25069 also depicts a car parked in a parking lot with an action score of 0.97 and persistence of 0.96.' -> frame_idxs=[25069]
+    CITED    query='Are there vehicles parked?' claim='Specifically: Frame 25069 shows a car parked in a parking lot with an Action Score of 0.97 and Persistence of 0.96.' -> frame_idxs=[25069]
+    CITED    query='Are there vehicles parked?' claim='Frames 4384 and 3334 also show a parking lot with Action Scores ranging from 0.92 to 0.95, indicating that the presence of vehicles is likely.' -> frame_idxs=[4384]
+    CITED    query='Are there vehicles parked?' claim="However, it's worth noting that Frame 24934 shows only a parking lot without any visible vehicles, which might suggest that the vehicle in question has left or not been detected yet." -> frame_idxs=[24934]
+    CITED    query='Is anyone loading a vehicle?' claim='The frames with high action scores (0.96 or higher) show a car parked in a parking lot at timestamps 793.4s, 795.4s, 24169s, and 24423s.' -> frame_idxs=[23778, 23839]
+    CITED    query='Is anyone loading a vehicle?' claim='Additionally, frame 23760 shows a low persistence score of 0.00, indicating that the object (in this case, the car) was not detected in the previous frame, suggesting it may have moved or disappeared from view.' -> frame_idxs=[23760]
+    CITED    query='Is anyone walking?' claim='Specifically: Frame 10263 (342.4s): A group of people walking down a street with an action score of 0.97.' -> frame_idxs=[10263]
+    CITED    query='Is anyone walking?' claim='Frame 2268 (75.7s) and Frame 2298 (76.7s): Also show a group of people walking down a street, both with an action score of 1.00.' -> frame_idxs=[2268, 2298]
+    CITED    query='Is anyone walking?' claim="However, it's worth noting that there is also a frame (Frame 2793 at 93.2s) showing a parking lot, which suggests that the walking activity may have stopped or changed location around this time." -> frame_idxs=[2793]
+    CITED    query='Is a person visible in the scene?' claim='For example: Frame 2148 (Timestamp: 71.7s) shows a group of people walking down a street with an Action Score of 1.00, indicating high confidence in detecting people.' -> frame_idxs=[2148]
+    CITED    query='Is a person visible in the scene?' claim='Frame 26988 (Timestamp: 900.5s) shows a person walking down a street in a parking lot with an Action Score of 0.99, indicating high confidence in detecting people.' -> frame_idxs=[26988]
+    CITED    query='Is a person visible in the scene?' claim='Frame 18708 (Timestamp: 624.2s) also shows a group of people walking down a street with an Action Score of 1.00.' -> frame_idxs=[18708]
+    CITED    query='Is a person visible in the scene?' claim='However, there are some frames where the presence of a person is not explicitly confirmed: Frame 2118 (Timestamp: 70.7s) shows a group of people walking down a sidewalk but does not provide clear evidence of individual people.' -> frame_idxs=[2118]
+    CITED    query='Is a person visible in the scene?' claim='Frame 26913 (Timestamp: 898.0s) shows a person walking down a sidewalk in a parking lot, but the Action Score is only 0.99.' -> frame_idxs=[26913]
+    CITED    query='Is there an unattended bag?' claim="However, Frame 23748 shows a car parked in a parking lot, which might be worth investigating further to see if there's anything unusual about the vehicle or its surroundings." -> frame_idxs=[23748]
+    UNCITED  query='Is there a car in the parking lot?' claim='Based on the provided frame evidence, it appears that there is indeed a car in the parking lot.'
+    UNCITED  query='Is there a car in the parking lot?' claim='These frames provide strong evidence for the presence of a car in the parking lot.'
+    UNCITED  query='Are there vehicles parked?' claim='Based on the provided frame evidence, it appears that there are vehicles parked in a parking lot.'
+    UNCITED  query='Is anyone loading a vehicle?' claim='Based on the provided frame evidence, it appears that no one is actively loading a vehicle.'
+    UNCITED  query='Is anyone loading a vehicle?' claim='These frames suggest that the car has been stationary for some time.'
+    UNCITED  query='Is anyone loading a vehicle?' claim='There is no frame with high action scores showing someone loading a vehicle, which suggests that no one is actively loading a vehicle based on the provided evidence.'
+    UNCITED  query='Is there a fire or smoke?' claim="Based on the provided frame evidence, I couldn't find any clear indication of a fire or smoke."
+    UNCITED  query='Is there a fire or smoke?' claim='The captions consistently show a "red brick building" throughout all frames, with no mention of flames, smoke, or any other signs of fire.'
+    UNCITED  query='Is there a fire or smoke?' claim="The action scores and persistence values suggest that the building is being detected in each frame, but there's no visual evidence to support the presence of a fire or smoke."
+    UNCITED  query='Is anyone walking?' claim='Yes, based on the provided frames, it appears that a group of people are walking down a street at different timestamps.'
+    UNCITED  query='Is a person visible in the scene?' claim='Based on the provided frame evidence, it appears that there are instances where a person is visible in the scene.'
+    UNCITED  query='Is a person visible in the scene?' claim="Overall, while there are some frames that suggest the presence of a person, it's not possible to confirm with certainty based on the provided evidence."
+    UNCITED  query='Is there an unattended bag?' claim="Based on the provided frame evidence, I couldn't find any clear indication of an unattended bag."
+    UNCITED  query='Is there an unattended bag?' claim='The frames show people walking down sidewalks and streets, but none of them are carrying or leaving behind a visible bag.'
+    UNCITED  query='Is there an unattended bag?' claim="But without more context or additional frames, I couldn't confirm whether it's related to an unattended bag or not."
+    UNCITED  query='Is there an unattended bag?' claim="If you have any more frames or context, I'd be happy to help you investigate further!"
+    UNCITED  query='Is anyone running or fleeing?' claim='Based on the provided frame evidence, there is no indication of anyone running or fleeing.'
+    UNCITED  query='Is anyone running or fleeing?' claim='The action scores for all frames show people walking down a street, with some slight variations in persistence and selection reason.'
+    UNCITED  query='Is anyone running or fleeing?' claim='The timestamps and captions suggest that the group of people are simply moving forward, without any signs of urgency or distress.'
+
+====================================================================================================
+(2) DECOMPOSITION: strip metadata clauses, tidy connectors
+====================================================================================================
+    ORIGINAL: 'Specifically, Frame 24993 shows a parking lot with an action score of 1.00 and persistence of 1.00, indicating high confidence in the presence of a car.'
+    KERNEL:   'Specifically, Frame 24993 shows a parking lot .00 .00, indicating high confidence in the presence of a car.'
+    metadata_fields: ['action_score', 'persistence_value']
+
+    ORIGINAL: 'Additionally, Frame 25069 also depicts a car parked in a parking lot with an action score of 0.97 and persistence of 0.96.'
+    KERNEL:   'Additionally, Frame 25069 also depicts a car parked in a parking lot .97 .96.'Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+
+    metadata_fields: ['action_score', 'persistence_value']
+
+    ORIGINAL: 'Specifically: Frame 25069 shows a car parked in a parking lot with an Action Score of 0.97 and Persistence of 0.96.'
+    KERNEL:   'Specifically: Frame 25069 shows a car parked in a parking lot .97 .96.'
+    metadata_fields: ['action_score', 'persistence_value']
+
+    ORIGINAL: 'Frames 4384 and 3334 also show a parking lot with Action Scores ranging from 0.92 to 0.95, indicating that the presence of vehicles is likely.'
+    KERNEL:   'Frames 4384 and 3334 also show a parking lot .92 to 0.95, indicating that the presence of vehicles is likely.'
+    metadata_fields: ['action_score']
+
+    ORIGINAL: 'Additionally, frame 23760 shows a low persistence score of 0.00, indicating that the object (in this case, the car) was not detected in the previous frame, suggesting it may have moved or disappeared from view.'
+    KERNEL:   'Additionally, frame 23760 shows a low .00, indicating that the object (in this case, the car) was not detected in the previous frame, suggesting it may have moved or disappeared from view.'
+    metadata_fields: ['persistence_value']
+    ** FLAGGED MANGLED **
+
+    ORIGINAL: "The action scores and persistence values suggest that the building is being detected in each frame, but there's no visual evidence to support the presence of a fire or smoke."
+    KERNEL:   "The action scores , but there's no visual evidence to support the presence of a fire or smoke."
+    metadata_fields: ['persistence_value']
+
+    ORIGINAL: 'Specifically: Frame 10263 (342.4s): A group of people walking down a street with an action score of 0.97.'
+    KERNEL:   'Specifically: Frame 10263 (342.4s): A group of people walking down a street .97.'
+    metadata_fields: ['action_score']
+
+    ORIGINAL: 'Frame 2268 (75.7s) and Frame 2298 (76.7s): Also show a group of people walking down a street, both with an action score of 1.00.'
+    KERNEL:   'Frame 2268 (75.7s) and Frame 2298 (76.7s): Also show a group of people walking down a street, both .00.'
+    metadata_fields: ['action_score']
+
+    ORIGINAL: 'For example: Frame 2148 (Timestamp: 71.7s) shows a group of people walking down a street with an Action Score of 1.00, indicating high confidence in detecting people.'
+    KERNEL:   'For example: Frame 2148 (Timestamp: 71.7s) shows a group of people walking down a street .00, indicating high confidence in detecting people.'
+    metadata_fields: ['action_score']
+
+    ORIGINAL: 'Frame 26988 (Timestamp: 900.5s) shows a person walking down a street in a parking lot with an Action Score of 0.99, indicating high confidence in detecting people.'
+    KERNEL:   'Frame 26988 (Timestamp: 900.5s) shows a person walking down a street in a parking lot .99, indicating high confidence in detecting people.'
+    metadata_fields: ['action_score']
+
+    ORIGINAL: 'Frame 18708 (Timestamp: 624.2s) also shows a group of people walking down a street with an Action Score of 1.00.'
+    KERNEL:   'Frame 18708 (Timestamp: 624.2s) also shows a group of people walking down a street .00.'
+    metadata_fields: ['action_score']
+
+    ORIGINAL: 'The action scores for all frames show people walking down a street, with some slight variations in persistence and selection reason.'
+    KERNEL:   'The action scores for all frames show people walking down a street, with some slight variations in .'
+    metadata_fields: ['persistence_value', 'is_peak/selection_reason']
+    ** FLAGGED MANGLED **
+
+  claims with metadata clause stripped: 12
+  claims flagged mangled on audit:      2
+
+====================================================================================================
+(3) BOUND NLI REPLAY: (kernel, cited frame's caption_only)
+====================================================================================================
+Loading weights:   0%|          | 0/202 [00:00<?, ?it/s]Loading weights:  81%|########  | 163/202 [00:00<00:00, 1622.44it/s]Loading weights: 100%|##########| 202/202 [00:00<00:00, 1742.20it/s]
+[1mDebertaV2ForSequenceClassification LOAD REPORT[0m from: cross-encoder/nli-deberta-v3-base
+Key                             | Status     |  | 
+--------------------------------+------------+--+-
+deberta.embeddings.position_ids | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+    query='Is there a car in the parking lot?'
+    kernel='Specifically, Frame 24993 shows a parking lot .00 .00, indicating high confidence in the presence of a car.'
+      vs frame_idx=24993 caption='a parking lot.' -> label=neutral score=0.0029
+    ARGMAX: frame_idx=24993 label=neutral score=0.0029
+
+    query='Is there a car in the parking lot?'
+    kernel='Additionally, Frame 25069 also depicts a car parked in a parking lot .97 .96.'
+      vs frame_idx=25069 caption='a car parked in a parking lot.' -> label=neutral score=0.0004
+    ARGMAX: frame_idx=25069 label=neutral score=0.0004
+
+    query='Are there vehicles parked?'
+    kernel='Specifically: Frame 25069 shows a car parked in a parking lot .97 .96.'
+      vs frame_idx=25069 caption='a car parked in a parking lot.' -> label=neutral score=0.0246
+    ARGMAX: frame_idx=25069 label=neutral score=0.0246
+
+    query='Are there vehicles parked?'
+    kernel='Frames 4384 and 3334 also show a parking lot .92 to 0.95, indicating that the presence of vehicles is likely.'
+      vs frame_idx=4384 caption='a parking lot.' -> label=neutral score=0.0118
+    ARGMAX: frame_idx=4384 label=neutral score=0.0118
+
+    query='Are there vehicles parked?'
+    kernel="However, it's worth noting that Frame 24934 shows only a parking lot without any visible vehicles, which might suggest that the vehicle in question has left or not been detected yet."
+      vs frame_idx=24934 caption='a parking lot.' -> label=neutral score=0.0004
+    ARGMAX: frame_idx=24934 label=neutral score=0.0004
+
+    query='Is anyone loading a vehicle?'
+    kernel='The frames with high action scores (0.96 or higher) show a car parked in a parking lot at timestamps 793.4s, 795.4s, 24169s, and 24423s.'
+      vs frame_idx=23778 caption='a car parked in a parking lot.' -> label=neutral score=0.0040
+      vs frame_idx=23839 caption='a car parked in a parking lot.' -> label=neutral score=0.0040
+    ARGMAX: frame_idx=23778 label=neutral score=0.0040
+
+    query='Is anyone loading a vehicle?'
+    kernel='Additionally, frame 23760 shows a low .00, indicating that the object (in this case, the car) was not detected in the previous frame, suggesting it may have moved or disappeared from view.'
+      vs frame_idx=23760 caption='a car parked in a parking lot.' -> label=neutral score=0.0011
+    ARGMAX: frame_idx=23760 label=neutral score=0.0011
+
+    query='Is anyone walking?'
+    kernel='Specifically: Frame 10263 (342.4s): A group of people walking down a street .97.'
+      vs frame_idx=10263 caption='a group of people walking down a street.' -> label=neutral score=0.1230
+    ARGMAX: frame_idx=10263 label=neutral score=0.1230
+
+    query='Is anyone walking?'
+    kernel='Frame 2268 (75.7s) and Frame 2298 (76.7s): Also show a group of people walking down a street, both .00.'
+      vs frame_idx=2268 caption='a group of people walking down a street.' -> label=contradiction score=0.0531
+      vs frame_idx=2298 caption='a group of people walking down a street.' -> label=contradiction score=0.0531
+    ARGMAX: frame_idx=2268 label=contradiction score=0.0531
+
+    query='Is anyone walking?'
+    kernel="However, it's worth noting that there is also a frame (Frame 2793 at 93.2s) showing a parking lot, which suggests that the walking activity may have stopped or changed location around this time."
+      vs frame_idx=2793 caption='a parking lot.' -> label=neutral score=0.0002
+    ARGMAX: frame_idx=2793 label=neutral score=0.0002
+
+    query='Is a person visible in the scene?'
+    kernel='For example: Frame 2148 (Timestamp: 71.7s) shows a group of people walking down a street .00, indicating high confidence in detecting people.'
+      vs frame_idx=2148 caption='a group of people walking down a street.' -> label=neutral score=0.0685
+    ARGMAX: frame_idx=2148 label=neutral score=0.0685
+
+    query='Is a person visible in the scene?'
+    kernel='Frame 26988 (Timestamp: 900.5s) shows a person walking down a street in a parking lot .99, indicating high confidence in detecting people.'
+      vs frame_idx=26988 caption='a person walking down a street in a parking.' -> label=neutral score=0.0702
+    ARGMAX: frame_idx=26988 label=neutral score=0.0702
+
+    query='Is a person visible in the scene?'
+    kernel='Frame 18708 (Timestamp: 624.2s) also shows a group of people walking down a street .00.'
+      vs frame_idx=18708 caption='a group of people walking down a street.' -> label=neutral score=0.0624
+    ARGMAX: frame_idx=18708 label=neutral score=0.0624
+
+    query='Is a person visible in the scene?'
+    kernel='However, there are some frames where the presence of a person is not explicitly confirmed: Frame 2118 (Timestamp: 70.7s) shows a group of people walking down a sidewalk but does not provide clear evidence of individual people.'
+      vs frame_idx=2118 caption='a group of people walking down a sidewalk.' -> label=neutral score=0.0015
+    ARGMAX: frame_idx=2118 label=neutral score=0.0015
+
+    query='Is a person visible in the scene?'
+    kernel='Frame 26913 (Timestamp: 898.0s) shows a person walking down a sidewalk in a parking lot, but the Action Score is only 0.99.'
+      vs frame_idx=26913 caption='a person walking down a sidewalk in a parking.' -> label=neutral score=0.0010
+    ARGMAX: frame_idx=26913 label=neutral score=0.0010
+
+    query='Is there an unattended bag?'
+    kernel="However, Frame 23748 shows a car parked in a parking lot, which might be worth investigating further to see if there's anything unusual about the vehicle or its surroundings."
+      vs frame_idx=23748 caption='a car parked in a parking lot.' -> label=neutral score=0.0007
+    ARGMAX: frame_idx=23748 label=neutral score=0.0007
+
+  (metadata clauses on UNCITED claims -- not NLI-scored, listed under checkable_metadata below)
+
+====================================================================================================
+(4) VERDICT TABLE
+====================================================================================================
+  claim                                         | class              | live          | binding         | metadata_disposition                    
+  -----------------------------------------------------------------------------------------------------------------------------------------------
+  Based on the provided frame evidence, it a... | visual_assertion   | rejected      | no_citation(answer-semantics) | no_metadata_clause                      
+  Specifically, Frame 24993 shows a parking ... | metadata           | rejected      | unverifiable    | checkable_metadata (needs: action_score, persistence_value)
+  Additionally, Frame 25069 also depicts a c... | metadata           | unverifiable  | unverifiable    | checkable_metadata (needs: action_score, persistence_value)
+  These frames provide strong evidence for t... | visual_assertion   | rejected      | no_citation(answer-semantics) | no_metadata_clause                      
+  Based on the provided frame evidence, it a... | visual_assertion   | verified      | no_citation(answer-semantics) | no_metadata_clause                      
+  Specifically: Frame 25069 shows a car park... | metadata           | rejected      | unverifiable    | checkable_metadata (needs: action_score, persistence_value)
+  Frames 4384 and 3334 also show a parking l... | metadata           | unverifiable  | unverifiable    | checkable_metadata (needs: action_score)
+  However, it's worth noting that Frame 2493... | visual_assertion   | rejected      | unverifiable    | no_metadata_clause                      
+  Based on the provided frame evidence, it a... | visual_assertion   | unverifiable  | no_citation(answer-semantics) | no_metadata_clause                      
+  The frames with high action scores (0.96 o... | metadata           | unverifiable  | unverifiable    | no_metadata_clause                      
+  These frames suggest that the car has been... | visual_assertion   | verified      | no_citation(answer-semantics) | no_metadata_clause                      
+  Additionally, frame 23760 shows a low pers... | metadata           | unverifiable  | unverifiable    | checkable_metadata (needs: persistence_value)
+  There is no frame with high action scores ... | metadata           | rejected      | no_citation(answer-semantics) | no_metadata_clause                      
+  Based on the provided frame evidence, I co... | visual_assertion   | unverifiable  | no_citation(answer-semantics) | no_metadata_clause                      
+  The captions consistently show a "red bric... | visual_assertion   | rejected      | no_citation(answer-semantics) | no_metadata_clause                      
+  The action scores and persistence values s... | metadata           | unverifiable  | no_citation(answer-semantics) | checkable_metadata (needs: persistence_value)
+  Yes, based on the provided frames, it appe... | visual_assertion   | rejected      | no_citation(answer-semantics) | no_metadata_clause                      
+  Specifically: Frame 10263 (342.4s): A grou... | metadata           | rejected      | unverifiable    | checkable_metadata (needs: action_score)
+  Frame 2268 (75.7s) and Frame 2298 (76.7s):... | metadata           | unverifiable  | rejected        | checkable_metadata (needs: action_score)
+  However, it's worth noting that there is a... | visual_assertion   | unverifiable  | unverifiable    | no_metadata_clause                      
+  Based on the provided frame evidence, it a... | visual_assertion   | verified      | no_citation(answer-semantics) | no_metadata_clause                      
+  For example: Frame 2148 (Timestamp: 71.7s)... | metadata           | rejected      | unverifiable    | checkable_metadata (needs: action_score)
+  Frame 26988 (Timestamp: 900.5s) shows a pe... | metadata           | rejected      | unverifiable    | checkable_metadata (needs: action_score)
+  Frame 18708 (Timestamp: 624.2s) also shows... | metadata           | unverifiable  | unverifiable    | checkable_metadata (needs: action_score)
+  However, there are some frames where the p... | visual_assertion   | verified      | unverifiable    | no_metadata_clause                      
+  Frame 26913 (Timestamp: 898.0s) shows a pe... | metadata           | rejected      | unverifiable    | no_metadata_clause                      
+  Overall, while there are some frames that ... | visual_assertion   | unverifiable  | no_citation(answer-semantics) | no_metadata_clause                      
+  Based on the provided frame evidence, I co... | visual_assertion   | rejected      | no_citation(answer-semantics) | no_metadata_clause                      
+  The frames show people walking down sidewa... | visual_assertion   | rejected      | no_citation(answer-semantics) | no_metadata_clause                      
+  However, Frame 23748 shows a car parked in... | visual_assertion   | unverifiable  | unverifiable    | no_metadata_clause                      
+  But without more context or additional fra... | visual_assertion   | unverifiable  | no_citation(answer-semantics) | no_metadata_clause                      
+  If you have any more frames or context, I'... | meta_commentary    | unverifiable  | no_citation(answer-semantics) | no_metadata_clause                      
+  Based on the provided frame evidence, ther... | visual_assertion   | verified      | no_citation(answer-semantics) | no_metadata_clause                      
+  The action scores for all frames show peop... | metadata           | rejected      | no_citation(answer-semantics) | checkable_metadata (needs: persistence_value, is_peak/selection_reason)
+  The timestamps and captions suggest that t... | visual_assertion   | rejected      | no_citation(answer-semantics) | no_metadata_clause                      
+
+  -- UNCITED CLAIMS (routed to answer-semantics layer, no NLI attempted) --
+    meta_commentary    : 1
+    metadata           : 3
+    visual_assertion   : 15
+
+====================================================================================================
+SUMMARY
+====================================================================================================
+  currently-rejected real claims:                                    16
+  -> become verified_kernel under citation-bound NLI:                0
+  -> have a deterministically checkable metadata clause:             6
+  -> (overlap: both verified_kernel AND checkable_metadata):         0
+  total binding recoveries (verified_kernel + checkable_metadata):   6
+  similarity-scoping ceiling (from --ceiling):                       2
+  READ: citation-binding recovers MORE than similarity-scoping's ceiling of 2 (6 > 2).
+
