@@ -1,0 +1,1167 @@
+{
+  "model": "Salesforce/blip-image-captioning-base",
+  "captioner_mode": "unconditional",
+  "device": "cuda",
+  "timestamp": "2026-07-05T06:23:15.550552+00:00",
+  "virat_dir": "test_data\\Virat",
+  "summary": {
+    "total_frames": 113,
+    "total_succeeded": 113,
+    "total_failed": 0,
+    "exact_unique_count": 3,
+    "exact_uniqueness_rate": 0.02654867256637168,
+    "normalized_unique_count": 3,
+    "mean_pairwise_cosine_distance": 0.04569768160581589,
+    "confabulation_flag_count": 0,
+    "confabulation_rate": 0.0,
+    "mean_latency_ms": 319.4897902654799,
+    "std_latency_ms": 118.55768938262298,
+    "min_latency_ms": 229.59949999994933,
+    "max_latency_ms": 625.9955999998965,
+    "frames_per_second": 3.1299904737771134,
+    "peak_vram_mb": 919.99169921875
+  },
+  "top_10_repeated": [
+    {
+      "caption": "a parking lot",
+      "count": 85
+    },
+    {
+      "caption": "a parking lot with cars parked in it",
+      "count": 27
+    }
+  ],
+  "confabulation_flagged_captions": [],
+  "captions": [
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1,
+      "timestamp_s": 0.0,
+      "caption": "a parking lot",
+      "latency_ms": 260.88090000030206,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 61,
+      "timestamp_s": 2.0,
+      "caption": "a parking lot",
+      "latency_ms": 251.81899999961388,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 121,
+      "timestamp_s": 4.0,
+      "caption": "a parking lot with cars parked in it",
+      "latency_ms": 546.7623999998068,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 181,
+      "timestamp_s": 6.0,
+      "caption": "a parking lot with cars parked in it",
+      "latency_ms": 569.3663000001834,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 241,
+      "timestamp_s": 8.0,
+      "caption": "a parking lot",
+      "latency_ms": 257.8730000000178,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 301,
+      "timestamp_s": 10.0,
+      "caption": "a parking lot with cars parked in it",
+      "latency_ms": 560.9033000000636,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 361,
+      "timestamp_s": 12.0,
+      "caption": "a parking lot with cars parked in it",
+      "latency_ms": 528.5601000000497,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 421,
+      "timestamp_s": 14.0,
+      "caption": "a parking lot with cars parked in it",
+      "latency_ms": 556.0443999997915,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 481,
+      "timestamp_s": 16.0,
+      "caption": "a parking lot",
+      "latency_ms": 277.3331000003054,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 541,
+      "timestamp_s": 18.0,
+      "caption": "a parking lot with cars parked in it",
+      "latency_ms": 576.273300000139,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 601,
+      "timestamp_s": 20.0,
+      "caption": "a parking lot with cars parked in it",
+      "latency_ms": 563.172300000133,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 661,
+      "timestamp_s": 22.0,
+      "caption": "a parking lot with cars parked in it",
+      "latency_ms": 557.9179000001204,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 721,
+      "timestamp_s": 24.0,
+      "caption": "a parking lot",
+      "latency_ms": 277.6390999997602,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 781,
+      "timestamp_s": 26.0,
+      "caption": "a parking lot",
+      "latency_ms": 276.057700000365,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 841,
+      "timestamp_s": 28.0,
+      "caption": "a parking lot with cars parked in it",
+      "latency_ms": 556.4776999999594,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 901,
+      "timestamp_s": 30.0,
+      "caption": "a parking lot with cars parked in it",
+      "latency_ms": 573.5131999999794,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 961,
+      "timestamp_s": 32.0,
+      "caption": "a parking lot",
+      "latency_ms": 299.42049999999654,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1021,
+      "timestamp_s": 34.0,
+      "caption": "a parking lot",
+      "latency_ms": 301.7841999999291,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1081,
+      "timestamp_s": 36.0,
+      "caption": "a parking lot",
+      "latency_ms": 286.07819999979256,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1141,
+      "timestamp_s": 38.0,
+      "caption": "a parking lot",
+      "latency_ms": 275.0194999998712,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1201,
+      "timestamp_s": 40.0,
+      "caption": "a parking lot",
+      "latency_ms": 249.49550000019372,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1261,
+      "timestamp_s": 42.0,
+      "caption": "a parking lot",
+      "latency_ms": 250.1972999998543,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1321,
+      "timestamp_s": 44.0,
+      "caption": "a parking lot",
+      "latency_ms": 257.8243000002658,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1381,
+      "timestamp_s": 46.0,
+      "caption": "a parking lot with cars parked in it",
+      "latency_ms": 513.5675999999876,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1441,
+      "timestamp_s": 48.0,
+      "caption": "a parking lot with cars parked in it",
+      "latency_ms": 515.0968999996621,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1501,
+      "timestamp_s": 50.0,
+      "caption": "a parking lot",
+      "latency_ms": 260.95070000019405,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1561,
+      "timestamp_s": 52.0,
+      "caption": "a parking lot",
+      "latency_ms": 245.34469999980502,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1621,
+      "timestamp_s": 54.0,
+      "caption": "a parking lot with cars parked in it",
+      "latency_ms": 509.15649999978996,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1681,
+      "timestamp_s": 56.0,
+      "caption": "a parking lot",
+      "latency_ms": 253.1582999999955,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1741,
+      "timestamp_s": 58.0,
+      "caption": "a parking lot",
+      "latency_ms": 267.5137999999606,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1801,
+      "timestamp_s": 60.0,
+      "caption": "a parking lot with cars parked in it",
+      "latency_ms": 531.58140000005,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 1,
+      "timestamp_s": 0.0,
+      "caption": "a parking lot",
+      "latency_ms": 250.2198999995926,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 61,
+      "timestamp_s": 2.0,
+      "caption": "a parking lot",
+      "latency_ms": 251.67000000010376,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 121,
+      "timestamp_s": 4.0,
+      "caption": "a parking lot",
+      "latency_ms": 264.2660000001342,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 181,
+      "timestamp_s": 6.0,
+      "caption": "a parking lot",
+      "latency_ms": 253.96619999992254,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 241,
+      "timestamp_s": 8.0,
+      "caption": "a parking lot",
+      "latency_ms": 252.6610999998411,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 301,
+      "timestamp_s": 10.0,
+      "caption": "a parking lot",
+      "latency_ms": 246.88610000021072,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 361,
+      "timestamp_s": 12.0,
+      "caption": "a parking lot",
+      "latency_ms": 255.97890000017287,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 421,
+      "timestamp_s": 14.0,
+      "caption": "a parking lot",
+      "latency_ms": 262.64050000008865,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 481,
+      "timestamp_s": 16.0,
+      "caption": "a parking lot",
+      "latency_ms": 246.41829999973197,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 541,
+      "timestamp_s": 18.0,
+      "caption": "a parking lot",
+      "latency_ms": 244.4123000000218,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 601,
+      "timestamp_s": 20.0,
+      "caption": "a parking lot",
+      "latency_ms": 267.7957000000788,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 661,
+      "timestamp_s": 22.0,
+      "caption": "a parking lot",
+      "latency_ms": 256.0276999997768,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 721,
+      "timestamp_s": 24.0,
+      "caption": "a parking lot",
+      "latency_ms": 267.8375999998934,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 781,
+      "timestamp_s": 26.0,
+      "caption": "a parking lot",
+      "latency_ms": 261.9744999997238,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 841,
+      "timestamp_s": 28.0,
+      "caption": "a parking lot",
+      "latency_ms": 259.01299999986804,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 901,
+      "timestamp_s": 30.0,
+      "caption": "a parking lot with cars parked in it",
+      "latency_ms": 522.5892999997086,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1,
+      "timestamp_s": 0.0,
+      "caption": "a parking lot",
+      "latency_ms": 251.6022999998313,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 61,
+      "timestamp_s": 2.0,
+      "caption": "a parking lot",
+      "latency_ms": 266.5017999997872,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 121,
+      "timestamp_s": 4.0,
+      "caption": "a parking lot",
+      "latency_ms": 251.74029999971026,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 181,
+      "timestamp_s": 6.0,
+      "caption": "a parking lot",
+      "latency_ms": 259.8209000002498,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 241,
+      "timestamp_s": 8.0,
+      "caption": "a parking lot with cars parked in it",
+      "latency_ms": 516.0648000000947,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 301,
+      "timestamp_s": 10.0,
+      "caption": "a parking lot",
+      "latency_ms": 276.4718000003086,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 361,
+      "timestamp_s": 12.0,
+      "caption": "a parking lot",
+      "latency_ms": 261.064400000123,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 421,
+      "timestamp_s": 14.0,
+      "caption": "a parking lot",
+      "latency_ms": 258.8415999998688,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 481,
+      "timestamp_s": 16.0,
+      "caption": "a parking lot",
+      "latency_ms": 252.69010000010894,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 541,
+      "timestamp_s": 18.0,
+      "caption": "a parking lot",
+      "latency_ms": 256.5421999997852,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 601,
+      "timestamp_s": 20.0,
+      "caption": "a parking lot",
+      "latency_ms": 264.810000000125,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 661,
+      "timestamp_s": 22.0,
+      "caption": "a parking lot",
+      "latency_ms": 306.6190999998071,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 721,
+      "timestamp_s": 24.0,
+      "caption": "a parking lot",
+      "latency_ms": 269.20830000017304,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 781,
+      "timestamp_s": 26.0,
+      "caption": "a parking lot",
+      "latency_ms": 248.21559999963938,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 841,
+      "timestamp_s": 28.0,
+      "caption": "a parking lot",
+      "latency_ms": 238.31730000028983,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 901,
+      "timestamp_s": 30.0,
+      "caption": "a parking lot",
+      "latency_ms": 243.1578000000627,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 961,
+      "timestamp_s": 32.0,
+      "caption": "a parking lot",
+      "latency_ms": 238.75829999997222,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1021,
+      "timestamp_s": 34.0,
+      "caption": "a parking lot",
+      "latency_ms": 240.90150000029098,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1081,
+      "timestamp_s": 36.0,
+      "caption": "a parking lot with cars parked in it",
+      "latency_ms": 466.59189999991213,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1141,
+      "timestamp_s": 38.0,
+      "caption": "a parking lot",
+      "latency_ms": 241.92239999956655,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1201,
+      "timestamp_s": 40.0,
+      "caption": "a parking lot with cars parked in it",
+      "latency_ms": 460.9912999999324,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1261,
+      "timestamp_s": 42.0,
+      "caption": "a parking lot",
+      "latency_ms": 236.03889999958483,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1321,
+      "timestamp_s": 44.0,
+      "caption": "a parking lot",
+      "latency_ms": 239.1920999998547,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1381,
+      "timestamp_s": 46.0,
+      "caption": "a parking lot",
+      "latency_ms": 229.90019999997457,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1441,
+      "timestamp_s": 48.0,
+      "caption": "a parking lot",
+      "latency_ms": 234.86749999983658,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1501,
+      "timestamp_s": 50.0,
+      "caption": "a parking lot",
+      "latency_ms": 229.59949999994933,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1561,
+      "timestamp_s": 52.0,
+      "caption": "a parking lot with cars parked in it",
+      "latency_ms": 480.9600999997201,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1621,
+      "timestamp_s": 54.0,
+      "caption": "a parking lot",
+      "latency_ms": 241.5221000001111,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1681,
+      "timestamp_s": 56.0,
+      "caption": "a parking lot with a lot of cars parked in it",
+      "latency_ms": 625.9955999998965,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1741,
+      "timestamp_s": 58.0,
+      "caption": "a parking lot",
+      "latency_ms": 241.2306000001081,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1801,
+      "timestamp_s": 60.0,
+      "caption": "a parking lot",
+      "latency_ms": 231.25589999972362,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1861,
+      "timestamp_s": 62.0,
+      "caption": "a parking lot",
+      "latency_ms": 247.42150000020047,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1921,
+      "timestamp_s": 64.0,
+      "caption": "a parking lot",
+      "latency_ms": 236.6013999999268,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1981,
+      "timestamp_s": 66.0,
+      "caption": "a parking lot",
+      "latency_ms": 235.19130000022415,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2041,
+      "timestamp_s": 68.0,
+      "caption": "a parking lot",
+      "latency_ms": 284.09200000032797,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2101,
+      "timestamp_s": 70.0,
+      "caption": "a parking lot",
+      "latency_ms": 276.5140000001338,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2161,
+      "timestamp_s": 72.0,
+      "caption": "a parking lot with cars parked in it",
+      "latency_ms": 471.06159999975716,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2221,
+      "timestamp_s": 74.0,
+      "caption": "a parking lot",
+      "latency_ms": 229.99710000021878,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2281,
+      "timestamp_s": 76.0,
+      "caption": "a parking lot",
+      "latency_ms": 248.03680000013628,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2341,
+      "timestamp_s": 78.0,
+      "caption": "a parking lot",
+      "latency_ms": 247.6608000001761,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2401,
+      "timestamp_s": 80.0,
+      "caption": "a parking lot with cars parked in it",
+      "latency_ms": 463.24470000035944,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2461,
+      "timestamp_s": 82.0,
+      "caption": "a parking lot",
+      "latency_ms": 246.38370000002396,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2521,
+      "timestamp_s": 84.0,
+      "caption": "a parking lot",
+      "latency_ms": 240.1795000000675,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2581,
+      "timestamp_s": 86.0,
+      "caption": "a parking lot",
+      "latency_ms": 238.4996000000683,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2641,
+      "timestamp_s": 88.0,
+      "caption": "a parking lot with cars parked in it",
+      "latency_ms": 481.7422999999508,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2701,
+      "timestamp_s": 90.0,
+      "caption": "a parking lot",
+      "latency_ms": 242.276700000275,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2761,
+      "timestamp_s": 92.0,
+      "caption": "a parking lot",
+      "latency_ms": 239.50409999997646,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2821,
+      "timestamp_s": 94.0,
+      "caption": "a parking lot",
+      "latency_ms": 240.31160000004093,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2881,
+      "timestamp_s": 96.0,
+      "caption": "a parking lot",
+      "latency_ms": 244.2758000001959,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2941,
+      "timestamp_s": 98.0,
+      "caption": "a parking lot",
+      "latency_ms": 244.79239999982383,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 1,
+      "timestamp_s": 0.0,
+      "caption": "a parking lot",
+      "latency_ms": 238.9290000000983,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 61,
+      "timestamp_s": 2.0,
+      "caption": "a parking lot",
+      "latency_ms": 234.21349999989616,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 121,
+      "timestamp_s": 4.0,
+      "caption": "a parking lot",
+      "latency_ms": 235.54039999999077,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 181,
+      "timestamp_s": 6.0,
+      "caption": "a parking lot",
+      "latency_ms": 241.62539999997534,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 241,
+      "timestamp_s": 8.0,
+      "caption": "a parking lot",
+      "latency_ms": 244.55489999991187,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 301,
+      "timestamp_s": 10.0,
+      "caption": "a parking lot",
+      "latency_ms": 235.71350000020175,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 361,
+      "timestamp_s": 12.0,
+      "caption": "a parking lot",
+      "latency_ms": 232.55280000012135,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 421,
+      "timestamp_s": 14.0,
+      "caption": "a parking lot with cars parked in it",
+      "latency_ms": 479.8147000001336,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 481,
+      "timestamp_s": 16.0,
+      "caption": "a parking lot with cars parked in it",
+      "latency_ms": 521.2615999998889,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 541,
+      "timestamp_s": 18.0,
+      "caption": "a parking lot",
+      "latency_ms": 278.68809999972655,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 601,
+      "timestamp_s": 20.0,
+      "caption": "a parking lot",
+      "latency_ms": 232.35890000023574,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 661,
+      "timestamp_s": 22.0,
+      "caption": "a parking lot with cars parked in it",
+      "latency_ms": 474.35059999997975,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 721,
+      "timestamp_s": 24.0,
+      "caption": "a parking lot with cars parked in it",
+      "latency_ms": 493.96459999979925,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 781,
+      "timestamp_s": 26.0,
+      "caption": "a parking lot with cars parked in it",
+      "latency_ms": 477.8878000001896,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 841,
+      "timestamp_s": 28.0,
+      "caption": "a parking lot",
+      "latency_ms": 248.7249000000702,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 901,
+      "timestamp_s": 30.0,
+      "caption": "a parking lot",
+      "latency_ms": 241.84229999991658,
+      "is_failed": false,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    }
+  ]
+}
