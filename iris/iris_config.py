@@ -60,6 +60,9 @@ class IRISConfig:
     # ── L2 retrieve top-k ─────────────────────────────────────────────────
     l2_retrieve_top_k:      int   = 5
 
+    # ── Captioner Backend ──────────────────────────────────────────────────
+    captioner_backend:      str   = "moondream"  # "blip" or "moondream"
+
     # ── Visual Debug Mode ──────────────────────────────────────────────────
     visual_debug_mode:      bool  = False
 
@@ -127,6 +130,9 @@ class IRISConfig:
         assert 0.0 <= self.persistence_threshold <= 1.0, "persistence_threshold must be between 0 and 1"
         assert self.max_prominence > 0, "max_prominence must be positive"
         assert self.l2_retrieve_top_k > 0, "l2_retrieve_top_k must be positive"
+        assert self.captioner_backend in {"blip", "moondream"}, (
+            f"Invalid captioner_backend '{self.captioner_backend}'"
+        )
         assert self.alpha >= 0.0, "alpha must be non-negative"
         assert self.beta >= 0.0, "beta must be non-negative"
         assert self.gamma >= 0.0, "gamma must be non-negative"

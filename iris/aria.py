@@ -65,18 +65,66 @@ class BLIPCaptioner:
         return self._processor.decode(out[0], skip_special_tokens=True)
 
 
-_ACTIVE_CAPTIONER: BLIPCaptioner | None = None
+class MoondreamCaptioner:
+    """Local image captioner using Moondream2 (via HuggingFace transformers)."""
+
+    def __init__(self) -> None:
+        self.model_name = "vikhyatk/moondream2"
+        self._tokenizer = None
+        self._model = None
+        self._device = None
+
+    def _load(self) -> None:
+        if self._model is not None:
+            return
+        from transformers import AutoModelForCausalLM, AutoTokenizer
+        import torch
+        self._tokenizer = AutoTokenizer.from_pretrained(
+            "vikhyatk/moondream2", trust_remote_code=True
+        )
+        self._model = AutoModelForCausalLM.from_pretrained(
+            "vikhyatk/moondream2",
+            trust_remote_code=True,
+            torch_dtype=torch.float16,
+            device_map="cuda",
+        )
+        self._device = "cuda"
+
+    def caption(self, pil_image) -> str:
+        import torch
+        self._load()
+        if str(self._model.device) == "cpu":
+            self._model = self._model.to(self._device)
+        enc = self._model.encode_image(pil_image)
+        return self._model.answer_question(
+            enc,
+            "Describe only what is visually present in this single image. State objects, people, colors, and positions. Do not describe motion or changes.",
+            self._tokenizer
+        ).strip()
 
 
-def get_captioner() -> BLIPCaptioner:
+_ACTIVE_CAPTIONER: BLIPCaptioner | MoondreamCaptioner | None = None
+
+
+def get_captioner() -> BLIPCaptioner | MoondreamCaptioner:
     """Returns the globally configured captioner (lazy-initialised)."""
     global _ACTIVE_CAPTIONER
     if _ACTIVE_CAPTIONER is None:
-        _ACTIVE_CAPTIONER = BLIPCaptioner()
+        try:
+            from iris.iris_config import ConfigManager
+            config = ConfigManager().get_config()
+            backend_type = getattr(config, "captioner_backend", "blip")
+        except Exception:
+            backend_type = "blip"
+
+        if backend_type == "moondream":
+            _ACTIVE_CAPTIONER = MoondreamCaptioner()
+        else:
+            _ACTIVE_CAPTIONER = BLIPCaptioner()
     return _ACTIVE_CAPTIONER
 
 
-def set_captioner(captioner: BLIPCaptioner) -> None:
+def set_captioner(captioner: BLIPCaptioner | MoondreamCaptioner) -> None:
     """Override the active captioner (e.g. for testing)."""
     global _ACTIVE_CAPTIONER
     _ACTIVE_CAPTIONER = captioner
@@ -293,13 +341,13 @@ def generate_caption_for_frame(frame, frame_idx: int | None = None) -> CaptionRe
         _CAPTION_FAILURES.append({"frame_idx": frame_idx, "latency": time.time() - t_start, "error": err_msg})
         return result
 
-    # 2. Caption with BLIP
+    # 2. Caption with active captioner
     try:
         captioner = get_captioner()
         caption = captioner.caption(img)
         return CaptionResult(success=True, caption=caption)
     except Exception as e:
-        err_msg = f"BLIP captioning failed: {e}"
+        err_msg = f"Captioning failed: {e}"
         result = CaptionResult(success=False, caption="[CAPTION_FAILED]", error=err_msg)
         _CAPTION_FAILURES.append({"frame_idx": frame_idx, "latency": time.time() - t_start, "error": err_msg})
         return result
