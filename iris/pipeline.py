@@ -609,12 +609,17 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
     else:  # hybrid
         frames_to_index = output_frames
 
-    retrieved_frames = wrapper_l2_retrieve(
-        video_path,
-        query,
-        frames_to_index,
-        config=config
-    )
+    try:
+        retrieved_frames = wrapper_l2_retrieve(
+            video_path,
+            query,
+            frames_to_index,
+            config=config
+        )
+    finally:
+        # Explicitly unload captioner model to CPU to free VRAM for LLM inference
+        # Done in a finally block so VRAM is released even if captioning a batch throws
+        aria.unload_captioner()
     t_l2 = time.time() - t_l2_start
 
     # 5. Populate L1 active context cache with retrieved frame evidence

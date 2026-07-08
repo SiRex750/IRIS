@@ -57,6 +57,8 @@ class BLIPCaptioner:
     def caption(self, pil_image) -> str:
         import torch
         self._load()
+        # Ensure model is on GPU before inference (re-to if unloaded)
+        self._model = self._model.to(self._device)
         inputs = self._processor(pil_image, return_tensors="pt").to(self._device)
         with torch.no_grad():
             out = self._model.generate(**inputs, max_new_tokens=50)
@@ -78,6 +80,14 @@ def set_captioner(captioner: BLIPCaptioner) -> None:
     """Override the active captioner (e.g. for testing)."""
     global _ACTIVE_CAPTIONER
     _ACTIVE_CAPTIONER = captioner
+
+def unload_captioner() -> None:
+    """Explicitly move the captioner model off GPU to free VRAM for LLM inference."""
+    global _ACTIVE_CAPTIONER
+    import torch
+    if _ACTIVE_CAPTIONER is not None and hasattr(_ACTIVE_CAPTIONER, "_model") and _ACTIVE_CAPTIONER._model is not None:
+        _ACTIVE_CAPTIONER._model.to("cpu")
+        torch.cuda.empty_cache()
 
 
 # ---------------------------------------------------------------------------
@@ -125,10 +135,12 @@ class LlamaBackend(LLMBackend):
             {"role": "system", "content": _SYSTEM_PROMPT + f"Provided Frame Evidence and Retrieval Context:\n{context}"},
             {"role": "user", "content": prompt},
         ]
+        # Added keep_alive=0 to explicitly drop Llama from Ollama VRAM after answering
         response = self.client.chat.completions.create(
             model=model_name,
             messages=messages,
             temperature=0.0,
+            extra_body={"keep_alive": 0},
         )
         return response.choices[0].message.content
 

@@ -21,23 +21,30 @@ from iris.aria import BLIPCaptioner
 
 
 class MoondreamCaptioner:
-    def __init__(self):
+    def __init__(self, device="cpu"):
         self._model = None
         self._tokenizer = None
-        self._device = "cpu"
+        self._device = device
 
     def _load(self):
         from transformers import AutoModelForCausalLM, AutoTokenizer, PreTrainedModel
-        if not hasattr(PreTrainedModel, "all_tied_weights_keys"):
-            PreTrainedModel.all_tied_weights_keys = property(lambda self: [])
         self._tokenizer = AutoTokenizer.from_pretrained(
             "vikhyatk/moondream2", trust_remote_code=True
         )
-        self._model = AutoModelForCausalLM.from_pretrained(
-            "vikhyatk/moondream2",
-            trust_remote_code=True,
-            device_map="cpu"
-        )
+        if self._device == "cuda-fp16":
+            import torch
+            self._model = AutoModelForCausalLM.from_pretrained(
+                "vikhyatk/moondream2",
+                trust_remote_code=True,
+                torch_dtype=torch.float16,
+                device_map="cuda",
+            )
+        else:
+            self._model = AutoModelForCausalLM.from_pretrained(
+                "vikhyatk/moondream2",
+                trust_remote_code=True
+            )
+            self._model = self._model.to("cpu")
 
     def caption(self, pil_image):
         if self._model is None:
@@ -112,6 +119,8 @@ def main():
     parser.add_argument("--virat-dir", type=str, help="Path to VIRAT directory")
     parser.add_argument("--model", type=str, default="blip", choices=["blip", "moondream"],
                         help="Captioner to use: 'blip' (default) or 'moondream'")
+    parser.add_argument("--device", type=str, default="cpu", choices=["cpu", "cuda-fp16"],
+                        help="Device for Moondream: 'cpu' or 'cuda-fp16'")
     args = parser.parse_args()
     
     print("Finding VIRAT dir...", flush=True)
@@ -173,11 +182,11 @@ def main():
     
     # 3. Captioning
     if args.model == "moondream":
-        model_label = "moondream-2B-int8"
+        model_label = f"moondream-2B-{args.device}"
         captioner_mode = "prompted"
-        out_filename = "caption_benchmark_moondream.json"
+        out_filename = f"caption_benchmark_moondream_{args.device}.json"
         print("Loading Moondream2...", flush=True)
-        captioner = MoondreamCaptioner()
+        captioner = MoondreamCaptioner(device=args.device)
     else:
         model_label = "Salesforce/blip-image-captioning-base"
         captioner_mode = "unconditional"
@@ -202,15 +211,17 @@ def main():
         t0 = time.perf_counter()
         failed = False
         caption_text = ""
-        _first_error_printed = getattr(main, "_first_error_printed", False)
+        if not hasattr(main, "_error_count"):
+            main._error_count = 0
         try:
             caption_text = captioner.caption(img)
         except Exception as exc:
             caption_text = "[CAPTION_FAILED]"
             failed = True
-            if not _first_error_printed:
-                print(f"[CAPTION ERROR] {type(exc).__name__}: {exc}", flush=True)
-                main._first_error_printed = True
+            main._error_count += 1
+            if main._error_count <= 3:
+                import traceback
+                print(f"[CAPTION ERROR] {type(exc).__name__}: {exc}\n{traceback.format_exc()}", flush=True)
         t1 = time.perf_counter()
         print(f"Done frame {f_idx}. Failed={failed}", flush=True)
         
