@@ -1,0 +1,8 @@
+Relative Path,Artifact Type,Dataset,Description,File Size (Bytes),SHA-256
+nextqa/per_method_summary.csv,CSV Table,nextqa,Summary of metrics per selection/retrieval method,1771,e7ffe1797d578698297c0e42799af1cf6525aa80323adb74a7a7e83ce8010c7b
+nextqa/summary.md,Markdown Report,nextqa,Human-readable summary report,1224,ffe7e187e646c0cbdbeb52fc93dc3af829f9f9043b9b4fd54b1a153c63002946
+nextqa/tables/primary_results.tex,LaTeX Table,nextqa,LaTeX formatted results table for LaTeX draft,1268,cb65140e4495d0eadbf2daa2cded3463358657d42022adf27ec1431887d93b9c
+nextqa/figures/window_coverage.png,PNG Figure,nextqa,Plot of selection window coverage,61435,1026deb1f6c087d0c507d3bbf6f621a0ddadab4167aba2afa89649f9cac27607
+nextqa/figures/window_coverage.pdf,PDF Figure,nextqa,Vector PDF of selection window coverage plot,21540,07bef1101d0d139bdfa842ad8d557044527ffd5900dc2717d41466e9af72c8f0
+claims.json,JSON Data,all,Claim gate verification metrics,327,4e6a1c430f80e01a0ae9716707303ed58716bcff59b945fb99c410b5a835bad1
+RESULTS_INDEX.md,Markdown Report,all,Main benchmark entrypoint index,512,2c7c99fc05cfca1acdf7f8eec030cc9e02ce9c8546642d75396055d459bb8561

@@ -37,3 +37,4 @@ methods:
   - clip_clustering
   - luma_diff_topk
   - graphless_iris
+  - full_iris

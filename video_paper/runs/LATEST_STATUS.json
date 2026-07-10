@@ -1,0 +1,7 @@
+{
+  "status": "COMPLETED",
+  "last_update": "2026-07-10T15:05:55Z",
+  "dataset": "nextqa",
+  "videos_evaluated": 89,
+  "replicates_run": 10000
+}

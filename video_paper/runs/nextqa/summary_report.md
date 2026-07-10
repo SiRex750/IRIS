@@ -1,0 +1,20 @@
+# Publication-Ready Benchmark Summary Report
+
+## Primary Endpoint: WindowCoverage@K at 10% retention
+
+| Method | Window Coverage | 95% Confidence Interval | Recall@5 | Recall@10 |
+|---|---|---|---|---|
+| CLIP K-Means Diversity | 1.0000 | [1.0000, 1.0000] | 0.1686 | 0.2000 |
+| CLIP Query Top-K | 0.9804 | [0.9620, 0.9961] | 0.5098 | 0.6235 |
+| Codec-Only PPR (Ablation) | 1.0000 | [1.0000, 1.0000] | 0.5137 | 0.7059 |
+| Hybrid PPR (Ablation) | 1.0000 | [1.0000, 1.0000] | 0.5608 | 0.7216 |
+| I-frame Prior | 1.0000 | [1.0000, 1.0000] | 0.1765 | 0.1922 |
+| Luma Difference | 1.0000 | [1.0000, 1.0000] | 0.4745 | 0.6392 |
+| Classical Optical Flow (Farneback) | 0.6824 | [0.6148, 0.7481] | 0.1882 | 0.1961 |
+| Coded Packet Size Only | 1.0000 | [1.0000, 1.0000] | 0.4941 | 0.7059 |
+| Proposed Model (Selection Only) | 1.0000 | [1.0000, 1.0000] | 0.5294 | 0.6902 |
+| Proposed System (Graph Retrieval) | 1.0000 | [1.0000, 1.0000] | 0.5765 | 0.7137 |
+| Random (Mean across 30 seeds) | 0.9997 | [0.9993, 1.0000] | 0.1762 | 0.2088 |
+| Scene Change | 1.0000 | [1.0000, 1.0000] | 0.1804 | 0.1922 |
+| Semantic-Only PPR (Ablation) | 1.0000 | [1.0000, 1.0000] | 0.5333 | 0.7098 |
+| Uniform | 1.0000 | [1.0000, 1.0000] | 0.1804 | 0.1961 |

@@ -1,0 +1,22 @@
+dataset: NExT-GQA
+split: validation_subset
+primary_metric: WindowCoverage@K
+retention_ratio: 0.10
+seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
+methods:
+  - uniform
+  - random
+  - iframe_prior
+  - scene_change
+  - luma_difference
+  - optical_flow_farneback
+  - clip_kmeans_diversity
+  - clip_query_topk
+  - packet_size_only
+  - proposed_model_selection
+  - proposed_system
+bootstrap_replicates: 10000
+bootstrap_seed: 20260710
+claim_gate:
+  min_absolute_improvement: 0.03
+  exclude_zero_ci: true

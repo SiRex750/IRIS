@@ -72,6 +72,16 @@ def main():
         sys.exit(1)
         
     df_data = pd.read_csv(args.dataset_csv)
+    # Convert Windows paths to Linux paths if needed
+    def fix_path(p):
+        if not isinstance(p, str):
+            return p
+        if "\\" in p or p.startswith("c:") or p.startswith("C:"):
+            p = p.replace("c:\\Users\\swara\\IRIS\\", "/home/ccbd/IRIS/")
+            p = p.replace("C:\\Users\\swara\\IRIS\\", "/home/ccbd/IRIS/")
+            p = p.replace("\\", "/")
+        return p
+    df_data["path"] = df_data["path"].apply(fix_path)
     print(f"Loaded dataset with {len(df_data)} event rows.")
 
     video_groups = df_data.groupby("video_id")

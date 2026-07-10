@@ -296,8 +296,11 @@ def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = 
                 expensive_processed += 1
 
                 # Y plane extraction
-                arr = frame.to_ndarray(format='yuv420p')
-                Y = arr[0:frame.height, :]
+                try:
+                    Y = frame.to_ndarray(format='gray')
+                except Exception:
+                    arr = frame.to_ndarray(format='yuv420p')
+                    Y = arr[0:frame.height, :]
 
                 # Luma diff vs previous retained frame.
                 # In selective mode this is a gap-diff; in full_decode mode it is

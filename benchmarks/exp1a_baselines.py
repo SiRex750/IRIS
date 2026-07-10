@@ -205,8 +205,11 @@ def optical_flow_sampling(video_path: str, raw_records: list[dict], budget_k: in
         idx = 0
         for frame in container.decode(video=0):
             # Downsize for speed on CPU
-            arr = frame.to_ndarray(format='yuv420p')
-            Y = arr[0:frame.height, :]
+            try:
+                Y = frame.to_ndarray(format='gray')
+            except Exception:
+                arr = frame.to_ndarray(format='yuv420p')
+                Y = arr[0:frame.height, :]
             small_Y = cv2.resize(Y, (160, 120))
             
             if prev_gray is None:
