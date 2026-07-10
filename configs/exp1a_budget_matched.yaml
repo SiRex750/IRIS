@@ -1,0 +1,39 @@
+mode: smoke_test
+
+dataset_csv: data/nextqa_exp1a/nextqa_exp1a_subset.csv
+
+
+cpu_only: true
+
+top_k:
+  - 1
+  - 5
+  - 10
+
+random_seeds:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
+  - 7
+  - 8
+  - 9
+
+span_buckets:
+  short_max_seconds: 2.0
+  medium_max_seconds: 5.0
+
+
+methods:
+  - iris_action_score
+  - uniform_budget_matched
+  - random_budget_matched
+  - iframe_only_budget_matched
+  - scene_change_detection
+  - optical_flow_sampling
+  - clip_clustering
+  - luma_diff_topk
+  - graphless_iris

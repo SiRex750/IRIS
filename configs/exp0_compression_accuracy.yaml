@@ -1,0 +1,22 @@
+mode: smoke_test
+
+threshold_grid:
+  action_score_threshold:
+    - 0.2
+    - 0.4
+    - 0.6
+
+  persistence_threshold:
+    - 0.2
+    - 0.4
+    - 0.6
+
+top_k:
+  - 1
+  - 5
+  - 10
+
+cpu_only: true
+
+max_videos: 5
+max_events_per_video: 3

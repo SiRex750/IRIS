@@ -20,5 +20,7 @@ logs/
 
 
 eval/data/
+data/
+benchmark_results/
 *_output.log
 *.npz
