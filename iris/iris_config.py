@@ -48,6 +48,13 @@ class IRISConfig:
     cerberus_low_thresh:  float = 0.35  # action_score >= this → filtered NLI
     disable_nli:          bool  = False # completely bypass DeBERTa NLI, use ner_only
 
+    # ── Cerberus v2 switchover ───────────────────────────────────────────
+    # "legacy" = iris.query.query's existing sentence-split + CerberusV.verify
+    # path, unchanged. "v2" = AnswerClaims JSON contract + iris.cerberus_layers
+    # router (layer 1/2/3) + answer badge. Default legacy: no behavior change
+    # anywhere unless a caller explicitly opts in.
+    cerberus_mode: str = "legacy"
+
     # ── Action Score Module ────────────────────────────────────────────────
     luma_diff_weight:        float = 0.5
     motion_weight:          float = 0.3
@@ -144,6 +151,9 @@ class IRISConfig:
         )
         assert 0.0 < self.ppr_damping < 1.0, (
             f"ppr_damping must be in (0.0, 1.0), got {self.ppr_damping}"
+        )
+        assert self.cerberus_mode in {"legacy", "v2"}, (
+            f"Invalid cerberus_mode '{self.cerberus_mode}'"
         )
         assert self.graph_mode in {"flat", "scene_sparse"}, (
             f"Invalid graph_mode '{self.graph_mode}'"

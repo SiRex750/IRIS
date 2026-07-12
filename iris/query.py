@@ -12,6 +12,7 @@ into L1 is a deliberate Phase 6 change, not part of this restructure.
 """
 from __future__ import annotations
 
+import json
 import re
 import time
 from typing import Any
@@ -323,10 +324,231 @@ def _ensure_captions(index: IRISIndex, retrieved_frames: list[dict]) -> int:
     return frames_decoded_for_captions
 
 
+_JSON_FENCE_RE = re.compile(r"```(?:json)?\s*(.*?)\s*```", re.DOTALL)
+
+
+def _extract_json_object(raw: str) -> str:
+    """Best-effort extraction of a single JSON object from a raw LLM response:
+    strips a markdown code fence if present, else finds the first balanced
+    {...} span. Returns a substring to hand to AnswerClaims.from_json --
+    does not itself parse or validate; a malformed result still raises
+    downstream and is handled by _generate_answer_claims_v2's retry."""
+    fenced = _JSON_FENCE_RE.search(raw)
+    text = fenced.group(1) if fenced else raw
+
+    start = text.find("{")
+    if start == -1:
+        return text
+    depth = 0
+    for i in range(start, len(text)):
+        if text[i] == "{":
+            depth += 1
+        elif text[i] == "}":
+            depth -= 1
+            if depth == 0:
+                return text[start:i + 1]
+    return text[start:]
+
+
+def _corrective_message(question: str, label: str, e: Exception, wire: bool = False) -> str:
+    """Build a corrective retry prompt keyed by taxonomy label -- the
+    is_core_invariant case is a semantic fix, not a parse error, and must
+    not be told its JSON was invalid.
+
+    wire (task 4, additive, defaults to False -- json-mode callers unchanged
+    byte-for-byte): claim_field_shape means something different under the
+    sentinel wire schema (iris.claim_contract.ANSWER_CLAIMS_WIRE_SCHEMA) than
+    under the old nested json-mode shape -- a variant-required field left at
+    its SENTINEL value, not a missing/extra dataclass kwarg -- so it gets its
+    own phrasing naming the sentinel convention explicitly."""
+    if label == "is_core_invariant":
+        return (
+            f"{question}\n\n"
+            f"Your previous response parsed as valid JSON, but the claims did not satisfy "
+            f"the AnswerClaims contract: {e}. Exactly ONE claim among your visual/absence "
+            "claims must have is_core=true. Fix the is_core flags and reply again with ONLY "
+            "the corrected JSON object -- no prose, no markdown code fences, no other text."
+        )
+    if label == "claim_field_shape" and wire:
+        detail = (
+            f"a claim left a field YOUR claim_type actually uses at its SENTINEL value "
+            f"instead of a real one: {e}. Sentinels (-1 / \"\" / \"none\") are only correct "
+            f"for fields your claim_type does NOT use -- fill the named field(s) with a real value."
+        )
+    elif label == "json_decode":
+        detail = f"parse error: {e}"
+    elif label == "schema_shape":
+        detail = f"missing required top-level key: {e}"
+    elif label == "unknown_claim_type":
+        detail = f"unrecognized claim type: {e}"
+    elif label == "bad_metadata_field":
+        detail = f"invalid metadata field: {e}"
+    elif label == "claim_field_shape":
+        detail = f"claim object has missing/extra fields: {e}"
+    else:
+        detail = f"contract violation: {e}"
+    return (
+        f"{question}\n\n"
+        f"Your previous response was not valid AnswerClaims JSON ({detail}). "
+        "Reply again with ONLY the JSON object described in the system instructions -- "
+        "no prose, no markdown code fences, no other text."
+    )
+
+
+def _generate_answer_claims_v2(question: str, context: str):
+    """Cerberus v2 contract generation + strict parse, with ONE corrective
+    retry on parse failure. NEVER falls back to legacy verification on
+    failure -- that would corrupt the v2 compliance measurement; a second
+    failure is reported as compliance_failed instead.
+
+    Returns (answer_claims_or_None, raw_answer_of_last_attempt,
+    compliance_failed, n_attempts, failure_labels).
+    """
+    from iris.claim_contract import AnswerClaims
+    import iris.aria as aria
+
+    failure_labels: list[str] = []
+
+    raw = aria.generate_v2(prompt=question, context=context)
+    try:
+        parsed = AnswerClaims.from_json(_extract_json_object(raw))
+        return parsed, raw, False, 1, failure_labels
+    except Exception as e:
+        label = getattr(e, "taxonomy_label", None) or "other"
+        failure_labels.append(label)
+        corrective = _corrective_message(question, label, e)
+        raw2 = aria.generate_v2(prompt=corrective, context=context)
+        try:
+            parsed2 = AnswerClaims.from_json(_extract_json_object(raw2))
+            return parsed2, raw2, False, 2, failure_labels
+        except Exception as e2:
+            label2 = getattr(e2, "taxonomy_label", None) or "other"
+            failure_labels.append(label2)
+            return None, raw2, True, 2, failure_labels
+
+
+def _generate_answer_claims_v2_wire(question: str, context: str, max_tokens: int | None = None):
+    """Schema-constrained (grammar) contract generation via the flat,
+    sentinel-valued ANSWER_CLAIMS_WIRE_SCHEMA (iris.claim_contract), with ONE
+    corrective retry on a from_wire failure (task 4).
+
+    Task 3 shipped this path with NO retry: grammar makes a PARSE retry moot
+    (the response is always syntactically valid JSON matching the schema).
+    But claim_field_shape -- a variant-required field left at its sentinel
+    value instead of a real one -- is a SEMANTIC failure the grammar cannot
+    itself prevent (enforcing "real, not sentinel" would need a per-variant
+    anyOf, the exact SIGSEGV class being avoided). A corrective retry is
+    therefore meaningful again here, unlike for a parse error: the model CAN
+    act on "you left 'event' at its sentinel, give a real value" on a second
+    attempt. Max attempts = 2, hard, same as the json-mode function.
+
+    Returns (answer_claims_or_None, raw_answer_of_last_attempt,
+    compliance_failed, n_attempts, failure_labels) -- same 5-tuple shape as
+    _generate_answer_claims_v2 (json-mode).
+    """
+    from iris.claim_contract import AnswerClaims
+    import iris.aria as aria
+
+    failure_labels: list[str] = []
+
+    raw = aria.generate_v2(prompt=question, context=context, max_tokens=max_tokens, schema_format=True)
+    try:
+        parsed = AnswerClaims.from_wire(json.loads(raw))
+        return parsed, raw, False, 1, failure_labels
+    except Exception as e:
+        label = getattr(e, "taxonomy_label", None) or "other"
+        failure_labels.append(label)
+        corrective = _corrective_message(question, label, e, wire=True)
+        raw2 = aria.generate_v2(prompt=corrective, context=context, max_tokens=max_tokens, schema_format=True)
+        try:
+            parsed2 = AnswerClaims.from_wire(json.loads(raw2))
+            return parsed2, raw2, False, 2, failure_labels
+        except Exception as e2:
+            label2 = getattr(e2, "taxonomy_label", None) or "other"
+            failure_labels.append(label2)
+            return None, raw2, True, 2, failure_labels
+
+
+def _query_v2(question: str, index: IRISIndex, config: Any) -> dict:
+    """cerberus_mode="v2" path: AnswerClaims JSON contract, layer 1/2/3
+    router (iris.cerberus_layers.verify_answer), answer badge. Retrieval
+    and lazy-captioning are identical to the legacy path -- only ARIA's
+    prompt/parse and the verification step differ."""
+    from iris.cerberus_layers import Evidence, get_nli_gate, verify_answer
+
+    t_l2_start = time.time()
+    query_embedding = _embed_query(question, config)
+    retrieved_frames = _build_retrieved(index, query_embedding, config)
+    t_l2 = time.time() - t_l2_start
+
+    t_caption_start = time.time()
+    frames_decoded_for_captions = _ensure_captions(index, retrieved_frames)
+    t_caption = time.time() - t_caption_start
+
+    t_elysium_start = time.time()
+    cache_obj = wrapper_init_l1_cache(config)
+    wrapper_populate_cache(cache_obj, retrieved_frames)
+    context_text = cache_obj.as_context_text()
+    t_elysium = time.time() - t_elysium_start
+
+    t_aria_start = time.time()
+    answer_claims, raw_answer, compliance_failed, n_attempts, failure_labels = _generate_answer_claims_v2(
+        question, context_text
+    )
+    t_aria = time.time() - t_aria_start
+
+    t_cerberus_start = time.time()
+    if compliance_failed:
+        badge = "unverified"
+        claim_verdicts: list = []
+        core_claim_verdict = None
+    else:
+        nli = get_nli_gate()
+        evidence = Evidence(index=index, retrieved_frames=retrieved_frames, nli=nli)
+        verification = verify_answer(answer_claims, evidence)
+        badge = verification.badge
+        claim_verdicts = verification.claim_verdicts
+        core_claim_verdict = verification.core_claim_verdict
+    t_cerberus = time.time() - t_cerberus_start
+
+    return {
+        "raw_answer": raw_answer,
+        "answer_claims": answer_claims,
+        "compliance_failed": compliance_failed,
+        "n_llm_attempts": n_attempts,
+        "compliance_failure_labels": failure_labels,
+        "badge": badge,
+        "claim_verdicts": claim_verdicts,
+        "core_claim_verdict": core_claim_verdict,
+        "frames_processed": index.frames_processed,
+        "peak_count": index.peak_count,
+        "compression_ratio": index.skipped_frames_ratio,
+        "skipped_frames_ratio": index.skipped_frames_ratio,
+        "storage_reduction_factor": index.storage_reduction_factor,
+        "retrieved_frame_idxs": [f["frame_idx"] for f in retrieved_frames],
+        "frames_decoded_for_captions": frames_decoded_for_captions,
+        "timings": {
+            "l2_retrieval": t_l2,
+            "lazy_caption": t_caption,
+            "elysium": t_elysium,
+            "aria": t_aria,
+            "cerberus_v2": t_cerberus,
+            "total": t_l2 + t_caption + t_elysium + t_aria + t_cerberus,
+        },
+    }
+
+
 def query(question: str, index: IRISIndex, config: Any = None) -> dict:
     """Answer one question against a loaded index. No video read, no graph rebuild.
-    Returns the same result-dict shape as pipeline.run_pipeline (parity target)."""
+    Returns the same result-dict shape as pipeline.run_pipeline (parity target).
+
+    Dispatches to _query_v2 when config.cerberus_mode == "v2"; the legacy
+    body below this check is otherwise completely unchanged (default
+    cerberus_mode="legacy" -> zero behavior change)."""
     config = _config_from_index(index, config)
+
+    if getattr(config, "cerberus_mode", "legacy") == "v2":
+        return _query_v2(question, index, config)
 
     t_l2_start = time.time()
     query_embedding = _embed_query(question, config)

@@ -163,7 +163,12 @@ def _capture_full_nli(self, claims, facts, mode, action_score, records, query, c
             negation_high_risk = has_negation_claim and not has_negation_fact
 
             threshold = 0.5 if negation_high_risk else 0.85
-            if label == "entailment" and negation_high_risk and entailment_score <= threshold:
+            # Kept in parity with the iris/cerberus_v.py fix (scripts/diag_l3_judge.py
+            # A2): `and negation_high_risk` made the 0.85 branch dead code. This
+            # function is documented as a verbatim clone of _full_nli -- leaving it
+            # stale would silently defang tests/test_cerberus_layers.py's parity
+            # test, which uses it as the oracle for iris.cerberus_layers.score_nli_pair.
+            if label == "entailment" and entailment_score <= threshold:
                 label = "neutral"
 
             if label == "entailment":

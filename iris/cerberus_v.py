@@ -315,7 +315,15 @@ class CerberusV:
                 negation_high_risk = has_negation_claim and not has_negation_fact
 
                 threshold = 0.5 if negation_high_risk else 0.85
-                if label == "entailment" and negation_high_risk and entailment_score <= threshold:
+                # BUG (found via scripts/diag_l3_judge.py A2): `and negation_high_risk`
+                # here made the 0.85 branch of the ternary above dead code -- this
+                # check only ever fired when negation_high_risk was True, in which
+                # case threshold was already forced to 0.5. Non-negation entailment
+                # pairs were NEVER floored, despite the documented intent of the
+                # threshold variable. Fixed: drop the extra conjunct so the floor
+                # (0.85 for ordinary pairs, 0.5 for negation-risk ones) actually
+                # applies to both branches.
+                if label == "entailment" and entailment_score <= threshold:
                     label = "neutral"
 
                 # Geographic precision check
