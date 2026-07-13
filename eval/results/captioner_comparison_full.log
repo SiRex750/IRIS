@@ -1,0 +1,39 @@
+[2026-07-09 13:04:24] Starting Captioner Benchmark Comparison Suite
+[2026-07-09 13:04:24] Using VIRAT directory: c:\Users\akash\Documents\Iris\test_data\Virat
+[2026-07-09 13:04:24] Performing startup cleanup...
+[2026-07-09 13:04:27] Extracting 10 frames for Phase 1 Screening...
+[2026-07-09 13:04:36] Extracted 10 frames.
+[2026-07-09 13:04:36] =========================================================================
+[2026-07-09 13:04:36] PHASE 1: SCREENING START
+[2026-07-09 13:04:36] =========================================================================
+[2026-07-09 13:04:36] Screening model: moondream2-HF-fp16
+[2026-07-09 13:05:29]   Result: PASS | Reason: Fits fully on GPU (Processor: 100% GPU (PyTorch CUDA)) | Mean Latency: 1753.0ms
+[2026-07-09 13:05:33] Screening model: ollama-qwen3.5:4b
+[2026-07-09 13:05:36] Ensuring model qwen3.5:4b is pulled in Ollama...
+[2026-07-09 13:18:42]   Result: FAIL | Reason: Fails GPU verification (Processor: 31%/69% CPU/GPU) | Mean Latency: 72416.3ms
+[2026-07-09 13:18:46] Screening model: ollama-qwen3.5:2b
+[2026-07-09 13:18:50] Ensuring model qwen3.5:2b is pulled in Ollama...
+[2026-07-09 13:25:40]   Result: PASS | Reason: Fits fully on GPU (Processor: 100% GPU) | Mean Latency: 24264.8ms
+[2026-07-09 13:25:45] Screening model: ollama-gemma4:e2b
+[2026-07-09 13:25:49] Ensuring model gemma4:e2b is pulled in Ollama...
+[2026-07-09 13:25:51]   [ERROR] Failed during screening of ollama-gemma4:e2b: model 'gemma4:e2b' not found (status code: 404)
+[2026-07-09 13:25:55] Screening model: ollama-gemma4:e4b
+[2026-07-09 13:25:59] Ensuring model gemma4:e4b is pulled in Ollama...
+[2026-07-09 13:26:02]   [ERROR] Failed during screening of ollama-gemma4:e4b: model 'gemma4:e4b' not found (status code: 404)
+[2026-07-09 13:26:06] Screening model: ollama-moondream2
+[2026-07-09 13:26:10] Ensuring model moondream2 is pulled in Ollama...
+[2026-07-09 13:26:11]   [ERROR] Failed during screening of ollama-moondream2: model 'moondream2' not found (status code: 404)
+[2026-07-09 13:26:16] PHASE 1 COMPLETE.
+[2026-07-09 13:26:16] Models passing screening: ['moondream2-HF-fp16', 'ollama-qwen3.5:2b']
+[2026-07-09 13:26:16] =========================================================================
+[2026-07-09 13:26:16] PHASE 2: BENCHMARK START
+[2026-07-09 13:26:16] =========================================================================
+[2026-07-09 13:26:16] Extracting full 113 frames for Phase 2 Benchmarking...
+[2026-07-09 13:26:33] Extracted 113 frames.
+[2026-07-09 13:26:33] Running full benchmark for: moondream2-HF-fp16
+[2026-07-09 13:33:38]   Finished: Uniqueness (Exact/Norm): 77.9%/77.9% | Cos Dist: 0.156 | Latency: 3686.8ms
+[2026-07-09 13:33:43] Running full benchmark for: ollama-qwen3.5:2b
+[2026-07-09 20:03:13]   Finished: Uniqueness (Exact/Norm): 98.2%/98.2% | Cos Dist: 0.178 | Latency: 206751.2ms
+[2026-07-09 20:03:18] PHASE 2 COMPLETE.
+[2026-07-09 20:03:18] Final structured summary saved to eval\results\captioner_comparison_summary.json
+[2026-07-09 20:03:18] BENCHMARK_COMPLETE

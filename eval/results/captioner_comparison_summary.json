@@ -1,0 +1,71 @@
+{
+  "timestamp": "2026-07-09 20:03:18",
+  "phase1_screen": {
+    "moondream2-HF-fp16": {
+      "passed": true,
+      "reason": "Fits fully on GPU (Processor: 100% GPU (PyTorch CUDA))",
+      "mean_latency_ms": 1753.0404900002395,
+      "peak_vram_nvidia_smi": 5500.0,
+      "peak_vram_ollama_ps": ""
+    },
+    "ollama-qwen3.5:4b": {
+      "passed": false,
+      "reason": "Fails GPU verification (Processor: 31%/69% CPU/GPU)",
+      "mean_latency_ms": 72416.30374999986,
+      "peak_vram_nvidia_smi": 5311.0,
+      "peak_vram_ollama_ps": "6.0 GB"
+    },
+    "ollama-qwen3.5:2b": {
+      "passed": true,
+      "reason": "Fits fully on GPU (Processor: 100% GPU)",
+      "mean_latency_ms": 24264.841479999995,
+      "peak_vram_nvidia_smi": 4969.0,
+      "peak_vram_ollama_ps": "4.2 GB"
+    },
+    "ollama-gemma4:e2b": {
+      "passed": false,
+      "reason": "Exception: model 'gemma4:e2b' not found (status code: 404)",
+      "mean_latency_ms": 0.0,
+      "peak_vram_nvidia_smi": 0.0,
+      "peak_vram_ollama_ps": ""
+    },
+    "ollama-gemma4:e4b": {
+      "passed": false,
+      "reason": "Exception: model 'gemma4:e4b' not found (status code: 404)",
+      "mean_latency_ms": 0.0,
+      "peak_vram_nvidia_smi": 0.0,
+      "peak_vram_ollama_ps": ""
+    },
+    "ollama-moondream2": {
+      "passed": false,
+      "reason": "Exception: model 'moondream2' not found (status code: 404)",
+      "mean_latency_ms": 0.0,
+      "peak_vram_nvidia_smi": 0.0,
+      "peak_vram_ollama_ps": ""
+    }
+  },
+  "phase2_benchmark": {
+    "moondream2-HF-fp16": {
+      "exact_uniqueness": 77.87610619469027,
+      "normalized_uniqueness": 77.87610619469027,
+      "mean_cosine_dist": 0.1560797393321991,
+      "confab_count": 0,
+      "confab_rate": 0.0,
+      "mean_latency_ms": 3686.7552964602955,
+      "peak_vram_nvidia_smi": 5733.0,
+      "peak_vram_ollama_ps": "",
+      "peak_vram_pytorch": 4218.45556640625
+    },
+    "ollama-qwen3.5:2b": {
+      "exact_uniqueness": 98.23008849557522,
+      "normalized_uniqueness": 98.23008849557522,
+      "mean_cosine_dist": 0.1783561259508133,
+      "confab_count": 0,
+      "confab_rate": 0.0,
+      "mean_latency_ms": 206751.17022920333,
+      "peak_vram_nvidia_smi": 5221.0,
+      "peak_vram_ollama_ps": "4.2 GB",
+      "peak_vram_pytorch": 4218.45556640625
+    }
+  }
+}

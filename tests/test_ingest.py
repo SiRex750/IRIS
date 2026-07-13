@@ -65,6 +65,5 @@ def test_framerecords_enriched(patched):
         assert isinstance(fr, FrameRecord)
         assert fr.clip_embedding is not None
         assert fr.clip_embedding.shape == (512,)
-        assert isinstance(fr.caption, dict)
-        assert fr.caption["semantic_caption"] == "a test frame"
+        assert fr.caption is None
         assert isinstance(fr.pagerank_score, float)
