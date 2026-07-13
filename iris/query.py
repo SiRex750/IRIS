@@ -186,7 +186,15 @@ def _build_retrieved(index: IRISIndex, query_embedding: np.ndarray, config: Any)
     using the pre-built index._graph and index.frames. NO geometry keys (L1
     parity). Scores come from the graph node; is_peak/embedding/luma_entropy/
     caption come from the matching FrameRecord."""
-    if getattr(config, "graph_mode", "flat") == "scene_sparse":
+    index_graph_mode = index.config_snapshot.get("graph_mode", "flat") if index.config_snapshot else "flat"
+    query_graph_mode = getattr(config, "graph_mode", "flat")
+    if query_graph_mode != index_graph_mode:
+        raise ValueError(
+            f"Query graph_mode '{query_graph_mode}' does not match "
+            f"index graph_mode '{index_graph_mode}'."
+        )
+
+    if query_graph_mode == "scene_sparse":
         from iris.scene_retrieval import retrieve_scene_sparse
         return retrieve_scene_sparse(index, query_embedding, config)
 

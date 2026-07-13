@@ -61,7 +61,7 @@ def reference(clip):
 # ── tests ──────────────────────────────────────────────────────────────────
 
 def test_lengths_and_indices(curve):
-    all_frame_energies, iframe_indices, energies = curve
+    all_frame_energies, iframe_indices, energies, _ = curve
     N = len(all_frame_energies)
 
     assert N > 0, "all_frame_energies must be non-empty"
@@ -86,7 +86,7 @@ def test_lengths_and_indices(curve):
 
 
 def test_matches_step0_reference(curve, reference):
-    all_frame_energies, iframe_indices, _ = curve
+    all_frame_energies, iframe_indices, _, _ = curve
 
     # packet_curve from build_curves is a list of (pts, size, is_keyframe)
     ref_packet_curve = reference["packet_curve"]
@@ -108,7 +108,7 @@ def test_matches_step0_reference(curve, reference):
 
 
 def test_nonempty_percentile_pool(curve):
-    _, _, energies = curve
+    _, _, energies, _ = curve
     assert len(energies) > 0, "energies (non-keyframe pool) must be non-empty"
     assert all(math.isfinite(v) for v in energies), (
         "all energies values must be finite floats"

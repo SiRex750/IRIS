@@ -146,6 +146,11 @@ def retrieve_scene_sparse(
     Deterministic: pure function of stored fields (embeddings, scene_id,
     centroids, action_score), no RNG, stable tie-break by frame_idx.
     """
+    # SCENE-002: Reject invalid query embeddings (all-zero or near-zero norm) before shortlist creation.
+    q_norm = np.linalg.norm(query_embedding)
+    if q_norm < 1e-8:
+        raise ValueError("Invalid query embedding (all-zero or near-zero norm).")
+
     centroids = getattr(index, "_scene_centroids", None)
     if not centroids:
         raise ValueError(
@@ -171,6 +176,14 @@ def retrieve_scene_sparse(
     l2_retrieve_top_k = getattr(config, "l2_retrieve_top_k", 5)
 
     if not survivors:
+        # Fall back to all scenes
+        shortlisted_scene_ids = set(centroids.keys())
+        survivors = [
+            fr for fr in index.frames
+            if fr.scene_id in shortlisted_scene_ids and fr.clip_embedding is not None
+        ]
+
+    if not survivors:
         print(
             f"[scene_retrieval] shortlisted {len(shortlisted_scene_ids)}/{num_scenes} scenes, "
             f"survivor pool = 0 frames, branch=shortcut (empty pool)"
@@ -179,6 +192,19 @@ def retrieve_scene_sparse(
 
     pool_matrix = np.stack([np.asarray(fr.clip_embedding, dtype=np.float32) for fr in survivors])
     sims = _cosine_batch(query_embedding, pool_matrix)
+
+    # SCENE-001: Adaptive fallback for recall safety.
+    # If the maximum similarity in the shortlisted pool is below 0.20,
+    # we fall back to all scenes.
+    if float(np.max(sims)) < 0.20 and len(shortlisted_scene_ids) < num_scenes:
+        shortlisted_scene_ids = set(centroids.keys())
+        survivors = [
+            fr for fr in index.frames
+            if fr.scene_id in shortlisted_scene_ids and fr.clip_embedding is not None
+        ]
+        if survivors:
+            pool_matrix = np.stack([np.asarray(fr.clip_embedding, dtype=np.float32) for fr in survivors])
+            sims = _cosine_batch(query_embedding, pool_matrix)
 
     order = sorted(range(len(survivors)), key=lambda i: (-float(sims[i]), survivors[i].frame_idx))
     exact_top = [_frame_to_dict(survivors[i], float(sims[i])) for i in order[:l2_retrieve_top_k]]

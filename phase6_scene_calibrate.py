@@ -103,7 +103,7 @@ def main():
     parser.add_argument("--video", required=True)
     args = parser.parse_args()
 
-    all_frame_energies, iframe_indices, non_kf_energies = _demux_packet_curve(args.video)
+    all_frame_energies, iframe_indices, non_kf_energies, _ = _demux_packet_curve(args.video)
     n_frames = len(all_frame_energies)
     num_iframes = len(iframe_indices)
 

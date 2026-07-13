@@ -415,7 +415,7 @@ def ingest(video_path: str | Path, config: Any = None, *, nms_window: int = 10) 
     # internal call; we recover them cheaply from the stats + raw_records.
     # The authoritative source is still _demux_packet_curve; we call it once
     # only to build the scene_spans (zero-decode, no RGB output).
-    all_frame_energies, iframe_indices, _ = charon_v._demux_packet_curve(str(video_path))
+    all_frame_energies, iframe_indices, _, _ = charon_v._demux_packet_curve(str(video_path))
     fps = charon_v.get_stream_fps(str(video_path))
     packet_curve = (all_frame_energies, iframe_indices, fps)
     return _build_index_from_records(
@@ -502,17 +502,18 @@ def save_index(index: IRISIndex, path: str | Path) -> None:
     }
     arrays: dict[str, np.ndarray] = {"__manifest__": np.array(json.dumps(manifest))}
     arrays.update(embeddings)
-    # INDEX-001: np.savez appends .npz automatically. Strip any existing .npz
-    # suffix first to avoid paths like 'foo.idx.npz.npz'.
-    save_path = path.with_suffix("") if path.suffix == ".npz" else path
+    # INDEX-001: Ensure path has a .npz extension and handle np.savez suffix appending
+    if not str(path).endswith(".npz"):
+        path = Path(str(path) + ".npz")
+    save_path = path.with_suffix("")
     np.savez(save_path, **arrays)
 
 
 def load_index(path: str | Path) -> IRISIndex:
     """Deserialize an IRISIndex and rebuild its live L2 graph from frames."""
     path = Path(path)
-    if path.suffix != ".npz":
-        path = path.with_suffix(".npz")
+    if not str(path).endswith(".npz"):
+        path = Path(str(path) + ".npz")
     data = np.load(path, allow_pickle=False)
     manifest = json.loads(data["__manifest__"].item())
 

@@ -60,7 +60,7 @@ def compute_motion_geometry(motion_vectors: list, width: int, height: int) -> di
         V_x = np.zeros_like(V)
         
     div = U_x + V_y
-    divergence = float(np.mean(div))
+    divergence = float(np.mean(np.abs(div)))
     
     rot = V_x - U_y
     curl = float(np.mean(np.abs(rot)))
@@ -161,7 +161,7 @@ def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = 
     If return_raw is True, additionally returns a list of raw per-frame records.
     """
     # Pass 1: Build codec saliency curve from packet sizes (zero decode).
-    all_frame_energies, iframe_indices, energies = _demux_packet_curve(video_path)
+    all_frame_energies, iframe_indices, energies, pts_to_packet = _demux_packet_curve(video_path)
     
     scene_thresholds = {}
     scene_salient_vals = []
@@ -232,7 +232,13 @@ def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = 
             order=effective_order,
         )
 
-    packet_size_by_idx = {idx: size for idx, size in all_frame_energies}
+    # Pre-sort scene thresholds for O(1) amortized pointer lookup
+    scene_list = sorted(
+        [(start, end, s_thresh, c_thresh) for (start, end), (s_thresh, c_thresh) in scene_thresholds.items()],
+        key=lambda x: x[0]
+    )
+    scene_pointer = 0
+
     output_frames = []
     raw_records = []
     
@@ -248,17 +254,22 @@ def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = 
 
     try:
         for frame in container.decode(video=0):
-            # ── TIER CLASSIFICATION (metadata only, no pixel access) ──────────
-            ps = packet_size_by_idx.get(total_frames, 0.0)
+            if frame.pts is None:
+                raise ValueError("Decoded frame lacks PTS; cannot build 1-to-1 audited mapping.")
+            if frame.pts not in pts_to_packet:
+                raise ValueError(f"Decoded frame PTS {frame.pts} not found in demuxed packets; mapping is compromised.")
+            
+            ps, is_kf = pts_to_packet[frame.pts]
 
+            # ── TIER CLASSIFICATION (metadata only, no pixel access) ──────────
             curr_salient = salient_thresh
             curr_candidate = candidate_thresh
             if adaptive:
-                for (start, end), (s_thresh, c_thresh) in scene_thresholds.items():
-                    if start <= total_frames < end:
-                        curr_salient = s_thresh
-                        curr_candidate = c_thresh
-                        break
+                # O(1) amortized threshold lookup
+                while scene_pointer < len(scene_list) and total_frames >= scene_list[scene_pointer][1]:
+                    scene_pointer += 1
+                if scene_pointer < len(scene_list) and scene_list[scene_pointer][0] <= total_frames < scene_list[scene_pointer][1]:
+                    _, _, curr_salient, curr_candidate = scene_list[scene_pointer]
 
             # LEGACY / UNUSED: tier kept for backward compatibility with Track A/C.
             # Track B uses continuous action scoring (action_score.py).
@@ -416,6 +427,12 @@ def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = 
             total_frames += 1
     finally:
         container.close()
+
+    # Verify 1-to-1 mapping size matches
+    if total_frames != len(pts_to_packet):
+        raise ValueError(
+            f"1-to-1 audited mapping failed: demuxed {len(pts_to_packet)} packets but decoded {total_frames} frames."
+        )
     
     stats = {
         "total": total_frames,
@@ -431,6 +448,12 @@ def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = 
         "num_scenes": len(scene_thresholds),
         "peak_order_used": effective_order,
         "frames_expensive_processed": expensive_processed,
+
+        # DEC-001: Explicit audit counters
+        "packets_demuxed": len(pts_to_packet),
+        "decoder_frames_output": total_frames,
+        "frames_pixel_processed": expensive_processed,
+        "frames_retained": len(output_frames),
     }
     
     if return_raw:
@@ -445,7 +468,7 @@ def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = 
 
 def _demux_packet_curve(
     video_path: str,
-) -> tuple[list[tuple[int, float]], list[int], list[float]]:
+) -> tuple[list[tuple[int, float]], list[int], list[float], dict[int, tuple[float, bool]]]:
     """
     Zero-decode codec saliency curve for Phase-4 Tier 0.
 
@@ -459,6 +482,7 @@ def _demux_packet_curve(
       iframe_indices:     display_idx values whose packet is a keyframe.
       energies:           packet_size_bytes for NON-keyframe frames only
                           (the pool used for percentile thresholds).
+      pts_to_packet:      dictionary of pts -> (size, is_keyframe)
     Packet sizes are returned RAW (bytes, as float). No normalization.
     """
     container = av.open(video_path)
@@ -477,25 +501,34 @@ def _demux_packet_curve(
     finally:
         container.close()
 
-    # Re-sort to display order by pts; fall back to demux order on None pts.
+    # Re-sort to display order by pts; fail closed on None pts.
     has_none_pts = any(p[0] is None for p in raw)
     if has_none_pts:
-        sorted_raw = raw  # stable demux-order fallback
-    else:
-        sorted_raw = sorted(raw, key=lambda p: p[0])
+        raise ValueError("Video contains packets with missing PTS; one-to-one audited mapping is impossible.")
+    
+    sorted_raw = sorted(raw, key=lambda p: p[0])
+
+    # Check for duplicate PTS
+    pts_seen = set()
+    for pts, _, _ in sorted_raw:
+        if pts in pts_seen:
+            raise ValueError(f"Duplicate PTS {pts} found; one-to-one audited mapping is impossible.")
+        pts_seen.add(pts)
 
     all_frame_energies: list[tuple[int, float]] = []
     iframe_indices: list[int] = []
     energies: list[float] = []
+    pts_to_packet: dict[int, tuple[float, bool]] = {}
 
-    for display_idx, (_, size, is_kf) in enumerate(sorted_raw):
+    for display_idx, (pts, size, is_kf) in enumerate(sorted_raw):
         all_frame_energies.append((display_idx, size))
         if is_kf:
             iframe_indices.append(display_idx)
         else:
             energies.append(size)
+        pts_to_packet[pts] = (size, is_kf)
 
-    return all_frame_energies, iframe_indices, energies
+    return all_frame_energies, iframe_indices, energies, pts_to_packet
 
 
 def compute_valley_scene_boundaries(
@@ -543,6 +576,11 @@ def compute_valley_scene_boundaries(
     for i in range(len(ends) - 1):
         start, end = ends[i], ends[i + 1]
         if end > start:
+            # Enforce production size cap of 300 frames per scene
+            MAX_SCENE_LEN = 300
+            while end - start > MAX_SCENE_LEN:
+                scenes.append((start, start + MAX_SCENE_LEN))
+                start += MAX_SCENE_LEN
             scenes.append((start, end))
     return scenes
 
