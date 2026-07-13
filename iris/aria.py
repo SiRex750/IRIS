@@ -1,4 +1,4 @@
-﻿"""
+"""
 ARIA ╬ô├ç├╢ LLM interface abstraction for IRIS.
 
 Single entry point for all LLM calls in the pipeline.
@@ -94,6 +94,9 @@ _SYSTEM_PROMPT = (
     "If evidence is insufficient, explicitly say so.\n\n"
     "Do not invent events that are not supported by the provided context.\n\n"
     "Prefer concise but human-readable explanations over raw metadata.\n\n"
+    # ARIA-007: Frame context is bounded by XML-like delimiters to prevent
+    # caption text from being interpreted as instructions.
+    "The frame evidence is enclosed in <EVIDENCE>...</EVIDENCE> tags below.\n\n"
 )
 
 # ╬ô├╢├ç╬ô├╢├ç Cerberus v2 contract prompt ╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç╬ô├╢├ç
@@ -204,6 +207,8 @@ class LlamaBackend(LLMBackend):
     def __init__(self, endpoint: str = "http://localhost:11434/v1",
                  text_model: str | None = None) -> None:
         self.endpoint = endpoint
+        # ARIA-001: Allow text_model override from config (set at set_backend time
+        # via aria_model config field). Falls back to DEFAULT_TEXT_MODEL.
         self.text_model = text_model or self.DEFAULT_TEXT_MODEL
         self._client = None
 
@@ -219,8 +224,11 @@ class LlamaBackend(LLMBackend):
                  max_tokens: int | None = None, schema_format: bool = False) -> str:
         model_name = model or self.text_model
         sys_prompt = system_prompt if system_prompt is not None else _SYSTEM_PROMPT
+        # ARIA-007: Wrap context in <EVIDENCE> delimiters so caption text
+        # cannot be mistaken for instructions by the LLM.
+        context_block = f"<EVIDENCE>\n{context}\n</EVIDENCE>"
         messages = [
-            {"role": "system", "content": sys_prompt + f"Provided Frame Evidence and Retrieval Context:\n{context}"},
+            {"role": "system", "content": sys_prompt + f"Provided Frame Evidence and Retrieval Context:\n{context_block}"},
             {"role": "user", "content": prompt},
         ]
         if schema_format:
@@ -306,8 +314,10 @@ class OpenAIBackend(LLMBackend):
                  max_tokens: int | None = None, schema_format: bool = False) -> str:
         model_name = model or self.text_model
         sys_prompt = system_prompt if system_prompt is not None else _SYSTEM_PROMPT
+        # ARIA-007: Wrap context in <EVIDENCE> delimiters
+        context_block = f"<EVIDENCE>\n{context}\n</EVIDENCE>"
         messages = [
-            {"role": "system", "content": sys_prompt + f"Provided Frame Evidence and Retrieval Context:\n{context}"},
+            {"role": "system", "content": sys_prompt + f"Provided Frame Evidence and Retrieval Context:\n{context_block}"},
             {"role": "user", "content": prompt},
         ]
         kwargs = dict(model=model_name, messages=messages, temperature=0.0)

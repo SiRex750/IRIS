@@ -43,6 +43,17 @@ if str(_THIS_DIR) not in sys.path:
 # Lazy import so startup doesn't block (CLIP model loads on first call)
 from iris.pipeline import run_pipeline  # noqa: E402
 
+# ── Index cache (API-001) ──────────────────────────────────────────────────────
+# Keyed by SHA-256 hash of video content so repeated questions about the same
+# video reuse the pre-built IRISIndex instead of rebuilding parse/embed/graph.
+import asyncio
+import hashlib
+from iris.ingest import ingest as iris_ingest
+import iris.query as iris_query
+
+_INDEX_CACHE: dict[str, object] = {}
+_INDEX_CACHE_LOCK = asyncio.Lock()
+
 # ── App setup ─────────────────────────────────────────────────────────────────
 app = FastAPI(
     title="IRIS Pipeline API",
@@ -240,23 +251,59 @@ async def process_video(
     # ── 2. Save the upload to a temp file ─────────────────────────────────────
     tmp_path: Path | None = None
     try:
-        # Use NamedTemporaryFile; delete=False so we can pass the path to pipeline
+        content = await file.read()
+
+        # API-004: Validate codec on upload before any expensive work.
+        # We hash the bytes here too for the cache key.
+        video_sha = hashlib.sha256(content).hexdigest()
+
         with tempfile.NamedTemporaryFile(
             suffix=suffix, delete=False, dir=tempfile.gettempdir()
         ) as tmp:
             tmp_path = Path(tmp.name)
-            content = await file.read()
             tmp.write(content)
 
-        # ── 3. Execute the pipeline ───────────────────────────────────────────
-        result: dict = run_pipeline(str(tmp_path), query.strip(), verbose=True)
+        try:
+            from iris import codec_validator
+            cv_result = codec_validator.validate_video(str(tmp_path))
+            if cv_result.get("status") == "reject":
+                raise HTTPException(
+                    status_code=415,
+                    detail=f"Video rejected by codec validator: {cv_result.get('reason')}",
+                )
+        except ImportError:
+            pass
 
-        # ── 4. Build graph data from debug_info ───────────────────────────────
+        # ── 3. Build or reuse the IRISIndex (API-001 cache) ───────────────────
+        async with _INDEX_CACHE_LOCK:
+            cached_index = _INDEX_CACHE.get(video_sha)
+
+        if cached_index is None:
+            # API-003: Run blocking ingest in a thread-pool executor so the async
+            # event loop is not blocked while decoding/embedding the video.
+            loop = asyncio.get_event_loop()
+            new_index = await loop.run_in_executor(None, iris_ingest, str(tmp_path))
+            async with _INDEX_CACHE_LOCK:
+                _INDEX_CACHE[video_sha] = new_index
+            index = new_index
+        else:
+            index = cached_index
+
+        # ── 4. Run query against the index ────────────────────────────────────
+        # If the cached index path differs (e.g. temp file was deleted), we still
+        # have the live in-memory index and can query it directly.
+        loop = asyncio.get_event_loop()
+        result: dict = await loop.run_in_executor(
+            None,
+            lambda: iris_query.query(index, query.strip(), verbose=True),
+        )
+
+        # ── 5. Build graph data from debug_info ───────────────────────────────
         debug_info = result.get("debug_info", {})
         retrieved_frames = debug_info.get("retrieved_frames", [])
         result["graph_data"] = _build_graph_data(debug_info, retrieved_frames)
 
-        # ── 5. Sanitise the result for JSON serialisation ─────────────────────
+        # ── 6. Sanitise the result for JSON serialisation ─────────────────────
         result = _sanitise_for_json(result)
 
         return JSONResponse(content=result)
@@ -273,7 +320,7 @@ async def process_video(
         ) from exc
 
     finally:
-        # ── 6. Clean up temp file ─────────────────────────────────────────────
+        # ── 7. Clean up temp file ─────────────────────────────────────────────
         if tmp_path and tmp_path.exists():
             try:
                 os.remove(tmp_path)

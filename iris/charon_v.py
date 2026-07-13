@@ -81,7 +81,9 @@ def compute_motion_geometry(motion_vectors: list, width: int, height: int) -> di
         
     trace = M_xx + M_yy
     diff = M_xx - M_yy
-    det_term = np.sqrt(diff**2 + 4 * M_yx * M_xy)
+    # CHARON-007: Clamp to >= 0 before sqrt to prevent NaN from floating-point
+    # imprecision (diff**2 + 4*M_yx*M_xy can be slightly negative on flat fields).
+    det_term = np.sqrt(np.maximum(0.0, diff**2 + 4 * M_yx * M_xy))
     eigenvalue_field = 0.5 * (np.abs(trace) + det_term)
     hessian_max_eigenvalue = float(np.mean(eigenvalue_field))
     
@@ -330,13 +332,15 @@ def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = 
                         for sd in frame.side_data:
                             if getattr(sd.type, 'name', None) == 'MOTION_VECTORS':
                                 for mv in sd:
+                                    # CHARON-004: H.264 MVs are in quarter-pixel units.
+                                    # Divide by 4 to convert to integer pixel displacement.
                                     motion_vectors.append((
                                         int(mv.src_x),
                                         int(mv.src_y),
                                         int(mv.dst_x),
                                         int(mv.dst_y),
-                                        int(mv.motion_x),
-                                        int(mv.motion_y)
+                                        int(mv.motion_x) / 4.0,
+                                        int(mv.motion_y) / 4.0
                                     ))
                     except (AttributeError, TypeError):
                         motion_vectors = []
@@ -359,6 +363,9 @@ def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = 
                         "tier": tier,
                         "luma_diff_energy": luma_diff_energy,
                         "packet_size": ps,
+                        # CHARON-003: motion_magnitude was computed but not included in
+                        # the output dict; downstream ingest used 0.0 for all frames.
+                        "motion_magnitude": motion_magnitude,
                         "motion_vectors": motion_vectors,
                         "pil_image": pil_image,
                         **geom
@@ -386,7 +393,9 @@ def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = 
                         "luma_diff_energy": luma_diff_energy,
                         "packet_size": ps,
                         "motion_magnitude": motion_magnitude,
-                        "luma_entropy": luma_entropy
+                        "luma_entropy": luma_entropy,
+                        # Propagate geometry fields for ingest.py → FrameRecord
+                        **geom,
                     }
                     if visual_debug_mode and tier != "SKIP":
                         rec["frame"] = frame.to_ndarray(format='bgr24')

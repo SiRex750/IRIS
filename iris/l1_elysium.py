@@ -53,13 +53,38 @@ class L1ElysiumCache:
 
     def admit(self, frame: CachedFrame) -> None:
         if frame.frame_idx in self._frames:
+            # L1-006: Preserve original admitted_at on duplicate re-admission.
+            # The frame's first admission time is its seniority in the cache;
+            # re-admitting the same frame (e.g. because L2 retrieved it again)
+            # should update all mutable fields but keep the original counter so
+            # recency doesn't reset to 1.0 (which would effectively promote it
+            # over genuinely new frames).
             self.hits += 1
+            original_admitted_at = self._frames[frame.frame_idx].admitted_at
             self._frames[frame.frame_idx] = frame
+            self._frames[frame.frame_idx].admitted_at = original_admitted_at
             return
 
         self.misses += 1
+
+        # L1-004: Only evict when the incoming frame's projected keep_score
+        # exceeds the current victim's score. A newcomer that would score below
+        # the victim is not worth adding — the cache is already holding better
+        # content. This prevents low-quality frames from ousting high-quality
+        # survivors by virtue of being newly admitted (recency=1.0 bias).
         if self.is_full:
-            self._evict_one()
+            victim_idx = min(
+                self._frames,
+                key=lambda idx: self._keep_score(self._frames[idx]),
+            )
+            victim_score = self._keep_score(self._frames[victim_idx])
+            # Temporarily set admitted_at for score comparison
+            frame.admitted_at = self._admission_counter
+            newcomer_score = self._keep_score(frame)
+            if newcomer_score <= victim_score:
+                # Newcomer loses: cache is better off without it.
+                return
+            del self._frames[victim_idx]
 
         frame.admitted_at = self._admission_counter
         self._frames[frame.frame_idx] = frame
@@ -255,10 +280,13 @@ class L1ElysiumCache:
         else:
             semantic_caption = caption_val
             
-        # Reject silent fallback, failed captions, or legacy fake content
-        if not semantic_caption or semantic_caption == "[CAPTION_FAILED]" or "rabbit" in semantic_caption.lower() or "meadow" in semantic_caption.lower():
+        # L1-005: Removed hardcoded lexical censorship (rabbit/meadow).
+        # Such dataset-specific filters are a red flag — they mask captioning
+        # failures instead of exposing them, and break on any non-test video.
+        # [CAPTION_FAILED] rejection is sufficient to guard the NLI pool.
+        if not semantic_caption or semantic_caption == "[CAPTION_FAILED]":
             return None
-            
+
         return f"Frame {frame.frame_idx} at {frame.timestamp_sec:.2f}s: {semantic_caption}."
 
     def as_context_text(self) -> str:

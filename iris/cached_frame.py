@@ -119,9 +119,12 @@ class CachedFrame:
             total_admitted: how many frames L1 has admitted in total so far.
                             Used to compute how recent this frame is.
         """
-        # Recency: 1.0 if just admitted, decays toward 0.0 as newer frames arrive
-        recency = 1.0 - (total_admitted - self.admitted_at) / max(total_admitted, 1)
-        recency = max(0.0, recency)
+        # Recency: 1.0 if just admitted, decays toward 0.0 as older frames are superseded.
+        # CACHE-003: Use max(total_admitted - 1, 1) as denominator so that the
+        # most recently admitted frame (admitted_at == total_admitted - 1) gets
+        # recency = 1.0 instead of 1/N.
+        recency = 1.0 - (total_admitted - 1 - self.admitted_at) / max(total_admitted - 1, 1)
+        recency = max(0.0, min(1.0, recency))
 
         return (
             w_action   * self.action_score

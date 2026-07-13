@@ -135,7 +135,16 @@ def _config_from_index(index: IRISIndex, config: Any) -> Any:
     from iris.iris_config import IRISConfig
     try:
         return IRISConfig(**index.config_snapshot)
-    except Exception:
+    except Exception as e:
+        # QUERY-002: Warn when snapshot reconstruction falls back to defaults
+        # so the user knows the index may have been built with different settings.
+        import sys
+        print(
+            f"[IRISQuery WARNING] Could not reconstruct config from index snapshot "
+            f"({e}); falling back to IRISConfig() defaults. "
+            "Results may differ from the original build.",
+            file=sys.stderr,
+        )
         return IRISConfig()
 
 
@@ -226,6 +235,14 @@ def _build_retrieved(index: IRISIndex, query_embedding: np.ndarray, config: Any)
                 "scene_id": getattr(node, "scene_id", None),
                 "pict_type": getattr(fr, "pict_type", "?"),
                 "codec_conf": getattr(node, "codec_conf", 0.5),
+                # L1-002: Propagate motion geometry into the retrieved dict so
+                # wrapper_populate_cache can build CachedFrame with real geometry.
+                # These come from FrameRecord (stored at ingest from charon_v).
+                "divergence": getattr(fr, "divergence", 0.0),
+                "curl": getattr(fr, "curl", 0.0),
+                "jacobian_frobenius": getattr(fr, "jacobian_frobenius", 0.0),
+                "hessian_max_eigenvalue": getattr(fr, "hessian_max_eigenvalue", 0.0),
+                "motion_entropy": getattr(fr, "motion_entropy", 0.0),
             })
 
     if not retrieved:
@@ -252,6 +269,12 @@ def _build_retrieved(index: IRISIndex, query_embedding: np.ndarray, config: Any)
                 "scene_id": None,
                 "pict_type": getattr(fr, "pict_type", "?"),
                 "codec_conf": getattr(fr, "codec_conf", 0.5),
+                # L1-002: Include geometry fields in fallback path too
+                "divergence": getattr(fr, "divergence", 0.0),
+                "curl": getattr(fr, "curl", 0.0),
+                "jacobian_frobenius": getattr(fr, "jacobian_frobenius", 0.0),
+                "hessian_max_eigenvalue": getattr(fr, "hessian_max_eigenvalue", 0.0),
+                "motion_entropy": getattr(fr, "motion_entropy", 0.0),
             })
     return retrieved
 
@@ -298,21 +321,37 @@ def _ensure_captions(index: IRISIndex, retrieved_frames: list[dict]) -> int:
     try:
         stream = container.streams.video[0]
         fps = float(stream.average_rate) if stream.average_rate else 25.0
-        tolerance = 0.5 / fps  # half a frame-interval
+        # QUERY-004: Use 1.5-frame tolerance for VFR content robustness
+        tolerance = 1.5 / fps
 
         for fr in missing_frs:
             target_pts = int(round(fr.timestamp / stream.time_base))
-            container.seek(target_pts, stream=stream)  # backward=True default -> keyframe at/before
+            # QUERY-004: explicit backward=True + wider tolerance (1.5 frames)
+            # to land reliably on the right GOP for VFR content.
+            try:
+                container.seek(target_pts, stream=stream, backward=True)
+            except Exception as seek_err:
+                print(f"[IRIS warn] Seek failed for frame {fr.frame_idx} "
+                      f"at {fr.timestamp:.3f}s: {seek_err}; skipping caption.")
+                continue
 
             target_frame = None
-            for frame in container.decode(stream):
-                frames_decoded_for_captions += 1
-                if frame.pts is None:
-                    continue
-                frame_time = float(frame.pts * stream.time_base)
-                if frame_time >= fr.timestamp - tolerance:
-                    target_frame = frame
-                    break
+            # QUERY-006: wrap the decode-forward loop in try/except so a
+            # corrupt GOP doesn't crash the entire caption pass.
+            try:
+                for frame in container.decode(stream):
+                    frames_decoded_for_captions += 1
+                    if frame.pts is None:
+                        continue
+                    frame_time = float(frame.pts * stream.time_base)
+                    # QUERY-004: 1.5-frame tolerance for VFR content
+                    if frame_time >= fr.timestamp - tolerance:
+                        target_frame = frame
+                        break
+            except Exception as decode_err:
+                print(f"[IRIS warn] Decode error seeking caption for frame "
+                      f"{fr.frame_idx} at {fr.timestamp:.3f}s: {decode_err}; skipping.")
+                continue
 
             if target_frame is None:
                 continue
@@ -356,6 +395,20 @@ def query(question: str, index: IRISIndex, config: Any = None) -> dict:
     t_elysium_start = time.time()
     cache_obj = wrapper_init_l1_cache(config)
     wrapper_populate_cache(cache_obj, retrieved_frames)
+    # L1-001/QUERY-003: Call L1's query() so it computes keep_score-ranked
+    # similarity and returns the top-k frames to pass to ARIA context.
+    # Without this call, L1 is populated but never consulted; all retrieved
+    # frames flow to ARIA regardless of their keep_score ranking.
+    l1_top_k = getattr(config, "l2_retrieve_top_k", 5)
+    if len(cache_obj) > 0:
+        l1_results = cache_obj.query(query_embedding, top_k=l1_top_k)
+        if l1_results:
+            # Rebuild retrieved_frames in L1-ranked order (best first)
+            l1_idx_set = {f.frame_idx for f in l1_results}
+            l1_ordered = [f for f in retrieved_frames if f["frame_idx"] in l1_idx_set]
+            # Frames not re-ranked by L1 (e.g. no embedding yet) go to the tail
+            l1_remaining = [f for f in retrieved_frames if f["frame_idx"] not in l1_idx_set]
+            retrieved_frames = l1_ordered + l1_remaining
     t_elysium = time.time() - t_elysium_start
 
     t_aria_start = time.time()
@@ -403,10 +456,12 @@ def query(question: str, index: IRISIndex, config: Any = None) -> dict:
 
 
 def _extract_json_object(text: str) -> str:
-    """Best-effort JSON extraction. Strips markdown code fences (```json or ```),
-    finds the first '{' and the matching/last '}', and returns that substring.
-    If no '{' is found, returns the entire input string (fallback to let json.loads
-    raise a clean format error).
+    """Brace-depth-aware JSON extraction. Strips markdown code fences,
+    then finds the first '{' and scans forward tracking depth — skipping
+    '{' and '}' inside string literals — to find the matching close brace.
+    Falls back to rfind('}') if parsing fails (same as before, just louder).
+    QUERY-007: original rfind was not string-escape-aware; a '}' inside a
+    caption string would terminate extraction too early or too late.
     """
     cleaned = text.strip()
     if cleaned.startswith("```"):
@@ -417,11 +472,41 @@ def _extract_json_object(text: str) -> str:
                 cleaned = cleaned[4:].strip()
 
     start = cleaned.find("{")
-    end = cleaned.rfind("}")
-    if start == -1 or end == -1 or end < start:
-        return cleaned
+    if start == -1:
+        return cleaned  # no JSON object found; let json.loads raise
 
-    return cleaned[start:end+1]
+    # Walk forward tracking nesting depth, skipping string contents.
+    depth = 0
+    in_string = False
+    escape_next = False
+    end = start
+    for i in range(start, len(cleaned)):
+        ch = cleaned[i]
+        if escape_next:
+            escape_next = False
+            continue
+        if ch == "\\" and in_string:
+            escape_next = True
+            continue
+        if ch == '"':
+            in_string = not in_string
+            continue
+        if in_string:
+            continue
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                end = i
+                break
+    else:
+        # Depth never reached 0 (truncated?): fall back to rfind
+        end = cleaned.rfind("}")
+        if end < start:
+            return cleaned
+
+    return cleaned[start:end + 1]
 
 
 def _corrective_message(question: str, label: str, e: Exception, wire: bool = False) -> str:
@@ -473,6 +558,8 @@ def _generate_answer_claims_v2(question: str, context: str):
     except Exception as e:
         label = getattr(e, "taxonomy_label", None) or "other"
         failure_labels.append(label)
+        # ARIA-004: Log exception before retry so failures are visible in logs.
+        print(f"[ARIA v2 attempt 1 failed] label={label}, error={e!r}")
         corrective = _corrective_message(question, label, e)
         raw2 = aria.generate_v2(prompt=corrective, context=context)
         try:
@@ -481,6 +568,7 @@ def _generate_answer_claims_v2(question: str, context: str):
         except Exception as e2:
             label2 = getattr(e2, "taxonomy_label", None) or "other"
             failure_labels.append(label2)
+            print(f"[ARIA v2 attempt 2 failed] label={label2}, error={e2!r}")
             return None, raw2, True, 2, failure_labels
 
 

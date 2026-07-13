@@ -9,9 +9,13 @@ Owner: Track A (L1 fields)
 from __future__ import annotations
 
 import json
+import sys
 from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import Any
+
+# Default config path relative to the package root (configs/default_iris_config.json)
+_DEFAULT_CONFIG_PATH = Path(__file__).parent.parent / "configs" / "default_iris_config.json"
 
 
 @dataclass
@@ -29,6 +33,7 @@ class IRISConfig:
     gamma: float = 0.3   # persistence weight in L2 retrieval blend
     delta: float = 0.1   # PageRank/graph-structure weight in legacy retrieval blend
     retrieval_strategy: str = "hybrid"  # strategy: "peak_only", "top_k_action", "peak_neighbors", "hybrid"
+    # CFG-004: Changed default from "legacy" to "ppr" — PPR is the correct default for Track A
     ranking_mode: str = "ppr"  # "legacy" = α·sem+β·motion+γ·persist+δ·pagerank; "ppr" = query-conditioned Personalized PageRank
     codec_conf_source: str = "packet_size"  # "packet_size" = true demux size; "action_score" = proxy (Phase-6 diag fallback)
     codec_conf_pictype_norm: bool  = True   # per-pict-type normalization; False = global C_raw baseline (ablation)
@@ -77,6 +82,14 @@ class IRISConfig:
     # ── Visual Debug Mode ──────────────────────────────────────────────────
     visual_debug_mode:      bool  = False
 
+    # ── ARIA / LLM model (CFG-005) ─────────────────────────────────────────
+    # Override the Ollama/OpenAI model used by ARIA. Empty string = use backend default.
+    aria_model:             str   = ""
+
+    # ── CLIP revision (CFG-005) ────────────────────────────────────────────
+    # CLIP model variant to load. Must match what was used to build the index.
+    clip_revision:          str   = "ViT-B/32"
+
     # ── L1 Elysium — capacity ─────────────────────────────────────────────
     # Maximum number of CachedFrame entries L1 holds at once.
     # When exceeded, the frame with the lowest keep_score is evicted.
@@ -117,83 +130,70 @@ class IRISConfig:
     l2_salient_action_thresh: float = 0.35
 
     def validate(self) -> None:
+        """CFG-002: Sanity-check all config values using ValueError (not assert,
+        which is stripped under python -O). Called by ConfigManager after loading.
+        Raises ValueError with a clear message if anything is wrong.
         """
-        Sanity-check all config values.
-        Called by ConfigManager after loading.
-        Raises AssertionError with a clear message if anything is wrong.
-        """
+        def _check(condition: bool, msg: str) -> None:
+            if not condition:
+                raise ValueError(f"IRISConfig validation failed: {msg}")
+
         if not self.disable_nli:
-            assert 0 < self.cerberus_low_thresh < self.cerberus_high_thresh < 1.0, (
-                "Cerberus thresholds must satisfy: 0 < low < high < 1"
-            )
-        assert self.l1_capacity > 0, (
-            "l1_capacity must be a positive integer"
-        )
-
-        assert self.luma_diff_weight >= 0 and self.motion_weight >= 0 and self.luma_entropy_weight >= 0, (
-            "Action score weights must be non-negative"
-        )
-        assert (self.luma_diff_weight + self.motion_weight + self.luma_entropy_weight) > 0, (
-            "Action score weights must sum to a positive value"
-        )
-        assert self.peak_distance > 0, "peak_distance must be positive"
-        assert self.peak_prominence >= 0, "peak_prominence must be non-negative"
-        assert 0.0 <= self.persistence_threshold <= 1.0, "persistence_threshold must be between 0 and 1"
-        assert self.max_prominence > 0, "max_prominence must be positive"
-        assert self.l2_retrieve_top_k > 0, "l2_retrieve_top_k must be positive"
-        assert self.captioner_backend in {"blip", "moondream"}, (
-            f"Invalid captioner_backend '{self.captioner_backend}'"
-        )
-        assert self.alpha >= 0.0, "alpha must be non-negative"
-        assert self.beta >= 0.0, "beta must be non-negative"
-        assert self.gamma >= 0.0, "gamma must be non-negative"
-        assert self.delta >= 0.0, "delta must be non-negative"
-        assert self.retrieval_strategy in {"peak_only", "top_k_action", "peak_neighbors", "hybrid"}, (
-            f"Invalid retrieval_strategy '{self.retrieval_strategy}'"
-        )
-        assert self.ranking_mode in {"legacy", "ppr"}, (
-            f"Invalid ranking_mode '{self.ranking_mode}'"
-        )
-        assert self.codec_conf_source in {"packet_size", "action_score"}, (
-            f"Invalid codec_conf_source '{self.codec_conf_source}'"
-        )
-        assert 0.0 <= self.ppr_lambda <= 1.0, (
-            f"ppr_lambda must be in [0.0, 1.0], got {self.ppr_lambda}"
-        )
-        assert 0.0 < self.ppr_damping < 1.0, (
-            f"ppr_damping must be in (0.0, 1.0), got {self.ppr_damping}"
-        )
-        assert self.cerberus_mode in {"legacy", "v2"}, (
-            f"Invalid cerberus_mode '{self.cerberus_mode}'"
-        )
-        
-        # graph_mode validation
-        assert self.graph_mode in {"flat", "scene_sparse"}, (
-            f"Invalid graph_mode '{self.graph_mode}'"
-        )
-        assert self.scene_shortlist_width >= 0, (
-            "scene_shortlist_width must be non-negative (0 = auto)"
-        )
-        assert self.scene_shortcut_margin >= 0.0, "scene_shortcut_margin must be non-negative"
-        assert self.scene_neighbor_window >= 0, "scene_neighbor_window must be non-negative"
-        assert self.scene_crossscene_mode in {"all", "threshold", "rep_only"}, (
-            f"Invalid scene_crossscene_mode '{self.scene_crossscene_mode}'"
-        )
-        assert 0.0 <= self.scene_crossscene_threshold_pctile <= 100.0, (
-            "scene_crossscene_threshold_pctile must be in [0, 100]"
-        )
-
-        # graph edge weights validation
-        assert self.graph_edge_mode in {"hierarchical_sparse", "fully_connected"}, (
-            f"Invalid graph_edge_mode '{self.graph_edge_mode}'"
-        )
-        assert self.graph_temporal_window >= 0, "graph_temporal_window must be non-negative"
-        assert self.graph_semantic_top_k >= 0, "graph_semantic_top_k must be non-negative"
-        assert self.graph_motion_top_k >= 0, "graph_motion_top_k must be non-negative"
-        assert 0.0 <= self.graph_semantic_threshold <= 1.0, (
-            "graph_semantic_threshold must be in [0, 1]"
-        )
-        assert self.graph_export_max_edges > 0, "graph_export_max_edges must be positive"
+            _check(0 < self.cerberus_low_thresh < self.cerberus_high_thresh < 1.0,
+                   "Cerberus thresholds must satisfy: 0 < low < high < 1")
+        _check(self.l1_capacity > 0, "l1_capacity must be a positive integer")
+        _check(self.luma_diff_weight >= 0 and self.motion_weight >= 0 and self.luma_entropy_weight >= 0,
+               "Action score weights must be non-negative")
+        _check((self.luma_diff_weight + self.motion_weight + self.luma_entropy_weight) > 0,
+               "Action score weights must sum to a positive value")
+        _check(self.peak_distance > 0, "peak_distance must be positive")
+        _check(self.peak_prominence >= 0, "peak_prominence must be non-negative")
+        _check(0.0 <= self.persistence_threshold <= 1.0,
+               "persistence_threshold must be between 0 and 1")
+        _check(self.max_prominence > 0, "max_prominence must be positive")
+        _check(self.l2_retrieve_top_k > 0, "l2_retrieve_top_k must be positive")
+        _check(self.captioner_backend in {"blip", "moondream"},
+               f"Invalid captioner_backend '{self.captioner_backend}'")
+        _check(self.alpha >= 0.0, "alpha must be non-negative")
+        _check(self.beta >= 0.0, "beta must be non-negative")
+        _check(self.gamma >= 0.0, "gamma must be non-negative")
+        _check(self.delta >= 0.0, "delta must be non-negative")
+        _check(self.retrieval_strategy in {"peak_only", "top_k_action", "peak_neighbors", "hybrid"},
+               f"Invalid retrieval_strategy '{self.retrieval_strategy}'")
+        _check(self.ranking_mode in {"legacy", "ppr"},
+               f"Invalid ranking_mode '{self.ranking_mode}'")
+        _check(self.codec_conf_source in {"packet_size", "action_score"},
+               f"Invalid codec_conf_source '{self.codec_conf_source}'")
+        _check(0.0 <= self.ppr_lambda <= 1.0,
+               f"ppr_lambda must be in [0.0, 1.0], got {self.ppr_lambda}")
+        _check(0.0 < self.ppr_damping < 1.0,
+               f"ppr_damping must be in (0.0, 1.0), got {self.ppr_damping}")
+        _check(self.cerberus_mode in {"legacy", "v2"},
+               f"Invalid cerberus_mode '{self.cerberus_mode}'")
+        _check(self.graph_mode in {"flat", "scene_sparse"},
+               f"Invalid graph_mode '{self.graph_mode}'")
+        _check(self.scene_shortlist_width >= 0,
+               "scene_shortlist_width must be non-negative (0 = auto)")
+        _check(self.scene_shortcut_margin >= 0.0,
+               "scene_shortcut_margin must be non-negative")
+        _check(self.scene_neighbor_window >= 0,
+               "scene_neighbor_window must be non-negative")
+        _check(self.scene_crossscene_mode in {"all", "threshold", "rep_only"},
+               f"Invalid scene_crossscene_mode '{self.scene_crossscene_mode}'")
+        _check(0.0 <= self.scene_crossscene_threshold_pctile <= 100.0,
+               "scene_crossscene_threshold_pctile must be in [0, 100]")
+        _check(self.graph_edge_mode in {"hierarchical_sparse", "fully_connected"},
+               f"Invalid graph_edge_mode '{self.graph_edge_mode}'")
+        _check(self.graph_temporal_window >= 0,
+               "graph_temporal_window must be non-negative")
+        _check(self.graph_semantic_top_k >= 0,
+               "graph_semantic_top_k must be non-negative")
+        _check(self.graph_motion_top_k >= 0,
+               "graph_motion_top_k must be non-negative")
+        _check(0.0 <= self.graph_semantic_threshold <= 1.0,
+               "graph_semantic_threshold must be in [0, 1]")
+        _check(self.graph_export_max_edges > 0,
+               "graph_export_max_edges must be positive")
 
         l1_weight_sum = round(
             self.l1_w_action + self.l1_w_query + self.l1_w_persist
@@ -201,41 +201,46 @@ class IRISConfig:
             + self.l1_w_hessian + self.l1_w_recency,
             6,
         )
-        assert abs(l1_weight_sum - 1.0) < 1e-4, (
-            f"L1 eviction weights must sum to 1.0, got {l1_weight_sum}"
-        )
+        _check(abs(l1_weight_sum - 1.0) < 1e-4,
+               f"L1 eviction weights must sum to 1.0, got {l1_weight_sum}")
 
-        # ── Dual-vector query weights (C3) ──
         dv_sum = round(self.l1_visual_query_weight + self.l1_motion_query_weight, 6)
-        assert abs(dv_sum - 1.0) < 1e-4, (
-            f"Dual-vector query weights must sum to 1.0, got {dv_sum}"
-        )
-        assert self.l1_visual_query_weight >= 0.0, "l1_visual_query_weight must be non-negative"
-        assert self.l1_motion_query_weight >= 0.0, "l1_motion_query_weight must be non-negative"
+        _check(abs(dv_sum - 1.0) < 1e-4,
+               f"Dual-vector query weights must sum to 1.0, got {dv_sum}")
+        _check(self.l1_visual_query_weight >= 0.0,
+               "l1_visual_query_weight must be non-negative")
+        _check(self.l1_motion_query_weight >= 0.0,
+               "l1_motion_query_weight must be non-negative")
 
-        # ── L2 tiered index (C4) ──
-        assert self.l2_embed_dim > 0, "l2_embed_dim must be positive"
-        assert self.l2_hnsw_m > 0, "l2_hnsw_m must be positive"
-        assert self.l2_hnsw_ef_search > 0, "l2_hnsw_ef_search must be positive"
-        assert self.l2_pq_m > 0, "l2_pq_m must be positive"
-        assert self.l2_pq_nbits > 0, "l2_pq_nbits must be positive"
-        assert self.l2_embed_dim % self.l2_pq_m == 0, (
-            f"l2_embed_dim ({self.l2_embed_dim}) must be divisible by l2_pq_m ({self.l2_pq_m})"
-        )
-        assert self.l2_pq_min_train > 0, "l2_pq_min_train must be positive"
-        assert 0.0 <= self.l2_salient_action_thresh <= 1.0, (
-            "l2_salient_action_thresh must be in [0, 1]"
-        )
+        _check(self.l2_embed_dim > 0, "l2_embed_dim must be positive")
+        _check(self.l2_hnsw_m > 0, "l2_hnsw_m must be positive")
+        _check(self.l2_hnsw_ef_search > 0, "l2_hnsw_ef_search must be positive")
+        _check(self.l2_pq_m > 0, "l2_pq_m must be positive")
+        _check(self.l2_pq_nbits > 0, "l2_pq_nbits must be positive")
+        _check(self.l2_embed_dim % self.l2_pq_m == 0,
+               f"l2_embed_dim ({self.l2_embed_dim}) must be divisible by l2_pq_m ({self.l2_pq_m})")
+        _check(self.l2_pq_min_train > 0, "l2_pq_min_train must be positive")
+        _check(0.0 <= self.l2_salient_action_thresh <= 1.0,
+               "l2_salient_action_thresh must be in [0, 1]")
 
 
 class ConfigManager:
     """
     Loads IRISConfig from a JSON file (written by GEPA).
-    Falls back to IRISConfig defaults if no file is given.
+
+    CFG-001: When config_path is None, automatically probes
+    configs/default_iris_config.json relative to the package root before
+    falling back to hardcoded IRISConfig dataclass defaults.
     """
 
     def __init__(self, config_path: str | Path | None = None) -> None:
-        self._path = Path(config_path) if config_path else None
+        if config_path is not None:
+            self._path: Path | None = Path(config_path)
+        elif _DEFAULT_CONFIG_PATH.exists():
+            # CFG-001: auto-load shipped default config
+            self._path = _DEFAULT_CONFIG_PATH
+        else:
+            self._path = None
         self._config: IRISConfig = self._load()
 
     def get_config(self) -> IRISConfig:
@@ -253,7 +258,7 @@ class ConfigManager:
     def _load(self) -> IRISConfig:
         """
         Internal: parse JSON into IRISConfig, then validate.
-        If no path given, return defaults.
+        If no path given (or file missing), return hardcoded defaults.
         """
         if self._path is None or not self._path.exists():
             cfg = IRISConfig()
@@ -263,10 +268,15 @@ class ConfigManager:
         with open(self._path, "r", encoding="utf-8") as f:
             data = json.load(f)
 
-        # Build IRISConfig — only accept keys that are actual fields.
-        # Unknown keys in the JSON are silently ignored so old JSON
-        # files don't crash a newer version of IRISConfig.
-        valid_keys = IRISConfig.__dataclass_fields__.keys()
+        valid_keys = set(IRISConfig.__dataclass_fields__.keys())
+        # CFG-003: Warn on unknown keys so misconfigured JSON is visible
+        unknown = [k for k in data if k not in valid_keys and not k.startswith("_")]
+        if unknown:
+            print(
+                f"[IRISConfig WARNING] Unknown config keys ignored: {unknown}. "
+                f"Check {self._path} for typos.",
+                file=sys.stderr,
+            )
         filtered = {k: v for k, v in data.items() if k in valid_keys}
 
         cfg = IRISConfig(**filtered)

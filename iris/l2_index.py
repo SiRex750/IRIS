@@ -139,9 +139,10 @@ class L2TieredIndex:
         vec = np.ascontiguousarray(
             embedding.reshape(1, -1).astype(np.float32)
         )
-        assert vec.shape[1] == self._dim, (
-            f"Embedding dim {vec.shape[1]} != configured dim {self._dim}"
-        )
+        if vec.shape[1] != self._dim:
+            raise ValueError(
+                f"Embedding dim {vec.shape[1]} != configured dim {self._dim}"
+            )
 
         tier = self._classify_tier(action_score, is_peak)
 
@@ -220,12 +221,6 @@ class L2TieredIndex:
         self._candidate.row_to_frame = [fidx for fidx, _ in self._candidate_buffer]
         self._candidate.trained = True
         self._candidate_buffer.clear()
-
-        logger.info(
-            "PQ index trained with %d candidate vectors (dim=%d, m=%d, nbits=%d)",
-            vecs.shape[0], self._dim,
-            self._config.l2_pq_m, self._config.l2_pq_nbits,
-        )
 
         logger.info(
             "PQ index trained with %d candidate vectors (dim=%d, m=%d, nbits=%d)",
@@ -316,7 +311,21 @@ class L2TieredIndex:
                 if idx < 0:  # FAISS returns -1 for unfilled slots
                     continue
                 frame_idx = tier_rec.row_to_frame[idx]
-                all_results.append((float(score), frame_idx, tier_name))
+                # TIER-001: Normalize scores to a common [0,1] similarity scale
+                # before merging. FlatIP returns inner-product (cos-sim for unit
+                # vecs, range [−1,1]). HNSW/FlatIP used for SALIENT are also IP.
+                # PQ (IndexPQ) returns squared L2 distance when using
+                # metric_type=METRIC_L2 (default). Convert L2 dist → similarity.
+                # A simple robust heuristic: clamp IP to [0,1]; convert L2 dist
+                # with sim = 1/(1+dist) so dist=0 → sim=1, dist=∞ → sim=0.
+                if tier_name == "CANDIDATE" and isinstance(
+                    tier_rec.index, faiss.IndexPQ
+                ):
+                    # PQ stores squared L2; score > 0 means distance not similarity
+                    sim = 1.0 / (1.0 + float(score))
+                else:
+                    sim = max(0.0, min(1.0, float(score)))
+                all_results.append((sim, frame_idx, tier_name))
 
         # Sort descending by score
         all_results.sort(key=lambda x: x[0], reverse=True)

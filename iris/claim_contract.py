@@ -94,6 +94,17 @@ class VisualClaim:
     assertion: str
     is_core: bool = False
 
+    def __post_init__(self) -> None:
+        # CLAIM-002: Basic contract guards on VisualClaim
+        if self.frame_idx < 0:
+            raise ClaimFieldShapeError(
+                f"VisualClaim.frame_idx must be >= 0, got {self.frame_idx}"
+            )
+        if not self.assertion or not self.assertion.strip():
+            raise ClaimFieldShapeError(
+                "VisualClaim.assertion must be a non-empty string"
+            )
+
     def to_dict(self) -> dict[str, Any]:
         return {"type": "visual", **asdict(self)}
 
@@ -109,6 +120,16 @@ class MetadataClaim:
         if self.field not in METADATA_FIELDS:
             raise BadMetadataFieldError(
                 f"MetadataClaim.field must be one of {METADATA_FIELDS}, got {self.field!r}"
+            )
+        # CLAIM-002: Additional guards on MetadataClaim
+        if self.frame_idx < 0:
+            raise ClaimFieldShapeError(
+                f"MetadataClaim.frame_idx must be >= 0, got {self.frame_idx}"
+            )
+        import math
+        if not math.isfinite(self.stated_value):
+            raise ClaimFieldShapeError(
+                f"MetadataClaim.stated_value must be finite, got {self.stated_value}"
             )
 
     def to_dict(self) -> dict[str, Any]:
@@ -145,7 +166,20 @@ _TYPE_TO_CLS = {
 }
 
 
+def _unify_claim_dict(d: dict[str, Any]) -> dict[str, Any]:
+    """CLAIM-001: Normalize wire-format 'claim_type' key to 'type' so
+    claim_from_dict can handle both the nested JSON shape (from_json) and
+    the flat wire shape (from_wire). Both produce the same typed dataclasses.
+    If both 'type' and 'claim_type' are present, 'type' wins.
+    """
+    if "claim_type" in d and "type" not in d:
+        d = dict(d)  # don't mutate caller's dict
+        d["type"] = d.pop("claim_type")
+    return d
+
+
 def claim_from_dict(d: dict[str, Any]) -> Claim:
+    d = _unify_claim_dict(d)
     cls = _TYPE_TO_CLS.get(d.get("type"))
     if cls is None:
         raise UnknownClaimTypeError(f"Unknown claim type: {d.get('type')!r}")

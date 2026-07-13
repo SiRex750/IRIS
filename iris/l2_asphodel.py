@@ -234,6 +234,9 @@ class L2Asphodel:
         norm_v = np.linalg.norm(node_v.embedding)
         if norm_u == 0.0 or norm_v == 0.0:
             return 0.0
+        # L2-002: Clamp to [0, 1] — raw cosine can be negative when embeddings
+        # point in opposite directions. Negative edge weights corrupt PageRank
+        # (random walk interpretation requires non-negative transition probs).
         return max(0.0, float(np.dot(node_u.embedding, node_v.embedding) / (norm_u * norm_v)))
 
     def _motion_similarity(self, node_u: AsphodelNode, node_v: AsphodelNode, max_score_range: float) -> float:
@@ -688,10 +691,23 @@ class L2Asphodel:
         normalized when config.codec_conf_pictype_norm=True) — NOT re-normalized here.
 
         Falls back to uniform teleport when all seeds are zero.
+
+        SCENE-002: Returns [] immediately when query_embedding has zero norm —
+        a degenerate query would make sem_rank uniform, which collapses PPR to
+        unguided PageRank and yields unpredictable results. Let the fallback
+        sort (action_score + luma_diff_energy) take over instead.
         """
         node_ids = list(self.graph.nodes)
         if not node_ids:
             return []
+
+        # SCENE-002: Reject zero-norm query embedding before computing sem_rank
+        if query_embedding is not None:
+            q_norm = float(np.linalg.norm(query_embedding))
+            if q_norm < 1e-8:
+                # Degenerate query — PPR would just be unguided PageRank.
+                # Return empty list; callers fall back to action-score sort.
+                return []
 
         n = len(node_ids)
         teleport_fallback = False
@@ -734,7 +750,9 @@ class L2Asphodel:
                 personalization=seed,
                 alpha=damping,
             )
-        except Exception:
+        except (nx.NetworkXError, ZeroDivisionError):
+            # L2-006: Narrowed from bare except to only catch expected failures.
+            # Other exceptions (memory, unexpected graph state) should propagate.
             pr = nx.pagerank(self.graph, weight="weight", personalization=None, alpha=damping)
             teleport_fallback = True
 

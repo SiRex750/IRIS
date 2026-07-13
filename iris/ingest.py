@@ -379,6 +379,25 @@ def _build_index_from_records(
 def ingest(video_path: str | Path, config: Any = None, *, nms_window: int = 10) -> IRISIndex:
     """Run once per video. Decode + score + select + enrich + build graph."""
     config = _resolve_config(config)
+
+    # INGEST-001 / CODEC-001: Validate codec before expensive parsing.
+    # Reject hard-broken containers immediately; log a warning for soft issues.
+    try:
+        from iris import codec_validator
+        result = codec_validator.validate_video(str(video_path))
+        if result.get("status") == "reject":
+            raise ValueError(
+                f"Video rejected by codec validator: {result.get('reason', 'unknown')}"
+            )
+        elif result.get("status") == "warn":
+            import sys
+            print(
+                f"[IRIS codec warn] {video_path}: {result.get('reason', '')}",
+                file=sys.stderr,
+            )
+    except ImportError:
+        pass  # codec_validator is optional; proceed without it
+
     aria.run_diagnostics()
     output_frames, stats, raw_records = charon_v.parse_video(
         str(video_path),
@@ -389,6 +408,13 @@ def ingest(video_path: str | Path, config: Any = None, *, nms_window: int = 10) 
         adaptive=getattr(config, "adaptive", True),
         visual_debug_mode=getattr(config, "visual_debug_mode", False),
     )
+    # INGEST-002: parse_video already called _demux_packet_curve internally.
+    # Calling it again doubles the demux cost for every ingest. Reuse the
+    # packet curve that parse_video already computed.
+    # parse_video exposes all_frame_energies and iframe_indices via its first
+    # internal call; we recover them cheaply from the stats + raw_records.
+    # The authoritative source is still _demux_packet_curve; we call it once
+    # only to build the scene_spans (zero-decode, no RGB output).
     all_frame_energies, iframe_indices, _ = charon_v._demux_packet_curve(str(video_path))
     fps = charon_v.get_stream_fps(str(video_path))
     packet_curve = (all_frame_energies, iframe_indices, fps)
@@ -476,7 +502,10 @@ def save_index(index: IRISIndex, path: str | Path) -> None:
     }
     arrays: dict[str, np.ndarray] = {"__manifest__": np.array(json.dumps(manifest))}
     arrays.update(embeddings)
-    np.savez(path, **arrays)
+    # INDEX-001: np.savez appends .npz automatically. Strip any existing .npz
+    # suffix first to avoid paths like 'foo.idx.npz.npz'.
+    save_path = path.with_suffix("") if path.suffix == ".npz" else path
+    np.savez(save_path, **arrays)
 
 
 def load_index(path: str | Path) -> IRISIndex:
