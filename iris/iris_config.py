@@ -85,7 +85,7 @@ class IRISConfig:
     l2_retrieve_top_k:      int   = 5
 
     # ── Captioner Backend ──────────────────────────────────────────────────
-    captioner_backend:      str   = "moondream"  # "blip" or "moondream"
+    captioner_backend:      str   = "minicpm"  # "minicpm", "blip" or "moondream"
 
     # ── Visual Debug Mode ──────────────────────────────────────────────────
     visual_debug_mode:      bool  = False

@@ -537,7 +537,7 @@ def wrapper_cerberus_gate(claims: list[str], cache_obj: object, action_score: fl
         is_mocked = False
     except Exception as e:
         error_msg = str(e)
-        print(f"Error: CerberusV verification failed ΓÇö gate closed, all claims unverifiable: {error_msg}")
+        print(f"Error: CerberusV verification failed — gate closed, all claims unverifiable: {error_msg}")
         verified_claims = []
         rejected_claims = []
         unverifiable_claims = list(claims)

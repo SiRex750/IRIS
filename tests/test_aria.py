@@ -62,7 +62,7 @@ def test_captioning_result_and_diagnostics():
         # Check diagnostics — backend may be LlamaBackend, OpenAIBackend, or a mock
         diag = aria.run_diagnostics()
         assert diag["backend"] in ("MockLLMBackend", "MockBackend", "OpenAIBackend", "LlamaBackend")
-        assert diag["captioner"] in ("BLIPCaptioner", "MockCaptioner", "MiniCPMCaptioner', 'MoondreamCaptioner")
+        assert diag["captioner"] in ("BLIPCaptioner", "MockCaptioner", "MiniCPMCaptioner", "MoondreamCaptioner")
 
         # Enforce key missing failure only when OpenAIBackend is active
         os.environ["OPENAI_API_KEY"] = ""
@@ -141,14 +141,14 @@ def test_llama_server_backend_outgoing_request():
 def test_minicpm_captioner_and_mocked_ollama():
     from unittest.mock import MagicMock, patch
     import iris.aria as aria
-    from iris.aria import get_captioner, MiniCPMCaptioner', 'MoondreamCaptioner
+    from iris.aria import get_captioner, MiniCPMCaptioner
 
     # Reset active captioner to ensure clean default initialization
     aria._ACTIVE_CAPTIONER = None
 
-    # Verify that get_captioner() returns MiniCPMCaptioner', 'MoondreamCaptioner by default
+    # Verify that get_captioner() returns MiniCPMCaptioner by default
     captioner = get_captioner()
-    assert isinstance(captioner, MiniCPMCaptioner', 'MoondreamCaptioner)
+    assert isinstance(captioner, MiniCPMCaptioner)
     assert captioner.model_name == "minicpm-v4.6"
 
     # Test custom mock Ollama response
