@@ -64,6 +64,14 @@ class IRISConfig:
     disable_nli:          bool  = False # completely bypass DeBERTa NLI, use ner_only
     cerberus_mode:        str   = "legacy" # "legacy" or "v2"
 
+    # ── Answerer Backend (Prompt 1) ────────────────────────────────────────
+    answerer_backend:       str   = "llama_server"
+    answerer_endpoint:      str   = "http://localhost:8080/v1"
+    answerer_model:         str   = "granite4:micro"
+    answerer_schema_format: bool  = True
+    answerer_max_tokens:    int   = 1024
+    answerer_timeout:       float = 600.0
+
     # ── Action Score Module ────────────────────────────────────────────────
     luma_diff_weight:        float = 0.5
     motion_weight:          float = 0.3
@@ -152,8 +160,12 @@ class IRISConfig:
                "persistence_threshold must be between 0 and 1")
         _check(self.max_prominence > 0, "max_prominence must be positive")
         _check(self.l2_retrieve_top_k > 0, "l2_retrieve_top_k must be positive")
-        _check(self.captioner_backend in {"blip", "moondream"},
+        _check(self.captioner_backend in {"blip", "moondream", "minicpm"},
                f"Invalid captioner_backend '{self.captioner_backend}'")
+        _check(self.answerer_backend in {"llama_server", "llama", "openai", "mock"},
+               f"Invalid answerer_backend '{self.answerer_backend}'")
+        _check(self.answerer_max_tokens > 0, "answerer_max_tokens must be positive")
+        _check(self.answerer_timeout > 0, "answerer_timeout must be positive")
         _check(self.alpha >= 0.0, "alpha must be non-negative")
         _check(self.beta >= 0.0, "beta must be non-negative")
         _check(self.gamma >= 0.0, "gamma must be non-negative")

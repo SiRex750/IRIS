@@ -541,6 +541,19 @@ def _verify_absence(claim: AbsenceClaim, evidence: Evidence) -> ClaimVerdict:
         if text is not None:
             captions.append((f["frame_idx"], text))
 
+    if not captions:
+        return ClaimVerdict(
+            claim=claim,
+            label="unverifiable",
+            reason="no checkable caption evidence in retrieved set to verify absence against",
+            detail={
+                "n_frames_checked": 0,
+                "rejecting_frame_idx": None,
+                "rejecting_sentence": None,
+                "rejecting_score": 0.0,
+            },
+        )
+
     result = verify_absence_claim(claim, captions, evidence.nli)
     return ClaimVerdict(
         claim=claim,
