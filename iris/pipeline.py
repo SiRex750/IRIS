@@ -298,15 +298,15 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
     try:
         from iris.l2_asphodel import L2Asphodel
         if not hasattr(L2Asphodel, "batch_add_frame_nodes"):
-            def batch_add_frame_nodes(self, node_records):
+            def batch_add_frame_nodes(self, node_records, node_groups=None):
                 feature_records = [r[0] for r in node_records]
                 action_score_records = [r[1] for r in node_records]
-                self.add_frame_nodes_bulk(feature_records, action_score_records)
+                self.add_frame_nodes_bulk(feature_records, action_score_records, node_groups=node_groups)
             L2Asphodel.batch_add_frame_nodes = batch_add_frame_nodes
         if not hasattr(L2Asphodel, "batch_enrich_nodes"):
-            def batch_enrich_nodes(self, enrichment_records):
+            def batch_enrich_nodes(self, enrichment_records, node_groups=None):
                 enrichment_map = {r[0]: r[2] for r in enrichment_records}
-                self.enrich_nodes_bulk(enrichment_map)
+                self.enrich_nodes_bulk(enrichment_map, node_groups=node_groups)
             L2Asphodel.batch_enrich_nodes = batch_enrich_nodes
     except ImportError:
         sorted_frames = sorted(
@@ -335,8 +335,6 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
         query_embedding = np.zeros(512, dtype=np.float32)
 
     # 2. Build L2Asphodel graph and index frames.
-    #    Fast path: use PIL images cached by Charon-V's 2nd pass (no re-decode).
-    #    Legacy path: open the video and decode all frames (original behaviour).
     graph = L2Asphodel(config=config)
     frame_map = {f["frame_idx"]: f for f in frames_to_index}
 
@@ -364,7 +362,18 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
                 "luma_diff_energy":      f_data["luma_diff_energy"],
                 "motion_magnitude":     f_data.get("motion_magnitude", 0.0),
                 "luma_entropy":              f_data.get("luma_entropy", 0.0),
-                "refined_motion_tensor": np.zeros(1, dtype=np.float32),
+                "refined_motion_tensor": np.asarray([
+                    float(f_data.get("motion_magnitude", 0.0)),
+                    float(f_data.get("divergence", 0.0)),
+                    float(f_data.get("curl", 0.0)),
+                    float(f_data.get("jacobian_frobenius", 0.0)),
+                    float(f_data.get("hessian_max_eigenvalue", 0.0)),
+                    float(f_data.get("motion_entropy", 0.0)),
+                ], dtype=np.float32),
+                "packet_size":          float(f_data.get("packet_size", 0.0)),
+                "codec_conf":           float(f_data.get("codec_conf", 0.5)),
+                "pict_type":            str(f_data.get("pict_type", "?")),
+                "is_peak":              bool(f_data.get("is_peak", False)),
             }
             score_record = {
                 "action_score":     f_data["action_score"],
@@ -394,7 +403,18 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
                     "luma_diff_energy":      f_data["luma_diff_energy"],
                     "motion_magnitude":     f_data.get("motion_magnitude", 0.0),
                     "luma_entropy":              f_data.get("luma_entropy", 0.0),
-                    "refined_motion_tensor": np.zeros(1, dtype=np.float32),
+                    "refined_motion_tensor": np.asarray([
+                        float(f_data.get("motion_magnitude", 0.0)),
+                        float(f_data.get("divergence", 0.0)),
+                        float(f_data.get("curl", 0.0)),
+                        float(f_data.get("jacobian_frobenius", 0.0)),
+                        float(f_data.get("hessian_max_eigenvalue", 0.0)),
+                        float(f_data.get("motion_entropy", 0.0)),
+                    ], dtype=np.float32),
+                    "packet_size":          float(f_data.get("packet_size", 0.0)),
+                    "codec_conf":           float(f_data.get("codec_conf", 0.5)),
+                    "pict_type":            str(f_data.get("pict_type", "?")),
+                    "is_peak":              bool(f_data.get("is_peak", False)),
                 }
                 score_record = {
                     "action_score":     f_data["action_score"],
@@ -405,15 +425,41 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
         container.close()
 
     # Pass 2: batch index into graph — single edge+pagerank recompute each
-    graph.batch_add_frame_nodes(node_records)
-    graph.batch_enrich_nodes(enrichment_records)
+    graph_mode = getattr(config, "graph_mode", "flat")
+    node_groups = None
+    if graph_mode == "scene_sparse":
+        groups = {}
+        for f in frames_to_index:
+            sid = f.get("scene_id", -1)
+            if sid >= 0:
+                groups.setdefault(sid, []).append(f["frame_idx"])
+        node_groups = list(groups.values())
 
-    # 3. Perform hybrid retrieval
+    graph.batch_add_frame_nodes(node_records, node_groups=node_groups)
+    graph.batch_enrich_nodes(enrichment_records, node_groups=node_groups)
+
+    # 3. Perform graph-aware retrieval
     if frames_to_index:
         query_action_score = max(f.get("action_score", 0.0) for f in frames_to_index)
     else:
         query_action_score = 0.5
-    retrieved_nodes = graph.retrieve(query_embedding, query_action_score=query_action_score, top_k=l2_retrieve_top_k)
+    ranking_mode = getattr(config, "ranking_mode", "legacy")
+    if ranking_mode == "ppr":
+        retrieved_nodes = graph.retrieve_ppr(
+            query_embedding,
+            top_k=l2_retrieve_top_k,
+            damping=getattr(config, "ppr_damping", 0.5),
+            lambda_=getattr(config, "ppr_lambda", 0.5),
+        )
+    else:
+        retrieved_nodes = graph.retrieve(
+            query_embedding,
+            query_action_score=query_action_score,
+            top_k=l2_retrieve_top_k,
+        )
+    wrapper_l2_retrieve.last_graph_data = graph.export_graph_data(
+        max_edges=getattr(config, "graph_export_max_edges", 5000)
+    )
     
     # 4. Map returned AsphodelNode objects back to dictionaries expected by cache wrapper
     retrieved = []
@@ -433,6 +479,10 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
                 "pagerank_score": node.pagerank_score,
                 "last_retrieval_score": getattr(node, "last_retrieval_score", 0.0),
                 "retrieval_contributions": getattr(node, "retrieval_contributions", {}),
+                "tier": getattr(node, "tier", None),
+                "scene_id": getattr(node, "scene_id", None),
+                "pict_type": getattr(node, "pict_type", orig.get("pict_type", "?")),
+                "codec_conf": getattr(node, "codec_conf", 0.5),
             })
     
     if not retrieved:
@@ -455,6 +505,10 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
                 "pagerank_score": 0.0,
                 "last_retrieval_score": 0.0,
                 "retrieval_contributions": {},
+                "tier": "L1_PEAK" if f.get("is_peak", False) else "L3_CANDIDATE",
+                "scene_id": None,
+                "pict_type": f.get("pict_type", "?"),
+                "codec_conf": f.get("codec_conf", 0.5),
             })
 
     return retrieved
@@ -517,16 +571,32 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
 
     # 2. Parse video and extract raw frame features non-breakingly from H.264 stream
     # Returns (output_frames, stats, raw_records)
-    t_start = time.time()
-    output_frames, stats, raw_records = charon_v.parse_video(
+    # Uses _CHARON_CACHE to avoid re-decoding the same video when the same
+    # decode config is used across multiple queries.
+    import copy
+    _charon_key = (
         str(video_path),
-        return_stats=True,
-        return_raw=True,
-        candidate_thresh=config.candidate_thresh,
-        salient_thresh=config.salient_thresh,
-        adaptive=getattr(config, "adaptive", True),
-        visual_debug_mode=getattr(config, "visual_debug_mode", False)
+        float(config.candidate_thresh),
+        float(config.salient_thresh),
+        bool(getattr(config, "adaptive", True)),
+        bool(getattr(config, "visual_debug_mode", False)),
     )
+    t_start = time.time()
+    if _charon_key not in _CHARON_CACHE:
+        _CHARON_CACHE[_charon_key] = charon_v.parse_video(
+            str(video_path),
+            return_stats=True,
+            return_raw=True,
+            candidate_thresh=config.candidate_thresh,
+            salient_thresh=config.salient_thresh,
+            adaptive=getattr(config, "adaptive", True),
+            visual_debug_mode=getattr(config, "visual_debug_mode", False)
+        )
+        print(f"[CACHE] Charon-V decoded {video_path} → cached under key {_charon_key[:2]}")
+    else:
+        print(f"[CACHE] Charon-V cache HIT for {Path(video_path).name} — skipping re-decode")
+    cached_output_frames, stats, raw_records = _CHARON_CACHE[_charon_key]
+    output_frames = copy.deepcopy(cached_output_frames)
     t_charon = time.time() - t_start
 
     # 3. Continuous action scoring & persistence peak detection
@@ -571,6 +641,13 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
         frame["is_peak"] = score_info["is_peak"]
         frame["persistence_value"] = score_info["persistence_value"]
         frame["luma_entropy"] = raw_map.get(frame_idx, {}).get("luma_entropy", 0.0)
+        frame["pict_type"] = raw_map.get(frame_idx, {}).get("frame_type", frame.get("pict_type", "?"))
+        frame["packet_size"] = raw_map.get(frame_idx, {}).get("packet_size", frame.get("packet_size", 0.0))
+        frame["divergence"] = raw_map.get(frame_idx, {}).get("divergence", frame.get("divergence", 0.0))
+        frame["curl"] = raw_map.get(frame_idx, {}).get("curl", frame.get("curl", 0.0))
+        frame["jacobian_frobenius"] = raw_map.get(frame_idx, {}).get("jacobian_frobenius", frame.get("jacobian_frobenius", 0.0))
+        frame["hessian_max_eigenvalue"] = raw_map.get(frame_idx, {}).get("hessian_max_eigenvalue", frame.get("hessian_max_eigenvalue", 0.0))
+        frame["motion_entropy"] = raw_map.get(frame_idx, {}).get("motion_entropy", frame.get("motion_entropy", 0.0))
     t_action = time.time() - t_action_start
 
     # If visual_debug_mode is enabled, save annotated candidate frames
@@ -609,17 +686,12 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
     else:  # hybrid
         frames_to_index = output_frames
 
-    try:
-        retrieved_frames = wrapper_l2_retrieve(
-            video_path,
-            query,
-            frames_to_index,
-            config=config
-        )
-    finally:
-        # Explicitly unload captioner model to CPU to free VRAM for LLM inference
-        # Done in a finally block so VRAM is released even if captioning a batch throws
-        aria.unload_captioner()
+    retrieved_frames = wrapper_l2_retrieve(
+        video_path,
+        query,
+        frames_to_index,
+        config=config
+    )
     t_l2 = time.time() - t_l2_start
 
     # 5. Populate L1 active context cache with retrieved frame evidence
@@ -785,6 +857,7 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
             "frames_given_to_aria": [f.frame_idx for f in cache_obj.frames()],
             "context_length": len(context_text),
             "retrieval_results": context_text,
+            "l2_graph": getattr(wrapper_l2_retrieve, "last_graph_data", None),
             
             # --- Cerberus Debug Data ---
             "cerberus_claims": claims,
