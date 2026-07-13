@@ -92,11 +92,28 @@ class MoondreamCaptioner:
         return self._model.answer_question(enc, 'Describe only what is visually present in this single image. State objects, people, colors, and positions. Do not describe motion or changes.', self._tokenizer).strip()
 
 class MiniCPMCaptioner:
-    """Local image captioner using MiniCPM-V4.6 via Ollama."""
+    """Local image captioner using MiniCPM via Ollama."""
 
     def __init__(self, model_name: str | None = None) -> None:
-        self.model_name = model_name or "minicpm-v4.6"
         self.endpoint = "http://localhost:11434"
+        if model_name is None:
+            try:
+                import requests
+                resp = requests.get(f"{self.endpoint}/api/tags", timeout=5)
+                if resp.status_code == 200:
+                    models = [m["name"] for m in resp.json().get("models", [])]
+                    # Match any version of minicpm-v
+                    if "minicpm-v4.6:latest" in models or "minicpm-v4.6" in models:
+                        model_name = "minicpm-v4.6"
+                    elif "minicpm-v:latest" in models or "minicpm-v" in models:
+                        model_name = "minicpm-v"
+                    else:
+                        matched = next((m for m in models if "minicpm" in m.lower()), None)
+                        if matched:
+                            model_name = matched.split(":")[0]
+            except Exception:
+                pass
+        self.model_name = model_name or "minicpm-v"
         self.prompt = (
             "List everything visible in this image: every person, object, vehicle, "
             "and action. One short sentence per item. Only what is clearly visible."

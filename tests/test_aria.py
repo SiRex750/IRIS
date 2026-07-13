@@ -149,7 +149,7 @@ def test_minicpm_captioner_and_mocked_ollama():
     # Verify that get_captioner() returns MiniCPMCaptioner by default
     captioner = get_captioner()
     assert isinstance(captioner, MiniCPMCaptioner)
-    assert captioner.model_name == "minicpm-v4.6"
+    assert captioner.model_name in ("minicpm-v4.6", "minicpm-v")
 
     # Test custom mock Ollama response
     mock_pil = MagicMock()
@@ -171,7 +171,7 @@ def test_minicpm_captioner_and_mocked_ollama():
         args, kwargs = mock_post.call_args
         assert args[0] == "http://localhost:11434/api/generate"
         payload = kwargs["json"]
-        assert payload["model"] == "minicpm-v4.6"
+        assert payload["model"] in ("minicpm-v4.6", "minicpm-v")
         assert payload["prompt"] == (
             "List everything visible in this image: every person, object, vehicle, "
             "and action. One short sentence per item. Only what is clearly visible."
