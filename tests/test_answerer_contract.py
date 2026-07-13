@@ -306,7 +306,11 @@ def test_query_v2_compliant_invokes_verify_answer(monkeypatch):
     from iris import iris_config
 
     _patch_query_plumbing(monkeypatch)
-    _set_scripted([VALID_JSON])
+    valid_json_wire = json.dumps({
+        "query": "Is anyone present?",
+        "claims": [_wire_claim("visual", frame_idx=1, assertion="a person is present", is_core=True)]
+    })
+    _set_scripted([valid_json_wire])
 
     stub_gate = object()
     monkeypatch.setattr("iris.cerberus_layers.get_nli_gate", lambda: stub_gate)

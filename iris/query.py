@@ -453,7 +453,12 @@ def _generate_answer_claims_v2_wire(question: str, context: str, max_tokens: int
 
     raw = aria.generate_v2(prompt=question, context=context, max_tokens=max_tokens, schema_format=True)
     try:
-        parsed = AnswerClaims.from_wire(json.loads(raw))
+        try:
+            raw_obj = json.loads(raw)
+        except json.JSONDecodeError as jde:
+            from iris.claim_contract import MalformedJSONError
+            raise MalformedJSONError(str(jde)) from jde
+        parsed = AnswerClaims.from_wire(raw_obj)
         return parsed, raw, False, 1, failure_labels
     except Exception as e:
         label = getattr(e, "taxonomy_label", None) or "other"
@@ -461,7 +466,12 @@ def _generate_answer_claims_v2_wire(question: str, context: str, max_tokens: int
         corrective = _corrective_message(question, label, e, wire=True)
         raw2 = aria.generate_v2(prompt=corrective, context=context, max_tokens=max_tokens, schema_format=True)
         try:
-            parsed2 = AnswerClaims.from_wire(json.loads(raw2))
+            try:
+                raw_obj2 = json.loads(raw2)
+            except json.JSONDecodeError as jde2:
+                from iris.claim_contract import MalformedJSONError
+                raise MalformedJSONError(str(jde2)) from jde2
+            parsed2 = AnswerClaims.from_wire(raw_obj2)
             return parsed2, raw2, False, 2, failure_labels
         except Exception as e2:
             label2 = getattr(e2, "taxonomy_label", None) or "other"
@@ -492,8 +502,8 @@ def _query_v2(question: str, index: IRISIndex, config: Any) -> dict:
     t_elysium = time.time() - t_elysium_start
 
     t_aria_start = time.time()
-    answer_claims, raw_answer, compliance_failed, n_attempts, failure_labels = _generate_answer_claims_v2(
-        question, context_text
+    answer_claims, raw_answer, compliance_failed, n_attempts, failure_labels = _generate_answer_claims_v2_wire(
+        question, context_text, max_tokens=getattr(config, "answerer_max_tokens", None)
     )
     t_aria = time.time() - t_aria_start
 
