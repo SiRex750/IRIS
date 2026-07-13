@@ -57,6 +57,7 @@ class IRISConfig:
     cerberus_high_thresh: float = 0.70  # action_score >= this → full NLI
     cerberus_low_thresh:  float = 0.35  # action_score >= this → filtered NLI
     disable_nli:          bool  = False # completely bypass DeBERTa NLI, use ner_only
+    cerberus_mode:        str   = "legacy" # "legacy" or "v2"
 
     # ── Action Score Module ────────────────────────────────────────────────
     luma_diff_weight:        float = 0.5
@@ -161,6 +162,9 @@ class IRISConfig:
         )
         assert 0.0 < self.ppr_damping < 1.0, (
             f"ppr_damping must be in (0.0, 1.0), got {self.ppr_damping}"
+        )
+        assert self.cerberus_mode in {"legacy", "v2"}, (
+            f"Invalid cerberus_mode '{self.cerberus_mode}'"
         )
         
         # graph_mode validation

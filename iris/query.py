@@ -6,12 +6,13 @@ lifts the L1/Cerberus wrappers + claim-split verbatim from pipeline.py so
 behavior is identical. Parity with pipeline.run_pipeline is the exit criterion.
 
 NOTE: the retrieved-frame dict deliberately carries NO motion-geometry keys,
-so L1's FrameMotionDescriptor geometry is 0.0 — matching old pipeline.py
+so L1's FrameMotionDescriptor geometry is 0.0 ΓÇö matching old pipeline.py
 exactly (old never propagated geometry into L1 either). Wiring real geometry
 into L1 is a deliberate Phase 6 change, not part of this restructure.
 """
 from __future__ import annotations
 
+import json
 import re
 import time
 from typing import Any
@@ -116,7 +117,7 @@ def wrapper_cerberus_gate(claims: list[str], cache_obj: object, action_score: fl
         is_mocked = False
     except Exception as e:
         error_msg = str(e)
-        print(f"Error: CerberusV verification failed — gate closed, all claims unverifiable: {error_msg}")
+        print(f"Error: CerberusV verification failed ΓÇö gate closed, all claims unverifiable: {error_msg}")
         verified_claims = []
         rejected_claims = []
         unverifiable_claims = list(claims)
@@ -162,7 +163,7 @@ def _embed_query(question: str, config: Any) -> np.ndarray:
 
 def _split_claims(raw_answer: str) -> list[str]:
     """Sentence-level claim extraction. Lifted VERBATIM from pipeline.py 632-639.
-    Do not 'improve' the regex — parity depends on identical splitting."""
+    Do not 'improve' the regex ΓÇö parity depends on identical splitting."""
     clean_answer = re.sub(r'\*\*.*?\*\*:?\s*', '', raw_answer)
     clean_answer = re.sub(r'^\s*[-*]\s+', '', clean_answer, flags=re.MULTILINE)
     clean_answer = re.sub(r'^\s*\d+\.\s+', '', clean_answer, flags=re.MULTILINE)
@@ -271,13 +272,13 @@ def _ensure_captions(index: IRISIndex, retrieved_frames: list[dict]) -> int:
     the exact full-decode cost the build-time gate exists to avoid, and at
     CCTV scale (multi-hour footage) that cost is prohibitive.
 
-    Matches on pts/timestamp, not a recounted display index — display index
+    Matches on pts/timestamp, not a recounted display index ΓÇö display index
     is meaningless after a seek since decode() only yields frames from the
     seek point forward, not from frame 0.
 
     Returns frames_decoded_for_captions: total frames actually decoded across
     all seek-and-scan-forward targets (instrumentation for the CCTV-scale
-    cost model — should be O(GOP size * misses), not O(video length)).
+    cost model ΓÇö should be O(GOP size * misses), not O(video length)).
     """
     frame_map = {fr.frame_idx: fr for fr in index.frames}
     missing_frs = [
@@ -333,8 +334,15 @@ def _ensure_captions(index: IRISIndex, retrieved_frames: list[dict]) -> int:
 
 def query(question: str, index: IRISIndex, config: Any = None) -> dict:
     """Answer one question against a loaded index. No video read, no graph rebuild.
-    Returns the same result-dict shape as pipeline.run_pipeline (parity target)."""
+    Returns the same result-dict shape as pipeline.run_pipeline (parity target).
+
+    Dispatches to _query_v2 when config.cerberus_mode == "v2"; the legacy
+    body below this check is otherwise completely unchanged (default
+    cerberus_mode="legacy" -> zero behavior change)."""
     config = _config_from_index(index, config)
+
+    if getattr(config, "cerberus_mode", "legacy") == "v2":
+        return _query_v2(question, index, config)
 
     t_l2_start = time.time()
     query_embedding = _embed_query(question, config)
@@ -389,6 +397,190 @@ def query(question: str, index: IRISIndex, config: Any = None) -> dict:
             "elysium": t_elysium,
             "aria": t_aria,
             "cerberus_v": t_cerberus,
+            "total": t_l2 + t_caption + t_elysium + t_aria + t_cerberus,
+        },
+    }
+
+
+def _extract_json_object(text: str) -> dict:
+    """Best-effort JSON extraction. Strips markdown fences, finds the first '{'
+    and matching/last '}', and parses it. Raises ValueError on failure.
+    """
+    cleaned = text.strip()
+    if cleaned.startswith("```"):
+        lines = cleaned.splitlines()
+        if len(lines) >= 2 and lines[-1].startswith("```"):
+            cleaned = "\n".join(lines[1:-1]).strip()
+            if cleaned.startswith("json"):
+                cleaned = cleaned[4:].strip()
+
+    start = cleaned.find("{")
+    end = cleaned.rfind("}")
+    if start == -1 or end == -1 or end < start:
+        raise ValueError("No JSON object found in response.")
+
+    try:
+        return json.loads(cleaned[start:end+1])
+    except Exception as e:
+        raise ValueError(f"Invalid JSON format: {e}") from e
+
+
+def _corrective_message(question: str, label: str, e: Exception, wire: bool = False) -> str:
+    """Construct a helpful prompt for corrective N-attempt retry."""
+    if wire:
+        detail = (
+            f"claim object has missing or extra properties: {e}"
+            if label == "claim_field_shape"
+            else f"schema violation: {e}"
+        )
+    elif label == "json_decode":
+        detail = f"parse error: {e}"
+    elif label == "schema_shape":
+        detail = f"missing required top-level key: {e}"
+    elif label == "unknown_claim_type":
+        detail = f"unrecognized claim type: {e}"
+    elif label == "bad_metadata_field":
+        detail = f"invalid metadata field: {e}"
+    elif label == "claim_field_shape":
+        detail = f"claim object has missing/extra fields: {e}"
+    else:
+        detail = f"contract violation: {e}"
+    return (
+        f"{question}\n\n"
+        f"Your previous response was not valid AnswerClaims JSON ({detail}). "
+        "Reply again with ONLY the JSON object described in the system instructions -- "
+        "no prose, no markdown code fences, no other text."
+    )
+
+
+def _generate_answer_claims_v2(question: str, context: str):
+    """Cerberus v2 contract generation + strict parse, with ONE corrective
+    retry on parse failure. NEVER falls back to legacy verification on
+    failure -- that would corrupt the v2 compliance measurement; a second
+    failure is reported as compliance_failed instead.
+
+    Returns (answer_claims_or_None, raw_answer_of_last_attempt,
+    compliance_failed, n_attempts, failure_labels).
+    """
+    from iris.claim_contract import AnswerClaims
+    import iris.aria as aria
+
+    failure_labels: list[str] = []
+
+    raw = aria.generate_v2(prompt=question, context=context)
+    try:
+        parsed = AnswerClaims.from_json(_extract_json_object(raw))
+        return parsed, raw, False, 1, failure_labels
+    except Exception as e:
+        label = getattr(e, "taxonomy_label", None) or "other"
+        failure_labels.append(label)
+        corrective = _corrective_message(question, label, e)
+        raw2 = aria.generate_v2(prompt=corrective, context=context)
+        try:
+            parsed2 = AnswerClaims.from_json(_extract_json_object(raw2))
+            return parsed2, raw2, False, 2, failure_labels
+        except Exception as e2:
+            label2 = getattr(e2, "taxonomy_label", None) or "other"
+            failure_labels.append(label2)
+            return None, raw2, True, 2, failure_labels
+
+
+def _generate_answer_claims_v2_wire(question: str, context: str, max_tokens: int | None = None):
+    """Schema-constrained (grammar) contract generation via the flat,
+    sentinel-valued ANSWER_CLAIMS_WIRE_SCHEMA (iris.claim_contract), with ONE
+    corrective retry on a from_wire failure (task 4).
+
+    Returns (answer_claims_or_None, raw_answer_of_last_attempt,
+    compliance_failed, n_attempts, failure_labels) -- same 5-tuple shape as
+    _generate_answer_claims_v2 (json-mode).
+    """
+    from iris.claim_contract import AnswerClaims
+    import iris.aria as aria
+
+    failure_labels: list[str] = []
+
+    raw = aria.generate_v2(prompt=question, context=context, max_tokens=max_tokens, schema_format=True)
+    try:
+        parsed = AnswerClaims.from_wire(json.loads(raw))
+        return parsed, raw, False, 1, failure_labels
+    except Exception as e:
+        label = getattr(e, "taxonomy_label", None) or "other"
+        failure_labels.append(label)
+        corrective = _corrective_message(question, label, e, wire=True)
+        raw2 = aria.generate_v2(prompt=corrective, context=context, max_tokens=max_tokens, schema_format=True)
+        try:
+            parsed2 = AnswerClaims.from_wire(json.loads(raw2))
+            return parsed2, raw2, False, 2, failure_labels
+        except Exception as e2:
+            label2 = getattr(e2, "taxonomy_label", None) or "other"
+            failure_labels.append(label2)
+            return None, raw2, True, 2, failure_labels
+
+
+def _query_v2(question: str, index: IRISIndex, config: Any) -> dict:
+    """cerberus_mode="v2" path: AnswerClaims JSON contract, layer 1/2/3
+    router (iris.cerberus_layers.verify_answer), answer badge. Retrieval
+    and lazy-captioning are identical to the legacy path -- only ARIA's
+    prompt/parse and the verification step differ."""
+    from iris.cerberus_layers import Evidence, get_nli_gate, verify_answer
+
+    t_l2_start = time.time()
+    query_embedding = _embed_query(question, config)
+    retrieved_frames = _build_retrieved(index, query_embedding, config)
+    t_l2 = time.time() - t_l2_start
+
+    t_caption_start = time.time()
+    frames_decoded_for_captions = _ensure_captions(index, retrieved_frames)
+    t_caption = time.time() - t_caption_start
+
+    t_elysium_start = time.time()
+    cache_obj = wrapper_init_l1_cache(config)
+    wrapper_populate_cache(cache_obj, retrieved_frames)
+    context_text = cache_obj.as_context_text()
+    t_elysium = time.time() - t_elysium_start
+
+    t_aria_start = time.time()
+    answer_claims, raw_answer, compliance_failed, n_attempts, failure_labels = _generate_answer_claims_v2(
+        question, context_text
+    )
+    t_aria = time.time() - t_aria_start
+
+    t_cerberus_start = time.time()
+    if compliance_failed:
+        badge = "unverified"
+        claim_verdicts: list = []
+        core_claim_verdict = None
+    else:
+        nli = get_nli_gate()
+        evidence = Evidence(index=index, retrieved_frames=retrieved_frames, nli=nli)
+        verification = verify_answer(answer_claims, evidence)
+        badge = verification.badge
+        claim_verdicts = verification.claim_verdicts
+        core_claim_verdict = verification.core_claim_verdict
+    t_cerberus = time.time() - t_cerberus_start
+
+    return {
+        "raw_answer": raw_answer,
+        "answer_claims": answer_claims,
+        "compliance_failed": compliance_failed,
+        "n_llm_attempts": n_attempts,
+        "compliance_failure_labels": failure_labels,
+        "badge": badge,
+        "claim_verdicts": claim_verdicts,
+        "core_claim_verdict": core_claim_verdict,
+        "frames_processed": index.frames_processed,
+        "peak_count": index.peak_count,
+        "compression_ratio": index.skipped_frames_ratio,
+        "skipped_frames_ratio": index.skipped_frames_ratio,
+        "storage_reduction_factor": index.storage_reduction_factor,
+        "retrieved_frame_idxs": [f["frame_idx"] for f in retrieved_frames],
+        "frames_decoded_for_captions": frames_decoded_for_captions,
+        "timings": {
+            "l2_retrieval": t_l2,
+            "lazy_caption": t_caption,
+            "elysium": t_elysium,
+            "aria": t_aria,
+            "cerberus_v2": t_cerberus,
             "total": t_l2 + t_caption + t_elysium + t_aria + t_cerberus,
         },
     }

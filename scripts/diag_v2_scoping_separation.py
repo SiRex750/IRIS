@@ -163,7 +163,7 @@ def _capture_full_nli(self, claims, facts, mode, action_score, records, query, c
             negation_high_risk = has_negation_claim and not has_negation_fact
 
             threshold = 0.5 if negation_high_risk else 0.85
-            if label == "entailment" and negation_high_risk and entailment_score <= threshold:
+            if label == "entailment" and entailment_score <= threshold:
                 label = "neutral"
 
             if label == "entailment":

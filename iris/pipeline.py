@@ -1,7 +1,7 @@
-"""
+﻿"""
 IRIS end-to-end pipeline harness.
 
-Wires: charon_v → action_score → l1_elysium → l2_asphodel → aria → cerberus_v
+Wires: charon_v ΓåÆ action_score ΓåÆ l1_elysium ΓåÆ l2_asphodel ΓåÆ aria ΓåÆ cerberus_v
 
 Entry point for integration testing and ablation runs.
 Accepts a video path and a natural language query,
@@ -33,7 +33,7 @@ def _load_env():
 
 _load_env()
 
-# ── CLIP availability flag ─────────────────────────────────────────────────
+# ΓöÇΓöÇ CLIP availability flag ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 def _check_clip_available() -> bool:
     try:
         import clip  # noqa: F401
@@ -290,7 +290,7 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
 
     Optimisations applied:
       1. PIL-cache fast path: if Charon-V stored pil_image for every candidate frame,
-         CLIP embeddings are extracted directly from those images — no 3rd video decode.
+         CLIP embeddings are extracted directly from those images ΓÇö no 3rd video decode.
       2. Bulk graph build: add_frame_nodes_bulk + enrich_nodes_bulk call
          _update_all_edge_weights / _update_pagerank ONCE instead of N times.
     """
@@ -348,7 +348,7 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
     enrichment_records = [] # list of (frame_idx, triples, embedding)
 
     if has_pil_cache:
-        # ── Fast path (no 3rd video decode) ──────────────────────────────
+        # ΓöÇΓöÇ Fast path (no 3rd video decode) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
         for f_data in frames_to_index:
             clip_emb = get_clip_embedding_from_pil(f_data["pil_image"], device)
             f_data["clip_embedding"] = clip_emb
@@ -382,7 +382,7 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
             node_records.append((feature_record, score_record))
             enrichment_records.append((f_data["frame_idx"], [], clip_emb))
     else:
-        # ── Legacy path (full video decode) ──────────────────────────────
+        # ΓöÇΓöÇ Legacy path (full video decode) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
         container = av.open(str(video_path))
         for idx, frame in enumerate(container.decode(video=0)):
             if idx in frame_map:
@@ -424,7 +424,7 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
                 enrichment_records.append((f_data["frame_idx"], [], clip_emb))
         container.close()
 
-    # Pass 2: batch index into graph — single edge+pagerank recompute each
+    # Pass 2: batch index into graph ΓÇö single edge+pagerank recompute each
     graph_mode = getattr(config, "graph_mode", "flat")
     node_groups = None
     if graph_mode == "scene_sparse":
@@ -535,7 +535,7 @@ def wrapper_cerberus_gate(claims: list[str], cache_obj: object, action_score: fl
         is_mocked = False
     except Exception as e:
         error_msg = str(e)
-        print(f"Error: CerberusV verification failed — gate closed, all claims unverifiable: {error_msg}")
+        print(f"Error: CerberusV verification failed ΓÇö gate closed, all claims unverifiable: {error_msg}")
         verified_claims = []
         rejected_claims = []
         unverifiable_claims = list(claims)
@@ -592,9 +592,9 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
             adaptive=getattr(config, "adaptive", True),
             visual_debug_mode=getattr(config, "visual_debug_mode", False)
         )
-        print(f"[CACHE] Charon-V decoded {video_path} → cached under key {_charon_key[:2]}")
+        print(f"[CACHE] Charon-V decoded {video_path} ΓåÆ cached under key {_charon_key[:2]}")
     else:
-        print(f"[CACHE] Charon-V cache HIT for {Path(video_path).name} — skipping re-decode")
+        print(f"[CACHE] Charon-V cache HIT for {Path(video_path).name} ΓÇö skipping re-decode")
     cached_output_frames, stats, raw_records = _CHARON_CACHE[_charon_key]
     output_frames = copy.deepcopy(cached_output_frames)
     t_charon = time.time() - t_start
