@@ -259,3 +259,19 @@ def test_router_full_answer_badge_verified(gate):
     verification = verify_answer(answer, evidence)
     assert verification.core_claim_verdict.label == "verified"
     assert verification.badge == "verified"
+
+
+def test_router_absence_claim_empty_captions(gate):
+    index = _minimal_index()
+    claim = AbsenceClaim(event="a fire or smoke", is_core=True)
+    answer = AnswerClaims(query="q", claims=[claim])
+    evidence = Evidence(
+        index=index,
+        retrieved_frames=[{"frame_idx": 1, "caption": None}],
+        nli=gate,
+    )
+    verification = verify_answer(answer, evidence)
+    assert verification.core_claim_verdict.label == "unverifiable"
+    assert "no checkable caption evidence" in verification.core_claim_verdict.reason
+    assert verification.badge == "unverified"
+
