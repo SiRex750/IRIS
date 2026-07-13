@@ -45,12 +45,14 @@ class CerberusV:
     def _get_nli_model(self) -> tuple[Any, Any]:
         global _NLI_TOKENIZER, _NLI_MODEL
         if _NLI_MODEL is None:
+            import sys
             from transformers import AutoModelForSequenceClassification, AutoTokenizer
             import torch
             _NLI_TOKENIZER = AutoTokenizer.from_pretrained(self.model_name)
             _NLI_MODEL = AutoModelForSequenceClassification.from_pretrained(self.model_name)
             _NLI_MODEL.eval()
-            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            # Force CPU on Windows to prevent DeBERTa build_relative_position CUDA access violations
+            device = torch.device("cpu" if sys.platform == "win32" else ("cuda" if torch.cuda.is_available() else "cpu"))
             _NLI_MODEL.to(device)
         return _NLI_TOKENIZER, _NLI_MODEL
 
