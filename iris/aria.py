@@ -65,18 +65,67 @@ class BLIPCaptioner:
         return self._processor.decode(out[0], skip_special_tokens=True)
 
 
-_ACTIVE_CAPTIONER: BLIPCaptioner | None = None
+class MiniCPMCaptioner:
+    """Local image captioner using MiniCPM-V4.6 via Ollama."""
+
+    def __init__(self, model_name: str | None = None) -> None:
+        self.model_name = model_name or "minicpm-v4.6"
+        self.endpoint = "http://localhost:11434"
+        self.prompt = (
+            "List everything visible in this image: every person, object, vehicle, "
+            "and action. One short sentence per item. Only what is clearly visible."
+        )
+        self.num_predict = 250
+
+    def caption(self, pil_image) -> str:
+        import io
+        import base64
+        import requests
+        import re
+
+        # 1. Convert image to base64 JPEG
+        buf = io.BytesIO()
+        pil_image.convert("RGB").save(buf, format="JPEG")
+        image_b64 = base64.b64encode(buf.getvalue()).decode("ascii")
+
+        # 2. Query Ollama vision endpoint
+        payload = {
+            "model": self.model_name,
+            "prompt": self.prompt,
+            "images": [image_b64],
+            "options": {
+                "temperature": 0,
+                "seed": 42,
+                "num_predict": self.num_predict
+            },
+            "think": False,
+            "stream": False,
+        }
+        resp = requests.post(f"{self.endpoint}/api/generate", json=payload, timeout=300)
+        resp.raise_for_status()
+
+        data = resp.json()
+        raw = data["response"].strip()
+
+        # Check and strip <think>...</think> blocks if present
+        think_tag_re = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
+        cleaned = think_tag_re.sub("", raw).strip()
+
+        return cleaned
 
 
-def get_captioner() -> BLIPCaptioner:
+_ACTIVE_CAPTIONER: MiniCPMCaptioner | BLIPCaptioner | None = None
+
+
+def get_captioner() -> MiniCPMCaptioner | BLIPCaptioner:
     """Returns the globally configured captioner (lazy-initialised)."""
     global _ACTIVE_CAPTIONER
     if _ACTIVE_CAPTIONER is None:
-        _ACTIVE_CAPTIONER = BLIPCaptioner()
+        _ACTIVE_CAPTIONER = MiniCPMCaptioner()
     return _ACTIVE_CAPTIONER
 
 
-def set_captioner(captioner: BLIPCaptioner) -> None:
+def set_captioner(captioner: MiniCPMCaptioner | BLIPCaptioner) -> None:
     """Override the active captioner (e.g. for testing)."""
     global _ACTIVE_CAPTIONER
     _ACTIVE_CAPTIONER = captioner
@@ -570,7 +619,7 @@ def run_diagnostics() -> dict:
 # ---------------------------------------------------------------------------
 
 def generate_caption_for_frame(frame, frame_idx: int | None = None) -> CaptionResult:
-    """Generate a semantic caption for a PyAV VideoFrame or PIL Image using BLIP."""
+    """Generate a semantic caption for a PyAV VideoFrame or PIL Image using the active captioner."""
     import time
 
     t_start = time.time()
@@ -590,13 +639,13 @@ def generate_caption_for_frame(frame, frame_idx: int | None = None) -> CaptionRe
         _CAPTION_FAILURES.append({"frame_idx": frame_idx, "latency": time.time() - t_start, "error": err_msg})
         return result
 
-    # 2. Caption with BLIP
+    # 2. Caption with active captioner
     try:
         captioner = get_captioner()
         caption = captioner.caption(img)
         return CaptionResult(success=True, caption=caption)
     except Exception as e:
-        err_msg = f"BLIP captioning failed: {e}"
+        err_msg = f"Captioning failed: {e}"
         result = CaptionResult(success=False, caption="[CAPTION_FAILED]", error=err_msg)
         _CAPTION_FAILURES.append({"frame_idx": frame_idx, "latency": time.time() - t_start, "error": err_msg})
         return result
