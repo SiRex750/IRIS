@@ -402,9 +402,11 @@ def query(question: str, index: IRISIndex, config: Any = None) -> dict:
     }
 
 
-def _extract_json_object(text: str) -> dict:
-    """Best-effort JSON extraction. Strips markdown fences, finds the first '{'
-    and matching/last '}', and parses it. Raises ValueError on failure.
+def _extract_json_object(text: str) -> str:
+    """Best-effort JSON extraction. Strips markdown code fences (```json or ```),
+    finds the first '{' and the matching/last '}', and returns that substring.
+    If no '{' is found, returns the entire input string (fallback to let json.loads
+    raise a clean format error).
     """
     cleaned = text.strip()
     if cleaned.startswith("```"):
@@ -417,12 +419,9 @@ def _extract_json_object(text: str) -> dict:
     start = cleaned.find("{")
     end = cleaned.rfind("}")
     if start == -1 or end == -1 or end < start:
-        raise ValueError("No JSON object found in response.")
+        return cleaned
 
-    try:
-        return json.loads(cleaned[start:end+1])
-    except Exception as e:
-        raise ValueError(f"Invalid JSON format: {e}") from e
+    return cleaned[start:end+1]
 
 
 def _corrective_message(question: str, label: str, e: Exception, wire: bool = False) -> str:

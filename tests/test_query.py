@@ -44,6 +44,9 @@ class _FakeGraph:
     def retrieve(self, emb, query_action_score, top_k):
         return [_FakeNode(0), _FakeNode(1)]
 
+    def retrieve_ppr(self, emb, top_k, damping=0.5, lambda_=0.5):
+        return [_FakeNode(0), _FakeNode(1)]
+
 
 def _index_with_fake_graph():
     frames = [FrameRecord(

@@ -1,4 +1,4 @@
-﻿"""
+"""
 IRIS end-to-end pipeline harness.
 
 Wires: charon_v ΓåÆ action_score ΓåÆ l1_elysium ΓåÆ l2_asphodel ΓåÆ aria ΓåÆ cerberus_v
@@ -14,6 +14,8 @@ import re
 from pathlib import Path
 import numpy as np
 import av
+
+_CHARON_CACHE: dict = {}
 
 import iris.charon_v as charon_v
 import iris.aria as aria

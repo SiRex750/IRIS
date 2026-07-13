@@ -109,7 +109,7 @@ def test_dynamic_max_score_range_and_zero_division():
 
     asphodel.add_frame_node(feat_1, score_1)
     asphodel.add_frame_node(feat_2, score_2)
-    assert asphodel.graph[1][2]["weight"] == 1.0
+    assert asphodel.graph[1][2]["weight"] == 0.6
 
     # Case 2: Introduce range
     feat_3 = {"frame_idx": 3, "timestamp": 0.3, "action_score": 1.5}
@@ -117,11 +117,11 @@ def test_dynamic_max_score_range_and_zero_division():
 
     asphodel.add_frame_node(feat_3, score_3)
     
-    # 1 <-> 2 coherence: 1 - abs(0.5 - 0.5)/1.0 = 1.0
-    assert pytest.approx(asphodel.graph[1][2]["weight"]) == 1.0
-    # 1 <-> 3 coherence: 1 - abs(0.5 - 1.5)/1.0 = 0.0
+    # 1 <-> 2 coherence: 0.4 * 0.0 + 0.6 * 1.0 = 0.6
+    assert pytest.approx(asphodel.graph[1][2]["weight"]) == 0.6
+    # 1 <-> 3 coherence: 0.4 * 0.0 + 0.6 * 0.0 = 0.0
     assert pytest.approx(asphodel.graph[1][3]["weight"]) == 0.0
-    # 2 <-> 3 coherence: 1 - abs(0.5 - 1.5)/1.0 = 0.0
+    # 2 <-> 3 coherence: 0.4 * 0.0 + 0.6 * 0.0 = 0.0
     assert pytest.approx(asphodel.graph[2][3]["weight"]) == 0.0
 
 
@@ -162,9 +162,9 @@ def test_retrieve():
     asphodel.add_frame_node({"frame_idx": 3, "timestamp": 0.3}, {"action_score": 0.9})
 
     # Retrieval 1: Cold start (no embeddings)
-    # Expected order: 3 (score 0.45), 2 (score 0.25), 1 (score 0.05)
+    # Expected order: 2 (closest to 0.6), then 3, then 1
     res = asphodel.retrieve(query_embedding=None, query_action_score=0.6, top_k=3)
-    assert [node.frame_idx for node in res] == [3, 2, 1]
+    assert [node.frame_idx for node in res] == [2, 3, 1]
 
     # Retrieval 2: Hybrid. Enrich node 1 and 3, node 2 stays cold-start.
     # Query embedding: [1, 0]
