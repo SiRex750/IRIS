@@ -504,3 +504,67 @@ def test_answerclaims_from_wire_core_count_two_raises():
     }
     with pytest.raises(CoreClaimInvariantError):
         AnswerClaims.from_wire(d)
+
+
+def test_production_query_v2_end_to_end(monkeypatch):
+    import json
+    from iris import aria
+    from iris.query import query
+    from iris.iris_config import IRISConfig
+    from iris.cerberus_layers import AnswerVerification, ClaimVerdict
+    from iris.claim_contract import VisualClaim
+
+    # 1. Setup mock/plumbing
+    _patch_query_plumbing(monkeypatch)
+
+    stub_gate = object()
+    monkeypatch.setattr("iris.cerberus_layers.get_nli_gate", lambda: stub_gate)
+
+    core_verdict = ClaimVerdict(
+        claim=VisualClaim(frame_idx=1, assertion="a person is present", is_core=True),
+        label="verified"
+    )
+    stub_verification = AnswerVerification(
+        claim_verdicts=[core_verdict], badge="verified", core_claim_verdict=core_verdict,
+    )
+    monkeypatch.setattr("iris.cerberus_layers.verify_answer", lambda answer_claims, evidence: stub_verification)
+    
+    # Define wire-shape claims matching what granite emits:
+    visual_core = _wire_claim("visual", frame_idx=1, assertion="a person is present", is_core=True)
+    absence_supporting = _wire_claim("absence", frame_idx=2, event="vehicle parking", is_core=False)
+    
+    valid_wire_json = json.dumps({
+        "query": "Is anyone present?",
+        "claims": [visual_core, absence_supporting]
+    })
+    
+    # Build stub LLM backend
+    backend = ScriptedV2Backend([valid_wire_json])
+    aria.set_backend(backend)
+    
+    config = IRISConfig(cerberus_mode="v2")
+    
+    # Drive query() against a small fixture IRISIndex
+    result = query("Is anyone present?", _FakeIndex(), config)
+    
+    # Assertions
+    assert result["answer_claims"] is not None
+    assert result["compliance_failed"] is False
+    assert result["badge"] == "verified"
+    
+    # Negative lock: feed the stub a NESTED-shape JSON (the old from_json shape)
+    nested_json = json.dumps({
+        "query": "Is anyone present?",
+        "claims": [
+            {"type": "visual", "frame_idx": 1, "assertion": "a person is present", "is_core": True},
+            {"type": "absence", "frame_idx": 2, "assertion": "no vehicle is present", "is_core": False}
+        ]
+    })
+    
+    # Script two responses (for initial try and corrective retry)
+    backend_nested = ScriptedV2Backend([nested_json, nested_json])
+    aria.set_backend(backend_nested)
+    
+    result_nested = query("Is anyone present?", _FakeIndex(), config)
+    assert result_nested["compliance_failed"] is True
+
