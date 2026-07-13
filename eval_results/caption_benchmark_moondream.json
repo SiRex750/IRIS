@@ -1,0 +1,1158 @@
+{
+  "model": "moondream-2B-int8",
+  "captioner_mode": "prompted",
+  "device": "cpu",
+  "timestamp": "2026-07-05T09:01:55.467606+00:00",
+  "virat_dir": "test_data\\Virat",
+  "summary": {
+    "total_frames": 113,
+    "total_succeeded": 0,
+    "total_failed": 113,
+    "exact_unique_count": 0,
+    "exact_uniqueness_rate": 0.0,
+    "normalized_unique_count": 0,
+    "mean_pairwise_cosine_distance": 0.0,
+    "confabulation_flag_count": 0,
+    "confabulation_rate": 0.0,
+    "mean_latency_ms": 0.0,
+    "std_latency_ms": 0.0,
+    "min_latency_ms": 0.0,
+    "max_latency_ms": 0.0,
+    "frames_per_second": 0.0,
+    "peak_vram_mb": null
+  },
+  "top_10_repeated": [],
+  "confabulation_flagged_captions": [],
+  "captions": [
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1,
+      "timestamp_s": 0.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3558.038699999088,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 61,
+      "timestamp_s": 2.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3170.4930999985663,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 121,
+      "timestamp_s": 4.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3239.5263999987947,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 181,
+      "timestamp_s": 6.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 12978.267399999822,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 241,
+      "timestamp_s": 8.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3080.3597000012815,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 301,
+      "timestamp_s": 10.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3209.4780999996146,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 361,
+      "timestamp_s": 12.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3131.6150999991805,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 421,
+      "timestamp_s": 14.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3119.6379999983037,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 481,
+      "timestamp_s": 16.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3623.717000000397,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 541,
+      "timestamp_s": 18.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3278.183000000354,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 601,
+      "timestamp_s": 20.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3269.508899998982,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 661,
+      "timestamp_s": 22.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3260.6991000011476,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 721,
+      "timestamp_s": 24.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3404.409900000246,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 781,
+      "timestamp_s": 26.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3157.821700000568,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 841,
+      "timestamp_s": 28.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3103.396700000303,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 901,
+      "timestamp_s": 30.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3401.827499999854,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 961,
+      "timestamp_s": 32.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 2995.4961000003095,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1021,
+      "timestamp_s": 34.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3117.7936000003683,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1081,
+      "timestamp_s": 36.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3364.907899998798,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1141,
+      "timestamp_s": 38.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3077.6944999997795,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1201,
+      "timestamp_s": 40.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3070.7378999995854,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1261,
+      "timestamp_s": 42.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 2867.873099999997,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1321,
+      "timestamp_s": 44.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 2968.896099999256,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1381,
+      "timestamp_s": 46.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3034.8352000000887,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1441,
+      "timestamp_s": 48.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3204.700700000103,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1501,
+      "timestamp_s": 50.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3182.7621000011277,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1561,
+      "timestamp_s": 52.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3587.115599999379,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1621,
+      "timestamp_s": 54.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3163.947900000494,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1681,
+      "timestamp_s": 56.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3292.467299999771,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1741,
+      "timestamp_s": 58.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3134.3412999995053,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_03_000860_000922.mp4",
+      "frame_idx": 1801,
+      "timestamp_s": 60.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3246.995600000446,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 1,
+      "timestamp_s": 0.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3194.390000000567,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 61,
+      "timestamp_s": 2.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3360.375100000965,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 121,
+      "timestamp_s": 4.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3445.503300001292,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 181,
+      "timestamp_s": 6.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3133.985300000859,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 241,
+      "timestamp_s": 8.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3322.8651999997965,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 301,
+      "timestamp_s": 10.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3173.1670000008307,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 361,
+      "timestamp_s": 12.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3137.6283999998122,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 421,
+      "timestamp_s": 14.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3191.7505000001256,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 481,
+      "timestamp_s": 16.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3198.7483000011707,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 541,
+      "timestamp_s": 18.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3075.58649999919,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 601,
+      "timestamp_s": 20.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3174.9419000007038,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 661,
+      "timestamp_s": 22.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3346.194399999149,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 721,
+      "timestamp_s": 24.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3326.2529999992694,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 781,
+      "timestamp_s": 26.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3246.7900999999983,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 841,
+      "timestamp_s": 28.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3270.9783999998763,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000205_05_001092_001124.mp4",
+      "frame_idx": 901,
+      "timestamp_s": 30.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3214.7158999996464,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1,
+      "timestamp_s": 0.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3231.8536000002496,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 61,
+      "timestamp_s": 2.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3100.430200000119,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 121,
+      "timestamp_s": 4.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3530.7706000003236,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 181,
+      "timestamp_s": 6.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3191.7302000001655,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 241,
+      "timestamp_s": 8.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3639.8504999997385,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 301,
+      "timestamp_s": 10.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3105.3102999994735,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 361,
+      "timestamp_s": 12.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3346.0242000001017,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 421,
+      "timestamp_s": 14.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3056.1221999996633,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 481,
+      "timestamp_s": 16.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 5241.379300001427,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 541,
+      "timestamp_s": 18.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3352.3463000001357,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 601,
+      "timestamp_s": 20.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3285.066200000074,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 661,
+      "timestamp_s": 22.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3796.068200001173,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 721,
+      "timestamp_s": 24.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3143.244400000185,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 781,
+      "timestamp_s": 26.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3641.3622999989457,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 841,
+      "timestamp_s": 28.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3173.987699999998,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 901,
+      "timestamp_s": 30.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3424.2126000008284,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 961,
+      "timestamp_s": 32.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3189.2219000001205,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1021,
+      "timestamp_s": 34.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3522.839799999929,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1081,
+      "timestamp_s": 36.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3168.6555999986012,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1141,
+      "timestamp_s": 38.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3415.4326999996556,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1201,
+      "timestamp_s": 40.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3179.5399999991787,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1261,
+      "timestamp_s": 42.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3454.1871000001265,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1321,
+      "timestamp_s": 44.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3269.1128000005847,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1381,
+      "timestamp_s": 46.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 4123.645599998781,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1441,
+      "timestamp_s": 48.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3394.4802999994863,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1501,
+      "timestamp_s": 50.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3109.4331000003876,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1561,
+      "timestamp_s": 52.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3205.1759000005404,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1621,
+      "timestamp_s": 54.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3163.2809000002453,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1681,
+      "timestamp_s": 56.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3548.008800000389,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1741,
+      "timestamp_s": 58.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3181.801099999575,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1801,
+      "timestamp_s": 60.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3098.7213000007614,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1861,
+      "timestamp_s": 62.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3009.1383999988466,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1921,
+      "timestamp_s": 64.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3084.812299999612,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 1981,
+      "timestamp_s": 66.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3420.9680999992997,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2041,
+      "timestamp_s": 68.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3216.1204000003636,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2101,
+      "timestamp_s": 70.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3136.26640000075,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2161,
+      "timestamp_s": 72.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3648.5066000004736,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2221,
+      "timestamp_s": 74.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3556.3610999997763,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2281,
+      "timestamp_s": 76.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3610.777900001267,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2341,
+      "timestamp_s": 78.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 13767.022399999405,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2401,
+      "timestamp_s": 80.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3907.531899998503,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2461,
+      "timestamp_s": 82.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3112.9076999986864,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2521,
+      "timestamp_s": 84.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3237.9502000003413,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2581,
+      "timestamp_s": 86.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3054.413600000771,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2641,
+      "timestamp_s": 88.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3046.0185000010824,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2701,
+      "timestamp_s": 90.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3048.3002999990276,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2761,
+      "timestamp_s": 92.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3320.603199999823,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2821,
+      "timestamp_s": 94.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3521.1904999996477,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2881,
+      "timestamp_s": 96.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3410.567400000218,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000206_09_001714_001851.mp4",
+      "frame_idx": 2941,
+      "timestamp_s": 98.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3114.951999999903,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 1,
+      "timestamp_s": 0.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3583.467099999325,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 61,
+      "timestamp_s": 2.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3236.4922999986447,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 121,
+      "timestamp_s": 4.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3355.6636000012077,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 181,
+      "timestamp_s": 6.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3152.6389999999083,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 241,
+      "timestamp_s": 8.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3267.4858999998833,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 301,
+      "timestamp_s": 10.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3287.554000000455,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 361,
+      "timestamp_s": 12.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3967.464100000143,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 421,
+      "timestamp_s": 14.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3547.2461999997904,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 481,
+      "timestamp_s": 16.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3294.8902000007365,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 541,
+      "timestamp_s": 18.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3558.2655999987765,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 601,
+      "timestamp_s": 20.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3046.758200000113,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 661,
+      "timestamp_s": 22.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3074.185999999827,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 721,
+      "timestamp_s": 24.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3705.72280000124,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 781,
+      "timestamp_s": 26.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3180.2461000006588,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 841,
+      "timestamp_s": 28.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3411.4270999998553,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    },
+    {
+      "video_file": "VIRAT_S_000207_02_000498_000530.mp4",
+      "frame_idx": 901,
+      "timestamp_s": 30.0,
+      "caption": "[CAPTION_FAILED]",
+      "latency_ms": 3138.6301000002277,
+      "is_failed": true,
+      "confabulation_flagged": false,
+      "flag_words_found": []
+    }
+  ]
+}

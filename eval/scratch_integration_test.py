@@ -5,14 +5,18 @@ import time
 import numpy as np
 
 # Ensure root directory is in python path
-sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import iris.aria as aria
 from iris.pipeline import run_pipeline
 
 def load_env():
-    """Manually load .env file from the same directory as the test script."""
-    env_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), ".env")
+    """Manually load .env file from the parent directory or the same directory."""
+    parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    env_path = os.path.join(parent_dir, ".env")
+    if not os.path.exists(env_path):
+        env_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), ".env")
+    
     if os.path.exists(env_path):
         with open(env_path, "r") as f:
             for line in f:

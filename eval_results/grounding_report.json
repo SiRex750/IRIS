@@ -1,0 +1,77 @@
+{
+  "semantic_only": {
+    "avg_precision": 0.0,
+    "avg_recall": 0.0,
+    "abstention_rate": 1.0,
+    "avg_latency_ms": 76338.91463279724,
+    "runs": [
+      {
+        "clip_id": "car_detection",
+        "condition": "semantic_only",
+        "latency_ms": 76338.91463279724,
+        "abstains": true,
+        "grounding_precision": 0.0,
+        "grounding_recall": 0.0,
+        "frames_retrieved": 5,
+        "retrieved_timestamps": [
+          16.24,
+          16.4,
+          16.08,
+          16.64,
+          16.32
+        ],
+        "answer": "Insufficient verified evidence to answer this question."
+      }
+    ]
+  },
+  "hybrid_legacy": {
+    "avg_precision": 0.2,
+    "avg_recall": 1.0,
+    "abstention_rate": 1.0,
+    "avg_latency_ms": 71202.02946662903,
+    "runs": [
+      {
+        "clip_id": "car_detection",
+        "condition": "hybrid_legacy",
+        "latency_ms": 71202.02946662903,
+        "abstains": true,
+        "grounding_precision": 0.2,
+        "grounding_recall": 1.0,
+        "frames_retrieved": 5,
+        "retrieved_timestamps": [
+          21.04,
+          12.0,
+          4.8,
+          14.4,
+          2.0
+        ],
+        "answer": "Insufficient verified evidence to answer this question."
+      }
+    ]
+  },
+  "ppr": {
+    "avg_precision": 0.2,
+    "avg_recall": 1.0,
+    "abstention_rate": 1.0,
+    "avg_latency_ms": 63081.80832862854,
+    "runs": [
+      {
+        "clip_id": "car_detection",
+        "condition": "ppr",
+        "latency_ms": 63081.80832862854,
+        "abstains": true,
+        "grounding_precision": 0.2,
+        "grounding_recall": 1.0,
+        "frames_retrieved": 5,
+        "retrieved_timestamps": [
+          21.04,
+          12.0,
+          4.8,
+          14.4,
+          2.0
+        ],
+        "answer": "Insufficient verified evidence to answer this question."
+      }
+    ]
+  }
+}
