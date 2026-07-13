@@ -276,6 +276,100 @@ class LlamaBackend(LLMBackend):
         return response.choices[0].message.content
 
 
+class LlamaServerBackend(LLMBackend):
+    """Local LLM via llama-server OpenAI-compatible endpoint."""
+
+    def __init__(self, endpoint: str = "http://localhost:8080/v1",
+                 text_model: str | None = None,
+                 timeout: float = 600.0) -> None:
+        self.endpoint = endpoint
+        self.text_model = text_model or "granite4:micro"
+        self.timeout = timeout
+        self._client = None
+
+    @property
+    def client(self):
+        if self._client is None:
+            from openai import OpenAI
+            self._client = OpenAI(base_url=self.endpoint, api_key="llama-server")
+        return self._client
+
+    def generate(self, prompt: str, context: str, model: str | None = None,
+                 system_prompt: str | None = None, response_format: dict | None = None,
+                 max_tokens: int | None = None, schema_format: bool = False) -> str:
+        model_name = model or self.text_model
+        sys_prompt = system_prompt if system_prompt is not None else _SYSTEM_PROMPT
+        messages = [
+            {"role": "system", "content": sys_prompt + f"Provided Frame Evidence and Retrieval Context:\n{context}"},
+            {"role": "user", "content": prompt},
+        ]
+        
+        # Pin cache_prompt=False in extra_body (load-bearing config)
+        kwargs = {
+            "model": model_name,
+            "messages": messages,
+            "temperature": 0.0,
+            "timeout": self.timeout,
+            "extra_body": {"cache_prompt": False}
+        }
+        
+        if schema_format:
+            kwargs["response_format"] = {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "answer_claims",
+                    "schema": ANSWER_CLAIMS_WIRE_SCHEMA,
+                    "strict": True,
+                }
+            }
+        elif response_format is not None:
+            kwargs["response_format"] = response_format
+
+        if max_tokens is not None:
+            kwargs["max_tokens"] = max_tokens
+
+        # PATH VERIFICATION COMMENT (Prompt 1.2):
+        # We attempt to use the OpenAI-compatible endpoint (/v1/chat/completions)
+        # with response_format carrying the json_schema and extra_body cache_prompt=false.
+        # Since the live server was offline/unreachable during local verification, 
+        # we prepare a try-except fallback to the native llama.cpp `/completion` 
+        # endpoint (using raw requests) with `json_schema` and `cache_prompt` fields.
+        try:
+            response = self.client.chat.completions.create(**kwargs)
+            return response.choices[0].message.content
+        except Exception as e:
+            # Fall back to native llama-server /completion endpoint
+            import requests
+            native_base = self.endpoint[:-3] if self.endpoint.endswith("/v1") else self.endpoint
+            
+            # Format the messages into a single prompt string for raw /completion
+            formatted_prompt = ""
+            for msg in messages:
+                role = msg["role"].upper()
+                content = msg["content"]
+                formatted_prompt += f"<|im_start|>{role}\n{content}<|im_end|>\n"
+            formatted_prompt += "<|im_start|>assistant\n"
+            
+            payload = {
+                "prompt": formatted_prompt,
+                "temperature": 0.0,
+                "cache_prompt": False,
+            }
+            if schema_format:
+                payload["json_schema"] = ANSWER_CLAIMS_WIRE_SCHEMA
+            if max_tokens is not None:
+                # llama.cpp uses n_predict
+                payload["n_predict"] = max_tokens
+                
+            try:
+                resp = requests.post(f"{native_base}/completion", json=payload, timeout=self.timeout)
+                resp.raise_for_status()
+                return resp.json()["content"]
+            except Exception:
+                raise e
+
+
+
 class OpenAIBackend(LLMBackend):
     """OpenAI API implementation."""
 
@@ -324,20 +418,54 @@ class OpenAIBackend(LLMBackend):
 
 
 _ACTIVE_BACKEND: LLMBackend | None = None
+_BACKEND_OVERRIDDEN: bool = False
 
 
 def get_backend() -> LLMBackend:
     """Returns the globally configured active LLM backend."""
-    global _ACTIVE_BACKEND
-    if _ACTIVE_BACKEND is None:
-        _ACTIVE_BACKEND = LlamaBackend()
+    global _ACTIVE_BACKEND, _BACKEND_OVERRIDDEN
+    if _ACTIVE_BACKEND is None or not _BACKEND_OVERRIDDEN:
+        try:
+            from iris.iris_config import ConfigManager
+            config = ConfigManager().get_config()
+            cerberus_mode = getattr(config, "cerberus_mode", "legacy")
+        except Exception:
+            cerberus_mode = "legacy"
+            config = None
+
+        if cerberus_mode == "v2" and config is not None:
+            backend_type = getattr(config, "answerer_backend", "llama_server")
+            if backend_type == "llama_server":
+                endpoint = getattr(config, "answerer_endpoint", "http://localhost:8080/v1")
+                model = getattr(config, "answerer_model", "granite4:micro")
+                timeout = getattr(config, "answerer_timeout", 600.0)
+                # Avoid recreating if it is already LlamaServerBackend with the correct parameters
+                if not isinstance(_ACTIVE_BACKEND, LlamaServerBackend) or \
+                   _ACTIVE_BACKEND.endpoint != endpoint or \
+                   _ACTIVE_BACKEND.text_model != model or \
+                   _ACTIVE_BACKEND.timeout != timeout:
+                    _ACTIVE_BACKEND = LlamaServerBackend(
+                        endpoint=endpoint,
+                        text_model=model,
+                        timeout=timeout
+                    )
+            else:
+                if not isinstance(_ACTIVE_BACKEND, LlamaBackend):
+                    _ACTIVE_BACKEND = LlamaBackend()
+        else:
+            if not isinstance(_ACTIVE_BACKEND, LlamaBackend) and _ACTIVE_BACKEND is not None:
+                _ACTIVE_BACKEND = LlamaBackend()
+            elif _ACTIVE_BACKEND is None:
+                _ACTIVE_BACKEND = LlamaBackend()
+
     return _ACTIVE_BACKEND
 
 
 def set_backend(backend: LLMBackend) -> None:
     """Explicitly override the active LLM backend (e.g. for testing)."""
-    global _ACTIVE_BACKEND
+    global _ACTIVE_BACKEND, _BACKEND_OVERRIDDEN
     _ACTIVE_BACKEND = backend
+    _BACKEND_OVERRIDDEN = True
 
 
 def generate(prompt: str, context: str, model: str | None = None) -> str:

@@ -87,3 +87,53 @@ def test_captioning_result_and_diagnostics():
             os.environ["OPENAI_API_KEY"] = orig_key
         else:
             os.environ.pop("OPENAI_API_KEY", None)
+
+
+def test_llama_server_backend_outgoing_request():
+    from unittest.mock import MagicMock, patch
+    from iris.aria import LlamaServerBackend
+    from iris.claim_contract import ANSWER_CLAIMS_WIRE_SCHEMA
+
+    # Instantiate LlamaServerBackend
+    backend = LlamaServerBackend(
+        endpoint="http://localhost:8080/v1",
+        text_model="granite4:micro",
+        timeout=600.0
+    )
+
+    # We mock the OpenAI client inside backend
+    mock_completions = MagicMock()
+    mock_response = MagicMock()
+    mock_response.choices = [MagicMock()]
+    mock_response.choices[0].message.content = "mocked wire response"
+    mock_completions.create.return_value = mock_response
+
+    # Directly assign mock client to backend._client to intercept instantiation
+    mock_client = MagicMock()
+    mock_client.chat.completions = mock_completions
+    backend._client = mock_client
+    
+    # Call generate with schema_format=True
+    res = backend.generate(
+        prompt="test prompt",
+        context="test context",
+        schema_format=True
+    )
+    
+    assert res == "mocked wire response"
+    mock_completions.create.assert_called_once()
+    kwargs = mock_completions.create.call_args[1]
+    
+    assert kwargs["temperature"] == 0.0
+    assert kwargs["extra_body"] == {"cache_prompt": False}
+    assert kwargs["model"] == "granite4:micro"
+    assert kwargs["timeout"] == 600.0
+    assert kwargs["response_format"] == {
+        "type": "json_schema",
+        "json_schema": {
+            "name": "answer_claims",
+            "schema": ANSWER_CLAIMS_WIRE_SCHEMA,
+            "strict": True
+        }
+    }
+

@@ -55,6 +55,14 @@ class IRISConfig:
     # anywhere unless a caller explicitly opts in.
     cerberus_mode: str = "legacy"
 
+    # ── Answerer Backend (Prompt 1) ────────────────────────────────────────
+    answerer_backend:       str   = "llama_server"
+    answerer_endpoint:      str   = "http://localhost:8080/v1"
+    answerer_model:         str   = "granite4:micro"
+    answerer_schema_format: bool  = True
+    answerer_max_tokens:    int   = 1024
+    answerer_timeout:       float = 600.0
+
     # ── Action Score Module ────────────────────────────────────────────────
     luma_diff_weight:        float = 0.5
     motion_weight:          float = 0.3
@@ -155,6 +163,11 @@ class IRISConfig:
         assert self.cerberus_mode in {"legacy", "v2"}, (
             f"Invalid cerberus_mode '{self.cerberus_mode}'"
         )
+        assert self.answerer_backend in {"llama_server", "llama", "openai", "mock"}, (
+            f"Invalid answerer_backend '{self.answerer_backend}'"
+        )
+        assert self.answerer_max_tokens > 0, "answerer_max_tokens must be positive"
+        assert self.answerer_timeout > 0, "answerer_timeout must be positive"
         assert self.graph_mode in {"flat", "scene_sparse"}, (
             f"Invalid graph_mode '{self.graph_mode}'"
         )
