@@ -363,9 +363,15 @@ def test_query_backward_compatible_without_motion():
 def test_dual_vector_gepa_weight_shift():
     """Shifting weights toward motion should change rankings."""
     # Visual-heavy config
-    config_v = IRISConfig(l1_visual_query_weight=0.90, l1_motion_query_weight=0.10)
+    config_v = IRISConfig(
+        l1_visual_query_weight=0.90, l1_motion_query_weight=0.10,
+        l1_w_recency=0.0, l1_w_entropy=0.0, l1_w_hessian=0.0
+    )
     # Motion-heavy config
-    config_m = IRISConfig(l1_visual_query_weight=0.10, l1_motion_query_weight=0.90)
+    config_m = IRISConfig(
+        l1_visual_query_weight=0.10, l1_motion_query_weight=0.90,
+        l1_w_recency=0.0, l1_w_entropy=0.0, l1_w_hessian=0.0
+    )
 
     for cfg, expected_first in [(config_v, 0), (config_m, 1)]:
         cache = L1ElysiumCache(config=cfg)

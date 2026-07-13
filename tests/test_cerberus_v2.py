@@ -45,7 +45,7 @@ def test_cerberus_mode_v2_valid():
 
 def test_cerberus_mode_invalid_rejected():
     cfg = IRISConfig(cerberus_mode="bogus")
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         cfg.validate()
 
 

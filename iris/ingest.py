@@ -385,14 +385,14 @@ def ingest(video_path: str | Path, config: Any = None, *, nms_window: int = 10) 
     try:
         from iris import codec_validator
         result = codec_validator.validate_video(str(video_path))
-        if result.get("status") == "reject":
+        if result.status == "reject":
             raise ValueError(
-                f"Video rejected by codec validator: {result.get('reason', 'unknown')}"
+                f"Video rejected by codec validator: {', '.join(result.reasons) if result.reasons else 'unknown'}"
             )
-        elif result.get("status") == "warn":
+        elif result.status == "warn":
             import sys
             print(
-                f"[IRIS codec warn] {video_path}: {result.get('reason', '')}",
+                f"[IRIS codec warn] {video_path}: {', '.join(result.reasons) if result.reasons else ''}",
                 file=sys.stderr,
             )
     except ImportError:

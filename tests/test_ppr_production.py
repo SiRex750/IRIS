@@ -86,18 +86,18 @@ def test_irisconfig_ppr_defaults():
 
 
 def test_irisconfig_ppr_lambda_bounds():
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         IRISConfig(ppr_lambda=1.01).validate()
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         IRISConfig(ppr_lambda=-0.01).validate()
     IRISConfig(ppr_lambda=0.0).validate()
     IRISConfig(ppr_lambda=1.0).validate()
 
 
 def test_irisconfig_ppr_damping_bounds():
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         IRISConfig(ppr_damping=0.0).validate()
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         IRISConfig(ppr_damping=1.0).validate()
     IRISConfig(ppr_damping=0.01).validate()
     IRISConfig(ppr_damping=0.99).validate()
