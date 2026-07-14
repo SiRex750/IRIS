@@ -66,7 +66,7 @@ class IRISConfig:
 
     # ── Answerer Backend (Prompt 1) ────────────────────────────────────────
     answerer_backend:       str   = "llama_server"
-    answerer_endpoint:      str   = "http://localhost:8080/v1"
+    answerer_endpoint:      str   = "http://127.0.0.1:8091/v1"
     answerer_model:         str   = "granite4:micro"
     answerer_schema_format: bool  = True
     answerer_max_tokens:    int   = 1024

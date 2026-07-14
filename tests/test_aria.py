@@ -138,6 +138,56 @@ def test_llama_server_backend_outgoing_request():
     }
 
 
+def test_llama_server_http_payload_enforcement():
+    from unittest.mock import MagicMock, patch
+    from iris.aria import LlamaServerBackend
+    from iris.claim_contract import ANSWER_CLAIMS_WIRE_SCHEMA
+
+    backend = LlamaServerBackend(
+        endpoint="http://127.0.0.1:8091/v1",
+        text_model="granite4:micro",
+        timeout=600.0
+    )
+
+    mock_resp = MagicMock()
+    mock_resp.json.return_value = {
+        "choices": [
+            {
+                "message": {
+                    "content": "mocked http response"
+                }
+            }
+        ]
+    }
+    mock_resp.status_code = 200
+
+    with patch("requests.post", return_value=mock_resp) as mock_post:
+        res = backend.generate(
+            prompt="test prompt",
+            context="test context",
+            schema_format=True
+        )
+
+        assert res == "mocked http response"
+        mock_post.assert_called_once()
+        args, kwargs = mock_post.call_args
+        assert args[0] == "http://127.0.0.1:8091/v1/chat/completions"
+        
+        payload = kwargs["json"]
+        assert payload["model"] == "loaded"
+        assert payload["temperature"] == 0
+        assert payload["cache_prompt"] is False
+        assert payload["max_tokens"] == 1024
+        assert payload["response_format"] == {
+            "type": "json_schema",
+            "json_schema": {
+                "name": "answer_claims",
+                "schema": ANSWER_CLAIMS_WIRE_SCHEMA,
+                "strict": True
+            }
+        }
+
+
 def test_minicpm_captioner_and_mocked_ollama():
     from unittest.mock import MagicMock, patch
     import iris.aria as aria

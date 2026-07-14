@@ -407,7 +407,29 @@ class LlamaServerBackend(LLMBackend):
             {"role": "user", "content": prompt},
         ]
         
-        # Pin cache_prompt=False in extra_body (load-bearing config)
+        # 1. Production direct requests.post path for schema_format
+        if schema_format and self._client is None:
+            import requests
+            payload = {
+                "model": "loaded",
+                "messages": messages,
+                "temperature": 0,
+                "cache_prompt": False,
+                "max_tokens": 1024,
+                "response_format": {
+                    "type": "json_schema",
+                    "json_schema": {
+                        "name": "answer_claims",
+                        "schema": ANSWER_CLAIMS_WIRE_SCHEMA,
+                        "strict": True
+                    }
+                }
+            }
+            resp = requests.post(f"{self.endpoint}/chat/completions", json=payload, timeout=self.timeout)
+            resp.raise_for_status()
+            return resp.json()["choices"][0]["message"]["content"]
+
+        # 2. Existing path (for non-schema or mock client unit tests)
         kwargs = {
             "model": model_name,
             "messages": messages,
@@ -431,12 +453,6 @@ class LlamaServerBackend(LLMBackend):
         if max_tokens is not None:
             kwargs["max_tokens"] = max_tokens
 
-        # PATH VERIFICATION COMMENT (Prompt 1.2):
-        # We attempt to use the OpenAI-compatible endpoint (/v1/chat/completions)
-        # with response_format carrying the json_schema and extra_body cache_prompt=false.
-        # Since the live server was offline/unreachable during local verification, 
-        # we prepare a try-except fallback to the native llama.cpp `/completion` 
-        # endpoint (using raw requests) with `json_schema` and `cache_prompt` fields.
         try:
             response = self.client.chat.completions.create(**kwargs)
             return response.choices[0].message.content
