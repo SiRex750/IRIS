@@ -148,7 +148,12 @@ class MiniCPMCaptioner:
         resp.raise_for_status()
 
         data = resp.json()
-        raw = data["response"].strip()
+        
+        # Discard truncated captions (ablation constraint)
+        if data.get("done_reason") == "length":
+            return ""
+            
+        raw = data.get("response", "").strip()
 
         # Check and strip <think>...</think> blocks if present
         think_tag_re = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
