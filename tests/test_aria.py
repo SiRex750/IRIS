@@ -196,8 +196,12 @@ def test_minicpm_captioner_and_mocked_ollama():
     # Reset active captioner to ensure clean default initialization
     aria._ACTIVE_CAPTIONER = None
 
-    # Verify that get_captioner() returns MiniCPMCaptioner by default
-    captioner = get_captioner()
+    # Verify that get_captioner() returns MiniCPMCaptioner when configured
+    with patch("iris.iris_config.ConfigManager.get_config") as mock_get_config:
+        mock_cfg = MagicMock()
+        mock_cfg.captioner_backend = "minicpm"
+        mock_get_config.return_value = mock_cfg
+        captioner = get_captioner()
     assert isinstance(captioner, MiniCPMCaptioner)
     assert captioner.model_name in ("minicpm-v4.6", "minicpm-v")
 
