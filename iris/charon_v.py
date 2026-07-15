@@ -178,6 +178,9 @@ def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = 
     # Pass 1: Build codec saliency curve from packet sizes (zero decode).
     all_frame_energies, iframe_indices, energies, pts_to_packet = _demux_packet_curve(video_path)
     
+    effective_salient_thresh = salient_thresh
+    effective_candidate_thresh = candidate_thresh
+    
     scene_thresholds = {}
     scene_salient_vals = []
     scene_candidate_vals = []
@@ -213,8 +216,14 @@ def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = 
             scene_candidate_vals.append(candidate)
             
         if scene_salient_vals:
-            salient_thresh = float(np.median(scene_salient_vals))
-            candidate_thresh = float(np.median(scene_candidate_vals))
+            effective_salient_thresh = float(np.median(scene_salient_vals))
+            effective_candidate_thresh = float(np.median(scene_candidate_vals))
+            if visual_debug_mode:
+                print(
+                    f"[Charon-V debug] Adaptive thresholds override active: "
+                    f"configured salient_thresh={salient_thresh:.4f} overridden with effective_salient_thresh={effective_salient_thresh:.4f}; "
+                    f"configured candidate_thresh={candidate_thresh:.4f} overridden with effective_candidate_thresh={effective_candidate_thresh:.4f}"
+                )
             
         # Exclude I-frame entries so their ~10× larger packet sizes do not warp
         # argrelextrema for neighboring P/B frames.
@@ -277,8 +286,8 @@ def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = 
             ps, is_kf = pts_to_packet[frame.pts]
 
             # ── TIER CLASSIFICATION (metadata only, no pixel access) ──────────
-            curr_salient = salient_thresh
-            curr_candidate = candidate_thresh
+            curr_salient = effective_salient_thresh
+            curr_candidate = effective_candidate_thresh
             if adaptive:
                 # O(1) amortized threshold lookup
                 while scene_pointer < len(scene_list) and total_frames >= scene_list[scene_pointer][1]:
@@ -465,8 +474,8 @@ def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = 
         "salient": salient_count,
         "candidate": candidate_count,
         "skipped": skipped_count,
-        "salient_thresh_used": salient_thresh,
-        "candidate_thresh_used": candidate_thresh,
+        "salient_thresh_used": effective_salient_thresh,
+        "candidate_thresh_used": effective_candidate_thresh,
         "salient_thresh_per_scene": {k: v[0] for k, v in scene_thresholds.items()},
         "candidate_thresh_per_scene": {k: v[1] for k, v in scene_thresholds.items()},
         "num_scenes": len(scene_thresholds),
@@ -483,6 +492,17 @@ def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = 
         "total_frames_decoded_by_ffmpeg": total_frames,
         "frames_with_pixel_processing": expensive_processed,
         "pixel_processing_skip_ratio": 1.0 - (expensive_processed / total_frames) if total_frames > 0 else 0.0,
+
+        # P1-04: Expose Pass-1 packet-demux data and fps to callers to avoid redundant demux
+        "all_frame_energies": all_frame_energies,
+        "iframe_indices": iframe_indices,
+        "fps": fps,
+
+        # P1-05: Non-destructive threshold configuration reporting
+        "configured_salient_thresh": salient_thresh,
+        "configured_candidate_thresh": candidate_thresh,
+        "effective_salient_thresh_used": effective_salient_thresh,
+        "effective_candidate_thresh_used": effective_candidate_thresh,
     }
     
     if return_raw:

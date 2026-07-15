@@ -408,15 +408,12 @@ def ingest(video_path: str | Path, config: Any = None, *, nms_window: int = 10) 
         adaptive=getattr(config, "adaptive", True),
         visual_debug_mode=getattr(config, "visual_debug_mode", False),
     )
-    # INGEST-002: parse_video already called _demux_packet_curve internally.
-    # Calling it again doubles the demux cost for every ingest. Reuse the
-    # packet curve that parse_video already computed.
-    # parse_video exposes all_frame_energies and iframe_indices via its first
-    # internal call; we recover them cheaply from the stats + raw_records.
-    # The authoritative source is still _demux_packet_curve; we call it once
-    # only to build the scene_spans (zero-decode, no RGB output).
-    all_frame_energies, iframe_indices, _, _ = charon_v._demux_packet_curve(str(video_path))
-    fps = charon_v.get_stream_fps(str(video_path))
+    # INGEST-002: parse_video already called _demux_packet_curve and get_stream_fps internally.
+    # We retrieve the precomputed all_frame_energies, iframe_indices, and fps directly
+    # from `stats` to avoid a redundant second packet demux pass and container open.
+    all_frame_energies = stats["all_frame_energies"]
+    iframe_indices = stats["iframe_indices"]
+    fps = stats["fps"]
     packet_curve = (all_frame_energies, iframe_indices, fps)
     return _build_index_from_records(
         output_frames, raw_records, stats, video_path, config, nms_window,
