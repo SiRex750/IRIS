@@ -202,7 +202,7 @@ def test_minicpm_captioner_and_mocked_ollama():
         mock_cfg.captioner_backend = "minicpm"
         mock_get_config.return_value = mock_cfg
         captioner = get_captioner()
-    assert isinstance(captioner, MiniCPMCaptioner)
+        assert isinstance(captioner, MiniCPMCaptioner)
     assert captioner.model_name in ("minicpm-v4.6", "minicpm-v")
 
     # Test custom mock Ollama response

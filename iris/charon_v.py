@@ -154,11 +154,26 @@ def detect_peaks(
 
 def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = False, candidate_thresh: float = 0.08, salient_thresh: float = 0.35, adaptive: bool = True, visual_debug_mode: bool = False, peak_order: int | None = None, full_decode: bool = False):
     """
-    Parses an H.264 video stream using PyAV and numpy without full RGB decoding.
-    Returns a list of dicts for salient frames (I_FRAME, SALIENT, CANDIDATE) only.
+    Parses an H.264 video stream using PyAV and numpy via two distinct passes.
     
-    If return_stats is True, returns a tuple: (output_frames, stats_dict).
-    If return_raw is True, additionally returns a list of raw per-frame records.
+    Pass 1 (zero pixel decode):
+      - Invokes `_demux_packet_curve` to inspect coded packet sizes from container
+        metadata only, without decoding pixels.
+      - Classifies frame tiers (I_FRAME, PEAK, SALIENT, CANDIDATE, SKIP).
+    
+    Pass 2 (selective pixel feature extraction / counter instrumentation):
+      - Invokes PyAV's frame decoder to process the video stream. Note that FFmpeg
+        internally decodes every frame's pixels due to H.264 inter-frame (P/B) prediction
+        dependencies; this decode is unavoidable for standard H.264 playback.
+      - However, the code selectively skips Python-side pixel feature extraction
+        (Y-plane numpy conversion, luma statistics diff/entropy, motion-vector parsing,
+        and PIL image capture) for SKIP-tier frames when `full_decode=False`.
+        
+    Returns:
+      - A list of dicts for salient frames (I_FRAME, SALIENT, CANDIDATE) only.
+      - If return_stats is True: returns (output_frames, stats_dict).
+      - If return_raw is True: additionally returns (output_frames, raw_records) or
+        (output_frames, stats_dict, raw_records) if return_stats is also True.
     """
     # Pass 1: Build codec saliency curve from packet sizes (zero decode).
     all_frame_energies, iframe_indices, energies, pts_to_packet = _demux_packet_curve(video_path)
@@ -359,9 +374,18 @@ def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = 
                 mvs_mags = [np.sqrt(mv[4]**2 + mv[5]**2) for mv in motion_vectors]
                 motion_magnitude = float(np.mean(mvs_mags)) if mvs_mags else 0.0
 
+                # P1-02 FIX: Compute geometry unconditionally for every processed frame
+                # (including full_decode=True SKIP frames).  Previously geom was only
+                # assigned inside the "if tier != 'SKIP':" block below, so a SKIP frame
+                # under full_decode=True would either raise NameError (first frame) or
+                # silently inherit the previous iteration's geom (stale carry-over).
+                # compute_motion_geometry already returns the correct all-zero dict when
+                # motion_vectors is empty, so SKIP frames (which have empty MVs) get the
+                # right neutral geometry without any special-casing.
+                geom = compute_motion_geometry(motion_vectors, frame.width, frame.height)
+
                 # Append survivor to output_frames
                 if tier != "SKIP":
-                    geom = compute_motion_geometry(motion_vectors, frame.width, frame.height)
                     # Capture PIL image so pipeline.py can extract CLIP embeddings
                     # without opening the video a third time.
                     try:
@@ -454,6 +478,11 @@ def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = 
         "decoder_frames_output": total_frames,
         "frames_pixel_processed": expensive_processed,
         "frames_retained": len(output_frames),
+
+        # P1-03: Measurement/instrumentation for selective-processing savings
+        "total_frames_decoded_by_ffmpeg": total_frames,
+        "frames_with_pixel_processing": expensive_processed,
+        "pixel_processing_skip_ratio": 1.0 - (expensive_processed / total_frames) if total_frames > 0 else 0.0,
     }
     
     if return_raw:
