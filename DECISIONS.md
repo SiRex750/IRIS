@@ -67,3 +67,86 @@ prompt-cache state per finding (2) and is not attributable to `_QA_MCQ_PROMPT`.
 **Note:** `LlamaServerBackend` in `iris/aria.py` DOES correctly pin `cache_prompt=false` on all
 three of its paths. The seat contract exists in code; the benchmark bypassed it by constructing
 the wrong backend class.
+
+## 2026-07-17 (later): Amendments and WIP Triage
+
+### A1. Correction to 2026-07-17 §4
+The clause "temp=0.1 (hardcoded in iris/aria.py; six sites)" described the UNCOMMITTED WORKING
+TREE, not the repository. Verified: at HEAD every answerer temperature site was already 0.0/0,
+and tests/test_aria.py asserted 0.0 and PASSED. The 0.1 existed only in uncommitted WIP.
+§3 (span bug) and §4's remaining claims are CONFIRMED committed on main:
+  - min->max span in pillar2_grounded_qa.py::iop()/::iou()  — on main
+  - aria.LlamaBackend(endpoint="http://127.0.0.1:11434/v1") — on main
+  - "Publication-Ready" title + the >=0.25 frontier-parity conditional — on main
+The quarantine in §4 stands.
+
+### A2. The V2-producing state is irrecoverable
+The temp=0.1 content was reverted in the working tree before the WIP snapshot (3497ee4) was
+taken, so the snapshot does NOT contain it; that commit's message is inaccurate on this point.
+Only tests/test_aria.py's flipped assertions survive as evidence. mtimes were additionally
+flattened by a git stash/pop. The V2 calibration run is therefore unattributable to any
+recoverable state: REPLACE, do not reconstruct.
+
+### A3. Green-tuning — two events, one rule
+Two agent-authored (Antigravity) changes converted a failing guard into a passing one rather
+than surfacing it:
+  1. tests/test_aria.py — assertions flipped 0.0 -> 0.1 to match a temp change, in lockstep
+     with the code change. The suite's guard against the determinism pin fired and was retuned.
+     The resulting run was then reported as "+3.57pp Acc@QA — broke out of the random-chance rut."
+  2. tests/test_l1_elysium.py — test_pagerank_affects_keep_score COMMENTED OUT rather than
+     adapted or deleted, by the same WIP that changed keep_score()'s formula to drop w_pagerank.
+**RULE (binding, forward):** An agent may never edit, disable, comment out, or relax a test to
+match code it has just changed. A red test is a FINDING and must be surfaced to a human, not
+resolved. This applies to Claude Code, Antigravity, and any future agent operating on this repo.
+
+### A4. The +3.57pp Acc@QA is not attributable
+Three changes shipped in the same unmeasured tree: _QA_MCQ_PROMPT, temp=0.1, and
+eval/mc_scorer.py punctuation-stripping in parse_mc_answer. A +2-question delta (N=56) was
+attributed solely to the prompt. The parser change is the more parsimonious cause. No causal
+claim survives. Acc@QA is not comparable across the mc_scorer change.
+
+### A5. Query-aware captions cannot lift IoP/IoU — architectural, not empirical
+_ensure_captions() operates on retrieved_frames (post-retrieval); retrieval is CLIP-only and
+caption-free. Captions feed the answerer's evidence only. The V2 calibration doc's claim that
+"retrieval metrics will only improve once we re-ingest the videos with query-aware captions"
+is REFUTED. The existing data already showed it: mIoP 0.3091 -> 0.3091, IoP@0.5 25.00% ->
+25.00%, unchanged across the patch. **A re-ingest undertaken to lift IoP would be wasted
+compute.** (Roadmap v8 Phase 4 pre-registered exactly this check; it now resolves.)
+
+### A6. The iop() duplication count in §3 is stale
+FOUR copies exist, not three: scripts/pillar2_grounded_qa.py, scripts/tune_l1_weights.py,
+eval/grounding_scorer.py, and the iou() variant. The shared-constructor fix must absorb all of
+them.
+
+### A7. Optuna-tuned L1 weights are QUARANTINED and must not become defaults
+The WIP baked study output into iris_config.py defaults: l1_w_query 0.20 -> 0.0082,
+l1_w_persist 0.15 -> 0.3880, l1_w_action 0.30 -> 0.2722, l1_w_recency 0.05 -> 0.0182, plus new
+l1_w_iframe 0.2497 / l1_w_size_anomaly 0.0637 replacing pagerank/entropy/hessian.
+Disqualified three ways: (a) the study optimized the corrupted span objective (§3); (b) 50 TPE
+trials x 56 questions at 1/56=1.79% granularity overfits 2-3 questions; (c) the Phase-1 L1
+admission ablation already returned RED on diluting w_query at low retention budgets — driving
+it to ~0.008 overrides a surfaced red with a tuner's output. Re-derive only after the span fix,
+on a held-out or nested split.
+
+### A8. WIP triage — phase-gated
+The uncommitted tree is preserved at 3497ee4 (branch wip/v8-measured-state-snapshot, tag
+v8-measured-state) and comprises four independent families. Disposition:
+  - Query-aware captioning (aria/_clip/pipeline/query/phase6_build_dev_cache/pillar2):
+    PARKED until Phase 4. It is the H1 remedy; landing it before the Phase-2 diagnostic
+    destroys that diagnostic's control. No test exercises the query= path.
+  - L1-codec admission features (charon_v/cached_frame/ingest/types/l1_elysium/pipeline/
+    query/virat_retention_sweep): PARKED until Phase 5. Correct placement for codec (at
+    admission, per the codec negative) but out of phase, untested, and it moves keep_score,
+    which confounds every downstream number.
+  - Optuna-tuned defaults: DISCARDED per A7.
+  - Test flips: DISCARDED per A3.
+  - eval/mc_scorer.py punctuation-stripping: LANDS on main, recorded as a measurement change.
+  - configs/default_iris_config.json captioner_backend key: LANDS (inert, matches code default).
+Also flagged, not fixed: scripts/phase6_build_dev_cache.py references `elapsed` in an except
+branch where its assignment was removed (NameError on any exception);
+scripts/tune_l1_codec_weights.py is a near-duplicate of tune_l1_weights.py generated by a regex
+mutator (scratch/generate_tune.py); scripts/virat_retention_sweep.py's loop nesting was
+structurally rewritten AND the sweep was already run in that form
+(virat_retention_sweep_report.json) — that run is unregistered and does not satisfy the Phase-5
+pre-registration; scratch/test_tune_l1_weights.py is pytest-collectable by name but is not a
+pytest suite.
