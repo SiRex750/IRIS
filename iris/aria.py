@@ -418,7 +418,7 @@ class LlamaServerBackend(LLMBackend):
             payload = {
                 "model": "loaded",
                 "messages": messages,
-                "temperature": 0,
+                "temperature": 0.0,
                 "cache_prompt": False,
                 "max_tokens": 1024,
                 "response_format": {
