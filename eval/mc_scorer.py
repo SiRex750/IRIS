@@ -68,6 +68,9 @@ def parse_mc_answer(raw: str, opts: dict[str, str]) -> tuple[str | None, str | N
     if not raw:
         return None, "empty response"
 
+    # Strip stray whitespace and punctuation that Granite4-Micro may emit
+    raw = raw.strip().strip(".,;:!?)(\"'")
+
     # (a) First standalone letter token
     tokens = re.findall(r'\b([A-Fa-fXx])\b', raw)
     for tok in tokens:

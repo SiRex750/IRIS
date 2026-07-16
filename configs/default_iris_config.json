@@ -4,5 +4,6 @@
   "alpha": 0.4,
   "beta": 0.6,
   "peak_order": 3,
+  "captioner_backend": "minicpm",
   "_comment": "Default config. GEPA optimizer will overwrite salient_thresh and candidate_thresh at runtime."
 }
