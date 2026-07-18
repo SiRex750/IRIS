@@ -394,6 +394,12 @@ class LlamaServerBackend(LLMBackend):
         self.text_model = text_model or "granite4:micro"
         self.timeout = timeout
         self._client = None
+        # Mirrors the literals pinned in generate() below (all three request
+        # paths) — exposed as attributes so callers can read the seat contract
+        # off a live instance instead of re-declaring it (DECISIONS.md
+        # 2026-07-17 §4 / 2026-07-17-later §A3).
+        self.temperature = 0.0
+        self.cache_prompt = False
 
     @property
     def client(self):
@@ -418,8 +424,8 @@ class LlamaServerBackend(LLMBackend):
             payload = {
                 "model": "loaded",
                 "messages": messages,
-                "temperature": 0.0,
-                "cache_prompt": False,
+                "temperature": self.temperature,
+                "cache_prompt": self.cache_prompt,
                 "max_tokens": 1024,
                 "response_format": {
                     "type": "json_schema",
@@ -438,9 +444,9 @@ class LlamaServerBackend(LLMBackend):
         kwargs = {
             "model": model_name,
             "messages": messages,
-            "temperature": 0.0,
+            "temperature": self.temperature,
             "timeout": self.timeout,
-            "extra_body": {"cache_prompt": False}
+            "extra_body": {"cache_prompt": self.cache_prompt}
         }
         
         if schema_format:
@@ -476,8 +482,8 @@ class LlamaServerBackend(LLMBackend):
             
             payload = {
                 "prompt": formatted_prompt,
-                "temperature": 0.0,
-                "cache_prompt": False,
+                "temperature": self.temperature,
+                "cache_prompt": self.cache_prompt,
             }
             if schema_format:
                 payload["json_schema"] = ANSWER_CLAIMS_WIRE_SCHEMA

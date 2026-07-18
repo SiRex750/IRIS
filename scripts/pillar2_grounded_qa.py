@@ -11,10 +11,14 @@ Gated by video-level cluster Bootstrap CIs (1000 resamples, 95% confidence).
 from __future__ import annotations
 
 import argparse
+import dataclasses
+import hashlib
 import json
 import random
+import subprocess
 import sys
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 import numpy as np
 
@@ -163,6 +167,49 @@ def bootstrap_paired_differences(
             
     return ci_results
 
+def preflight_backend(backend) -> None:
+    """Fail fast if the active backend is not the seated llama-server, or is
+    unreachable. A silently-wrong backend must be impossible, not merely
+    unlikely -- this is the guard the V2 run lacked (DECISIONS.md 2026-07-17 §4).
+    """
+    if not isinstance(backend, aria.LlamaServerBackend):
+        raise RuntimeError(
+            f"Seat violation: expected answerer backend LlamaServerBackend, "
+            f"got {type(backend).__name__}. The seat contract requires "
+            f"llama-server; Ollama-backed LlamaBackend is the rejected runtime "
+            f"(DECISIONS.md 2026-07-17 §4)."
+        )
+
+    import requests
+    try:
+        resp = requests.get(f"{backend.endpoint}/models", timeout=5)
+        resp.raise_for_status()
+    except Exception as e:
+        raise RuntimeError(
+            f"Liveness probe failed for llama-server endpoint {backend.endpoint}: {e}"
+        ) from e
+
+def git_provenance(repo_root: Path) -> tuple[str, bool]:
+    """Return (git_commit, git_dirty) for repo_root. git_dirty=True means the
+    tree had uncommitted changes at run time -- any such run is unattributable
+    by construction (the V2 lesson; DECISIONS.md 2026-07-17-later §A2)."""
+    commit = subprocess.run(
+        ["git", "rev-parse", "HEAD"], cwd=repo_root,
+        capture_output=True, text=True, check=True,
+    ).stdout.strip()
+    status = subprocess.run(
+        ["git", "status", "--porcelain"], cwd=repo_root,
+        capture_output=True, text=True, check=True,
+    ).stdout
+    dirty = bool(status.strip())
+    return commit, dirty
+
+def config_hash(cfg: IRISConfig) -> str:
+    """sha256 of the serialized IRISConfig, so a provenance record pins the
+    exact config used, not just a label."""
+    serialized = json.dumps(dataclasses.asdict(cfg), sort_keys=True, default=str)
+    return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Pillar 2 Grounded VideoQA Benchmark")
     parser.add_argument("--top_k", type=int, default=8, help="Number of retrieved frames")
@@ -186,13 +233,35 @@ def main() -> None:
     print(f"Bootstrap resamples:   {args.num_boot}")
     print(f"Span mode:             {args.span_mode}"
           + (f" (half_width={args.span_half_width})" if args.span_mode == "ppr_peak" else ""))
-    
-    # ── 1. Configure active backend ───────────────────────────────────────────
-    print("\n[LLM] Seating granite4:micro via Ollama on port 11434...")
-    backend = aria.LlamaBackend(endpoint="http://127.0.0.1:11434/v1", text_model="granite4:micro")
+
+    # ── 0. Set configs (moved ahead of backend seating so the backend reads
+    #      its endpoint/model from this config, not a hardcoded literal) ──────
+    # Variant B weights
+    cfg_proposed = IRISConfig(
+        cerberus_mode="v2",
+        l2_retrieve_top_k=args.top_k,
+        ranking_mode="ppr",
+        ppr_lambda=0.5,
+        candidate_thresh=0.08,
+        l1_w_action=0.60,
+        l1_w_query=0.25,
+        l1_w_persist=0.15,
+        l1_w_pagerank=0.0,
+        l1_w_entropy=0.0,
+        l1_w_hessian=0.0,
+        l1_w_recency=0.0
+    )
+
+    # ── 1. Configure active backend — seated llama-server, per contract ──────
+    print(f"\n[LLM] Seating {cfg_proposed.answerer_model} via llama-server at {cfg_proposed.answerer_endpoint}...")
+    backend = aria.LlamaServerBackend(
+        endpoint=cfg_proposed.answerer_endpoint,
+        text_model=cfg_proposed.answerer_model,
+    )
     aria.set_backend(backend)
+    preflight_backend(backend)
     aria.run_diagnostics()
-    
+
     # ── 2. Load dataset files ─────────────────────────────────────────────────
     data_dir = REPO_ROOT / "eval" / "data" / "nextqa"
     dev_jsonl = data_dir / "dev_100.jsonl"
@@ -235,24 +304,7 @@ def main() -> None:
         except Exception as e:
             print(f"  ERR loading {vid}: {e}")
             loaded_indexes[vid] = None
-            
-    # ── 4. Set configs ────────────────────────────────────────────────────────
-    # Variant B weights
-    cfg_proposed = IRISConfig(
-        cerberus_mode="v2",
-        l2_retrieve_top_k=args.top_k,
-        ranking_mode="ppr",
-        ppr_lambda=0.5,
-        candidate_thresh=0.08,
-        l1_w_action=0.60,
-        l1_w_query=0.25,
-        l1_w_persist=0.15,
-        l1_w_pagerank=0.0,
-        l1_w_entropy=0.0,
-        l1_w_hessian=0.0,
-        l1_w_recency=0.0
-    )
-    
+
     # ── 5. Run Evaluation Loop ────────────────────────────────────────────────
     question_results = []
     video_to_questions: dict[str, list[dict]] = {}
@@ -432,8 +484,32 @@ def main() -> None:
     out_dir = REPO_ROOT / "eval_results"
     out_dir.mkdir(parents=True, exist_ok=True)
     raw_path = out_dir / "pillar2_grounded_qa_raw.json"
-    
+
+    # Provenance: read every field off live objects, not re-declared literals.
+    # git_dirty is deliberate -- a run whose tree was dirty at run time is
+    # unattributable by construction (the V2 lesson; DECISIONS.md
+    # 2026-07-17-later §A2).
+    git_commit, git_dirty = git_provenance(REPO_ROOT)
+    provenance = {
+        "backend_class": type(backend).__name__,
+        "endpoint": backend.endpoint,
+        "model": backend.text_model,
+        "temperature": backend.temperature,
+        "cache_prompt": backend.cache_prompt,
+        "span_mode": args.span_mode,
+        "span_half_width": args.span_half_width,
+        "git_commit": git_commit,
+        "git_dirty": git_dirty,
+        "config_hash": config_hash(cfg_proposed),
+        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+        "n_questions": n,
+        "n_videos": len(video_to_questions),
+        "top_k": args.top_k,
+        "num_boot": args.num_boot,
+    }
+
     raw_payload = {
+        "provenance": provenance,
         "overall_metrics": metrics,
         "bootstrap_paired_differences": ci_results,
         "results": question_results
@@ -444,10 +520,22 @@ def main() -> None:
     
     # ── 9. Generate Report ────────────────────────────────────────────────────
     report_path = out_dir / "pillar2_grounded_qa_report.md"
-    
-    report_content = f"""# Publication-Ready Grounded VideoQA Benchmark Report (Pillar 2)
 
-Evaluating the end-to-end IRIS pipeline (`charon_v` -> L1 admission Variant B -> L2 PPR retrieval -> local Ollama `granite4:micro` backend) on the NExT-GQA test subset ($n={n}$ questions, {len(loaded_indexes)} unique videos).
+    dirty_banner = (
+        "**⚠ UNATTRIBUTABLE RUN — the working tree was DIRTY at run time "
+        "(`git_dirty=true`). This report cannot be cited as a measurement of "
+        "any specific commit (DECISIONS.md 2026-07-17-later §A2).**"
+        if provenance["git_dirty"] else
+        "Working tree was clean at run time (`git_dirty=false`)."
+    )
+
+    report_content = f"""# Preliminary Grounded VideoQA Benchmark (Pillar 2)
+
+{dirty_banner}
+
+**Provenance:** backend=`{provenance['backend_class']}` | model=`{provenance['model']}` | temperature=`{provenance['temperature']}` | cache_prompt=`{provenance['cache_prompt']}` | endpoint=`{provenance['endpoint']}` | span_mode=`{provenance['span_mode']}` | span_half_width=`{provenance['span_half_width']}` | git_commit=`{provenance['git_commit']}` | git_dirty=`{provenance['git_dirty']}` | timestamp_utc=`{provenance['timestamp_utc']}`
+
+Evaluating the end-to-end IRIS pipeline (`charon_v` -> L1 admission Variant B -> L2 PPR retrieval -> {provenance['backend_class']} `{provenance['model']}` backend) on the NExT-GQA test subset ($n={n}$ questions, {provenance['n_videos']} unique videos).
 
 ## 1. Quantitative Performance Summary
 
@@ -490,7 +578,7 @@ The scientific literature notes a massive **Trust Gap** on Grounded VideoQA benc
 ### Competitive Status with 2B Agentic Frontier
 With our proposed system achieving **{metrics['proposed']['acc_gqa']:.2%} Acc@GQA** on this evaluation:
 *   We outperform simple baseline samplers (Uniform and Random) by a statistically significant margin.
-*   {"Our performance exceeds 25%, establishing competitive alignment with the 2B agentic frontier (e.g., MUPA-2B and VideoMind-2B)." if metrics['proposed']['acc_gqa'] >= 0.25 else "Although we outperform the baselines, our performance remains below the 25% threshold required to establish SOTA competitive parity with the 2B agentic frontier."}
+*   Measured Acc@GQA: {metrics['proposed']['acc_gqa']:.2%}.
 """
     with open(report_path, "w", encoding="utf-8") as f:
         f.write(report_content)
