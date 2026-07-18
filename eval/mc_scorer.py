@@ -23,8 +23,91 @@ from iris.iris_config import IRISConfig
 LETTERS = ["A", "B", "C", "D", "E"]
 VALID_CHOICES = set(LETTERS) | {"X"}
 
-# Fuzzy-match threshold: fraction of option text that must appear in response
-_FUZZY_THRESHOLD = 0.6
+# Contraction suffixes stripped before tokenizing so "I'd"/"he'd"/"we'd" can't
+# leave a bare 'd' that the letter scanner would read as a standalone D token.
+_CONTRACTION_RE = re.compile(r"'(?:d|ll|s|re|ve|m)\b", re.IGNORECASE)
+
+_DELIM_PATTERNS = [
+    re.compile(r'\(([A-Fa-fXx])\)'),
+    re.compile(r'\[([A-Fa-fXx])\]'),
+    re.compile(r'\*\*([A-Fa-fXx])\*\*'),
+    re.compile(r'\b(?:Answer|Option)\s*:\s*([A-Fa-fXx])\b', re.IGNORECASE),
+]
+
+# Cue words that anchor a standalone letter to "this is the final answer".
+# Split by direction: a cue's job is to point AT the answer.
+#
+# FORWARD_ONLY: copulas/labels that take the answer as predicate/object --
+# only "cue -> letter" (letter follows the cue) anchors. A letter that
+# PRECEDES a forward-only cue must fall through to clean-leading/single/
+# abstain, not anchor -- this is what stops "A is wrong" from reading as A.
+# correct/wrong are polarity-bearing; this parser does not model polarity
+# (no negation/sentiment detection), so per the documented human decision
+# they are classified forward-only too, rather than bidirectional -- letting
+# "A is wrong" abstain instead of guessing at the polarity.
+# NOTE: "be"/"being" are deliberately excluded. Unlike "is"/"was"/"are",
+# bare-infinitive "be" is a modal/hedge complement ("could be A", "might be
+# B") that weighs a candidate rather than labeling the answer -- including
+# it anchored hedges as if they were final ("Could be A, B, or C" -> A).
+_CUE_FORWARD_ONLY = {
+    "is", "was", "are", "answer", "option", "correct", "wrong",
+}
+
+# BIDIRECTIONAL: answer-delivery verbs/prepositions whose object is
+# unambiguous regardless of which side the letter falls on.
+_CUE_BIDIRECTIONAL = {
+    "choose", "chose", "select", "pick", "towards", "with", "go",
+    "say", "says", "said", "think", "thinks", "guess",
+    "lean", "leaning", "leans",
+}
+
+_CUE_WORDS = _CUE_FORWARD_ONLY | _CUE_BIDIRECTIONAL
+
+# Guard for rule (d) CLEAN-LEADING: a bare leading letter is trustworthy only
+# if nothing downstream predicates or reverses it. If the leading letter is
+# immediately followed by a copula (it's the SUBJECT of "L is/was/are ..."),
+# or a polarity token appears anywhere after it, the letter's role can't be
+# told apart from a negated/hedged one without modeling polarity -- so (d)
+# must not fire. This is what stops "A is wrong" reading as A while still
+# letting "answer is B" anchor B (there B is the copula's predicate, reached
+# via rule (c), not the subject reached via (d)).
+_PREDICATE_FOLLOWERS = {"is", "was", "are", "isn't", "wasn't", "aren't", "'s"}
+_POLARITY_TOKENS = {
+    "wrong", "incorrect", "not", "no", "false", "isn't", "doesn't", "wouldn't",
+}
+
+_STRIP_CHARS = ".,;:!?)(\"'"
+
+
+def _clean_word(word: str) -> str:
+    return word.strip(_STRIP_CHARS)
+
+
+def _as_letter(word: str) -> str | None:
+    core = _clean_word(word).upper()
+    return core if core in VALID_CHOICES else None
+
+
+class ParseResult(tuple):
+    """(letter, reason) for existing callers; structured fields for new ones.
+
+    Compares/unpacks as the original 2-tuple so old call sites and tests
+    keep working unchanged. New call sites can use .raw_response,
+    .parse_path, .abstained to preserve per-question reasoning.
+    """
+
+    def __new__(cls, letter, reason, raw_response, parse_path, abstained):
+        self = tuple.__new__(cls, (letter, reason))
+        self.parsed_letter = letter
+        self.reason = reason
+        self.raw_response = raw_response
+        self.parse_path = parse_path
+        self.abstained = abstained
+        return self
+
+
+def _result(letter, reason, raw_response, parse_path) -> ParseResult:
+    return ParseResult(letter, reason, raw_response, parse_path, letter is None)
 
 
 def build_mc_prompt(
@@ -55,49 +138,104 @@ def build_mc_prompt(
     return prompt, context
 
 
-def parse_mc_answer(raw: str, opts: dict[str, str]) -> tuple[str | None, str | None]:
+def parse_mc_answer(raw: str, opts: dict[str, str]) -> ParseResult:
     """Parse model output to a choice in {A,B,C,D,E,X} or None.
 
-    Strategy:
-      (a) First standalone token matching a valid choice (case-insensitive).
-      (b) Fuzzy-match: if emitted text overlaps clearly with one option string.
-      (c) None + reason string — never random-guess.
+    Anchored-or-clean-leading policy, first match wins:
+      (a) preprocess: strip 'd/'ll/'s/'re/'ve/'m contractions so "I'd"/"we'd"
+          can't leave a bare 'd' read as a standalone D.
+      (b) delimited: a letter in (X), [X], **X**, or after "Answer:"/"Option:".
+      (c) anchored: a standalone letter immediately adjacent to a cue word.
+          FORWARD_ONLY cues {is, was, are, answer, option, correct, wrong}
+          anchor only "cue -> letter" (letter follows); a letter that
+          PRECEDES a forward-only cue does NOT anchor ("A is wrong" must not
+          read as A). BIDIRECTIONAL cues {choose, chose, select, pick,
+          towards, with, go, say, says, said, think, thinks, guess, lean,
+          leaning, leans} anchor on either side. Multiple anchored letters
+          -> take the LAST. ("be"/"being" are not cues -- bare-infinitive
+          "be" hedges a candidate, e.g. "could be A", it doesn't label one.)
+      (d) clean-leading: response is short (<=4 whitespace tokens after
+          contraction strip), begins with a standalone letter, no other
+          distinct standalone letter appears elsewhere (else ambiguous), AND
+          the leading letter is not the SUBJECT of a predication: it does
+          not fire if the immediately-following token is a copula
+          {is, was, are, isn't, wasn't, aren't, 's}, or if any later token is
+          a polarity word {wrong, incorrect, not, no, false, isn't, doesn't,
+          wouldn't}. This parser does not model polarity, so it can't tell
+          "A is wrong" from "A is correct" -- both must abstain rather than
+          guess. (Letters that are the PREDICATE of a copula, e.g. the B in
+          "the answer is B", are unaffected -- they're caught by rule (c).)
+      (e) single-token: the entire response is one standalone letter.
+      (f) else -> (None, reason) — abstain, never first-letter-wins.
 
     X is a valid parsed choice (abstention), distinct from parse-failure (None).
+    opts is accepted for call-site compatibility; no longer used for fuzzy
+    matching (the anchored-or-clean-leading policy has no fuzzy fallback).
     """
+    raw_response = raw
     if not raw:
-        return None, "empty response"
+        return _result(None, "empty response", raw_response, "empty")
 
-    # Strip stray whitespace and punctuation that Granite4-Micro may emit
-    raw = raw.strip().strip(".,;:!?)(\"'")
+    text0 = _CONTRACTION_RE.sub("", raw.strip())
 
-    # (a) First standalone letter token
-    tokens = re.findall(r'\b([A-Fa-fXx])\b', raw)
-    for tok in tokens:
-        upper = tok.upper()
-        if upper in VALID_CHOICES:
-            return upper, None
+    # (b) DELIMITED — checked on lightly-trimmed text so brackets/asterisks
+    # around the letter are still present.
+    for pat in _DELIM_PATTERNS:
+        m = pat.search(text0)
+        if m:
+            letter = m.group(1).upper()
+            if letter in VALID_CHOICES:
+                return _result(letter, None, raw_response, "delimited")
 
-    # (b) Fuzzy match against option text
-    raw_lower = raw.lower()
-    best_letter, best_score = None, 0.0
-    for i, letter in enumerate(LETTERS):
-        opt_text = opts.get(f"a{i}", "").lower().strip()
-        if not opt_text:
+    text = text0.strip(_STRIP_CHARS)
+    words = text.split()
+
+    # (c) ANCHORED — standalone letter adjacent to a cue word. "Letter
+    # follows cue" (prev word is a cue) is always forward direction, so it
+    # anchors for both cue types. "Letter precedes cue" (next word is a
+    # cue) is backward direction, so it only anchors for bidirectional cues
+    # -- a forward-only cue on the letter's right must NOT anchor it.
+    anchored: list[tuple[int, str]] = []
+    for i, w in enumerate(words):
+        letter = _as_letter(w)
+        if letter is None:
             continue
-        words = opt_text.split()
-        if not words:
-            continue
-        hits = sum(1 for w in words if w in raw_lower)
-        score = hits / len(words)
-        if score > best_score:
-            best_score = score
-            best_letter = letter
+        prev_word = _clean_word(words[i - 1]).lower() if i > 0 else None
+        next_word = _clean_word(words[i + 1]).lower() if i + 1 < len(words) else None
+        letter_follows_cue = prev_word in _CUE_WORDS
+        letter_precedes_bidi_cue = next_word in _CUE_BIDIRECTIONAL
+        if letter_follows_cue or letter_precedes_bidi_cue:
+            anchored.append((i, letter))
 
-    if best_score >= _FUZZY_THRESHOLD and best_letter is not None:
-        return best_letter, f"fuzzy({best_score:.2f})"
+    if anchored:
+        return _result(anchored[-1][1], None, raw_response, "anchored")
 
-    return None, f"no match in: {raw[:60]!r}"
+    # (d) CLEAN-LEADING — short response, begins with a letter, unambiguous,
+    # and not the subject of a predication the parser can't read the
+    # polarity of (see docstring / _PREDICATE_FOLLOWERS / _POLARITY_TOKENS).
+    if words and len(words) <= 4:
+        first = _as_letter(words[0])
+        if first is not None:
+            rest = words[1:]
+            immediate_follower = _clean_word(rest[0]).lower() if rest else None
+            is_subject_of_predication = immediate_follower in _PREDICATE_FOLLOWERS
+            has_downstream_polarity = any(
+                _clean_word(w).lower() in _POLARITY_TOKENS for w in rest
+            )
+            other_letters = {
+                letter for w in rest
+                if (letter := _as_letter(w)) is not None and letter != first
+            }
+            if not other_letters and not is_subject_of_predication and not has_downstream_polarity:
+                return _result(first, None, raw_response, "clean_leading")
+
+    # (e) SINGLE-TOKEN — the whole response is one standalone letter.
+    if len(words) == 1:
+        only = _as_letter(words[0])
+        if only is not None:
+            return _result(only, None, raw_response, "single_token")
+
+    return _result(None, f"no match in: {text[:60]!r}", raw_response, "no_match")
 
 
 def score_arm(
@@ -160,7 +298,8 @@ def score_arm(
 
         prompt, context = build_mc_prompt(q, opts, caption_context)
         raw = aria.generate(prompt=prompt, context=context)
-        choice, parse_reason = parse_mc_answer(raw, opts)
+        parsed = parse_mc_answer(raw, opts)
+        choice = parsed.parsed_letter
 
         abstain = choice == "X"
         parse_fail = choice is None
@@ -172,12 +311,15 @@ def score_arm(
             "pred": choice, "gold": gold_letter,
             "correct": correct, "abstain": abstain, "parse_fail": parse_fail,
             "raw": raw[:120],
+            "raw_response": parsed.raw_response,
+            "parse_path": parsed.parse_path,
         }
         records.append(rec)
         if results_out is not None:
             results_out.append({k: rec[k] for k in
                 ["qid", "family", "top_k", "arm", "pred", "gold",
-                 "correct", "abstain", "parse_fail"]})
+                 "correct", "abstain", "parse_fail",
+                 "raw_response", "parse_path"]})
 
     def _stats(recs: list[dict]) -> dict:
         n = len(recs)

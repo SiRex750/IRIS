@@ -347,7 +347,8 @@ def main() -> None:
         
         prompt_prop, context_prop = build_mc_prompt(question, opts, "\n".join(cap_lines_prop))
         raw_prop = aria.generate(prompt=prompt_prop, context=context_prop)
-        choice_prop, _ = parse_mc_answer(raw_prop, opts)
+        parsed_prop = parse_mc_answer(raw_prop, opts)
+        choice_prop = parsed_prop.parsed_letter
 
         # Grounding metrics
         span_prop = predict_span(
@@ -378,7 +379,8 @@ def main() -> None:
             
         prompt_unif, context_unif = build_mc_prompt(question, opts, "\n".join(cap_lines_unif))
         raw_unif = aria.generate(prompt=prompt_unif, context=context_unif)
-        choice_unif, _ = parse_mc_answer(raw_unif, opts)
+        parsed_unif = parse_mc_answer(raw_unif, opts)
+        choice_unif = parsed_unif.parsed_letter
 
         # Uniform selection carries no retrieval score to peak on -- minmax is
         # the correct construction for this floor baseline, not the invented
@@ -410,7 +412,8 @@ def main() -> None:
             
         prompt_rand, context_rand = build_mc_prompt(question, opts, "\n".join(cap_lines_rand))
         raw_rand = aria.generate(prompt=prompt_rand, context=context_rand)
-        choice_rand, _ = parse_mc_answer(raw_rand, opts)
+        parsed_rand = parse_mc_answer(raw_rand, opts)
+        choice_rand = parsed_rand.parsed_letter
 
         # Random selection carries no retrieval score to peak on -- minmax is
         # the correct construction for this floor baseline, not the invented
@@ -436,6 +439,8 @@ def main() -> None:
             "proposed_iop_05": float(iop_prop >= 0.5),
             "proposed_iou_05": float(iou_prop >= 0.5),
             "proposed_acc_gqa": acc_gqa_prop,
+            "proposed_raw_response": parsed_prop.raw_response,
+            "proposed_parse_path": parsed_prop.parse_path,
             # Uniform metrics
             "uniform_choice": choice_unif,
             "uniform_correct": acc_qa_unif,
@@ -445,6 +450,8 @@ def main() -> None:
             "uniform_iop_05": float(iop_unif >= 0.5),
             "uniform_iou_05": float(iou_unif >= 0.5),
             "uniform_acc_gqa": acc_gqa_unif,
+            "uniform_raw_response": parsed_unif.raw_response,
+            "uniform_parse_path": parsed_unif.parse_path,
             # Random metrics
             "random_choice": choice_rand,
             "random_correct": acc_qa_rand,
@@ -453,7 +460,9 @@ def main() -> None:
             "random_acc_qa": acc_qa_rand,
             "random_iop_05": float(iop_rand >= 0.5),
             "random_iou_05": float(iou_rand >= 0.5),
-            "random_acc_gqa": acc_gqa_rand
+            "random_acc_gqa": acc_gqa_rand,
+            "random_raw_response": parsed_rand.raw_response,
+            "random_parse_path": parsed_rand.parse_path,
         }
         
         question_results.append(res_dict)
