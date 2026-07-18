@@ -6,7 +6,7 @@ vs. gold temporal spans from gsub_val.json.
 Public API
 ----------
 frames_in_window(ts_list, gold_spans) -> float
-iop(ts_list, gold_spans)              -> float
+iop(span, gold_spans)                 -> float
 uniform_ts(duration, top_k)           -> list[float]
 score_grounding_arm(grounded_rows, cache_dir, cfg, gsub) -> dict
 """
@@ -20,6 +20,8 @@ import numpy as np
 
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO))
+
+from eval.span import predict_span
 
 
 # ── Pure metric functions ─────────────────────────────────────────────────────
@@ -39,18 +41,17 @@ def frames_in_window(ts_list: list[float], gold_spans: list[list[float]]) -> flo
     return in_count / len(ts_list)
 
 
-def iop(ts_list: list[float], gold_spans: list[list[float]]) -> float:
+def iop(span: tuple[float, float] | None, gold_spans: list[list[float]]) -> float:
     """Intersection-over-Prediction.
 
-    predicted span = [min(ts_list), max(ts_list)]
-    gold           = union of gold_spans
-    IoP            = |pred ∩ gold_union| / |pred|
-    Returns 0.0 when pred has zero width (all timestamps identical).
+    span    = (start, end) predicted temporal span — see eval/span.py::predict_span.
+    gold    = union of gold_spans
+    IoP     = |pred ∩ gold_union| / |pred|
+    Returns 0.0 when pred is None or has zero/negative width.
     """
-    if not ts_list:
+    if span is None:
         return 0.0
-    pred_s = min(ts_list)
-    pred_e = max(ts_list)
+    pred_s, pred_e = span
     if pred_e <= pred_s:
         return 0.0
     pred_len = pred_e - pred_s
@@ -100,6 +101,8 @@ def score_grounding_arm(
     *,
     arm_name: str = "",
     loaded: dict[str, Any] | None = None,
+    span_mode: str = "ppr_peak",
+    span_half_width: float | None = None,
 ) -> dict:
     """Score one retrieval arm against NExT-GQA gold spans.
 
@@ -112,6 +115,14 @@ def score_grounding_arm(
                    When provided, no disk I/O is performed here; the caller is
                    responsible for loading fresh indexes per top_k so that node
                    mutations from one arm do not carry over to the next.
+    span_mode:      predicted-span mode for the RETRIEVAL branch (see
+                     eval/span.py::predict_span). The "uniform" arm has no
+                     retrieval score to peak on, so it always uses "minmax"
+                     regardless of this argument — that is a deliberate choice
+                     for a floor baseline, not the invented fallback the
+                     span-fix task warns against.
+    span_half_width: required when span_mode="ppr_peak"; deliberately unset by
+                     default (tuned on val and frozen in a later task).
 
     Returns {
         "overall":      {"fiw": float, "iop": float, "n": int},
@@ -142,17 +153,23 @@ def score_grounding_arm(
             continue
 
         gold_spans: list[list[float]] = gsub[vid]["location"][qid]
+        duration = float(gsub[vid].get("duration", 0)) or None
 
         if arm_name == "uniform":
-            duration = float(gsub[vid].get("duration", 0))
-            ts = uniform_ts(duration, top_k)
+            ts = uniform_ts(duration or 0.0, top_k)
+            # No retrieval score exists for synthetic uniform timestamps —
+            # minmax is the correct construction here, not a fallback of convenience.
+            span = predict_span([{"timestamp": t} for t in ts], mode="minmax")
         else:
             emb       = _embed_query(row["question"], cfg)
             retrieved = _build_retrieved(index, emb, cfg)
             ts        = [f["timestamp"] for f in retrieved]
+            span = predict_span(
+                retrieved, mode=span_mode, half_width=span_half_width, duration=duration
+            )
 
         fiw_val = frames_in_window(ts, gold_spans)
-        iop_val = iop(ts, gold_spans)
+        iop_val = iop(span, gold_spans)
 
         fiw_all.append(fiw_val)
         iop_all.append(iop_val)

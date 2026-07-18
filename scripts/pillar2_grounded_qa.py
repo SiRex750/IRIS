@@ -27,23 +27,23 @@ import iris.query as iris_query
 import iris.ingest as iris_ingest
 from iris.iris_config import IRISConfig
 from eval.mc_scorer import build_mc_prompt, parse_mc_answer, LETTERS
+from eval.span import predict_span
 
-def iou(ts_list: list[float], gold_spans: list[list[float]]) -> float:
+def iou(span: tuple[float, float] | None, gold_spans: list[list[float]]) -> float:
     """Intersection-over-Union for temporal grounding.
-    
-    predicted span = [min(ts_list), max(ts_list)]
-    gold           = union of gold_spans
-    IoU            = |pred ∩ gold_union| / |pred ∪ gold_union|
+
+    span = (start, end) predicted temporal span — see eval/span.py::predict_span.
+    gold = union of gold_spans
+    IoU  = |pred ∩ gold_union| / |pred ∪ gold_union|
     """
-    if not ts_list:
+    if span is None:
         return 0.0
-    pred_s = min(ts_list)
-    pred_e = max(ts_list)
+    pred_s, pred_e = span
     if pred_e <= pred_s:
         return 0.0
-    
+
     pred_len = pred_e - pred_s
-    
+
     # Merge gold spans first to handle overlapping gold spans
     sorted_gold = sorted(gold_spans, key=lambda x: x[0])
     merged_gold = []
@@ -52,37 +52,36 @@ def iou(ts_list: list[float], gold_spans: list[list[float]]) -> float:
             merged_gold.append([s, e])
         else:
             merged_gold[-1][1] = max(merged_gold[-1][1], e)
-            
+
     intersect = 0.0
     for s, e in merged_gold:
         lo = max(pred_s, float(s))
         hi = min(pred_e, float(e))
         if hi > lo:
             intersect += hi - lo
-            
+
     gold_len = sum(e - s for s, e in merged_gold)
     union_len = pred_len + gold_len - intersect
-    
+
     if union_len <= 0.0:
         return 0.0
     return intersect / union_len
 
-def iop(ts_list: list[float], gold_spans: list[list[float]]) -> float:
+def iop(span: tuple[float, float] | None, gold_spans: list[list[float]]) -> float:
     """Intersection-over-Prediction.
-    
-    predicted span = [min(ts_list), max(ts_list)]
-    gold           = union of gold_spans
-    IoP            = |pred ∩ gold_union| / |pred|
+
+    span = (start, end) predicted temporal span — see eval/span.py::predict_span.
+    gold = union of gold_spans
+    IoP  = |pred ∩ gold_union| / |pred|
     """
-    if not ts_list:
+    if span is None:
         return 0.0
-    pred_s = min(ts_list)
-    pred_e = max(ts_list)
+    pred_s, pred_e = span
     if pred_e <= pred_s:
         return 0.0
-    
+
     pred_len = pred_e - pred_s
-    
+
     # Merge gold spans first to handle overlapping gold spans
     sorted_gold = sorted(gold_spans, key=lambda x: x[0])
     merged_gold = []
@@ -91,14 +90,14 @@ def iop(ts_list: list[float], gold_spans: list[list[float]]) -> float:
             merged_gold.append([s, e])
         else:
             merged_gold[-1][1] = max(merged_gold[-1][1], e)
-            
+
     intersect = 0.0
     for s, e in merged_gold:
         lo = max(pred_s, float(s))
         hi = min(pred_e, float(e))
         if hi > lo:
             intersect += hi - lo
-            
+
     return intersect / pred_len
 
 def uniform_ts(duration: float, top_k: int) -> list[float]:
@@ -168,11 +167,25 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Pillar 2 Grounded VideoQA Benchmark")
     parser.add_argument("--top_k", type=int, default=8, help="Number of retrieved frames")
     parser.add_argument("--num_boot", type=int, default=1000, help="Number of bootstrap resamples")
+    parser.add_argument(
+        "--span-mode", choices=["ppr_peak", "minmax"], default="ppr_peak",
+        help="Predicted-span construction for the proposed (retrieval) arm. "
+             "minmax is the legacy enclose-all-top-K construction, retained "
+             "only as an explicit ablation arm (DECISIONS.md 2026-07-17 §3).",
+    )
+    parser.add_argument(
+        "--span-half-width", type=float, default=None,
+        help="Half-width (seconds) for --span-mode=ppr_peak. Required when "
+             "span-mode=ppr_peak. Deliberately has no default here -- tuned "
+             "on val and frozen in a later task.",
+    )
     args = parser.parse_args()
-    
+
     print("=== STARTING PILLAR 2 GROUNDED VideoQA EVALUATION ===")
     print(f"Top K retrieved frames: {args.top_k}")
     print(f"Bootstrap resamples:   {args.num_boot}")
+    print(f"Span mode:             {args.span_mode}"
+          + (f" (half_width={args.span_half_width})" if args.span_mode == "ppr_peak" else ""))
     
     # ── 1. Configure active backend ───────────────────────────────────────────
     print("\n[LLM] Seating granite4:micro via Ollama on port 11434...")
@@ -283,10 +296,14 @@ def main() -> None:
         prompt_prop, context_prop = build_mc_prompt(question, opts, "\n".join(cap_lines_prop))
         raw_prop = aria.generate(prompt=prompt_prop, context=context_prop)
         choice_prop, _ = parse_mc_answer(raw_prop, opts)
-        
+
         # Grounding metrics
-        iop_prop = iop(ts_proposed, gold_spans)
-        iou_prop = iou(ts_proposed, gold_spans)
+        span_prop = predict_span(
+            retrieved_proposed, mode=args.span_mode, half_width=args.span_half_width,
+            duration=duration,
+        )
+        iop_prop = iop(span_prop, gold_spans)
+        iou_prop = iou(span_prop, gold_spans)
         acc_qa_prop = float(choice_prop == gold_letter)
         acc_gqa_prop = float(acc_qa_prop and iop_prop >= 0.5)
         
@@ -310,9 +327,13 @@ def main() -> None:
         prompt_unif, context_unif = build_mc_prompt(question, opts, "\n".join(cap_lines_unif))
         raw_unif = aria.generate(prompt=prompt_unif, context=context_unif)
         choice_unif, _ = parse_mc_answer(raw_unif, opts)
-        
-        iop_unif = iop(ts_uniform, gold_spans)
-        iou_unif = iou(ts_uniform, gold_spans)
+
+        # Uniform selection carries no retrieval score to peak on -- minmax is
+        # the correct construction for this floor baseline, not the invented
+        # fallback the span-fix task warns against.
+        span_unif = predict_span(retrieved_uniform, mode="minmax")
+        iop_unif = iop(span_unif, gold_spans)
+        iou_unif = iou(span_unif, gold_spans)
         acc_qa_unif = float(choice_unif == gold_letter)
         acc_gqa_unif = float(acc_qa_unif and iop_unif >= 0.5)
         
@@ -338,9 +359,13 @@ def main() -> None:
         prompt_rand, context_rand = build_mc_prompt(question, opts, "\n".join(cap_lines_rand))
         raw_rand = aria.generate(prompt=prompt_rand, context=context_rand)
         choice_rand, _ = parse_mc_answer(raw_rand, opts)
-        
-        iop_rand = iop(ts_random, gold_spans)
-        iou_rand = iou(ts_random, gold_spans)
+
+        # Random selection carries no retrieval score to peak on -- minmax is
+        # the correct construction for this floor baseline, not the invented
+        # fallback the span-fix task warns against.
+        span_rand = predict_span(retrieved_random, mode="minmax")
+        iop_rand = iop(span_rand, gold_spans)
+        iou_rand = iou(span_rand, gold_spans)
         acc_qa_rand = float(choice_rand == gold_letter)
         acc_gqa_rand = float(acc_qa_rand and iop_rand >= 0.5)
         

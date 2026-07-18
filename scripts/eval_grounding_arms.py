@@ -42,6 +42,13 @@ import iris.ingest as iris_ingest
 import iris.scene_retrieval as scene_retrieval
 from iris.iris_config import IRISConfig
 from eval.grounding_scorer import frames_in_window, iop, load_indexes, uniform_ts
+from eval.span import predict_span
+
+# Predicted-span mode for the retrieval arms below (eval/span.py). half_width
+# is deliberately unset -- tuned on val and frozen in a later task; running
+# this script's retrieval arms before then will raise in predict_span().
+SPAN_MODE = "ppr_peak"
+SPAN_HALF_WIDTH: float | None = None
 
 DATA_DIR       = REPO / "eval" / "data" / "nextqa"
 FLAT_CACHE     = DATA_DIR / "index_cache"            # flat-mode ingests
@@ -155,8 +162,12 @@ def main() -> None:
             emb = _embed_query(row["question"], cfg)
             retrieved = _build_retrieved(index, emb, cfg)
             ts = [f["timestamp"] for f in retrieved]
+            span = predict_span(
+                retrieved, mode=SPAN_MODE, half_width=SPAN_HALF_WIDTH,
+                duration=duration_by_vid.get(vid),
+            )
             fiw_val = frames_in_window(ts, gold_spans)
-            iop_val = iop(ts, gold_spans)
+            iop_val = iop(span, gold_spans)
             fiw_list.append(fiw_val)
             iop_list.append(iop_val)
             pq[(vid, qid)] = fiw_val
@@ -180,9 +191,12 @@ def main() -> None:
         vid, qid = row["video"], str(row["qid"])
         gold_spans = gsub[vid]["location"][qid]
         ts = uniform_ts(duration_by_vid[vid], TOP_K)
+        # No retrieval score for synthetic uniform timestamps -- minmax is the
+        # correct construction here, not a fallback of convenience.
+        span_u = predict_span([{"timestamp": t} for t in ts], mode="minmax")
         fiw_val = frames_in_window(ts, gold_spans)
         fiw_u.append(fiw_val)
-        iop_u.append(iop(ts, gold_spans))
+        iop_u.append(iop(span_u, gold_spans))
         pq_u[(vid, qid)] = fiw_val
     uniform_agg = {"fiw": statistics.mean(fiw_u), "iop": statistics.mean(iop_u), "n": len(fiw_u)}
     per_arm_pq["uniform"] = pq_u
