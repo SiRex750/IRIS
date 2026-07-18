@@ -21,7 +21,7 @@ import numpy as np
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO))
 
-from eval.span import predict_span
+from eval.span import FROZEN_HALF_WIDTH_SECONDS, predict_span
 
 
 # ── Pure metric functions ─────────────────────────────────────────────────────
@@ -102,7 +102,7 @@ def score_grounding_arm(
     arm_name: str = "",
     loaded: dict[str, Any] | None = None,
     span_mode: str = "ppr_peak",
-    span_half_width: float | None = None,
+    span_half_width: float | None = FROZEN_HALF_WIDTH_SECONDS,
 ) -> dict:
     """Score one retrieval arm against NExT-GQA gold spans.
 
@@ -121,8 +121,10 @@ def score_grounding_arm(
                      regardless of this argument — that is a deliberate choice
                      for a floor baseline, not the invented fallback the
                      span-fix task warns against.
-    span_half_width: required when span_mode="ppr_peak"; deliberately unset by
-                     default (tuned on val and frozen in a later task).
+    span_half_width: required when span_mode="ppr_peak"; defaults to the frozen
+                     eval.span.FROZEN_HALF_WIDTH_SECONDS (2.2s, duration-anchor
+                     method, DECISIONS.md 2026-07-18). Pass an explicit value to
+                     override for ablation.
 
     Returns {
         "overall":      {"fiw": float, "iop": float, "n": int},

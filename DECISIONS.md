@@ -150,3 +150,44 @@ structurally rewritten AND the sweep was already run in that form
 (virat_retention_sweep_report.json) — that run is unregistered and does not satisfy the Phase-5
 pre-registration; scratch/test_tune_l1_weights.py is pytest-collectable by name but is not a
 pytest suite.
+
+## 2026-07-18: Retrieval is the dominant grounding loss — two roadmap claims falsified
+
+Measured on the N=64 in-sample grounded set (no held-out split; compute-limited), retrieval-only,
+answerer-free scorer. Numbers are in-sample with video-level bootstrap CIs (1000 resamples).
+
+### C1. The span bug was NOT the mIoP lever (roadmap v8 P1 "biggest lever" — FALSIFIED)
+Fixing the min->max span (enclose-all-top-K) to span-from-PPR-peak changed mIoP by -0.0158
+(minmax 0.2744 vs ppr_peak@w=2.2 0.2586; 95% CI [-0.0928, +0.0666], spans zero). Roadmap v8
+predicted minmax ~0.31 -> ppr_peak high-30s. Neither number materialized; the direction is
+flat/slightly-negative. The span bug was a real bug and the fix is kept (it is correct on the
+questions where retrieval succeeds), but it is NOT a lever on the headline metric. P1 is
+demoted from "biggest lever" to "correctness fix, no headline effect."
+
+### C2. The answerer is NOT the sole Acc@GQA bottleneck (roadmap diagnosis — FALSIFIED)
+The "entire Acc@GQA deficit is the answerer" claim was computed from IoP@0.5=25%, but that 25%
+is itself suppressed by retrieval hard-misses: 39/64 questions (61%) have IoP in [0,0.1), 38 of
+them exactly 0.0 (no predicted/gold overlap at all). Retrieval is upstream of and dominates the
+answerer term. Verified NOT a mechanical artifact: units consistent (seconds throughout, no fps
+confusion), t* in-bounds, zero scoring-bug cases, zero near-miss/boundary cases (nearest-gold
+distance min 2.55s, median 8.37s — all beyond the 2.2s window). Retrieved clusters are
+internally coherent but land in the wrong video neighborhood.
+
+### C3. The mechanism: caption-free CLIP retrieval misses SHORT events
+Only discriminator between hit (IoP>=0.6, n=17) and miss (IoP=0.0, n=38): gold-span length,
+~3x longer in hits (mean 18.74s vs 5.82s). Duration, family (C/T), and multi-interval count are
+indistinguishable. Static-image CLIP embeddings + PPR retrieve the wrong moment when the target
+event is brief. This is a mechanistic retrieval-precision finding, deconfounded.
+
+### Consequence for the roadmap (to be re-sequenced with Dr. Uma, not unilaterally)
+- half_width=2.2 is FROZEN as span-construction plumbing (median gold half-span), NOT as a
+  result. The flat sweep (0.2510-0.2596 across the grid, all CIs overlapping) confirms width has
+  no lever; it acts only on the ~17 already-retrieved questions.
+- The embedding swap (SigLIP2 / MobileCLIP, roadmap Phase 5) is promoted from optional-pre-
+  finetune to the DIRECT TEST of C3: does temporal/better embedding close the short-event miss?
+- The P2 answerer diagnostic is demoted: captions-vs-answerer cannot be cleanly measured while
+  61% of evidence retrieval misses the event. P2 as written risks measuring noise downstream of
+  the retrieval failure.
+- All grounding numbers remain in-sample N=64 lower bounds until a larger set is built (526
+  grounded questions available across the 87 already-cached videos, no new ingest required, when
+  compute allows).

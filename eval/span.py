@@ -11,6 +11,18 @@ from __future__ import annotations
 
 from typing import Any, Sequence
 
+# FROZEN 2026-07-18: half_width for mode="ppr_peak", duration-anchor method --
+# median gold half-span on the N=64 in-sample grounded set (dev_100.jsonl ∩
+# index_cache ∩ gsub_val.json). Confirmation sweep over {1.0..6.0}s showed
+# mIoP flat (0.2510-0.2596, all bootstrap CIs overlapping); the anchor (2.2)
+# fell inside the argmax's CI, so it stands per the pre-registered freeze
+# rule (anchor wins unless statistically worse than argmax). NOT an argmax
+# pick. This is the single authoritative source -- every call site below
+# reads this constant rather than hardcoding its own literal. predict_span()
+# itself keeps half_width as a required arg with no baked-in default; this
+# constant is what callers pass in.
+FROZEN_HALF_WIDTH_SECONDS: float = 2.2
+
 # Priority order for the timestamp field on a frame (dict key or attribute).
 _TIMESTAMP_FIELDS = ("timestamp", "timestamp_sec")
 

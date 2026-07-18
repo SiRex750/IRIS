@@ -42,13 +42,13 @@ import iris.ingest as iris_ingest
 import iris.scene_retrieval as scene_retrieval
 from iris.iris_config import IRISConfig
 from eval.grounding_scorer import frames_in_window, iop, load_indexes, uniform_ts
-from eval.span import predict_span
+from eval.span import FROZEN_HALF_WIDTH_SECONDS, predict_span
 
 # Predicted-span mode for the retrieval arms below (eval/span.py). half_width
-# is deliberately unset -- tuned on val and frozen in a later task; running
-# this script's retrieval arms before then will raise in predict_span().
+# reads the single frozen source (eval.span.FROZEN_HALF_WIDTH_SECONDS = 2.2s,
+# duration-anchor method, DECISIONS.md 2026-07-18) rather than a local literal.
 SPAN_MODE = "ppr_peak"
-SPAN_HALF_WIDTH: float | None = None
+SPAN_HALF_WIDTH: float | None = FROZEN_HALF_WIDTH_SECONDS
 
 DATA_DIR       = REPO / "eval" / "data" / "nextqa"
 FLAT_CACHE     = DATA_DIR / "index_cache"            # flat-mode ingests

@@ -31,7 +31,7 @@ import iris.query as iris_query
 import iris.ingest as iris_ingest
 from iris.iris_config import IRISConfig
 from eval.mc_scorer import build_mc_prompt, parse_mc_answer, LETTERS
-from eval.span import predict_span
+from eval.span import FROZEN_HALF_WIDTH_SECONDS, predict_span
 
 def iou(span: tuple[float, float] | None, gold_spans: list[list[float]]) -> float:
     """Intersection-over-Union for temporal grounding.
@@ -221,10 +221,10 @@ def main() -> None:
              "only as an explicit ablation arm (DECISIONS.md 2026-07-17 §3).",
     )
     parser.add_argument(
-        "--span-half-width", type=float, default=None,
-        help="Half-width (seconds) for --span-mode=ppr_peak. Required when "
-             "span-mode=ppr_peak. Deliberately has no default here -- tuned "
-             "on val and frozen in a later task.",
+        "--span-half-width", type=float, default=FROZEN_HALF_WIDTH_SECONDS,
+        help="Half-width (seconds) for --span-mode=ppr_peak. Defaults to the "
+             "frozen eval.span.FROZEN_HALF_WIDTH_SECONDS (2.2s, duration-anchor "
+             "method, DECISIONS.md 2026-07-18). Override for ablation.",
     )
     args = parser.parse_args()
 
