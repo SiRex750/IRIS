@@ -235,6 +235,11 @@ def main() -> None:
              "frames are retrieved. 'ppr_score' reproduces pre-2026-07-19 "
              "behavior exactly -- retained as a named ablation arm.",
     )
+    parser.add_argument(
+        "--ppr-lambda", type=float, default=0.5,
+        help="PPR seed blend: lambda*sem_rank + (1-lambda)*codec_rank; "
+             "1.0=pure semantic, 0.0=pure codec",
+    )
     args = parser.parse_args()
 
     print("=== STARTING PILLAR 2 GROUNDED VideoQA EVALUATION ===")
@@ -251,7 +256,7 @@ def main() -> None:
         cerberus_mode="v2",
         l2_retrieve_top_k=args.top_k,
         ranking_mode="ppr",
-        ppr_lambda=0.5,
+        ppr_lambda=args.ppr_lambda,
         candidate_thresh=0.08,
         l1_w_action=0.60,
         l1_w_query=0.25,
@@ -518,6 +523,7 @@ def main() -> None:
         "span_mode": args.span_mode,
         "span_half_width": args.span_half_width,
         "span_peak_source": args.span_peak_source,
+        "ppr_lambda": cfg_proposed.ppr_lambda,
         "git_commit": git_commit,
         "git_dirty": git_dirty,
         "config_hash": config_hash(cfg_proposed),
