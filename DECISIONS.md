@@ -191,3 +191,34 @@ event is brief. This is a mechanistic retrieval-precision finding, deconfounded.
 - All grounding numbers remain in-sample N=64 lower bounds until a larger set is built (526
   grounded questions available across the 87 already-cached videos, no new ingest required, when
   compute allows).
+
+## 2026-07-19: A6 pinned run (mixed c4dd497 + all-minmax bcf940e; N=64 in-sample)
+
+### A1. P(correct | grounded) = 65% — MEASURED, replaces quarantined placeholder
+15/23 = 65.2%, video-clustered 95% CI [0.45, 0.84]. Replaces the quarantined V2 placeholder
+(36%). The answerer is competent given grounding and is NOT the binding constraint at ~36%
+grounding; P2 stays deferred. Acc@GQA measured 23.4% (proposed), vs ~13% projected.
+
+### A2. Baseline-span fork RESOLVED: proposed-uniform grounding advantage does NOT survive all-minmax
+mIoP diff +0.019 CI [-0.021, +0.063], IoP@0.5 diff +0.031 CI [-0.031, +0.097] (both span zero).
+The mixed +0.087 mIoP edge decomposes into span construction +0.068 and frame selection +0.019
+(n.s.). DO NOT claim IRIS retrieval localizes better than uniform. Localization credit belongs
+to clip-in-PPR-top8 peak selection (span construction), NOT frame selection.
+
+### A3. New span-independent retrieval win on the answer
+proposed Acc@QA 53.1% vs uniform 21.9% (+0.31 CI [+0.16, +0.45]) vs random 29.7% (+0.23 CI
+[+0.09, +0.38]). Acc@QA is span-independent -> clean, unconfounded "retrieval delivers better
+answerer evidence" claim.
+
+### A4. Grounding gap (faithfulness signal, feeds P6)
+19/64 answered correctly while UNGROUNDED (P(correct|ungrounded) = 46%). Evidence for
+language-prior shortcut answering; feeds the verification pillar (P6).
+
+### A5. Parser and determinism clean
+Parser 64/64 clean_leading (zero failures). Answerer determinism replicated (proposed Acc@QA
+byte-identical across both runs).
+
+### A6. Peak-source fix result now recorded (closes the prior gap)
+Mixed proposed mIoP 0.3426 / IoP@0.5 35.9% reproduced at c4dd497; +8 IoP@0.5 vs the ppr_score
+legacy peak (28.1%, half_width report). Artifacts: A6_mixed_raw.json, A6_allminmax_raw.json
+(bcf940e); half_width_confirmation_report.md (83215c0).
