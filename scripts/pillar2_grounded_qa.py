@@ -226,13 +226,23 @@ def main() -> None:
              "frozen eval.span.FROZEN_HALF_WIDTH_SECONDS (2.2s, duration-anchor "
              "method, DECISIONS.md 2026-07-18). Override for ablation.",
     )
+    parser.add_argument(
+        "--span-peak-source", choices=["clip_in_ppr_top8", "ppr_score"], default="clip_in_ppr_top8",
+        help="Peak-selection rule for --span-mode=ppr_peak (see eval/span.py::"
+             "predict_span). 'clip_in_ppr_top8' (default, production since "
+             "2026-07-19) centers the span on the highest-raw-CLIP-similarity "
+             "frame among PPR's own retrieved set, WITHOUT changing which "
+             "frames are retrieved. 'ppr_score' reproduces pre-2026-07-19 "
+             "behavior exactly -- retained as a named ablation arm.",
+    )
     args = parser.parse_args()
 
     print("=== STARTING PILLAR 2 GROUNDED VideoQA EVALUATION ===")
     print(f"Top K retrieved frames: {args.top_k}")
     print(f"Bootstrap resamples:   {args.num_boot}")
     print(f"Span mode:             {args.span_mode}"
-          + (f" (half_width={args.span_half_width})" if args.span_mode == "ppr_peak" else ""))
+          + (f" (half_width={args.span_half_width}, peak_source={args.span_peak_source})"
+             if args.span_mode == "ppr_peak" else ""))
 
     # ── 0. Set configs (moved ahead of backend seating so the backend reads
     #      its endpoint/model from this config, not a hardcoded literal) ──────
@@ -353,7 +363,7 @@ def main() -> None:
         # Grounding metrics
         span_prop = predict_span(
             retrieved_proposed, mode=args.span_mode, half_width=args.span_half_width,
-            duration=duration,
+            duration=duration, peak_source=args.span_peak_source, query_embedding=emb,
         )
         iop_prop = iop(span_prop, gold_spans)
         iou_prop = iou(span_prop, gold_spans)
@@ -507,6 +517,7 @@ def main() -> None:
         "cache_prompt": backend.cache_prompt,
         "span_mode": args.span_mode,
         "span_half_width": args.span_half_width,
+        "span_peak_source": args.span_peak_source,
         "git_commit": git_commit,
         "git_dirty": git_dirty,
         "config_hash": config_hash(cfg_proposed),

@@ -103,6 +103,7 @@ def score_grounding_arm(
     loaded: dict[str, Any] | None = None,
     span_mode: str = "ppr_peak",
     span_half_width: float | None = FROZEN_HALF_WIDTH_SECONDS,
+    span_peak_source: str = "clip_in_ppr_top8",
 ) -> dict:
     """Score one retrieval arm against NExT-GQA gold spans.
 
@@ -125,6 +126,10 @@ def score_grounding_arm(
                      eval.span.FROZEN_HALF_WIDTH_SECONDS (2.2s, duration-anchor
                      method, DECISIONS.md 2026-07-18). Pass an explicit value to
                      override for ablation.
+    span_peak_source: peak-selection rule for span_mode="ppr_peak" (see
+                     eval/span.py::predict_span) -- "clip_in_ppr_top8" (default,
+                     production) or "ppr_score" (pre-2026-07-19 ablation arm).
+                     Ignored for the "uniform" arm (always minmax, no peak).
 
     Returns {
         "overall":      {"fiw": float, "iop": float, "n": int},
@@ -167,7 +172,8 @@ def score_grounding_arm(
             retrieved = _build_retrieved(index, emb, cfg)
             ts        = [f["timestamp"] for f in retrieved]
             span = predict_span(
-                retrieved, mode=span_mode, half_width=span_half_width, duration=duration
+                retrieved, mode=span_mode, half_width=span_half_width, duration=duration,
+                peak_source=span_peak_source, query_embedding=emb,
             )
 
         fiw_val = frames_in_window(ts, gold_spans)
