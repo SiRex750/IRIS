@@ -24,3 +24,4 @@ data/
 benchmark_results/
 *_output.log
 *.npz
+eval_results/llama_server_*.log
