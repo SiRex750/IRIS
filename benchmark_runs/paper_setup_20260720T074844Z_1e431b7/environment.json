@@ -1,0 +1,9 @@
+{
+  "captured_utc": "2026-07-20T07:48:44Z",
+  "os": "Windows-10-10.0.26200-SP0",
+  "python_version": "3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]",
+  "cuda_available": false,
+  "gpu": null,
+  "note_gpu": "nvidia-smi not found on PATH; torch reports cuda.is_available()=False; torch build is +cpu",
+  "torch_version": "2.13.0+cpu"
+}

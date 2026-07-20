@@ -1,0 +1,5 @@
+{
+  "sweep_dim": "peak_rule",
+  "value": "raw_clip_same_pool",
+  "availability": "NOT_IMPLEMENTED"
+}

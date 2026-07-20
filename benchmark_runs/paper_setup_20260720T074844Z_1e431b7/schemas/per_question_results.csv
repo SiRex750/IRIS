@@ -1,0 +1,1 @@
+run_id,git_sha,config_hash,method_id,split,video_id,question_id,question_type,predicted_answer,gold_answer,answer_correct,gold_spans,predicted_span,iop,iou,grounded,acc_gqa,abstained,failure_code,layer1_output_ref,layer2_output_ref,layer3_output_ref

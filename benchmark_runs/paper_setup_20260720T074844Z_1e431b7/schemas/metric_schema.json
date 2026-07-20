@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "per_question_metric_record",
+  "type": "object",
+  "required": ["run_id", "git_sha", "config_hash", "method_id", "split", "video_id", "question_id",
+               "gold_answer", "predicted_answer", "answer_correct", "gold_spans", "predicted_span",
+               "iop", "iou", "acc_gqa"],
+  "properties": {
+    "run_id": {"type": "string"},
+    "git_sha": {"type": "string"},
+    "config_hash": {"type": "string"},
+    "method_id": {"type": "string"},
+    "split": {"type": "string", "enum": ["val_tune", "val_confirm", "official_test"]},
+    "video_id": {"type": "string"},
+    "question_id": {"type": "string"},
+    "gold_answer": {},
+    "predicted_answer": {},
+    "answer_correct": {"type": "boolean"},
+    "gold_spans": {"type": "array", "items": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2}},
+    "predicted_span": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2},
+    "iop": {"type": "number", "minimum": 0, "maximum": 1},
+    "iou": {"type": "number", "minimum": 0, "maximum": 1},
+    "acc_gqa": {"type": "boolean"},
+    "abstained": {"type": "boolean"},
+    "failure_code": {"type": ["string", "null"]}
+  }
+}

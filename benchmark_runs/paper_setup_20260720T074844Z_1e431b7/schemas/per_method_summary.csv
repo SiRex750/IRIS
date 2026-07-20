@@ -1,0 +1,1 @@
+run_id,method_id,split,acc_qa,acc_gqa,iop,miop,iop_at_0.3,iop_at_0.5,iou,miou,iou_at_0.3,iou_at_0.5,temporal_hit_at_1,temporal_hit_at_5,temporal_hit_at_10,mrr,mean_latency_ms,median_latency_ms,p95_latency_ms,peak_ram_mb,retention_pct,failure_rate,bootstrap_ci_lower,bootstrap_ci_upper

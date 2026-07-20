@@ -1,0 +1,20 @@
+{
+  "clock_policy": {
+    "wall_clock": "time.perf_counter() (monotonic, high-resolution)",
+    "cpu_clock": "time.perf_counter_ns() for CPU-bound segments",
+    "gpu_note": "torch.cuda.is_available()==False in this environment (CPU-only torch build, no nvidia-smi on PATH) -- CUDA synchronize calls are not applicable here; if run later on a GPU host, torch.cuda.synchronize() must bracket every GPU timing region before/after",
+    "cold_warm_separation": "cold = first ingest of a video (no .npz cache hit); warm = index loaded from an existing cache. Never averaged together in per_method_latency_summary.csv.",
+    "rules": [
+      "Do not report zero latency for any executed method.",
+      "Do not reuse another method's timing record.",
+      "Do not combine CPU and GPU timing into one field.",
+      "Do not compare a warm proposed-method run against a cold baseline run.",
+      "Record both the sum of component timers and an independently measured wall-clock total; a mismatch flags an uninstrumented gap."
+    ]
+  },
+  "per_video_timers": ["container_open_demux", "decode", "codec_feature_extraction", "l1_admission", "clip_embedding", "graph_construction", "cache_serialization", "cold_ingest_total", "warm_cache_load", "complete_workload_time"],
+  "per_question_timers": ["query_embedding", "graph_retrieval", "ppr", "clip_reranking", "frame_fetch", "captioning", "answering", "verification", "serialization", "retrieval_only_total", "unverified_answer_total", "verified_end_to_end_total", "time_to_first_evidence", "time_to_final_answer"],
+  "resource_metrics": ["video_duration", "total_frames", "expensive_frames_processed", "retained_frames", "captioned_frames", "retention_percentage", "peak_ram_mb", "peak_vram_mb", "cpu_utilization_pct", "gpu_utilization_pct", "index_size_bytes", "energy_joules_if_available", "ingest_real_time_factor", "questions_per_minute", "videos_per_hour"],
+  "note_clip_reranking_timer": "clip_reranking timer field is reserved for when configs/peak_span_modes.json's raw_clip_same_pool/clip_in_ppr_topk are implemented; until then it will read null/not-applicable rather than a fabricated value.",
+  "implementation_status": "Instrumentation points registered here; not yet inserted into iris/ source (that is code work, out of scope for a SETUP ONLY task) -- see setup_report.md remaining blockers."
+}

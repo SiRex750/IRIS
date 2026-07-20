@@ -1,0 +1,1 @@
+run_id,git_sha,config_hash,method_id,split,video_id,container_open_demux_ms,decode_ms,codec_feature_extraction_ms,l1_admission_ms,clip_embedding_ms,graph_construction_ms,cache_serialization_ms,cold_ingest_total_ms,warm_cache_load_ms,complete_workload_time_ms,is_cold

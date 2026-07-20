@@ -1,0 +1,121 @@
+`torch_dtype` is deprecated! Use `dtype` instead!
+Using a slow image processor as `use_fast` is unset and a slow processor was saved with this model. `use_fast=True` will be the default behavior in v4.52, even if the model was saved with a slow processor. This will result in minor differences in outputs. You'll still be able to use a slow processor with `use_fast=False`.
+[_ensure_captions] video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\6936757706.mp4' unique_frame_seeks_requested=5 frames_decoded=112 survivor_count=80 decode_overhead_ratio=1.4
+[scene_retrieval] shortlisted 5/18 scenes, margin=0.0065 tau=0.015 branch=descend base_pool=23 post_pull_pool=23 cross_scene_edges_added=10
+[INFO] Loading BLIP model on cpu (first run will download ~990MB)...
+[INFO] BLIP model loaded successfully.
+[DEBUG] CerberusV verification: model_load_time = 5.5870s | inference_time = 4.5273s
+[legacy] 6936757706/11: abstained=False (verified=False) [82.2s]
+[_ensure_captions] video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\6936757706.mp4' unique_frame_seeks_requested=5 frames_decoded=102 survivor_count=80 decode_overhead_ratio=1.27
+[scene_retrieval] shortlisted 5/18 scenes, margin=0.0018 tau=0.015 branch=descend base_pool=25 post_pull_pool=25 cross_scene_edges_added=10
+[DEBUG] CerberusV verification: model_load_time = 0.0000s | inference_time = 5.3437s
+[legacy] 6936757706/0: abstained=True (verified=False) [50.0s]
+[_ensure_captions] video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\6936757706.mp4' unique_frame_seeks_requested=5 frames_decoded=312 survivor_count=80 decode_overhead_ratio=3.9
+C:\Users\swara\IRIS\iris\query.py:913: RuntimeWarning: QUERY-CAPTION-001: GOP-seek decode overhead: frames_decoded_for_captions=312 > 3x survivor_count=80 (unique_frame_seeks_requested=5) for video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\6936757706.mp4'. This can indicate very sparse I-frames (long GOPs) forcing a long forward decode to reach mid-GOP caption targets.
+  frames_decoded_for_captions = _ensure_captions(index, retrieved_frames, config, question=question, choices=choices)
+[scene_retrieval] shortlisted 5/18 scenes, margin=0.0026 tau=0.015 branch=descend base_pool=25 post_pull_pool=25 cross_scene_edges_added=10
+[DEBUG] CerberusV verification: model_load_time = 0.0000s | inference_time = 8.5337s
+[legacy] 6936757706/14: abstained=True (verified=False) [58.1s]
+[_ensure_captions] video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\6936757706.mp4' unique_frame_seeks_requested=5 frames_decoded=88 survivor_count=80 decode_overhead_ratio=1.1
+[scene_retrieval] shortlisted 5/18 scenes, margin=0.0030 tau=0.015 branch=descend base_pool=21 post_pull_pool=21 cross_scene_edges_added=10
+[DEBUG] CerberusV verification: model_load_time = 0.0000s | inference_time = 7.2430s
+[legacy] 6936757706/7: abstained=False (verified=False) [45.6s]
+[_ensure_captions] video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\3079724515.mp4' unique_frame_seeks_requested=5 frames_decoded=497 survivor_count=119 decode_overhead_ratio=4.18
+C:\Users\swara\IRIS\iris\query.py:913: RuntimeWarning: QUERY-CAPTION-001: GOP-seek decode overhead: frames_decoded_for_captions=497 > 3x survivor_count=119 (unique_frame_seeks_requested=5) for video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\3079724515.mp4'. This can indicate very sparse I-frames (long GOPs) forcing a long forward decode to reach mid-GOP caption targets.
+  frames_decoded_for_captions = _ensure_captions(index, retrieved_frames, config, question=question, choices=choices)
+[scene_retrieval] shortlisted 5/24 scenes, margin=0.0033 tau=0.015 branch=descend base_pool=18 post_pull_pool=18 cross_scene_edges_added=10
+[DEBUG] CerberusV verification: model_load_time = 0.0000s | inference_time = 5.6312s
+[legacy] 3079724515/6: abstained=True (verified=False) [50.7s]
+[_ensure_captions] video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\3079724515.mp4' unique_frame_seeks_requested=5 frames_decoded=455 survivor_count=119 decode_overhead_ratio=3.82
+C:\Users\swara\IRIS\iris\query.py:913: RuntimeWarning: QUERY-CAPTION-001: GOP-seek decode overhead: frames_decoded_for_captions=455 > 3x survivor_count=119 (unique_frame_seeks_requested=5) for video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\3079724515.mp4'. This can indicate very sparse I-frames (long GOPs) forcing a long forward decode to reach mid-GOP caption targets.
+  frames_decoded_for_captions = _ensure_captions(index, retrieved_frames, config, question=question, choices=choices)
+[scene_retrieval] shortlisted 5/24 scenes, margin=0.0029 tau=0.015 branch=descend base_pool=30 post_pull_pool=35 cross_scene_edges_added=21
+[DEBUG] CerberusV verification: model_load_time = 0.0000s | inference_time = 5.4716s
+[legacy] 3079724515/8: abstained=True (verified=False) [47.2s]
+[_ensure_captions] video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\3079724515.mp4' unique_frame_seeks_requested=5 frames_decoded=827 survivor_count=119 decode_overhead_ratio=6.95
+C:\Users\swara\IRIS\iris\query.py:913: RuntimeWarning: QUERY-CAPTION-001: GOP-seek decode overhead: frames_decoded_for_captions=827 > 3x survivor_count=119 (unique_frame_seeks_requested=5) for video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\3079724515.mp4'. This can indicate very sparse I-frames (long GOPs) forcing a long forward decode to reach mid-GOP caption targets.
+  frames_decoded_for_captions = _ensure_captions(index, retrieved_frames, config, question=question, choices=choices)
+[scene_retrieval] shortlisted 5/24 scenes, margin=0.0014 tau=0.015 branch=descend base_pool=24 post_pull_pool=24 cross_scene_edges_added=10
+[DEBUG] CerberusV verification: model_load_time = 0.0000s | inference_time = 3.8365s
+[legacy] 3079724515/0: abstained=True (verified=False) [44.3s]
+[_ensure_captions] video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\3079724515.mp4' unique_frame_seeks_requested=5 frames_decoded=395 survivor_count=119 decode_overhead_ratio=3.32
+C:\Users\swara\IRIS\iris\query.py:913: RuntimeWarning: QUERY-CAPTION-001: GOP-seek decode overhead: frames_decoded_for_captions=395 > 3x survivor_count=119 (unique_frame_seeks_requested=5) for video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\3079724515.mp4'. This can indicate very sparse I-frames (long GOPs) forcing a long forward decode to reach mid-GOP caption targets.
+  frames_decoded_for_captions = _ensure_captions(index, retrieved_frames, config, question=question, choices=choices)
+[scene_retrieval] shortlisted 5/24 scenes, margin=0.0049 tau=0.015 branch=descend base_pool=28 post_pull_pool=32 cross_scene_edges_added=15
+[DEBUG] CerberusV verification: model_load_time = 0.0000s | inference_time = 2.6460s
+[legacy] 3079724515/9: abstained=True (verified=False) [40.5s]
+[_ensure_captions] video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\8900428927.mp4' unique_frame_seeks_requested=5 frames_decoded=33 survivor_count=33 decode_overhead_ratio=1.0
+[scene_retrieval] shortlisted 3/3 scenes, base_pool=33 margin=0.0227 tau=0.015 branch=shortcut
+[DEBUG] CerberusV verification: model_load_time = 0.0000s | inference_time = 4.0937s
+[legacy] 8900428927/0: abstained=True (verified=False) [37.6s]
+[_ensure_captions] video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\8900428927.mp4' unique_frame_seeks_requested=5 frames_decoded=33 survivor_count=33 decode_overhead_ratio=1.0
+[scene_retrieval] shortlisted 3/3 scenes, base_pool=33 margin=0.0154 tau=0.015 branch=shortcut
+[DEBUG] CerberusV verification: model_load_time = 0.0000s | inference_time = 2.4337s
+[legacy] 8900428927/13: abstained=True (verified=False) [31.8s]
+[_ensure_captions] video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\8900428927.mp4' unique_frame_seeks_requested=5 frames_decoded=33 survivor_count=33 decode_overhead_ratio=1.0
+[scene_retrieval] shortlisted 3/3 scenes, base_pool=33 margin=0.0267 tau=0.015 branch=shortcut
+[DEBUG] CerberusV verification: model_load_time = 0.0000s | inference_time = 2.9912s
+[legacy] 8900428927/8: abstained=True (verified=False) [33.9s]
+[_ensure_captions] video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\8900428927.mp4' unique_frame_seeks_requested=5 frames_decoded=141 survivor_count=33 decode_overhead_ratio=4.27
+C:\Users\swara\IRIS\iris\query.py:913: RuntimeWarning: QUERY-CAPTION-001: GOP-seek decode overhead: frames_decoded_for_captions=141 > 3x survivor_count=33 (unique_frame_seeks_requested=5) for video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\8900428927.mp4'. This can indicate very sparse I-frames (long GOPs) forcing a long forward decode to reach mid-GOP caption targets.
+  frames_decoded_for_captions = _ensure_captions(index, retrieved_frames, config, question=question, choices=choices)
+[scene_retrieval] shortlisted 3/3 scenes, margin=0.0068 tau=0.015 branch=descend base_pool=33 post_pull_pool=33 cross_scene_edges_added=3
+[DEBUG] CerberusV verification: model_load_time = 0.0000s | inference_time = 5.3550s
+[legacy] 8900428927/2: abstained=True (verified=False) [42.2s]
+[_ensure_captions] video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\6936757706.mp4' unique_frame_seeks_requested=5 frames_decoded=112 survivor_count=80 decode_overhead_ratio=1.4
+[scene_retrieval] shortlisted 5/18 scenes, margin=0.0065 tau=0.015 branch=descend base_pool=23 post_pull_pool=23 cross_scene_edges_added=10
+[v2] 6936757706/11: abstained=False (badge=verified) [145.4s]
+[_ensure_captions] video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\6936757706.mp4' unique_frame_seeks_requested=5 frames_decoded=102 survivor_count=80 decode_overhead_ratio=1.27
+[scene_retrieval] shortlisted 5/18 scenes, margin=0.0018 tau=0.015 branch=descend base_pool=25 post_pull_pool=25 cross_scene_edges_added=10
+[v2] 6936757706/0: abstained=False (badge=verified) [65.6s]
+[_ensure_captions] video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\6936757706.mp4' unique_frame_seeks_requested=5 frames_decoded=312 survivor_count=80 decode_overhead_ratio=3.9
+C:\Users\swara\IRIS\iris\query.py:796: RuntimeWarning: QUERY-CAPTION-001: GOP-seek decode overhead: frames_decoded_for_captions=312 > 3x survivor_count=80 (unique_frame_seeks_requested=5) for video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\6936757706.mp4'. This can indicate very sparse I-frames (long GOPs) forcing a long forward decode to reach mid-GOP caption targets.
+  frames_decoded_for_captions = _ensure_captions(index, retrieved_frames, config, question=question, choices=choices)
+[scene_retrieval] shortlisted 5/18 scenes, margin=0.0026 tau=0.015 branch=descend base_pool=25 post_pull_pool=25 cross_scene_edges_added=10
+[v2] 6936757706/14: abstained=False (badge=verified) [63.5s]
+[_ensure_captions] video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\6936757706.mp4' unique_frame_seeks_requested=5 frames_decoded=88 survivor_count=80 decode_overhead_ratio=1.1
+Wire query 'why did the lady hold the spoonful of ice cream and look at the girl in the middle of the video' does not match original question 'why did the lady held the spoonful of ice cream and looked at the girl in the middle of the video'
+[scene_retrieval] shortlisted 5/18 scenes, margin=0.0030 tau=0.015 branch=descend base_pool=21 post_pull_pool=21 cross_scene_edges_added=10
+[v2] 6936757706/7: abstained=True (badge=unverified) [75.1s]
+[_ensure_captions] video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\3079724515.mp4' unique_frame_seeks_requested=5 frames_decoded=497 survivor_count=119 decode_overhead_ratio=4.18
+C:\Users\swara\IRIS\iris\query.py:796: RuntimeWarning: QUERY-CAPTION-001: GOP-seek decode overhead: frames_decoded_for_captions=497 > 3x survivor_count=119 (unique_frame_seeks_requested=5) for video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\3079724515.mp4'. This can indicate very sparse I-frames (long GOPs) forcing a long forward decode to reach mid-GOP caption targets.
+  frames_decoded_for_captions = _ensure_captions(index, retrieved_frames, config, question=question, choices=choices)
+[scene_retrieval] shortlisted 5/24 scenes, margin=0.0033 tau=0.015 branch=descend base_pool=18 post_pull_pool=18 cross_scene_edges_added=10
+[v2] 3079724515/6: abstained=True (badge=unverified) [62.1s]
+[_ensure_captions] video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\3079724515.mp4' unique_frame_seeks_requested=5 frames_decoded=455 survivor_count=119 decode_overhead_ratio=3.82
+C:\Users\swara\IRIS\iris\query.py:796: RuntimeWarning: QUERY-CAPTION-001: GOP-seek decode overhead: frames_decoded_for_captions=455 > 3x survivor_count=119 (unique_frame_seeks_requested=5) for video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\3079724515.mp4'. This can indicate very sparse I-frames (long GOPs) forcing a long forward decode to reach mid-GOP caption targets.
+  frames_decoded_for_captions = _ensure_captions(index, retrieved_frames, config, question=question, choices=choices)
+layer3: AbsenceClaim.event has no finite verb (bare fragment), wrapping as a proposition: 'a boy in green looking back at the beginning of the video' -> 'There is a boy in green looking back at the beginning of the video.'
+[scene_retrieval] shortlisted 5/24 scenes, margin=0.0029 tau=0.015 branch=descend base_pool=30 post_pull_pool=35 cross_scene_edges_added=21
+[v2] 3079724515/8: abstained=False (badge=verified) [63.8s]
+[_ensure_captions] video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\3079724515.mp4' unique_frame_seeks_requested=5 frames_decoded=827 survivor_count=119 decode_overhead_ratio=6.95
+C:\Users\swara\IRIS\iris\query.py:796: RuntimeWarning: QUERY-CAPTION-001: GOP-seek decode overhead: frames_decoded_for_captions=827 > 3x survivor_count=119 (unique_frame_seeks_requested=5) for video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\3079724515.mp4'. This can indicate very sparse I-frames (long GOPs) forcing a long forward decode to reach mid-GOP caption targets.
+  frames_decoded_for_captions = _ensure_captions(index, retrieved_frames, config, question=question, choices=choices)
+[scene_retrieval] shortlisted 5/24 scenes, margin=0.0014 tau=0.015 branch=descend base_pool=24 post_pull_pool=24 cross_scene_edges_added=10
+[v2] 3079724515/0: abstained=False (badge=verified) [55.2s]
+[_ensure_captions] video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\3079724515.mp4' unique_frame_seeks_requested=5 frames_decoded=395 survivor_count=119 decode_overhead_ratio=3.32
+C:\Users\swara\IRIS\iris\query.py:796: RuntimeWarning: QUERY-CAPTION-001: GOP-seek decode overhead: frames_decoded_for_captions=395 > 3x survivor_count=119 (unique_frame_seeks_requested=5) for video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\3079724515.mp4'. This can indicate very sparse I-frames (long GOPs) forcing a long forward decode to reach mid-GOP caption targets.
+  frames_decoded_for_captions = _ensure_captions(index, retrieved_frames, config, question=question, choices=choices)
+[scene_retrieval] shortlisted 5/24 scenes, margin=0.0049 tau=0.015 branch=descend base_pool=28 post_pull_pool=32 cross_scene_edges_added=15
+[v2] 3079724515/9: abstained=False (badge=verified) [53.7s]
+[_ensure_captions] video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\8900428927.mp4' unique_frame_seeks_requested=5 frames_decoded=33 survivor_count=33 decode_overhead_ratio=1.0
+[scene_retrieval] shortlisted 3/3 scenes, base_pool=33 margin=0.0227 tau=0.015 branch=shortcut
+[v2] 8900428927/0: abstained=False (badge=verified) [81.6s]
+[_ensure_captions] video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\8900428927.mp4' unique_frame_seeks_requested=5 frames_decoded=33 survivor_count=33 decode_overhead_ratio=1.0
+layer3: AbsenceClaim.event has no finite verb (bare fragment), wrapping as a proposition: 'the elephant massaging the boy after finishing its massage' -> 'There is the elephant massaging the boy after finishing its massage.'
+[scene_retrieval] shortlisted 3/3 scenes, base_pool=33 margin=0.0154 tau=0.015 branch=shortcut
+[v2] 8900428927/13: abstained=False (badge=verified) [56.8s]
+[_ensure_captions] video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\8900428927.mp4' unique_frame_seeks_requested=5 frames_decoded=33 survivor_count=33 decode_overhead_ratio=1.0
+layer3: AbsenceClaim.event has no finite verb (bare fragment), wrapping as a proposition: 'an elephant massaging a boy' -> 'There is an elephant massaging a boy.'
+[scene_retrieval] shortlisted 3/3 scenes, base_pool=33 margin=0.0267 tau=0.015 branch=shortcut
+[v2] 8900428927/8: abstained=False (badge=verified) [82.3s]
+[_ensure_captions] video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\8900428927.mp4' unique_frame_seeks_requested=5 frames_decoded=141 survivor_count=33 decode_overhead_ratio=4.27
+C:\Users\swara\IRIS\iris\query.py:796: RuntimeWarning: QUERY-CAPTION-001: GOP-seek decode overhead: frames_decoded_for_captions=141 > 3x survivor_count=33 (unique_frame_seeks_requested=5) for video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\8900428927.mp4'. This can indicate very sparse I-frames (long GOPs) forcing a long forward decode to reach mid-GOP caption targets.
+  frames_decoded_for_captions = _ensure_captions(index, retrieved_frames, config, question=question, choices=choices)
+[scene_retrieval] shortlisted 3/3 scenes, margin=0.0068 tau=0.015 branch=descend base_pool=33 post_pull_pool=33 cross_scene_edges_added=3
+[v2] 8900428927/2: abstained=False (badge=verified) [57.8s]
+
+=== SUMMARY ===
+legacy abstention rate: 10/12 = 0.833
+v2     abstention rate: 2/12 = 0.167
+v2 badge distribution: {'verified': 10, 'partial': 0, 'partially_verified': 0, 'flagged': 0, 'unverified': 2}
