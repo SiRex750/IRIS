@@ -86,7 +86,11 @@ def test_ingest_no_redundant_demux_or_fps_calls(mock_validate):
     mock_container.decode.return_value = iter(mock_frames)
 
     # Wrap the functions we want to spy on with MagicMock canned returns
-    canned_return = (all_frame_energies, iframe_indices, energies, pts_to_packet)
+    # _demux_packet_curve is always called with return_pts_flags=True from
+    # parse_video now (item 8: has_none_pts/has_duplicate_pts must be bound
+    # in parse_video's scope) -- the 5th element is a synthetic (False, False)
+    # since these PTS values are well-formed by construction.
+    canned_return = (all_frame_energies, iframe_indices, energies, pts_to_packet, (False, False))
     spy_demux = MagicMock(return_value=canned_return)
     spy_fps = MagicMock(return_value=25.0)
 
@@ -153,7 +157,7 @@ def _run_parse_video_mocked_for_thresholds(
 
     with (
         patch.object(charon_mod, "_demux_packet_curve",
-                     return_value=(all_frame_energies, iframe_indices, energies, pts_to_packet)),
+                     return_value=(all_frame_energies, iframe_indices, energies, pts_to_packet, (False, False))),
         patch("iris.charon_v.av.open", return_value=mock_container),
     ):
         _, stats = charon_mod.parse_video(

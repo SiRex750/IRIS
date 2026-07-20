@@ -13,7 +13,7 @@ from iris.pipeline import run_pipeline
 
 
 class MockLLMBackend(LLMBackend):
-    def generate(self, prompt: str, context: str, model: str | None = None) -> str:
+    def generate(self, prompt: str, context: str, model: str | None = None, *args, **kwargs) -> str:
         print("\n--- [TEST] Mock LLM Generation ---")
         print("User Prompt:", prompt)
         print("Context lines count:", len(context.splitlines()))

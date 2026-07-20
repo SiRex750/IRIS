@@ -82,7 +82,10 @@ class L2TieredIndex:
         )
 
         # --- SALIENT tier: HNSW approximate search ---
-        hnsw = faiss.IndexHNSWFlat(self._dim, self._config.l2_hnsw_m)
+        # P1-15: Set metric to METRIC_INNER_PRODUCT to match FlatIP and IndexPQ.
+        # Previously left to default METRIC_L2 which returned squared distances,
+        # leading to inconsistent metrics during merge.
+        hnsw = faiss.IndexHNSWFlat(self._dim, self._config.l2_hnsw_m, faiss.METRIC_INNER_PRODUCT)
         hnsw.hnsw.efSearch = self._config.l2_hnsw_ef_search
         self._salient = _TierRecord(
             index=hnsw,
@@ -111,7 +114,9 @@ class L2TieredIndex:
             return FrameTier.PEAK
         if action_score >= self._config.l2_salient_action_thresh:
             return FrameTier.SALIENT
-        return FrameTier.CANDIDATE
+        if action_score >= self._config.candidate_thresh:
+            return FrameTier.CANDIDATE
+        return FrameTier.SKIP
 
     # ── Add ───────────────────────────────────────────────────────────────
 
@@ -155,8 +160,16 @@ class L2TieredIndex:
             self._salient.row_to_frame.append(frame_idx)
 
         elif tier == FrameTier.CANDIDATE:
-            self._candidate_buffer.append((frame_idx, vec.copy()))
-            self._maybe_train_pq()
+            # P1-15: If the candidate PQ index is already trained and finalized,
+            # we must add the new candidate embedding directly to it.
+            # Previously it was appended to the candidate buffer and never indexed,
+            # resulting in new candidate frames being silently ignored during search.
+            if self._candidate.trained and self._candidate.index is not None:
+                self._candidate.index.add(vec)
+                self._candidate.row_to_frame.append(frame_idx)
+            else:
+                self._candidate_buffer.append((frame_idx, vec.copy()))
+                self._maybe_train_pq()
 
         self._total_frames += 1
         return tier
@@ -213,6 +226,7 @@ class L2TieredIndex:
             self._dim,
             self._config.l2_pq_m,
             self._config.l2_pq_nbits,
+            faiss.METRIC_INNER_PRODUCT,
         )
         pq.train(vecs)
         pq.add(vecs)
@@ -258,6 +272,7 @@ class L2TieredIndex:
                 self._dim,
                 self._config.l2_pq_m,
                 self._config.l2_pq_nbits,
+                faiss.METRIC_INNER_PRODUCT,
             )
             pq.train(vecs)
             pq.add(vecs)
@@ -311,17 +326,12 @@ class L2TieredIndex:
                 if idx < 0:  # FAISS returns -1 for unfilled slots
                     continue
                 frame_idx = tier_rec.row_to_frame[idx]
-                # TIER-001: Normalize scores to a common [0,1] similarity scale
-                # before merging. FlatIP returns inner-product (cos-sim for unit
-                # vecs, range [−1,1]). HNSW/FlatIP used for SALIENT are also IP.
-                # PQ (IndexPQ) returns squared L2 distance when using
-                # metric_type=METRIC_L2 (default). Convert L2 dist → similarity.
-                # A simple robust heuristic: clamp IP to [0,1]; convert L2 dist
-                # with sim = 1/(1+dist) so dist=0 → sim=1, dist=∞ → sim=0.
-                if tier_name == "CANDIDATE" and isinstance(
-                    tier_rec.index, faiss.IndexPQ
-                ):
-                    # PQ stores squared L2; score > 0 means distance not similarity
+                # P1-15: All tiers are now using METRIC_INNER_PRODUCT by default.
+                # If metric_type is METRIC_L2 (e.g. 1), we use the distance-to-similarity
+                # conversion: 1 / (1 + dist). Otherwise (METRIC_INNER_PRODUCT), we clamp
+                # the raw inner product to [0, 1] directly.
+                metric_type = getattr(tier_rec.index, "metric_type", faiss.METRIC_INNER_PRODUCT)
+                if metric_type == faiss.METRIC_L2:
                     sim = 1.0 / (1.0 + float(score))
                 else:
                     sim = max(0.0, min(1.0, float(score)))

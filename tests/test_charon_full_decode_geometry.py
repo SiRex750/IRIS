@@ -160,7 +160,7 @@ def _run_parse_video_mocked(
     with (
         patch.object(charon_mod, "_demux_packet_curve",
                      return_value=(all_frame_energies, iframe_indices,
-                                   energies, pts_to_packet)),
+                                   energies, pts_to_packet, (False, False))),
         patch("iris.charon_v.av.open", return_value=mock_container),
     ):
         result = charon_mod.parse_video(

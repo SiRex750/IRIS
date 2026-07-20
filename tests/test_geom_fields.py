@@ -36,7 +36,7 @@ def _synthetic_with_geom():
 
 def test_ingest_carries_geometry(patched):
     of, rr, st = _synthetic_with_geom()
-    idx = ingest_mod._build_index_from_records(of, rr, st, "v.mp4", IRISConfig(), 10)
+    idx = ingest_mod._build_index_from_records(of, rr, st, "v.mp4", IRISConfig(graph_mode="flat"), 10)
     by_idx = {fr.frame_idx: fr for fr in idx.frames}
     for i in range(2):
         fr = by_idx[i]
@@ -49,7 +49,7 @@ def test_ingest_carries_geometry(patched):
 
 def test_geometry_survives_roundtrip(patched, tmp_path):
     of, rr, st = _synthetic_with_geom()
-    idx = ingest_mod._build_index_from_records(of, rr, st, "v.mp4", IRISConfig(), 10)
+    idx = ingest_mod._build_index_from_records(of, rr, st, "v.mp4", IRISConfig(graph_mode="flat"), 10)
     p = tmp_path / "idx"
     save_index(idx, p)
     loaded = load_index(p)

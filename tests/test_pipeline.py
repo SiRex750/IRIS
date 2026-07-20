@@ -14,7 +14,7 @@ from iris.pipeline import run_pipeline, run
 
 
 class MockLLMBackend(LLMBackend):
-    def generate(self, prompt: str, context: str, model: str | None = None) -> str:
+    def generate(self, prompt: str, context: str, model: str | None = None, *args, **kwargs) -> str:
         return (
             "The video depicts a big buck bunny standing in a vibrant green meadow. "
             "It shows local motion spikes and residual energy changes corresponding to action moments."

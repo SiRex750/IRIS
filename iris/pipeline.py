@@ -50,6 +50,7 @@ _CLIP_AVAILABLE = _check_clip_available()
 _CLIP_MODEL = None
 _CLIP_PREPROCESS = None
 _CLIP_TEXT_FEATURES = None
+_CLIP_REVISION_LOADED = None
 
 _BLIP_MODEL = None
 _BLIP_PROCESSOR = None
@@ -96,30 +97,29 @@ def get_generative_caption(pil_image, device: str) -> str:
 def get_zero_shot_caption(clip_embedding: np.ndarray, device: str) -> str:
     """Classify clip_embedding against a set of action/scene vocabulary labels."""
     global _CLIP_TEXT_FEATURES
-    
+
+    # P2-04: Domain-neutral vocabulary — no dataset-specific terms.
+    # The previous list contained "cartoon rabbit", "bunny's face", etc. which
+    # were tailored to the Big Buck Bunny test video and produced systematically
+    # wrong labels for any other content.
     vocabulary = [
-        "a cartoon rabbit standing in a field",
-        "a rabbit watching something",
-        "a butterfly flying near a rabbit",
-        "a rabbit sleeping on the grass",
-        "a badger or rodent appearing on screen",
-        "a close-up of a bunny's face",
-        "animals playing in the forest",
-        "a scenic green meadow with trees",
-        "a rodent or small animal moving",
-        "a cartoon character showing action or movement",
-        "a person walking or running",
-        "a person talking or speaking",
-        "a car or vehicle moving on a street",
-        "an indoor room or office setting",
-        "a group of people gathering",
+        "a person walking or running outdoors",
+        "a person talking or gesturing indoors",
+        "a group of people gathered together",
+        "a person cooking or preparing food",
         "a close-up of a person's face",
-        "a computer screen or technology interface",
-        "a person cooking or eating food",
-        "a street scene with buildings",
-        "a sports game or athletic activity",
+        "a car or vehicle moving on a road",
+        "a sports or athletic activity",
+        "a street or outdoor urban scene",
+        "an indoor room or office environment",
+        "a natural landscape with trees or grass",
+        "a crowd or public gathering",
+        "an animal or wildlife in its environment",
+        "a computer screen or technical interface",
+        "a scene showing physical action or movement",
+        "a calm or static scene with minimal motion",
     ]
-    
+
     model, _ = get_clip_model()
     if model is None:
         return "visual cues from the video"
@@ -128,7 +128,8 @@ def get_zero_shot_caption(clip_embedding: np.ndarray, device: str) -> str:
         import clip
         import torch
         
-        if _CLIP_TEXT_FEATURES is None:
+        if _CLIP_TEXT_FEATURES is None or _CLIP_TEXT_FEATURES.shape[0] != len(vocabulary):
+            # Recompute when cache is empty or vocabulary size has changed.
             text_inputs = clip.tokenize(vocabulary).to(device)
             with torch.no_grad():
                 text_features = model.encode_text(text_inputs)
@@ -144,11 +145,14 @@ def get_zero_shot_caption(clip_embedding: np.ndarray, device: str) -> str:
         return "visual cues from the video"
 
 
-def get_semantic_and_clip_caption(pil_img, frame, clip_emb, device) -> dict:
+def get_semantic_and_clip_caption(pil_img, frame, clip_emb, device, config: Any = None,
+                                   focus_hint: str | None = None) -> dict:
     clip_label = get_zero_shot_caption(clip_emb, device)
-    
+
     # 1. Try VLM OpenAI vision captioning first (ARIA)
-    caption_res = aria.generate_caption_for_frame(pil_img if pil_img is not None else frame)
+    caption_res = aria.generate_caption_for_frame(
+        pil_img if pil_img is not None else frame, config=config, focus_hint=focus_hint,
+    )
     if caption_res.success:
         semantic_caption = caption_res.caption
     else:
@@ -164,27 +168,39 @@ def get_semantic_and_clip_caption(pil_img, frame, clip_emb, device) -> dict:
         "semantic_caption": semantic_caption
     }
 
-def get_clip_model():
-    """Load and cache the CLIP ViT-B/32 model globally."""
-    global _CLIP_MODEL, _CLIP_PREPROCESS
+
+def get_clip_model(config: Any = None):
+    """Load and cache the CLIP model globally using the configured revision."""
+    global _CLIP_MODEL, _CLIP_PREPROCESS, _CLIP_REVISION_LOADED
+    revision = "ViT-B/32"
+    if config is not None:
+        revision = getattr(config, "clip_revision", "ViT-B/32") or "ViT-B/32"
+    
+    if _CLIP_MODEL is not None and _CLIP_REVISION_LOADED != revision:
+        # Reloading due to change in revision to prevent mixed embeddings
+        _CLIP_MODEL = None
+        _CLIP_PREPROCESS = None
+        
     if _CLIP_MODEL is None:
         import clip
         import torch
         device = "cuda" if torch.cuda.is_available() else "cpu"
         try:
-            _CLIP_MODEL, _CLIP_PREPROCESS = clip.load("ViT-B/32", device=device)
+            _CLIP_MODEL, _CLIP_PREPROCESS = clip.load(revision, device=device)
+            _CLIP_REVISION_LOADED = revision
         except Exception as e:
-            print(f"Warning: Failed to load CLIP model: {e}")
+            print(f"Warning: Failed to load CLIP model with revision {revision}: {e}")
             _CLIP_MODEL = None
             _CLIP_PREPROCESS = None
+            _CLIP_REVISION_LOADED = None
     return _CLIP_MODEL, _CLIP_PREPROCESS
 
 
-def get_frame_clip_embedding(frame: av.video.frame.VideoFrame, device: str) -> np.ndarray:
+def get_frame_clip_embedding(frame: av.video.frame.VideoFrame, device: str, config: Any = None) -> np.ndarray:
     """Convert PyAV frame to image and extract normalized CLIP feature embedding."""
-    model, preprocess = get_clip_model()
+    model, preprocess = get_clip_model(config)
     if model is None:
-        return np.zeros(512, dtype=np.float32)
+        raise ValueError("CLIP model not loaded; cannot extract frame embedding.")
     try:
         import torch
         img = frame.to_image()  # Returns PIL RGB Image
@@ -192,32 +208,38 @@ def get_frame_clip_embedding(frame: av.video.frame.VideoFrame, device: str) -> n
         with torch.no_grad():
             image_features = model.encode_image(image_input)
             image_features /= image_features.norm(dim=-1, keepdim=True)
-            return image_features.cpu().numpy().flatten().astype(np.float32)
+            emb = image_features.cpu().numpy().flatten().astype(np.float32)
+            if np.linalg.norm(emb) < 1e-6:
+                raise ValueError("Generated frame embedding has near-zero norm.")
+            return emb
     except Exception as e:
-        print(f"Warning: Failed to extract CLIP embedding for frame: {e}")
-        return np.zeros(512, dtype=np.float32)
+        raise ValueError(f"Failed to extract CLIP embedding for frame: {e}")
 
 
-def get_clip_embedding_from_pil(pil_image, device: str) -> np.ndarray:
+def get_clip_embedding_from_pil(pil_image, device: str, config: Any = None) -> np.ndarray:
     """Extract normalized CLIP embedding from a PIL image.
 
     Used by the PIL-cache fast path in wrapper_l2_retrieve to avoid re-opening
     the video file when Charon-V has already captured frame images during its
     2nd decode pass.
     """
-    model, preprocess = get_clip_model()
-    if model is None or pil_image is None:
-        return np.zeros(512, dtype=np.float32)
+    model, preprocess = get_clip_model(config)
+    if model is None:
+        raise ValueError("CLIP model not loaded; cannot extract PIL embedding.")
+    if pil_image is None:
+        raise ValueError("PIL image is None; cannot extract embedding.")
     try:
         import torch
         image_input = preprocess(pil_image).unsqueeze(0).to(device)
         with torch.no_grad():
             image_features = model.encode_image(image_input)
             image_features /= image_features.norm(dim=-1, keepdim=True)
-            return image_features.cpu().numpy().flatten().astype(np.float32)
+            emb = image_features.cpu().numpy().flatten().astype(np.float32)
+            if np.linalg.norm(emb) < 1e-6:
+                raise ValueError("Generated PIL embedding has near-zero norm.")
+            return emb
     except Exception as e:
-        print(f"Warning: Failed to extract CLIP embedding from PIL image: {e}")
-        return np.zeros(512, dtype=np.float32)
+        raise ValueError(f"Failed to extract CLIP embedding from PIL image: {e}")
 
 
 # --- Isolation Wrappers for Active/In-Progress Modules ---
@@ -324,17 +346,18 @@ def wrapper_l2_retrieve(video_path: str | Path, query: str, frames_to_index: lis
 
     # 1. Generate query embedding from text
     model, _ = get_clip_model()
-    if model is not None:
-        try:
-            text_input = clip.tokenize([query]).to(device)
-            with torch.no_grad():
-                query_features = model.encode_text(text_input)
-                query_features /= query_features.norm(dim=-1, keepdim=True)
-                query_embedding = query_features.cpu().numpy().flatten().astype(np.float32)
-        except Exception:
-            query_embedding = np.zeros(512, dtype=np.float32)
-    else:
-        query_embedding = np.zeros(512, dtype=np.float32)
+    if model is None:
+        raise ValueError("CLIP model could not be loaded; cannot embed query.")
+    try:
+        text_input = clip.tokenize([query]).to(device)
+        with torch.no_grad():
+            query_features = model.encode_text(text_input)
+            query_features /= query_features.norm(dim=-1, keepdim=True)
+            query_embedding = query_features.cpu().numpy().flatten().astype(np.float32)
+            if np.linalg.norm(query_embedding) < 1e-6:
+                raise ValueError("Generated query embedding has near-zero norm.")
+    except Exception as e:
+        raise ValueError(f"Failed to encode query text: {e}")
 
     # 2. Build L2Asphodel graph and index frames.
     graph = L2Asphodel(config=config)
@@ -551,10 +574,14 @@ def wrapper_cerberus_gate(claims: list[str], cache_obj: object, action_score: fl
 
 def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_window: int = 10, config: IRISConfig | None = None) -> dict:
     """
-    Run the end-to-end IRIS pipeline using the new continuous action score
-    and topological persistence-based peak detection alongside the existing tier path.
+    Run the end-to-end IRIS pipeline using the canonical ingest -> query flow.
     """
+    import os
     import time
+    import random
+    import json
+    from iris.ingest import ingest
+    from iris.query import query as query_fn
     
     # 1. Load config parameters
     if config is None:
@@ -568,319 +595,34 @@ def run_pipeline(video_path: str | Path, query: str, verbose: bool = False, nms_
             from iris.iris_config import IRISConfig
             config = IRISConfig()
 
-    # Enforce active backend diagnostics check
     aria.run_diagnostics()
 
-    # 2. Parse video and extract raw frame features non-breakingly from H.264 stream
-    # Returns (output_frames, stats, raw_records)
-    # Uses _CHARON_CACHE to avoid re-decoding the same video when the same
-    # decode config is used across multiple queries.
-    import copy
-    _charon_key = (
-        str(video_path),
-        float(config.candidate_thresh),
-        float(config.salient_thresh),
-        bool(getattr(config, "adaptive", True)),
-        bool(getattr(config, "visual_debug_mode", False)),
-    )
-    t_start = time.time()
-    if _charon_key not in _CHARON_CACHE:
-        _CHARON_CACHE[_charon_key] = charon_v.parse_video(
-            str(video_path),
-            return_stats=True,
-            return_raw=True,
-            candidate_thresh=config.candidate_thresh,
-            salient_thresh=config.salient_thresh,
-            adaptive=getattr(config, "adaptive", True),
-            visual_debug_mode=getattr(config, "visual_debug_mode", False)
-        )
-        print(f"[CACHE] Charon-V decoded {video_path} ΓåÆ cached under key {_charon_key[:2]}")
-    else:
-        print(f"[CACHE] Charon-V cache HIT for {Path(video_path).name} ΓÇö skipping re-decode")
-    cached_output_frames, stats, raw_records = _CHARON_CACHE[_charon_key]
-    output_frames = copy.deepcopy(cached_output_frames)
-    t_charon = time.time() - t_start
+    # 2. Call canonical ingest
+    index = ingest(video_path, config, nms_window=nms_window)
 
-    # 3. Continuous action scoring & persistence peak detection
-    t_action_start = time.time()
-    action_score_config = ActionScoreConfig(
-        luma_diff_weight=getattr(config, "luma_diff_weight", 0.5),
-        motion_weight=getattr(config, "motion_weight", 0.3),
-        luma_entropy_weight=getattr(config, "luma_entropy_weight", 0.2),
-        peak_distance=getattr(config, "peak_distance", 5),
-        peak_prominence=getattr(config, "peak_prominence", 0.05),
-        persistence_threshold=getattr(config, "persistence_threshold", 0.4),
-        max_prominence=getattr(config, "max_prominence", 0.5),
-    )
-    score_module = ActionScoreModule(config=action_score_config)
-    score_records = score_module.score_all(raw_records)
-    action_scores = {r["frame_idx"]: r for r in score_records}
-
-    # Run Non-Maximum Suppression (NMS) on peak frame decisions to avoid clustering
-    if nms_window is not None and nms_window > 0:
-        # Find frame indices where is_peak is True
-        peak_indices = [idx for idx, score_info in action_scores.items() if score_info["is_peak"]]
-        # Sort peaks by action_score descending
-        peak_indices.sort(key=lambda idx: action_scores[idx]["action_score"], reverse=True)
-        
-        accepted_peaks = set()
-        for idx in peak_indices:
-            # If the peak is within nms_window of an already accepted peak, suppress it
-            if any(abs(idx - accepted) <= nms_window for accepted in accepted_peaks):
-                action_scores[idx]["is_peak"] = False
-            else:
-                accepted_peaks.add(idx)
-
-    # Map the computed action scores back to the non-SKIP output frames
-    raw_map = {r["frame_idx"]: r for r in raw_records}
-    for frame in output_frames:
-        frame_idx = frame["frame_idx"]
-        score_info = action_scores.get(
-            frame_idx,
-            {"action_score": 0.0, "is_peak": False, "persistence_value": 0.0}
-        )
-        frame["action_score"] = score_info["action_score"]
-        frame["is_peak"] = score_info["is_peak"]
-        frame["persistence_value"] = score_info["persistence_value"]
-        frame["luma_entropy"] = raw_map.get(frame_idx, {}).get("luma_entropy", 0.0)
-        frame["pict_type"] = raw_map.get(frame_idx, {}).get("frame_type", frame.get("pict_type", "?"))
-        frame["packet_size"] = raw_map.get(frame_idx, {}).get("packet_size", frame.get("packet_size", 0.0))
-        frame["divergence"] = raw_map.get(frame_idx, {}).get("divergence", frame.get("divergence", 0.0))
-        frame["curl"] = raw_map.get(frame_idx, {}).get("curl", frame.get("curl", 0.0))
-        frame["jacobian_frobenius"] = raw_map.get(frame_idx, {}).get("jacobian_frobenius", frame.get("jacobian_frobenius", 0.0))
-        frame["hessian_max_eigenvalue"] = raw_map.get(frame_idx, {}).get("hessian_max_eigenvalue", frame.get("hessian_max_eigenvalue", 0.0))
-        frame["motion_entropy"] = raw_map.get(frame_idx, {}).get("motion_entropy", frame.get("motion_entropy", 0.0))
-    t_action = time.time() - t_action_start
-
-    # If visual_debug_mode is enabled, save annotated candidate frames
-    if getattr(config, "visual_debug_mode", False):
-        import os
-        from PIL import ImageDraw
-        debug_frames_dir = os.path.join(os.path.dirname(str(video_path)), "debug_frames")
-        os.makedirs(debug_frames_dir, exist_ok=True)
-        for f in output_frames:
-            pil_img = f.get("pil_image")
-            if pil_img is not None:
-                annotated = pil_img.copy()
-                draw = ImageDraw.Draw(annotated)
-                text = f"Frame {f['frame_idx']} | Score: {f.get('action_score', 0.0):.4f}"
-                draw.text((10, 10), text, fill=(255, 0, 0))
-                out_name = f"frame_{f['frame_idx']:04d}.png"
-                annotated.save(os.path.join(debug_frames_dir, out_name))
-
-    # 4. L2 Graph retrieval (dynamic indexing strategy selection)
-    t_l2_start = time.time()
-    strategy = getattr(config, "retrieval_strategy", "hybrid")
-    l2_retrieve_top_k = getattr(config, "l2_retrieve_top_k", 5)
+    # 3. Call canonical query
+    res = query_fn(query, index, config)
     
-    if strategy == "peak_only":
-        frames_to_index = [f for f in output_frames if f.get("is_peak", False)]
-    elif strategy == "top_k_action":
-        top_n = l2_retrieve_top_k * 3
-        frames_to_index = sorted(output_frames, key=lambda x: x.get("action_score", 0.0), reverse=True)[:top_n]
-    elif strategy == "peak_neighbors":
-        peaks = [f for f in output_frames if f.get("is_peak", False)]
-        peak_indices = {f["frame_idx"] for f in peaks}
-        target_indices = set()
-        for p in peak_indices:
-            target_indices.update(range(max(0, p - 2), p + 3))
-        frames_to_index = [f for f in output_frames if f["frame_idx"] in target_indices]
-    else:  # hybrid
-        frames_to_index = output_frames
-
-    retrieved_frames = wrapper_l2_retrieve(
-        video_path,
-        query,
-        frames_to_index,
-        config=config
-    )
-    t_l2 = time.time() - t_l2_start
-
-    # 5. Populate L1 active context cache with retrieved frame evidence
-    t_elysium_start = time.time()
-    cache_obj = wrapper_init_l1_cache(config)
-    wrapper_populate_cache(cache_obj, retrieved_frames)
-    t_elysium = time.time() - t_elysium_start
-    
-    # 6. Generate answer using ARIA LLM brain
-    t_aria_start = time.time()
-    context_text = cache_obj.as_context_text()
-    raw_answer = aria.generate(prompt=query, context=context_text)
-    t_aria = time.time() - t_aria_start
-
-    # 7. Extract sentence-level claims from the raw answer
-    # Strip markdown before splitting
-    clean_answer = re.sub(r'\*\*.*?\*\*:?\s*', '', raw_answer)
-    clean_answer = re.sub(r'^\s*[-*]\s+', '', clean_answer, flags=re.MULTILINE)
-    clean_answer = re.sub(r'^\s*\d+\.\s+', '', clean_answer, flags=re.MULTILINE)
-    clean_answer = re.sub(r'\n+', ' ', clean_answer).strip()
-    raw_sentences = re.split(r'(?<=[.!?])\s+', clean_answer)
-    claims = [s.strip() for s in raw_sentences if len(s.strip()) >= 12]
-
-    # 8. Run claims through Cerberus-V NLI truth gate
-    t_cerberus_start = time.time()
-    max_score = max([f.get("action_score", 0.0) for f in retrieved_frames]) if retrieved_frames else 0.5
-    is_verified, verified_claims, rejected_claims, unverifiable_claims, is_mocked = wrapper_cerberus_gate(claims, cache_obj, max_score, config)
-    t_cerberus = time.time() - t_cerberus_start
-
-    # Generate final verified answer (verified claims only; raw_answer and breakdowns are also
-    # returned in the result dict so nothing is silently dropped from reporting).
-    if verified_claims:
-        final_answer = " ".join(verified_claims)
-    else:
-        final_answer = "Insufficient verified evidence to answer this question."
-
-    # Determine peak counts and skip statistics
-    peak_count = len([f for f in output_frames if f.get("is_peak", False)])
-    skipped_frames_ratio = float(stats["skipped"] / stats["total"]) if stats["total"] > 0 else 0.0
-    storage_reduction_factor = float(stats["total"] / len(output_frames)) if len(output_frames) > 0 else 0.0
-
-    result = {
-        "answer": final_answer,
-        "raw_answer": raw_answer,
-        "verified": is_verified,
-        "nli_mocked": is_mocked,
-        "verified_claims": verified_claims,
-        "rejected_claims": rejected_claims,
-        "unverifiable_claims": unverifiable_claims,
-        "frames_processed": len(output_frames),
-        "peak_count": peak_count,
-        "compression_ratio": skipped_frames_ratio,  # Keep for backward compatibility
-        "skipped_frames_ratio": skipped_frames_ratio,
-        "storage_reduction_factor": storage_reduction_factor,
-        "timings": {
-            "charon_v": t_charon,
-            "action_score": t_action,
-            "l2_retrieval": t_l2,
-            "elysium": t_elysium,
-            "aria": t_aria,
-            "cerberus_v": t_cerberus,
-            "total": t_charon + t_action + t_l2 + t_elysium + t_aria + t_cerberus
-        }
-    }
-
-    # Observability Logging: Write ARIA debug logs to logs/aria_debug/
-    import json
-    import os
-    os.makedirs("logs/aria_debug", exist_ok=True)
+    # 4. Write run log if needed for backward compatibility
+    timestamp_log = time.strftime("%Y%m%d-%H%M%S")
+    rand_id = random.randint(1000, 9999)
     os.makedirs("logs/pipeline", exist_ok=True)
-    
-    timestamp_log = time.strftime("%Y%m%d_%H%M%S")
-    import random
-    rand_id = random.randint(100000, 999999)
-    
-    aria_log_file = f"logs/aria_debug/debug_{timestamp_log}_{rand_id}.json"
-    aria_log_data = {
-        "frames_sent_to_aria": [f.frame_idx for f in cache_obj.frames()],
-        "semantic_captions": [
-            f.caption.get("semantic_caption") if isinstance(f.caption, dict) else f.caption
-            for f in cache_obj.frames()
-        ],
-        "prompt": query,
-        "response": raw_answer
-    }
-    try:
-        with open(aria_log_file, "w", encoding="utf-8") as f:
-            json.dump(aria_log_data, f, indent=2)
-    except Exception as e:
-        print(f"Warning: Failed to write ARIA debug log: {e}")
-
-    # Build validation report payload
-    total_captions_attempted = len(frames_to_index)
-    successful_captions = sum(
-        1 for f in frames_to_index
-        if isinstance(f.get("caption"), dict) and f["caption"].get("semantic_caption") != "[CAPTION_FAILED]"
-    )
-    caption_success_rate = float(successful_captions / total_captions_attempted) if total_captions_attempted > 0 else 0.0
-    
-    aria_success = 1.0 if not raw_answer.startswith("Based on the video analysis, I processed") or "failed" not in raw_answer.lower() else 0.0
-    
-    validation_report = {
-        "aria": {
-            "backend": aria.get_backend().__class__.__name__,
-            "model": "gpt-4o-mini",
-            "success_rate": aria_success,
-            "caption_success_rate": caption_success_rate
-        },
-        "retrieval": {
-            "frames_indexed": len(frames_to_index),
-            "frames_retrieved": len(retrieved_frames)
-        },
-        "elysium": {
-            "cache_hits": getattr(cache_obj, "hits", 0),
-            "cache_misses": getattr(cache_obj, "misses", 0),
-            "context_size": len(context_text)
-        },
-        "cerberus": {
-            "verified": len(verified_claims),
-            "rejected": len(rejected_claims),
-            "unverifiable": len(unverifiable_claims)
-        },
-        "failures": {
-            "caption_failures": aria.get_caption_failures()
-        }
-    }
-    
-    result["validation_report"] = validation_report
-
     pipeline_log_file = f"logs/pipeline/run_{timestamp_log}_{rand_id}.json"
     try:
-        log_friendly_result = {k: v for k, v in result.items() if k != "validation_report"}
-        log_friendly_result["validation_report"] = {
-            "aria": {
-                "backend": validation_report["aria"]["backend"],
-                "model": validation_report["aria"]["model"],
-                "success_rate": validation_report["aria"]["success_rate"],
-                "caption_success_rate": validation_report["aria"]["caption_success_rate"]
-            },
-            "retrieval": validation_report["retrieval"],
-            "elysium": validation_report["elysium"],
-            "cerberus": validation_report["cerberus"]
-        }
+        log_friendly_result = {k: v for k, v in res.items() if k != "validation_report"}
         with open(pipeline_log_file, "w", encoding="utf-8") as f:
             json.dump(log_friendly_result, f, indent=2)
     except Exception as e:
         print(f"Warning: Failed to write pipeline run log: {e}")
-
+        
     if verbose:
-        result["debug_info"] = {
-            "action_scores": action_scores,
-            "retrieved_frames": retrieved_frames,
-            "context_text": context_text,
-            "raw_answer": raw_answer,
-            "verified_claims": verified_claims,
-            "rejected_claims": rejected_claims,
-            "unverifiable_claims": unverifiable_claims,
-            
-            # --- ARIA Debug Data ---
-            "aria_prompt": query,
-            "aria_context": context_text,
-            "aria_response": raw_answer,
-            "frames_given_to_aria": [f.frame_idx for f in cache_obj.frames()],
-            "context_length": len(context_text),
-            "retrieval_results": context_text,
-            "l2_graph": getattr(wrapper_l2_retrieve, "last_graph_data", None),
-            
-            # --- Cerberus Debug Data ---
-            "cerberus_claims": claims,
-            "cerberus_evidence": [entry.text for entry in cache_obj.set_facts.values()],
-            "cerberus_result": {
-                "verified": verified_claims,
-                "rejected": rejected_claims,
-                "unverifiable": unverifiable_claims,
-                "is_verified": is_verified
-            },
-            
-            # --- Thresholds & Configuration ---
-            "thresholds": {
-                "persistence_threshold": getattr(config, "persistence_threshold", 0.4),
-                "max_prominence": getattr(config, "max_prominence", 0.5),
-                "peak_prominence": getattr(config, "peak_prominence", 0.05),
-                "peak_distance": getattr(config, "peak_distance", 5)
-            }
+        res["debug_info"] = {
+            "context_text": res.get("context_text", ""),
+            "unverifiable_claims": res.get("unverifiable_claims", []),
+            "retrieved_frames": [{"frame_idx": idx} for idx in res.get("retrieved_frame_idxs", [])],
         }
 
-    return result
+    return res
 
 
 def run(video_path: str | Path, query: str) -> dict:

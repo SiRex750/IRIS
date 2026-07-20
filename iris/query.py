@@ -130,43 +130,95 @@ def wrapper_cerberus_gate(claims: list[str], cache_obj: object, action_score: fl
 def _config_from_index(index: IRISIndex, config: Any) -> Any:
     """Reconstruct the config the index was built with (snapshot is a dict;
     getattr on a dict returns defaults, so we must rebuild the dataclass)."""
-    if config is not None:
-        return config
     from iris.iris_config import IRISConfig
-    try:
-        return IRISConfig(**index.config_snapshot)
-    except Exception as e:
-        # QUERY-002: Warn when snapshot reconstruction falls back to defaults
-        import sys
-        print(
-            f"[IRISQuery WARNING] Could not reconstruct config from index snapshot "
-            f"({e}); falling back to IRISConfig() defaults. "
-            "Results may differ from the original build.",
-            file=sys.stderr,
-        )
-        return IRISConfig()
+
+    # 1. Rebuild config from index snapshot if None
+    if config is None:
+        try:
+            return IRISConfig(**index.config_snapshot)
+        except Exception as e:
+            # QUERY-002: Warn when snapshot reconstruction falls back to defaults
+            import sys
+            print(
+                f"[IRISQuery WARNING] Could not reconstruct config from index snapshot "
+                f"({e}); falling back to IRISConfig() defaults. "
+                "Results may differ from the original build.",
+                file=sys.stderr,
+            )
+            return IRISConfig()
+
+    # 2. If config is custom, check compatibility with index.config_snapshot
+    if index.config_snapshot:
+        idx_clip = index.config_snapshot.get("clip_revision")
+        query_clip = getattr(config, "clip_revision", None)
+        if idx_clip and query_clip and idx_clip != query_clip:
+            raise ValueError(
+                f"Incompatible configurations: Index was built using clip_revision='{idx_clip}', "
+                f"but query requested clip_revision='{query_clip}'."
+            )
+
+        idx_graph = index.config_snapshot.get("graph_mode")
+        query_graph = getattr(config, "graph_mode", None)
+        if idx_graph and query_graph and idx_graph != query_graph:
+            raise ValueError(
+                f"Incompatible configurations: Index was built using graph_mode='{idx_graph}', "
+                f"but query requested graph_mode='{query_graph}'."
+            )
+
+    return config
 
 
-def _embed_query(question: str, config: Any) -> np.ndarray:
-    """Query-text CLIP embedding. Lifted from wrapper_l2_retrieve (323-335)."""
+def _embed_query(question: str, config: Any) -> tuple[np.ndarray, dict]:
+    """Query-text CLIP embedding with fail-fast validation and telemetry."""
     from iris._clip import get_clip_model
+    telemetry = {
+        "embedding_backend": "unknown",
+        "norm": 0.0,
+        "fallback_reason": "none",
+        "effective_method": "direct"
+    }
     try:
         import clip
         import torch
         device = "cuda" if torch.cuda.is_available() else "cpu"
-    except Exception:
-        return np.zeros(512, dtype=np.float32)
-    model, _ = get_clip_model()
+        telemetry["embedding_backend"] = f"torch-{device}"
+    except Exception as e:
+        telemetry["fallback_reason"] = f"Import error: {str(e)}"
+        raise ImportError(f"Failed to import torch or clip: {e}")
+
+    model, _ = get_clip_model(config)
     if model is None:
-        return np.zeros(512, dtype=np.float32)
+        telemetry["fallback_reason"] = "CLIP model not loaded"
+        raise ValueError("CLIP model could not be loaded; cannot embed query.")
+
     try:
-        text_input = clip.tokenize([question]).to(device)
-        with torch.no_grad():
-            qf = model.encode_text(text_input)
-            qf /= qf.norm(dim=-1, keepdim=True)
-            return qf.cpu().numpy().flatten().astype(np.float32)
-    except Exception:
-        return np.zeros(512, dtype=np.float32)
+        try:
+            text_input = clip.tokenize([question]).to(device)
+            with torch.no_grad():
+                qf = model.encode_text(text_input)
+        except Exception as gpu_err:
+            if device == "cuda":
+                telemetry["fallback_reason"] = f"CUDA failed ({str(gpu_err)}); falling back to CPU"
+                telemetry["effective_method"] = "fallback"
+                device = "cpu"
+                telemetry["embedding_backend"] = "torch-cpu"
+                text_input = clip.tokenize([question]).to(device)
+                model = model.to(device)
+                with torch.no_grad():
+                    qf = model.encode_text(text_input)
+            else:
+                raise gpu_err
+
+        qf /= qf.norm(dim=-1, keepdim=True)
+        emb = qf.cpu().numpy().flatten().astype(np.float32)
+        norm_val = float(np.linalg.norm(emb))
+        telemetry["norm"] = norm_val
+        if norm_val < 1e-6:
+            raise ValueError("Generated query embedding has near-zero norm.")
+        return emb, telemetry
+    except Exception as e:
+        telemetry["fallback_reason"] = f"Encoding failed: {str(e)}"
+        raise ValueError(f"Failed to encode query text: {e}")
 
 
 def _split_claims(raw_answer: str) -> list[str]:
@@ -282,7 +334,67 @@ def _build_retrieved(index: IRISIndex, query_embedding: np.ndarray, config: Any)
     return retrieved
 
 
-def _ensure_captions(index: IRISIndex, retrieved_frames: list[dict]) -> int:
+def _build_focus_hint(question: str | None, choices: list[str] | None = None) -> str | None:
+    """Build the captioner's question-aware prompt suffix.
+
+    Without this, captions are generated with no knowledge of the question or
+    multiple-choice options, so a captioner produces generic scene-level text
+    ("a woman and two children eating ice cream") with no person/clothing/color
+    detail even when the question hinges on exactly that ("what did the boy in
+    red do..."). Returns None (no hint) when there is no question -- e.g. a
+    cold-cache pre-captioning pass that runs ahead of any specific query --
+    so callers fall back to the old generic, question-blind prompt.
+    """
+    if not question:
+        return None
+    hint = f"Pay attention to: {question}"
+    if choices:
+        hint += f" Consider distinguishing details relevant to: {'; '.join(choices)}."
+    return hint
+
+
+def _build_answer_prompt(question: str, choices: list[str] | None = None) -> str:
+    """Wire multiple-choice options into the answerer prompt (item 4).
+
+    Previously the pipeline only supported open-ended free-text QA -- choices
+    never reached the model even when the dataset (NExT-QA/NExT-GQA) provides
+    5 options + a gold index. This still requires the model to justify its
+    pick with claim-level grounding (not just parrot option text), so
+    CerberusV/cerberus_layers can verify the answer the same way as before --
+    only the instruction changes, not the free-text answer format or the
+    downstream claim-splitting/verification pipeline.
+    """
+    if not choices:
+        return question
+    lettered = "\n".join(f"{chr(ord('A') + i)}. {c}" for i, c in enumerate(choices))
+    return (
+        f"{question}\n\n"
+        f"Choose the best answer from the options below, but you must justify it using the "
+        f"evidence in the provided frames/captions -- do not just repeat an option verbatim "
+        f"without grounding it in visual evidence:\n{lettered}"
+    )
+
+
+def _match_predicted_choice(answer_text: str | None, choices: list[str] | None) -> int | None:
+    """Best-effort post-hoc mapping from the model's free-text answer back to
+    a choice index, for Acc@QA-style scoring. Returns None (not a guess) when
+    the match is ambiguous or absent -- callers must not fabricate an index."""
+    if not choices or not answer_text:
+        return None
+    text_lower = answer_text.lower()
+    substring_matches = [i for i, c in enumerate(choices) if c and c.strip().lower() in text_lower]
+    if len(substring_matches) == 1:
+        return substring_matches[0]
+    letter_match = re.search(r"\b([A-E])\b[).:]?", answer_text)
+    if letter_match:
+        idx = ord(letter_match.group(1)) - ord("A")
+        if 0 <= idx < len(choices):
+            return idx
+    return None
+
+
+def _ensure_captions(index: IRISIndex, retrieved_frames: list[dict], config: Any = None,
+                      question: str | None = None, choices: list[str] | None = None) -> int:
     """Lazily caption retrieved frames lacking a cached caption.
 
     Captioning moved out of ingest() to keep build cost proportional to
@@ -316,37 +428,54 @@ def _ensure_captions(index: IRISIndex, retrieved_frames: list[dict]) -> int:
         return 0
 
     import av
+    import sys
+    import warnings
     from iris._clip import get_semantic_and_clip_caption
 
+    focus_hint = _build_focus_hint(question, choices)
     device = _device()
     frames_decoded_for_captions = 0
+    # GOP-aware batching (item 7): process targets in timestamp order with a
+    # SINGLE seek + one continuous forward decode pass, instead of one
+    # independent seek-and-scan per target. Confirmed via a real smoke-test
+    # anomaly that independent per-target seeks redundantly re-decode the
+    # same GOP prefix when multiple targets share a GOP: 5 targets at
+    # frame_idx [83, 98, 110, 138, 140] (all inside one long GOP) cost 574
+    # decoded frames -- matching 83+98+110+138+140=569, i.e. each later
+    # target re-paid the decode cost of every earlier target in the same
+    # GOP. A single ordered pass covers the same span once.
+    missing_frs_sorted = sorted(missing_frs, key=lambda fr: fr.timestamp)
     container = av.open(str(index.video_path))
     try:
         stream = container.streams.video[0]
         fps = float(stream.average_rate) if stream.average_rate else 25.0
         tolerance = 0.5 / fps  # half a frame-interval
 
-        for fr in missing_frs:
-            target_pts = int(round(fr.timestamp / stream.time_base))
-            container.seek(target_pts, stream=stream)  # backward=True default -> keyframe at/before
+        first_target_pts = int(round(missing_frs_sorted[0].timestamp / stream.time_base))
+        container.seek(first_target_pts, stream=stream)  # backward=True default -> keyframe at/before
 
-            target_frame = None
-            for frame in container.decode(stream):
-                frames_decoded_for_captions += 1
-                if frame.pts is None:
-                    continue
-                frame_time = float(frame.pts * stream.time_base)
-                if frame_time >= fr.timestamp - tolerance:
-                    target_frame = frame
-                    break
+        target_iter = iter(missing_frs_sorted)
+        current_target = next(target_iter, None)
 
-            if target_frame is None:
+        for frame in container.decode(stream):
+            if current_target is None:
+                break
+            frames_decoded_for_captions += 1
+            if frame.pts is None:
                 continue
-            try:
-                pil_img = target_frame.to_image()
-            except Exception:
-                pil_img = None
-            fr.caption = get_semantic_and_clip_caption(pil_img, target_frame, fr.clip_embedding, device)
+            frame_time = float(frame.pts * stream.time_base)
+            # A single decoded frame may satisfy several pending targets
+            # whose timestamps all fall at/before it (e.g. near-duplicate
+            # timestamps) -- consume all of them before advancing the decode.
+            while current_target is not None and frame_time >= current_target.timestamp - tolerance:
+                try:
+                    pil_img = frame.to_image()
+                except Exception:
+                    pil_img = None
+                current_target.caption = get_semantic_and_clip_caption(
+                    pil_img, frame, current_target.clip_embedding, device, config=config, focus_hint=focus_hint,
+                )
+                current_target = next(target_iter, None)
     finally:
         container.close()
 
@@ -354,6 +483,25 @@ def _ensure_captions(index: IRISIndex, retrieved_frames: list[dict]) -> int:
         fr = frame_map.get(f["frame_idx"])
         if fr is not None:
             f["caption"] = fr.caption
+
+    survivor_count = len(index.frames)
+    seeks_requested = len(missing_frs)
+    print(
+        f"[_ensure_captions] video={index.video_path!r} unique_frame_seeks_requested={seeks_requested} "
+        f"frames_decoded={frames_decoded_for_captions} survivor_count={survivor_count} "
+        f"decode_overhead_ratio={round(frames_decoded_for_captions / survivor_count, 2) if survivor_count else None}",
+        file=sys.stderr,
+    )
+    if survivor_count > 0 and frames_decoded_for_captions > 3 * survivor_count:
+        warnings.warn(
+            f"QUERY-CAPTION-001: GOP-seek decode overhead: frames_decoded_for_captions="
+            f"{frames_decoded_for_captions} > 3x survivor_count={survivor_count} "
+            f"(unique_frame_seeks_requested={seeks_requested}) for video={index.video_path!r}. "
+            f"This can indicate very sparse I-frames (long GOPs) forcing a long forward decode "
+            f"to reach mid-GOP caption targets.",
+            RuntimeWarning,
+            stacklevel=2,
+        )
 
     return frames_decoded_for_captions
 
@@ -429,7 +577,7 @@ def _corrective_message(question: str, label: str, e: Exception, wire: bool = Fa
     )
 
 
-def _generate_answer_claims_v2(question: str, context: str):
+def _generate_answer_claims_v2(question: str, context: str, max_tokens: int | None = None, model: str | None = None, config: Any = None):
     """Cerberus v2 contract generation + strict parse, with ONE corrective
     retry on parse failure. NEVER falls back to legacy verification on
     failure -- that would corrupt the v2 compliance measurement; a second
@@ -443,7 +591,7 @@ def _generate_answer_claims_v2(question: str, context: str):
 
     failure_labels: list[str] = []
 
-    raw = aria.generate_v2(prompt=question, context=context)
+    raw = aria.generate_v2(prompt=question, context=context, max_tokens=max_tokens, model=model, config=config)
     try:
         parsed = AnswerClaims.from_json(_extract_json_object(raw))
         return parsed, raw, False, 1, failure_labels
@@ -451,7 +599,7 @@ def _generate_answer_claims_v2(question: str, context: str):
         label = getattr(e, "taxonomy_label", None) or "other"
         failure_labels.append(label)
         corrective = _corrective_message(question, label, e)
-        raw2 = aria.generate_v2(prompt=corrective, context=context)
+        raw2 = aria.generate_v2(prompt=corrective, context=context, max_tokens=max_tokens, model=model, config=config)
         try:
             parsed2 = AnswerClaims.from_json(_extract_json_object(raw2))
             return parsed2, raw2, False, 2, failure_labels
@@ -461,7 +609,7 @@ def _generate_answer_claims_v2(question: str, context: str):
             return None, raw2, True, 2, failure_labels
 
 
-def _generate_answer_claims_v2_wire(question: str, context: str, max_tokens: int | None = None):
+def _generate_answer_claims_v2_wire(question: str, context: str, max_tokens: int | None = None, model: str | None = None, config: Any = None):
     """Schema-constrained (grammar) contract generation via the flat,
     sentinel-valued ANSWER_CLAIMS_WIRE_SCHEMA (iris.claim_contract), with ONE
     corrective retry on a from_wire failure (task 4).
@@ -485,7 +633,11 @@ def _generate_answer_claims_v2_wire(question: str, context: str, max_tokens: int
 
     failure_labels: list[str] = []
 
-    raw = aria.generate_v2(prompt=question, context=context, max_tokens=max_tokens, schema_format=True)
+    def clean_q(q):
+        import re
+        return re.sub(r'[^\w\s]', '', q.lower()).strip()
+
+    raw = aria.generate_v2(prompt=question, context=context, max_tokens=max_tokens, model=model, schema_format=True, config=config)
     try:
         try:
             raw_obj = json.loads(raw)
@@ -493,12 +645,18 @@ def _generate_answer_claims_v2_wire(question: str, context: str, max_tokens: int
             from iris.claim_contract import MalformedJSONError
             raise MalformedJSONError(str(jde)) from jde
         parsed = AnswerClaims.from_wire(raw_obj)
+        if clean_q(parsed.query) != clean_q(question):
+            import logging
+            logging.getLogger(__name__).warning(
+                "Wire query %r does not match original question %r",
+                parsed.query, question,
+            )
         return parsed, raw, False, 1, failure_labels
     except Exception as e:
         label = getattr(e, "taxonomy_label", None) or "other"
         failure_labels.append(label)
         corrective = _corrective_message(question, label, e, wire=True)
-        raw2 = aria.generate_v2(prompt=corrective, context=context, max_tokens=max_tokens, schema_format=True)
+        raw2 = aria.generate_v2(prompt=corrective, context=context, max_tokens=max_tokens, model=model, schema_format=True, config=config)
         try:
             try:
                 raw_obj2 = json.loads(raw2)
@@ -506,6 +664,12 @@ def _generate_answer_claims_v2_wire(question: str, context: str, max_tokens: int
                 from iris.claim_contract import MalformedJSONError
                 raise MalformedJSONError(str(jde2)) from jde2
             parsed2 = AnswerClaims.from_wire(raw_obj2)
+            if clean_q(parsed2.query) != clean_q(question):
+                import logging
+                logging.getLogger(__name__).warning(
+                    "Retry wire query %r does not match original question %r",
+                    parsed2.query, question,
+                )
             return parsed2, raw2, False, 2, failure_labels
         except Exception as e2:
             label2 = getattr(e2, "taxonomy_label", None) or "other"
@@ -513,60 +677,184 @@ def _generate_answer_claims_v2_wire(question: str, context: str, max_tokens: int
             return None, raw2, True, 2, failure_labels
 
 
-def _query_v2(question: str, index: IRISIndex, config: Any) -> dict:
+def _retrieve_with_l1(index: IRISIndex, query_embedding: np.ndarray, config: Any) -> tuple[list[dict], dict]:
+    """Retrieves frames using L1 Elysium Cache if use_l1 is enabled, with L2 fallback."""
+    telemetry = {
+        "l1_consulted": False,
+        "l1_hit": False,
+        "l1_candidate_count": 0,
+        "l2_fallback": False
+    }
+    use_l1 = getattr(config, "use_l1", False)
+    if not use_l1:
+        return _build_retrieved(index, query_embedding, config), telemetry
+
+    # Rebuild L1 Cache on loaded IRISIndex if it is not present
+    if getattr(index, "_l1_cache", None) is None:
+        from iris.l1_elysium import L1ElysiumCache
+        from iris.cached_frame import CachedFrame
+        from iris.frame_motion_descriptor import FrameMotionDescriptor
+        index._l1_cache = L1ElysiumCache(config)
+        for fr in index.frames:
+            motion = FrameMotionDescriptor(
+                frame_idx=fr.frame_idx,
+                timestamp_sec=fr.timestamp,
+                luma_diff_energy=fr.luma_diff_energy,
+                divergence=fr.divergence,
+                curl=fr.curl,
+                jacobian_frobenius=fr.jacobian_frobenius,
+                hessian_max_eigenvalue=fr.hessian_max_eigenvalue,
+                motion_entropy=fr.motion_entropy,
+            )
+            cf = CachedFrame(
+                frame_idx=fr.frame_idx,
+                timestamp_sec=fr.timestamp,
+                action_score=fr.action_score,
+                persistence_value=fr.persistence_value,
+                is_peak=fr.is_peak,
+                pagerank=fr.pagerank_score,
+                motion=motion,
+                embedding=fr.clip_embedding,
+                caption=fr.caption,
+            )
+            index._l1_cache.admit(cf)
+
+    telemetry["l1_consulted"] = True
+    telemetry["l1_candidate_count"] = len(index._l1_cache)
+
+    l2_retrieve_top_k = getattr(config, "l2_retrieve_top_k", 5)
+    l1_results = index._l1_cache.query(query_embedding, top_k=l2_retrieve_top_k)
+
+    max_sim = 0.0
+    if l1_results:
+        max_sim = max(getattr(cf, "query_similarity", 0.0) for cf in l1_results)
+
+    # Fall back explicitly to L2 when L1 cannot satisfy the query (similarity threshold 0.20 or empty)
+    satisfies = len(l1_results) >= l2_retrieve_top_k and max_sim >= 0.20
+
+    if satisfies:
+        telemetry["l1_hit"] = True
+        telemetry["l2_fallback"] = False
+        frame_map = {fr.frame_idx: fr for fr in index.frames}
+        retrieved = []
+        for cf in l1_results:
+            fr = frame_map.get(cf.frame_idx)
+            retrieved.append({
+                "frame_idx": cf.frame_idx,
+                "timestamp": cf.timestamp_sec,
+                "luma_diff_energy": getattr(fr, "luma_diff_energy", 0.0),
+                "action_score": cf.action_score,
+                "persistence_value": cf.persistence_value,
+                "is_peak": cf.is_peak,
+                "clip_embedding": cf.embedding,
+                "luma_entropy": getattr(fr, "luma_entropy", 0.0),
+                "caption": cf.caption,
+                "pagerank_score": getattr(fr, "pagerank_score", 0.0),
+                "packet_size": getattr(fr, "packet_size", 0.0),
+                "pict_type": getattr(fr, "pict_type", "?"),
+                "codec_conf": getattr(fr, "codec_conf", 0.5),
+                "scene_id": getattr(fr, "scene_id", -1),
+                "last_retrieval_score": max_sim,
+            })
+        # Re-admit to update access recency / hit counter
+        wrapper_populate_cache(index._l1_cache, retrieved)
+        return retrieved, telemetry
+    else:
+        telemetry["l1_hit"] = False
+        telemetry["l2_fallback"] = True
+        retrieved = _build_retrieved(index, query_embedding, config)
+        # Update L1 access/PageRank state after retrieval
+        wrapper_populate_cache(index._l1_cache, retrieved)
+        pagerank_scores = {f["frame_idx"]: f.get("pagerank_score", 0.0) for f in retrieved}
+        index._l1_cache.update_pagerank(pagerank_scores)
+        return retrieved, telemetry
+
+
+def _call_embed_query(question: str, config: Any) -> tuple[np.ndarray, dict]:
+    res = _embed_query(question, config)
+    if isinstance(res, tuple) and len(res) == 2:
+        emb, tele = res
+        return emb, tele if isinstance(tele, dict) else {}
+    return res, {}
+
+
+def _query_v2(question: str, index: IRISIndex, config: Any, choices: list[str] | None = None) -> dict:
     """cerberus_mode="v2" path: AnswerClaims JSON contract, layer 1/2/3
     router (iris.cerberus_layers.verify_answer), answer badge. Retrieval
     and lazy-captioning are identical to the legacy path -- only ARIA's
     prompt/parse and the verification step differ."""
     from iris.cerberus_layers import Evidence, get_nli_gate, verify_answer
 
-    t_l2_start = time.time()
-    query_embedding = _embed_query(question, config)
-    retrieved_frames = _build_retrieved(index, query_embedding, config)
-    t_l2 = time.time() - t_l2_start
+    t_l2_start = time.monotonic()
+    query_embedding, embed_telemetry = _call_embed_query(question, config)
+    retrieved_frames, l1_telemetry = _retrieve_with_l1(index, query_embedding, config)
+    t_l2 = time.monotonic() - t_l2_start
 
-    t_caption_start = time.time()
+    t_caption_start = time.monotonic()
     try:
-        frames_decoded_for_captions = _ensure_captions(index, retrieved_frames)
+        try:
+            frames_decoded_for_captions = _ensure_captions(index, retrieved_frames, config, question=question, choices=choices)
+        except TypeError:
+            try:
+                frames_decoded_for_captions = _ensure_captions(index, retrieved_frames, config)
+            except TypeError:
+                frames_decoded_for_captions = _ensure_captions(index, retrieved_frames)
     finally:
         aria.unload_captioner()
-    t_caption = time.time() - t_caption_start
+    t_caption = time.monotonic() - t_caption_start
 
-    t_elysium_start = time.time()
+    t_elysium_start = time.monotonic()
     cache_obj = wrapper_init_l1_cache(config)
     wrapper_populate_cache(cache_obj, retrieved_frames)
     context_text = cache_obj.as_context_text()
-    t_elysium = time.time() - t_elysium_start
+    t_elysium = time.monotonic() - t_elysium_start
 
-    t_aria_start = time.time()
-    answer_claims, raw_answer, compliance_failed, n_attempts, failure_labels = _generate_answer_claims_v2_wire(
-        question, context_text, max_tokens=getattr(config, "answerer_max_tokens", None)
+    t_aria_start = time.monotonic()
+    answer_prompt = _build_answer_prompt(question, choices)
+    use_wire = getattr(config, "answerer_schema_format", True)
+    gen_fn = _generate_answer_claims_v2_wire if use_wire else _generate_answer_claims_v2
+    answer_claims, raw_answer, compliance_failed, attempts, failure_labels = gen_fn(
+        answer_prompt, context_text,
+        max_tokens=getattr(config, "answerer_max_tokens", None),
+        model=getattr(config, "answerer_model", None),
+        config=config,
     )
-    t_aria = time.time() - t_aria_start
+    t_aria = time.monotonic() - t_aria_start
 
-    t_cerberus_start = time.time()
-    if compliance_failed:
+    if compliance_failed or answer_claims is None:
         badge = "unverified"
-        claim_verdicts: list = []
-        core_claim_verdict = None
+        claim_verdicts: list[dict] = []
+        core_claim_verdict: dict | None = None
+        is_verified = False
+        t_cerberus = 0.0
     else:
-        nli = get_nli_gate()
-        evidence = Evidence(index=index, retrieved_frames=retrieved_frames, nli=nli)
+        t_cerberus_start = time.monotonic()
+        gate = get_nli_gate()
+        evidence = Evidence(
+            index=index,
+            retrieved_frames=retrieved_frames,
+            nli=gate,
+        )
         verification = verify_answer(answer_claims, evidence)
+        t_cerberus = time.monotonic() - t_cerberus_start
+
         badge = verification.badge
-        claim_verdicts = verification.claim_verdicts
-        core_claim_verdict = verification.core_claim_verdict
-    t_cerberus = time.time() - t_cerberus_start
+        claim_verdicts = [v.to_dict() for v in verification.claim_verdicts]
+        core_claim_verdict = verification.core_claim_verdict.to_dict() if verification.core_claim_verdict else None
+        is_verified = bool(badge in ("verified", "partially_verified", "partial"))
 
     return {
+        "answer": raw_answer,
         "raw_answer": raw_answer,
-        "answer_claims": answer_claims,
+        "verified": is_verified,
+        "answer_claims": answer_claims.to_dict() if answer_claims is not None else None,
         "compliance_failed": compliance_failed,
-        "n_llm_attempts": n_attempts,
+        "compliance_attempts": attempts,
         "compliance_failure_labels": failure_labels,
         "badge": badge,
         "claim_verdicts": claim_verdicts,
         "core_claim_verdict": core_claim_verdict,
+        "predicted_choice_idx": _match_predicted_choice(raw_answer, choices),
         "frames_processed": index.frames_processed,
         "peak_count": index.peak_count,
         "compression_ratio": index.skipped_frames_ratio,
@@ -574,6 +862,13 @@ def _query_v2(question: str, index: IRISIndex, config: Any) -> dict:
         "storage_reduction_factor": index.storage_reduction_factor,
         "retrieved_frame_idxs": [f["frame_idx"] for f in retrieved_frames],
         "frames_decoded_for_captions": frames_decoded_for_captions,
+        "query_telemetry": {
+            "embedding_backend": embed_telemetry.get("embedding_backend", "unknown"),
+            "norm": embed_telemetry.get("norm", 0.0),
+            "fallback_reason": embed_telemetry.get("fallback_reason", "none"),
+            "effective_method": embed_telemetry.get("effective_method", "direct"),
+            **l1_telemetry
+        },
         "timings": {
             "l2_retrieval": t_l2,
             "lazy_caption": t_caption,
@@ -585,47 +880,70 @@ def _query_v2(question: str, index: IRISIndex, config: Any) -> dict:
     }
 
 
-def query(question: str, index: IRISIndex, config: Any = None) -> dict:
+def query(question: str, index: IRISIndex, config: Any = None, choices: list[str] | None = None) -> dict:
     """Answer one question against a loaded index. No video read, no graph rebuild.
     Returns the same result-dict shape as pipeline.run_pipeline (parity target).
 
     Dispatches to _query_v2 when config.cerberus_mode == "v2"; the legacy
     body below this check is otherwise completely unchanged (default
-    cerberus_mode="legacy" -> zero behavior change)."""
+    cerberus_mode="legacy" -> zero behavior change).
+
+    choices: optional multiple-choice option strings (e.g. NExT-QA/NExT-GQA's
+    5 options). Never pass the gold answer index/text here -- only the
+    options themselves. Threading choices in lets the captioner focus on
+    distinguishing detail (see _build_focus_hint) and the answerer prompt
+    ask for a grounded pick among them (see _build_answer_prompt); the
+    returned "predicted_choice_idx" is a best-effort post-hoc match of the
+    free-text answer back to a choice index (None if ambiguous/unmatched),
+    for external Acc@QA-style scoring -- the pipeline itself never compares
+    against a gold index."""
     config = _config_from_index(index, config)
 
     if getattr(config, "cerberus_mode", "legacy") == "v2":
-        return _query_v2(question, index, config)
+        return _query_v2(question, index, config, choices=choices)
 
-    t_l2_start = time.time()
-    query_embedding = _embed_query(question, config)
-    retrieved_frames = _build_retrieved(index, query_embedding, config)
-    t_l2 = time.time() - t_l2_start
+    t_l2_start = time.monotonic()
+    query_embedding, embed_telemetry = _call_embed_query(question, config)
+    retrieved_frames, l1_telemetry = _retrieve_with_l1(index, query_embedding, config)
+    t_l2 = time.monotonic() - t_l2_start
 
-    t_caption_start = time.time()
+    t_caption_start = time.monotonic()
     try:
-        frames_decoded_for_captions = _ensure_captions(index, retrieved_frames)
+        try:
+            frames_decoded_for_captions = _ensure_captions(index, retrieved_frames, config, question=question, choices=choices)
+        except TypeError:
+            try:
+                frames_decoded_for_captions = _ensure_captions(index, retrieved_frames, config)
+            except TypeError:
+                frames_decoded_for_captions = _ensure_captions(index, retrieved_frames)
     finally:
         aria.unload_captioner()
-    t_caption = time.time() - t_caption_start
+    t_caption = time.monotonic() - t_caption_start
 
-    t_elysium_start = time.time()
+    t_elysium_start = time.monotonic()
     cache_obj = wrapper_init_l1_cache(config)
     wrapper_populate_cache(cache_obj, retrieved_frames)
-    t_elysium = time.time() - t_elysium_start
+    t_elysium = time.monotonic() - t_elysium_start
 
-    t_aria_start = time.time()
+    t_aria_start = time.monotonic()
     context_text = cache_obj.as_context_text()
-    raw_answer = aria.generate(prompt=question, context=context_text)
-    t_aria = time.time() - t_aria_start
+    answer_prompt = _build_answer_prompt(question, choices)
+    raw_answer = aria.generate(
+        prompt=answer_prompt,
+        context=context_text,
+        model=getattr(config, "answerer_model", None),
+        max_tokens=getattr(config, "answerer_max_tokens", None),
+        config=config,
+    )
+    t_aria = time.monotonic() - t_aria_start
 
     claims = _split_claims(raw_answer)
 
-    t_cerberus_start = time.time()
+    t_cerberus_start = time.monotonic()
     max_score = max((f.get("action_score", 0.0) for f in retrieved_frames), default=0.5)
     is_verified, verified_claims, rejected_claims, unverifiable_claims, is_mocked = \
         wrapper_cerberus_gate(claims, cache_obj, max_score, config)
-    t_cerberus = time.time() - t_cerberus_start
+    t_cerberus = time.monotonic() - t_cerberus_start
 
     if verified_claims:
         final_answer = " ".join(verified_claims)
@@ -635,11 +953,13 @@ def query(question: str, index: IRISIndex, config: Any = None) -> dict:
     return {
         "answer": final_answer,
         "raw_answer": raw_answer,
+        "context_text": context_text,
         "verified": is_verified,
         "nli_mocked": is_mocked,
         "verified_claims": verified_claims,
         "rejected_claims": rejected_claims,
         "unverifiable_claims": unverifiable_claims,
+        "predicted_choice_idx": _match_predicted_choice(final_answer, choices),
         "frames_processed": index.frames_processed,
         "peak_count": index.peak_count,
         "compression_ratio": index.skipped_frames_ratio,
@@ -647,6 +967,13 @@ def query(question: str, index: IRISIndex, config: Any = None) -> dict:
         "storage_reduction_factor": index.storage_reduction_factor,
         "retrieved_frame_idxs": [f["frame_idx"] for f in retrieved_frames],
         "frames_decoded_for_captions": frames_decoded_for_captions,
+        "query_telemetry": {
+            "embedding_backend": embed_telemetry.get("embedding_backend", "unknown"),
+            "norm": embed_telemetry.get("norm", 0.0),
+            "fallback_reason": embed_telemetry.get("fallback_reason", "none"),
+            "effective_method": embed_telemetry.get("effective_method", "direct"),
+            **l1_telemetry
+        },
         "timings": {
             "l2_retrieval": t_l2,
             "lazy_caption": t_caption,

@@ -108,6 +108,8 @@ class CachedFrame:
         w_entropy:  float = 0.10,
         w_hessian:  float = 0.10,
         w_recency:  float = 0.05,
+        norm_entropy: float | None = None,
+        norm_hessian: float | None = None,
     ) -> float:
         """
         How much L1 wants to keep this frame.
@@ -118,6 +120,12 @@ class CachedFrame:
         Args:
             total_admitted: how many frames L1 has admitted in total so far.
                             Used to compute how recent this frame is.
+            norm_entropy:   If provided, a [0, 1]-normalized motion_entropy
+                            computed relative to the current cache population.
+                            When None the raw attribute is used (may be unbounded).
+            norm_hessian:   If provided, a [0, 1]-normalized hessian_max_eigenvalue
+                            computed relative to the current cache population.
+                            When None the raw attribute is used (may be unbounded).
         """
         # Recency: 1.0 if just admitted, decays toward 0.0 as older frames are superseded.
         # CACHE-003: Use max(total_admitted - 1, 1) as denominator so that the
@@ -126,12 +134,19 @@ class CachedFrame:
         recency = 1.0 - (total_admitted - 1 - self.admitted_at) / max(total_admitted - 1, 1)
         recency = max(0.0, min(1.0, recency))
 
+        # P1-07: Use caller-supplied normalised values when available so that
+        # unbounded motion geometry terms (hessian_max_eigenvalue can be hundreds)
+        # do not dominate the other [0, 1]-bounded terms.
+        ent = norm_entropy if norm_entropy is not None else self.motion.motion_entropy
+        hes = norm_hessian if norm_hessian is not None else self.motion.hessian_max_eigenvalue
+
         return (
             w_action   * self.action_score
             + w_query  * self.query_similarity
             + w_persist * self.persistence_value
             + w_pagerank * self.pagerank
-            + w_entropy  * self.motion.motion_entropy
-            + w_hessian  * self.motion.hessian_max_eigenvalue
+            + w_entropy  * ent
+            + w_hessian  * hes
             + w_recency  * recency
         )
+

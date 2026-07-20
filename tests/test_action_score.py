@@ -137,22 +137,33 @@ def test_persistence_clustering_regression():
     assert p1 > p2, f"Expected dominant peak persistence {p1} > weaker peak persistence {p2}"
 
 
-def test_data_derived_divisor_not_hardcoded():
-    # Regression: max prominence is ~0.8, not the old hardcoded config default of 0.5.
-    # OLD behavior (divisor=0.5): weaker peak persistence = min(0.4/0.5, 1.0) = 0.8.
-    # NEW behavior (divisor=data max=0.8): weaker peak persistence = 0.4/0.8 = 0.5.
-    # Asserting 0.5 (not 0.8) proves the divisor is data-derived, not hardcoded.
+def test_configured_max_prominence_divisor():
+    """
+    P1-06 regression: persistence_value must be normalized by the *configured*
+    max_prominence, not the local video-specific maximum.
+
+    Using a data-derived divisor made persistence values incomparable across
+    videos processed in the same pipeline run.  A configured global bound
+    ensures consistency.
+
+    Setup:
+        config.max_prominence = 0.5  (default)
+        Prominences:  main peak = 0.8,  secondary = 0.4
+        Expected:
+            main peak:      min(0.8 / 0.5, 1.0) = 1.0   (clamped)
+            secondary peak: min(0.4 / 0.5, 1.0) = 0.8
+    """
     config = ActionScoreConfig(
         peak_distance=5,
         peak_prominence=0.05,
         persistence_threshold=0.3,
+        max_prominence=0.5,   # explicit configured bound
     )
     scorer = ActionScoreModule(config)
 
     # Dip at frame 0 (0.0), baseline 0.2, main peak 1.0 at frame 5, secondary 0.6 at frame 11.
     # After min-max normalization the signal is unchanged (min=0.0, max=1.0).
     # Prominences: main peak = 1.0 - 0.2 = 0.8, secondary = 0.6 - 0.2 = 0.4.
-    # data-derived max_prominence = 0.8.
     values = [0.0, 0.2, 0.2, 0.2, 0.2, 1.0, 0.2, 0.2, 0.2, 0.2, 0.2, 0.6, 0.2, 0.2, 0.2]
     frames = [
         {"frame_idx": i, "packet_size": v, "motion_magnitude": v, "luma_entropy": v}
@@ -161,12 +172,18 @@ def test_data_derived_divisor_not_hardcoded():
 
     records = scorer.score_all(frames)
 
-    peak5 = records[5]
+    peak5  = records[5]
     peak11 = records[11]
 
     assert peak5["is_peak"]
     assert peak11["is_peak"]
-    # Strongest peak: prominence 0.8 / max_prominence 0.8 = 1.0.
-    assert peak5["persistence_value"] == 1.0
-    # Weaker peak: 0.4 / 0.8 = 0.5, not 0.8 (what the old hardcoded divisor 0.5 would give).
-    assert abs(peak11["persistence_value"] - 0.5) < 0.05
+
+    # Main peak: prominence 0.8 / configured_max 0.5 = 1.6 → clamped to 1.0.
+    assert peak5["persistence_value"] == 1.0, (
+        f"Main peak persistence should be clamped to 1.0, got {peak5['persistence_value']}"
+    )
+    # Weaker peak: 0.4 / 0.5 = 0.8 (not 0.5 which the old data-derived max 0.8 would give).
+    assert abs(peak11["persistence_value"] - 0.8) < 0.05, (
+        f"Secondary peak persistence should be ~0.8, got {peak11['persistence_value']}"
+    )
+
