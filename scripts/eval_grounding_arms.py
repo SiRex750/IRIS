@@ -164,7 +164,7 @@ def main() -> None:
             ts = [f["timestamp"] for f in retrieved]
             span = predict_span(
                 retrieved, mode=SPAN_MODE, half_width=SPAN_HALF_WIDTH,
-                duration=duration_by_vid.get(vid),
+                duration=duration_by_vid.get(vid), query_embedding=emb,
             )
             fiw_val = frames_in_window(ts, gold_spans)
             iop_val = iop(span, gold_spans)
