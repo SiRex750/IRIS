@@ -313,6 +313,22 @@ def main() -> None:
     else:
         print("  N/A -- no branch records captured.")
 
+    # ── per-question dump (scene-sparse A/B pre-registration) ───────────────
+    logs_dir = REPO / "logs"
+    logs_dir.mkdir(parents=True, exist_ok=True)
+    dump = {
+        "per_arm_pq_iop": {
+            arm: {f"{v}|{q}": val for (v, q), val in pq.items()}
+            for arm, pq in per_arm_pq_iop.items()
+        },
+        "per_arm_pq": {
+            arm: {f"{v}|{q}": val for (v, q), val in pq.items()}
+            for arm, pq in per_arm_pq.items()
+        },
+    }
+    with open(logs_dir / "scene_sparse_ab_perq.json", "w", encoding="utf-8") as fh:
+        json.dump(dump, fh, indent=2)
+
 
 if __name__ == "__main__":
     main()
