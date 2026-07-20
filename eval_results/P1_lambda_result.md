@@ -20,3 +20,4 @@ Runs: λ=0.0 P1_lambda00_raw.json (c9290ab); λ=0.5 A6_mixed_raw.json (c4dd497);
 - λ is a CLOSED lever — default 0.5 is on the optimal plateau; no improvement available. Fix 2 = no gain. Keep λ=0.5.
 - Codec effect REFINED: a domination effect (over-weighted query-blind codec_conf seed evicts good frames from the top-8 that clip-peak can't recover), not a per-signal negative. Balanced codec is benign. Consistent with the peak-source fix carrying localization.
 - Discipline: confirm-don't-argmax honored; N=64 in-sample, no held-out split; λ not tuned.
+- Corroboration, not contradiction: the flat λ∈[0.5,1.0] plateau shows the peak-source fix decoupled grounding from the codec seed — with peak selection clip-driven, moderate codec weight no longer reaches grounding and the pre-fix 79% peak-hijack cannot recur; codec only bites at λ→0 via candidate-set eviction. The sweep corroborates the fix rather than re-testing the pre-fix negative.
