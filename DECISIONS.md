@@ -222,3 +222,8 @@ byte-identical across both runs).
 Mixed proposed mIoP 0.3426 / IoP@0.5 35.9% reproduced at c4dd497; +8 IoP@0.5 vs the ppr_score
 legacy peak (28.1%, half_width report). Artifacts: A6_mixed_raw.json, A6_allminmax_raw.json
 (bcf940e); half_width_confirmation_report.md (83215c0).
+
+## 2026-07-19 — P1 / Fix 2: ppr_lambda sweep {0.0, 0.5, 1.0}
+- P1a. Pre-registered λ*=1.0 FALSIFIED. λ=0.5 (default) and λ=1.0 statistically indistinguishable on all metrics; only λ=0.0 (pure codec) significantly worse on grounding (mIoP 0.5−0.0 +0.121 [+0.050,+0.196]; 1.0−0.0 +0.108 [+0.023,+0.195]). λ is a CLOSED lever — default 0.5 optimal, Fix 2 yields no gain. Keep λ=0.5.
+- P1b. Codec-at-query-time effect REFINED to a DOMINATION effect, not a per-signal negative: codec_conf at balanced weight ties pure semantic; only codec-domination (λ→0) collapses grounding (candidate-set eviction clip-peak can't recover). Vindicates the codec_conf-vs-"codec" scoping point.
+- P1c. ROADMAP v9 §4 CORRECTIONS: "monotonic in λ" is falsified post-fix (plateau λ∈[0.5,1.0], collapse λ→0); the "79% peak hijack at λ=0.5" is a PRE-fix diagnostic resolved by clip_in_ppr_top8, not current behavior. Paper must claim "over-weighted query-blind codec_conf prior degrades peak selection," not "codec metadata is negative." (v9 P1's "λ*=0" was also backwards; see P1_lambda_prereg.md.)
