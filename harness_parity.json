@@ -1,0 +1,102 @@
+[
+  {
+    "video": "4882821564",
+    "qid": "1",
+    "question": "why did the boy pick up one present from the group of them and move to the sofa",
+    "harness_retrieved_frame_idxs": [
+      411,
+      381,
+      447,
+      339,
+      450
+    ],
+    "query_retrieved_frame_idxs": [
+      411,
+      381,
+      447,
+      339,
+      450
+    ],
+    "match": true
+  },
+  {
+    "video": "2435100235",
+    "qid": "7",
+    "question": "how does the man cycling try to sell the watch to the man in the trishaw",
+    "harness_retrieved_frame_idxs": [
+      1529,
+      1679,
+      1139,
+      1145,
+      1076
+    ],
+    "query_retrieved_frame_idxs": [
+      1529,
+      1679,
+      1139,
+      1145,
+      1076
+    ],
+    "match": true
+  },
+  {
+    "video": "2834146886",
+    "qid": "8",
+    "question": "what does the white dog do after going to the cushion",
+    "harness_retrieved_frame_idxs": [
+      1035,
+      1167,
+      1161,
+      960,
+      96
+    ],
+    "query_retrieved_frame_idxs": [
+      1035,
+      1167,
+      1161,
+      960,
+      96
+    ],
+    "match": true
+  },
+  {
+    "video": "8132842161",
+    "qid": "2",
+    "question": "why did the man in white hold tightly to the boy in white",
+    "harness_retrieved_frame_idxs": [
+      492,
+      306,
+      465,
+      135,
+      263
+    ],
+    "query_retrieved_frame_idxs": [
+      492,
+      306,
+      465,
+      135,
+      263
+    ],
+    "match": true
+  },
+  {
+    "video": "4260763967",
+    "qid": "4",
+    "question": "why is the boy in yellow reaching out to things on the green mat",
+    "harness_retrieved_frame_idxs": [
+      147,
+      837,
+      399,
+      141,
+      156
+    ],
+    "query_retrieved_frame_idxs": [
+      147,
+      837,
+      399,
+      141,
+      156
+    ],
+    "match": true
+  }
+]

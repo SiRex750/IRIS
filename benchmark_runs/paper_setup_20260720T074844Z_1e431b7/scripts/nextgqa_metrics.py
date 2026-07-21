@@ -28,7 +28,15 @@ def intersection(a_s: float, a_e: float, b_s: float, b_e: float) -> float:
 
 
 def iop_single(pred_s: float, pred_e: float, gold_s: float, gold_e: float) -> float:
-    """IoP = intersection(pred, gold) / duration(pred). 0.0 if pred has zero duration."""
+    """IoP = intersection(pred, gold) / duration(pred). 0.0 if pred has zero duration --
+    EXCEPT the official doc-doc/NExT-GQA scorer (code/TempGQA/eval_ground.py::get_tIoU)
+    special-cases an exactly-zero-width predicted span (pred_s == pred_e, e.g. a single
+    retrieved timestamp): it counts as perfect precision (IoP=1.0) iff the point falls
+    inside the gold span, else 0.0. This must be checked BEFORE the reversed-span clamp
+    below, which only applies to a genuinely malformed pred_s > pred_e, not to this exact
+    equality case."""
+    if pred_s == pred_e:
+        return 1.0 if gold_s <= pred_s <= gold_e else 0.0
     pred_s, pred_e = _clip_span(pred_s, pred_e)
     pred_len = pred_e - pred_s
     if pred_len <= 0:

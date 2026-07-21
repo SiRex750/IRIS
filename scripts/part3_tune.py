@@ -31,7 +31,27 @@ sys.path.insert(0, str(REPO))
 
 import iris.ingest as iris_ingest  # noqa: E402
 from iris.iris_config import IRISConfig  # noqa: E402
-from eval.metrics import best_over_gold_spans, predicted_span_from_frames  # noqa: E402
+# predicted_span_from_frames is IRIS-specific (how retrieved frames become a
+# span) -- not a duplicate of an official metric, stays here. IoP/IoU scoring
+# itself is loaded from the canonical, registry-designated module (Part 2c
+# consolidation: eval/metrics.py's independent IoP/IoU reimplementation is
+# retired from this harness in favor of the one validated module).
+from eval.metrics import predicted_span_from_frames  # noqa: E402
+
+import importlib.util as _importlib_util  # noqa: E402
+_NEXTGQA_METRICS_PATH = REPO / "benchmark_runs/paper_setup_20260720T074844Z_1e431b7/scripts/nextgqa_metrics.py"
+_spec = _importlib_util.spec_from_file_location("nextgqa_metrics_canonical", _NEXTGQA_METRICS_PATH)
+nextgqa_metrics = _importlib_util.module_from_spec(_spec)
+_spec.loader.exec_module(nextgqa_metrics)
+
+
+def best_over_gold_spans(gold_spans: list[list[float]], pred_span: tuple[float, float]) -> tuple[float, float]:
+    """Adapter to the canonical nextgqa_metrics.py's (pred_s, pred_e, gold_tuples)
+    signature, preserving this harness's existing (gold_spans, pred_span) -> (iou, iop) call shape."""
+    gold_tuples = [(g[0], g[1]) for g in gold_spans]
+    iop = nextgqa_metrics.iop(pred_span[0], pred_span[1], gold_tuples)
+    iou = nextgqa_metrics.iou(pred_span[0], pred_span[1], gold_tuples)
+    return iou, iop
 
 VIDEO_DIR = REPO / "eval" / "data" / "nextqa" / "NExTVideo_flat"
 INDEX_CACHE_DIR = REPO / "tuning" / "index_cache"

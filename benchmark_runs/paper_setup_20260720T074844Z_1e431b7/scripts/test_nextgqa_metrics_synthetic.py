@@ -54,9 +54,21 @@ def main():
     # intersection=[4,5.5]=1.5, pred_len=2 -> 0.75; against 1st span intersection=0 -> 0.0; max=0.75
     check("multi_gold_best_iop", iop(4, 6, [(0, 1), (4, 5.5)]), 0.75)
 
-    # Empty prediction (zero duration): pred=[5,5] -> pred_len=0 -> IoP defined as 0.0
-    check("empty_prediction_iop", iop_single(5, 5, 0, 10), 0.0)
-    check("empty_prediction_iou", iou_single(5, 5, 0, 10), 0.0)  # union=10+0-0=10, inter=0 -> 0/10=0.0
+    # Zero-duration predicted span INSIDE gold: pred=[5,5], gold=[0,10].
+    # CORRECTED (Part 2c metric parity check, cross-referenced against the
+    # actual official doc-doc/NExT-GQA scorer, code/TempGQA/eval_ground.py::
+    # get_tIoU): a zero-width predicted point special-cases to (IoU=0,
+    # IoP=1) when it falls inside the gold span -- perfect precision, zero
+    # measurable union overlap. The previous expectation here (IoP=0.0) was
+    # this test's own assumption, written without consulting the official
+    # source, and was NOT what the real scorer does -- it undercounted a
+    # single-timestamp retrieval landing exactly inside the gold window.
+    check("zero_duration_pred_inside_gold_iop", iop_single(5, 5, 0, 10), 1.0)
+    check("zero_duration_pred_inside_gold_iou", iou_single(5, 5, 0, 10), 0.0)  # union=10+0-0=10, inter=0 -> 0/10=0.0
+
+    # Zero-duration predicted span OUTSIDE gold: pred=[15,15], gold=[0,10] -> point not in gold -> IoP=0.0
+    check("zero_duration_pred_outside_gold_iop", iop_single(15, 15, 0, 10), 0.0)
+    check("zero_duration_pred_outside_gold_iou", iou_single(15, 15, 0, 10), 0.0)
 
     # Reversed span: pred_s=8, pred_e=3 (e<s) -> clamped to zero-duration span -> IoP=0.0
     check("reversed_span_iop", iop_single(8, 3, 0, 10), 0.0)
