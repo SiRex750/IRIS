@@ -1,0 +1,105 @@
+{
+  "captured_utc": "2026-07-21T04:32:00Z",
+  "note": "This is a single-box environment (not a separate 'remote' host reachable over SSH from the assistant) -- the assistant's Bash tool runs directly on this machine, which happens to have a GPU. Treated as 'the remote GPU server' for this benchmark per task framing.",
+  "git": {
+    "repo": "https://github.com/swarapotd-rgb/IRIS",
+    "branch": "fix/charon-full-decode-geometry",
+    "commit": "a752954338c87d1d97da4cc8490d0a5f87349829",
+    "working_tree_status_at_capture": "clean (before Part 1 edits)"
+  },
+  "gpu": {
+    "count": 1,
+    "model": "NVIDIA GeForce RTX 4090",
+    "driver_version": "595.71.05",
+    "cuda_version_driver_reported": "13.2",
+    "vram_total_mib": 24564,
+    "vram_used_at_capture_mib": 1101,
+    "vram_used_note": "baseline usage from Xorg + gnome-remote-desktop processes already resident; not IRIS. Effective free VRAM for IRIS workloads is lower than the nominal 24564 MiB by that amount."
+  },
+  "cpu": {
+    "model": "13th Gen Intel(R) Core(TM) i9-13900",
+    "logical_cores": 32,
+    "physical_cores": 24,
+    "threads_per_core": 2
+  },
+  "ram": {
+    "total": "125Gi",
+    "free_at_capture": "6.1Gi",
+    "available_at_capture": "112Gi"
+  },
+  "disk": {
+    "filesystem": "/dev/nvme0n1p2",
+    "mount": "/",
+    "size": "938G",
+    "used": "799G",
+    "available": "92G",
+    "use_pct": "90%",
+    "flag": "Only 92G free. Full NExT-GQA video corpus (990 test + 567 val videos, raw NExT-QA video source) is commonly 100GB+. This is a hard constraint on Part 2/4 scope -- must be checked before bulk download, may require downloading a working subset or streaming/deleting after per-video processing rather than caching everything at once."
+  },
+  "python": {
+    "interpreter": "/home/ccbd/miniconda3/bin/python",
+    "version": "3.13.12 (Anaconda, GCC 14.3.0)"
+  },
+  "pytorch": {
+    "version": "2.11.0",
+    "cuda_available": true,
+    "torch_cuda_version": "13.0"
+  },
+  "key_packages": {
+    "transformers": "4.57.6",
+    "torch": "2.11.0",
+    "torchvision": "0.26.0",
+    "torchaudio": "2.11.0",
+    "torch_geometric": "2.7.0",
+    "clip": "git+openai/CLIP@d05afc4",
+    "faiss-cpu": "1.14.3",
+    "av (PyAV)": "17.0.1",
+    "scipy": "1.17.1",
+    "numpy": "2.4.4",
+    "networkx": "3.6.1",
+    "opencv-python": "4.13.0.92",
+    "spacy": "3.8.14",
+    "huggingface_hub": "0.36.2",
+    "full_pip_freeze_note": "python -m pip freeze captured to /tmp/pip_freeze.txt this session (315 packages); NOTE: the plain `pip` on PATH resolves to /home/ccbd/.local/bin/pip, a DIFFERENT environment (reported torch==2.8.0) than the miniconda python actually used to run IRIS (torch==2.11.0). Always invoke `python -m pip` on this box, never bare `pip`, or package versions will be misreported."
+  },
+  "ffmpeg": {
+    "version": "4.4.2-0ubuntu0.22.04.1",
+    "libavcodec": "58.134.100",
+    "libavutil": "56.70.100",
+    "notable_build_flags": ["--enable-gpl", "--enable-libx264", "--enable-libx265", "--enable-libvpx", "--enable-libdav1d", "--enable-libaom"],
+    "h264_mv_export_support": "not independently verified in this pass; prior repo docs (FINAL_PRE_BENCHMARK_VERIFICATION) note PyAV/ffmpeg with H.264 MV export is required for real-video ingest and the one real-video codec test skips without a fixture -- re-verify with an actual video before trusting motion-vector-derived geometry features on this box"
+  },
+  "models": {
+    "clip_embedding_backend": {
+      "configured_model": "ViT-B/32 (config.clip_model default None -> falls back to clip_revision)",
+      "clip_revision_default": "ViT-B/32",
+      "loadable": "not independently smoke-tested in this pass yet"
+    },
+    "captioner": {
+      "configured_backend": "minicpm (iris_config.captioner_backend default)",
+      "resolution_mechanism": "MiniCPMCaptioner (iris/aria.py) auto-detects model name from the OpenAI-compatible /v1/models list at answerer_endpoint; prefers 'minicpm-v4.6:latest'/'minicpm-v4.6', else falls back to 'minicpm-v:latest'/'minicpm-v'",
+      "actually_available_on_this_box": "minicpm-v:latest (NOT minicpm-v4.6) -- confirmed via GET http://127.0.0.1:8091/v1/models",
+      "deviation": "DOCUMENTED DEVIATION: prior repo decisions (DECISIONS.md) seat 'minicpm-v4.6-inventory' as the production captioner. This box only has the plain 'minicpm-v:latest' tag loaded on the llama_server instance, not minicpm-v4.6. MiniCPMCaptioner's own fallback logic will silently use minicpm-v instead of minicpm-v4.6 -- captions in this run come from minicpm-v, not minicpm-v4.6. This is a real model substitution, not a hypothetical -- record it against every output file produced by this run."
+    },
+    "answerer": {
+      "iris_config_defaults": {
+        "answerer_backend": "llama_server",
+        "answerer_endpoint": "http://127.0.0.1:8091/v1",
+        "answerer_model": "granite4:micro"
+      },
+      "reachability": "REACHABLE. curl http://127.0.0.1:8091/v1/models returned 200 with models: minicpm-v:latest, granite4:micro, llama3.2:latest.",
+      "conclusion": "The configured llama_server default IS live and usable on this box as-is. No Ollama fallback substitution is needed here (unlike the CPU smoke runs referenced in EXPERIMENT_LOG.md, which used Ollama on a VRAM-constrained box). Server appears to be either llama.cpp's llama-server or an Ollama instance exposing an OpenAI-compatible /v1 route on port 8091 (not independently distinguished in this pass -- the /v1/models payload's 'owned_by':'library' field is consistent with either); noted as an open item, does not change functional reachability."
+    },
+    "nli_verifier": {
+      "model": "cross-encoder/nli-deberta-v3-base (via iris/cerberus_v.py._get_nli_model)",
+      "status_as_first_observed": "BROKEN via default online path: huggingface_hub.errors.RepositoryNotFoundError / '401 Client Error... OAuth token signature verification failed' when the loader calls the HF Hub API. Reproduced identically on HEAD before any Part-1 edit (git stash verified). Root cause isolated: ~/.cache/huggingface/token holds a stale/invalid cached OAuth token (whoami() -> 'Invalid user token'), so every HF Hub API call 401s, EVEN THOUGH the model weights are already present in the local cache (~/.cache/huggingface/hub/models--cross-encoder--nli-deberta-v3-base).",
+      "fix_applied": "Documented environment-level workaround (no code change): set HF_HUB_OFFLINE=1 in the process environment for benchmark runs. This makes transformers/huggingface_hub skip the Hub API entirely and load straight from local cache, which succeeded (AutoModelForSequenceClassification.from_pretrained loaded cleanly). All Part 1+ runs on this box that touch cerberus_mode='v2' verification are executed with HF_HUB_OFFLINE=1 set. cerberus_mode='none' runs never touch this model at all, so they are unaffected either way.",
+      "recommendation": "The stale token at ~/.cache/huggingface/token should eventually be refreshed or removed by whoever owns this box; HF_HUB_OFFLINE=1 is a workaround for this benchmark session, not a permanent fix."
+    },
+    "hf_hub_download_for_dataset_fetch": {
+      "issue": "The same stale ~/.cache/huggingface/token also breaks anonymous huggingface_hub.hf_hub_download() calls against public dataset repos (e.g. VLM2Vec/nextqa-rawvideo) -- HEAD requests 401 with 'OAuth token signature verification failed' when the stale token is attached.",
+      "fix_applied": "Pass token=False explicitly to every hf_hub_download()/snapshot_download() call in this benchmark (verified working: downloaded 6936757706.mp4, 3079724515.mp4, 8900428927.mp4 from VLM2Vec/nextqa-rawvideo this way). HF_HUB_OFFLINE=1 does NOT help here since these files were not yet cached. This must be applied consistently for the full Part 2 dataset download (990+567 videos) or downloads will fail the same way."
+    }
+  },
+  "latency_scope_warning": "ALL latency numbers produced by any run on this environment are GPU-box numbers (RTX 4090, 32-thread i9-13900, 125GB RAM, local NVMe). They must never be used, cited, or extrapolated to support any CPU-only or edge-device latency claim. Every output file in this benchmark that reports latency must carry this same warning inline."
+}

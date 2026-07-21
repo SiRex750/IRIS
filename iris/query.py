@@ -951,15 +951,38 @@ def _query_v2(question: str, index: IRISIndex, config: Any, choices: list[str] |
     )
     t_aria = time.monotonic() - t_aria_start
 
-    if compliance_failed or answer_claims is None:
-        badge = "unverified"
+    cerberus_mode = getattr(config, "cerberus_mode", "v2")
+
+    if cerberus_mode == "none":
+        # L3 OFF / "no verifier, raw answerer" arm: verify_answer is never
+        # called, so get_nli_gate() (spaCy + DeBERTa NLI load) never runs --
+        # the cost of a verification result is not paid when that result is
+        # thrown away. verified is "not_applicable" (never True/False --
+        # nothing was checked) and answer is always raw_answer (no
+        # abstention message), regardless of compliance_failed.
+        badge = "skipped"
         claim_verdicts: list[dict] = []
         core_claim_verdict: dict | None = None
-        is_verified = False
+        is_verified: bool | str | None = "not_applicable"
         verified_claims: list[str] = []
         rejected_claims: list[str] = []
         unverifiable_claims: list[str] = []
         t_cerberus = 0.0
+        final_answer = raw_answer
+    elif compliance_failed or answer_claims is None:
+        badge = "unverified"
+        claim_verdicts = []
+        core_claim_verdict = None
+        is_verified = False
+        verified_claims = []
+        rejected_claims = []
+        unverifiable_claims = []
+        t_cerberus = 0.0
+        # Badge-consistent final answer: mirrors legacy's abstention contract
+        # (present real content only when is_verified, else the same
+        # abstention message) rather than always surfacing the raw,
+        # possibly-unverified text.
+        final_answer = "Insufficient verified evidence to answer this question."
     else:
         t_cerberus_start = time.monotonic()
         gate = get_nli_gate()
@@ -988,10 +1011,7 @@ def _query_v2(question: str, index: IRISIndex, config: Any, choices: list[str] |
             _claim_text(v.claim) for v in verification.claim_verdicts if _label_class(v.label) == "unverifiable"
         ]
 
-    # Badge-consistent final answer: mirrors legacy's abstention contract
-    # (present real content only when is_verified, else the same abstention
-    # message) rather than always surfacing the raw, possibly-unverified text.
-    final_answer = raw_answer if is_verified else "Insufficient verified evidence to answer this question."
+        final_answer = raw_answer if is_verified else "Insufficient verified evidence to answer this question."
 
     return {
         "answer": final_answer,
@@ -1040,11 +1060,13 @@ def query(question: str, index: IRISIndex, config: Any = None, choices: list[str
     """Answer one question against a loaded index. No video read, no graph rebuild.
     Returns the same result-dict shape as pipeline.run_pipeline (parity target).
 
-    Dispatches to _query_v2 when config.cerberus_mode == "v2" (the default);
-    the legacy body below this check is otherwise completely unchanged and
-    only runs when cerberus_mode="legacy" is passed explicitly. Note:
-    debug_trace instrumentation (iris.debug_trace.DebugTrace) is wired into
-    the legacy body only -- _query_v2 has no debug-trace integration yet.
+    Dispatches to _query_v2 when config.cerberus_mode is "v2" (the default)
+    or "none" (retrieval+answering identical to "v2", verification skipped
+    entirely -- see _query_v2's cerberus_mode branch); the legacy body below
+    this check is otherwise completely unchanged and only runs when
+    cerberus_mode="legacy" is passed explicitly. Note: debug_trace
+    instrumentation (iris.debug_trace.DebugTrace) is wired into the legacy
+    body only -- _query_v2 has no debug-trace integration yet.
 
     choices: optional multiple-choice option strings (e.g. NExT-QA/NExT-GQA's
     5 options). Never pass the gold answer index/text here -- only the
@@ -1066,7 +1088,7 @@ def query(question: str, index: IRISIndex, config: Any = None, choices: list[str
     """
     config = _config_from_index(index, config)
 
-    if getattr(config, "cerberus_mode", "legacy") == "v2":
+    if getattr(config, "cerberus_mode", "legacy") in ("v2", "none"):
         return _query_v2(question, index, config, choices=choices)
 
     trace = None

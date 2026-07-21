@@ -63,7 +63,7 @@ class IRISConfig:
     cerberus_high_thresh: float = 0.70  # action_score >= this → full NLI
     cerberus_low_thresh:  float = 0.35  # action_score >= this → filtered NLI
     disable_nli:          bool  = False # completely bypass DeBERTa NLI, use ner_only
-    cerberus_mode:        str   = "v2" # "legacy" or "v2"
+    cerberus_mode:        str   = "v2" # "legacy", "v2", or "none" (retrieval+answering only, no verification -- see iris/query.py:_query_v2)
 
     # ── Answerer Backend (Prompt 1) ────────────────────────────────────────
     answerer_backend:       str   = "llama_server"
@@ -236,7 +236,7 @@ class IRISConfig:
                f"ppr_lambda must be in [0.0, 1.0], got {self.ppr_lambda}")
         _check(0.0 < self.ppr_damping < 1.0,
                f"ppr_damping must be in (0.0, 1.0), got {self.ppr_damping}")
-        _check(self.cerberus_mode in {"legacy", "v2"},
+        _check(self.cerberus_mode in {"legacy", "v2", "none"},
                f"Invalid cerberus_mode '{self.cerberus_mode}'")
         _check(self.graph_mode in {"flat", "scene_sparse"},
                f"Invalid graph_mode '{self.graph_mode}'")

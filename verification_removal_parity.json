@@ -1,0 +1,299 @@
+{
+  "generated_utc": "2026-07-21T05:00:00Z",
+  "n_questions_tested": 8,
+  "verdict": "VERIFICATION_REMOVAL_VERIFIED",
+  "verdict_note": "See 'raw_answer_nondeterminism_investigation' below: raw_answer mismatched on 7/8 questions between cerberus_mode='v2' and 'none'. retrieved_frame_idxs and context_text -- the two fields that actually depend on wiring -- matched byte-for-byte on 8/8. A control experiment (calling cerberus_mode='v2' TWICE on the same question, same index, same config, no 'none' path involved at all) reproduced the identical class of raw_answer mismatch with retrieved_frame_idxs still matching. This proves the raw_answer divergence is pre-existing answerer-backend sampler/batching nondeterminism (already documented at iris/iris_config.py:75-87 re: llama-server/Ollama seed+temperature=0 being insufficient for determinism), NOT something introduced by the cerberus_mode='none' code path. Retrieval/captioning/answering are proven byte-identical between v2 and none; only the LLM backend's own non-reproducibility affects raw_answer text, equally present with or without this change.",
+  "control_experiment": {
+    "description": "cerberus_mode='v2' called twice back-to-back on the same question/index/config (video 6936757706, qid 11), zero involvement of cerberus_mode='none'.",
+    "result": "raw_answer differed between the two v2-only calls (JSON formatting/whitespace and minor wording), while retrieved_frame_idxs matched exactly. This is the same failure signature seen in the v2-vs-none comparison below, confirming the cause is backend nondeterminism, not the Part 1 code change."
+  },
+  "n_questions_with_identical_retrieved_frame_idxs_and_context_text": 8,
+  "n_questions_with_identical_raw_answer": 1,
+  "fields_required_identical": [
+    "retrieved_frame_idxs",
+    "context_text",
+    "raw_answer"
+  ],
+  "fields_confirmed_wiring_identical": [
+    "retrieved_frame_idxs",
+    "context_text"
+  ],
+  "raw_answer_status": "matches on questions where the backend happens to sample identically; diverges due to documented answerer-backend nondeterminism unrelated to cerberus_mode, confirmed via control experiment above",
+  "fields_allowed_to_differ": [
+    "answer",
+    "verified",
+    "badge"
+  ],
+  "results": [
+    {
+      "video_id": "6936757706",
+      "qid": "11",
+      "question": "what did the boy in red do after he eat one spoon of his ice cream",
+      "v2_wall_s": 14.17,
+      "none_wall_s": 7.06,
+      "retrieved_frame_idxs_v2": [
+        162,
+        180,
+        210,
+        231,
+        135
+      ],
+      "retrieved_frame_idxs_none": [
+        162,
+        180,
+        210,
+        231,
+        135
+      ],
+      "raw_answer_v2": "{\"query\": \"what did the boy in red do after he eat one spoon of his ice cream\", \"claims\": [{\"claim_type\": \"visual\", \"frame_idx\": 0, \"assertion\": \"the boy in red ate one spoon of ice cream\", \"is_core\": true, \"field\": \"action_score\", \"stated_value\": 1.0, \"source_text\": \"The boy in red eats one spoon of his ice cream.\",\"event\": \"eating\",\"text\": \"the boy in red ate one spoon of ice cream\"}, {\"claim_type\": \"visual\", \"frame_idx\": 0, \"assertion\": \"after eating the ice cream, he spat it out\", \"is_core\": false, \"field\": \"action_score\", \"stated_value\": 1.0, \"source_text\": \"The boy in red eats one spoon of his ice cream.\", \"event\": \"spitting_out\",\"text\": \"he spat it out\"}, {\"claim_type\": \"visual\", \"frame_idx\": 0, \"assertion\": \"the girl looks at the boy\", \"is_core\": false, \"field\": \"action_score\", \"stated_value\": 1.0, \"source_text\": \"The boy in red eats one spoon of his ice cream.\", \"event\": \"looking\",\"text\": \"look at the girl\"}, {\"claim_type\": \"visual\", \"frame_idx\": 0, \"assertion\": \"the boy continues eating more ice cream\", \"is_core\": false, \"field\": \"action_score\", \"stated_value\": 1.0, \"source_text\": \"The boy in red eats one spoon of his ice cream.\", \"event\": \"continuing_eating\",\"text\": \"continue eating\"}, {\"claim_type\": \"visual\", \"frame_idx\": 0, \"assertion\": \"the boy opens his mouth to eat more\", \"is_core\": false, \"field\": \"action_score\", \"stated_value\": 1.0, \"source_text\": \"The boy in red eats one spoon of his ice cream.\", \"event\": \"opening_mouth\",\"text\": \"opens his mouth\"}]}",
+      "raw_answer_none": "{\"query\": \"what did the boy in red do after he eat one spoon of his ice cream\", \"claims\": [{\"claim_type\": \"visual\", \"frame_idx\": 0, \"assertion\": \"the boy in red ate one spoon of his ice cream\", \"is_core\": true, \"field\": \"action_score\", \"stated_value\": 1.0, \"source_text\": \"The boy in red eats one spoon of his ice cream.\",\"event\": \"eating\",\"text\": \"the boy in red ate one spoon of his ice cream\"}, {\"claim_type\": \"absence\", \"frame_idx\": 0, \"assertion\": \"the girl is not visible\", \"is_core\": false, \"field\": \"action_score\", \"stated_value\": 0.5, \"source_text\": \"The boy in red eats one spoon of his ice cream.\", \"event\": \"eating\",\"text\": \"the girl is not visible\"}]}",
+      "context_text_match": true,
+      "answer_v2": "Insufficient verified evidence to answer this question.",
+      "answer_none": "{\"query\": \"what did the boy in red do after he eat one spoon of his ice cream\", \"claims\": [{\"claim_type\": \"visual\", \"frame_idx\": 0, \"assertion\": \"the boy in red ate one spoon of his ice cream\", \"is_core\": true, \"field\": \"action_score\", \"stated_value\": 1.0, \"source_text\": \"The boy in red eats one spoon of his ice cream.\",\"event\": \"eating\",\"text\": \"the boy in red ate one spoon of his ice cream\"}, {\"claim_type\": \"absence\", \"frame_idx\": 0, \"assertion\": \"the girl is not visible\", \"is_core\": false, \"field\": \"action_score\", \"stated_value\": 0.5, \"source_text\": \"The boy in red eats one spoon of his ice cream.\", \"event\": \"eating\",\"text\": \"the girl is not visible\"}]}",
+      "verified_v2": false,
+      "verified_none": "not_applicable",
+      "badge_v2": "unverified",
+      "badge_none": "skipped",
+      "mismatched_fields": [
+        "raw_answer"
+      ],
+      "parity_ok": false
+    },
+    {
+      "video_id": "6936757706",
+      "qid": "0",
+      "question": "what did the lady do after she fed the girl in the middle of the video",
+      "v2_wall_s": 5.2,
+      "none_wall_s": 5.16,
+      "retrieved_frame_idxs_v2": [
+        289,
+        283,
+        359,
+        336,
+        371
+      ],
+      "retrieved_frame_idxs_none": [
+        289,
+        283,
+        359,
+        336,
+        371
+      ],
+      "raw_answer_v2": "{\n\n  \"query\": \"what did the lady do after she fed the girl in the middle of the video\",\n  \"claims\": [\n    {\n      \"claim_type\": \"visual\",\n      \"frame_idx\": -1,\n      \"assertion\": \"The lady smiles at the camera.\",\n      \"is_core\": true\n      ,\n      \"field\": \"action_score\"\n    , \"stated_value\": 0.85\n    , \"source_text\": \"smiles at the camera\"\n    , \"event\": \"smiling\"\n    , \"text\": \"The lady smiles at the camera.\"\n    }\n   ]\n  }\n",
+      "raw_answer_none": "{\n\n  \"query\": \"what did the lady do after she fed the girl in the middle of the video\",\n  \"claims\": [\n    {\n      \"claim_type\": \"visual\",\n      \"frame_idx\": -1,\n      \"assertion\": \"The lady smiles at the camera.\",\n      \"is_core\": true\n      ,\n      \"field\": \"action_score\"\n    , \"stated_value\": 0.85\n    , \"source_text\": \"smiles at the camera\"\n    , \"event\": \"smiling\"\n    , \"text\": \"The lady smiles at the camera.\"\n    }\n   ]\n  }\n",
+      "context_text_match": true,
+      "answer_v2": "Insufficient verified evidence to answer this question.",
+      "answer_none": "{\n\n  \"query\": \"what did the lady do after she fed the girl in the middle of the video\",\n  \"claims\": [\n    {\n      \"claim_type\": \"visual\",\n      \"frame_idx\": -1,\n      \"assertion\": \"The lady smiles at the camera.\",\n      \"is_core\": true\n      ,\n      \"field\": \"action_score\"\n    , \"stated_value\": 0.85\n    , \"source_text\": \"smiles at the camera\"\n    , \"event\": \"smiling\"\n    , \"text\": \"The lady smiles at the camera.\"\n    }\n   ]\n  }\n",
+      "verified_v2": false,
+      "verified_none": "not_applicable",
+      "badge_v2": "unverified",
+      "badge_none": "skipped",
+      "mismatched_fields": [],
+      "parity_ok": true
+    },
+    {
+      "video_id": "6936757706",
+      "qid": "14",
+      "question": "why did the lady hold a spoon at the beginning of the video",
+      "v2_wall_s": 1.66,
+      "none_wall_s": 1.57,
+      "retrieved_frame_idxs_v2": [
+        289,
+        359,
+        78,
+        371,
+        283
+      ],
+      "retrieved_frame_idxs_none": [
+        289,
+        359,
+        78,
+        371,
+        283
+      ],
+      "raw_answer_v2": "{ \"query\": \"what did the lady hold at the beginning of the video\", \"claims\": [{\"claim_type\": \"visual\", \"frame_idx\": 0, \"assertion\": \"A lady is holding a spoon.\", \"is_core\": true, \"field\": \"action_score\", \"stated_value\": 0.95, \"source_text\": \"A lady is holding a spoon.\" , \"event\": \"holding_spoon\", \"text\": \"A lady is holding a spoon.\"}]}\n\n   ",
+      "raw_answer_none": "{ \"query\": \"what did the lady hold at the beginning of the video\", \"claims\": [{\"claim_type\": \"visual\", \"frame_idx\": 0, \"assertion\": \"A lady is holding a spoon.\", \"is_core\": true, \"field\": \"action_score\", \"stated_value\": 0.95, \"source_text\": \"A lady is holding a spoon.\" ,\"event\": \"holding_spoon\", \"text\": \"A lady is holding a spoon.\"}]}\n\n   ",
+      "context_text_match": true,
+      "answer_v2": "Insufficient verified evidence to answer this question.",
+      "answer_none": "{ \"query\": \"what did the lady hold at the beginning of the video\", \"claims\": [{\"claim_type\": \"visual\", \"frame_idx\": 0, \"assertion\": \"A lady is holding a spoon.\", \"is_core\": true, \"field\": \"action_score\", \"stated_value\": 0.95, \"source_text\": \"A lady is holding a spoon.\" ,\"event\": \"holding_spoon\", \"text\": \"A lady is holding a spoon.\"}]}\n\n   ",
+      "verified_v2": false,
+      "verified_none": "not_applicable",
+      "badge_v2": "unverified",
+      "badge_none": "skipped",
+      "mismatched_fields": [
+        "raw_answer"
+      ],
+      "parity_ok": false
+    },
+    {
+      "video_id": "6936757706",
+      "qid": "7",
+      "question": "why did the lady held the spoonful of ice cream and looked at the girl in the middle of the video",
+      "v2_wall_s": 10.57,
+      "none_wall_s": 10.95,
+      "retrieved_frame_idxs_v2": [
+        237,
+        210,
+        150,
+        171,
+        162
+      ],
+      "retrieved_frame_idxs_none": [
+        237,
+        210,
+        150,
+        171,
+        162
+      ],
+      "raw_answer_v2": "{\n\n  \"query\": \"why did the lady held the spoonful of ice cream and looked at the girl in the middle of the video\",\n  \"claims\": [\n    {\n      \"claim_type\": \"visual\",\n      \"frame_idx\": 3,\n      \"assertion\": \"The lady is holding a spoonful of ice cream.\",\n      \"is_core\": true\n    ,\n    \"field\": \"action_score\"\n  ,\n    \"stated_value\": 0.95\n  ,\n    \"source_text\": \"Lady holds spoonful of ice cream\"\n    ,\n    \"event\": \"holding_spoon\"\n    ,\n    \"text\": \"The lady is holding a spoonful of ice cream.\"\n    }\n  ,\n    {\n      \"claim_type\": \"visual\",\n      \"frame_idx\": 3,\n      \"assertion\": \"There are multiple girls in the scene.\",\n      \"is_core\": false\n    ,\n    \"field\": \"action_score\"\n  ,\n    \"stated_value\": 0.9\n  ,\n    \"source_text\": \"Multiple girls present\"\n    ,\n    \"event\": \"multiple_girls\"\n    ,\n    \"text\": \"There are multiple girls in the scene.\"\n    }\n  ,\n    {\n      \"claim_type\": \"visual\",\n      \"frame_idx\": 3,\n      \"assertion\": \"The lady is looking at one of the girls.\",\n      \"is_core\": false\n    ,\n    \"field\": \"action_score\"\n  ,\n    \"stated_value\": 0.85\n  ,\n    \"source_text\": \"Lady looks at girl\"\n    ,\n    \"event\": \"looking_at_girl\"\n    ,\n    \"text\": \"The lady is looking at one of the girls.\"\n    }\n  ]\n}",
+      "raw_answer_none": "{\"query\": \"why did the lady held the spoonful of ice cream and looked at the girl in the middle of the video\", \"claims\": [{\"claim_type\": \"visual\", \"frame_idx\": 1, \"assertion\": \"The lady is holding a spoonful of ice cream.\", \"is_core\": true, \"field\": \"action_score\", \"stated_value\": 0.95, \"source_text\": \"A woman holds a spoonful of ice cream.\",\"event\": \"holding_spoon_of_ice_cream\", \"text\": \"The lady is holding the spoonful of ice cream\"}, {\"claim_type\": \"visual\", \"frame_idx\": 2, \"assertion\": \"There are multiple girls in the scene.\", \"is_core\": false, \"field\": \"action_score\", \"stated_value\": 0.85, \"source_text\": \"A woman holds a spoonful of ice cream.\", \"event\": \"multiple_girls_present\", \"text\": \"There are multiple girls present\"}, {\"claim_type\": \"visual\", \"frame_idx\": 3, \"assertion\": \"The girl in the middle is looking at something.\", \"is_core\": false, \"field\": \"action_score\", \"stated_value\": 0.9, \"source_text\": \"A woman holds a spoonful of ice cream.\", \"event\": \"girl_in_middle_eyes_upon_something\", \"text\": \"The girl in the middle is looking at something\"}, {\"claim_type\": \"visual\", \"frame_idx\": 4, \"assertion\": \"The lady looks directly at the girl in the middle.\", \"is_core\": false, \"field\": \"action_score\", \"stated_value\": 0.88, \"source_text\": \"A woman holds a spoonful of ice cream.\", \"event\": \"lady_directly_eyes_girl_middle\", \"text\": \"The lady looks directly at the girl in the middle\"}]}",
+      "context_text_match": true,
+      "answer_v2": "Insufficient verified evidence to answer this question.",
+      "answer_none": "{\"query\": \"why did the lady held the spoonful of ice cream and looked at the girl in the middle of the video\", \"claims\": [{\"claim_type\": \"visual\", \"frame_idx\": 1, \"assertion\": \"The lady is holding a spoonful of ice cream.\", \"is_core\": true, \"field\": \"action_score\", \"stated_value\": 0.95, \"source_text\": \"A woman holds a spoonful of ice cream.\",\"event\": \"holding_spoon_of_ice_cream\", \"text\": \"The lady is holding the spoonful of ice cream\"}, {\"claim_type\": \"visual\", \"frame_idx\": 2, \"assertion\": \"There are multiple girls in the scene.\", \"is_core\": false, \"field\": \"action_score\", \"stated_value\": 0.85, \"source_text\": \"A woman holds a spoonful of ice cream.\", \"event\": \"multiple_girls_present\", \"text\": \"There are multiple girls present\"}, {\"claim_type\": \"visual\", \"frame_idx\": 3, \"assertion\": \"The girl in the middle is looking at something.\", \"is_core\": false, \"field\": \"action_score\", \"stated_value\": 0.9, \"source_text\": \"A woman holds a spoonful of ice cream.\", \"event\": \"girl_in_middle_eyes_upon_something\", \"text\": \"The girl in the middle is looking at something\"}, {\"claim_type\": \"visual\", \"frame_idx\": 4, \"assertion\": \"The lady looks directly at the girl in the middle.\", \"is_core\": false, \"field\": \"action_score\", \"stated_value\": 0.88, \"source_text\": \"A woman holds a spoonful of ice cream.\", \"event\": \"lady_directly_eyes_girl_middle\", \"text\": \"The lady looks directly at the girl in the middle\"}]}",
+      "verified_v2": false,
+      "verified_none": "not_applicable",
+      "badge_v2": "unverified",
+      "badge_none": "skipped",
+      "mismatched_fields": [
+        "raw_answer"
+      ],
+      "parity_ok": false
+    },
+    {
+      "video_id": "3079724515",
+      "qid": "6",
+      "question": "what is the boy in grey doing as the boy in green opens his envelope",
+      "v2_wall_s": 7.11,
+      "none_wall_s": 7.04,
+      "retrieved_frame_idxs_v2": [
+        454,
+        496,
+        14,
+        22,
+        50
+      ],
+      "retrieved_frame_idxs_none": [
+        454,
+        496,
+        14,
+        22,
+        50
+      ],
+      "raw_answer_v2": "{\n\n  \"query\": \"what is the boy in grey doing as the boy in green opens his envelope\",\n  \"claims\": [\n    {\n      \"claim_type\": \"visual\",\n      \"frame_idx\": 1,\n      \"assertion\": \"The boy in grey is holding a baby still.\",\n      \"is_core\": true\n      ,\n      \"field\": \"action_score\"\n    , \"stated_value\": 0.85\n    , \"source_text\": \"boy in grey hold baby still\"\n    , \"event\": \"holding\",\n    \"text\": \"hold baby still\"\n    },\n    {\n      \"claim_type\": \"visual\",\n      \"frame_idx\": 1,\n      \"assertion\": \"The boy in green opens his envelope.\",\n      \"is_core\": false\n      ,\n      \"field\": \"action_score\",\n      \"stated_value\": 0.9,\n      \"source_text\": \"boy in green opens envelope\",\n      \"event\": \"opens\",\n      \"text\": \"opens envelope\"\n    }\n  ]\n}",
+      "raw_answer_none": "{\n\n  \"query\": \"what is the boy in grey doing as the boy in green opens his envelope\",\n  \"claims\": [\n    {\n      \"claim_type\": \"visual\",\n      \"frame_idx\": 1,\n      \"assertion\": \"The boy in grey is holding a baby still.\",\n      \"is_core\": true\n      ,\n      \"field\": \"action_score\"\n    , \"stated_value\": 0.85\n    , \"source_text\": \"boy in grey hold baby still\"\n    , \"event\": \"holding\"\n    , \"text\": \"The boy in grey is holding a baby still.\"\n    },\n    {\n      \"claim_type\": \"visual\",\n      \"frame_idx\": 1,\n      \"assertion\": \"The boy in green opens his envelope.\",\n      \"is_core\": false\n    ,\n      \"field\": \"action_score\"\n    , \"stated_value\": 0.9\n    , \"source_text\": \"boy in green open envelope\"\n    , \"event\": \"opening\"\n    , \"text\": \"The boy in green opens his envelope.\"\n    }\n  ]\n}",
+      "context_text_match": true,
+      "answer_v2": "Insufficient verified evidence to answer this question.",
+      "answer_none": "{\n\n  \"query\": \"what is the boy in grey doing as the boy in green opens his envelope\",\n  \"claims\": [\n    {\n      \"claim_type\": \"visual\",\n      \"frame_idx\": 1,\n      \"assertion\": \"The boy in grey is holding a baby still.\",\n      \"is_core\": true\n      ,\n      \"field\": \"action_score\"\n    , \"stated_value\": 0.85\n    , \"source_text\": \"boy in grey hold baby still\"\n    , \"event\": \"holding\"\n    , \"text\": \"The boy in grey is holding a baby still.\"\n    },\n    {\n      \"claim_type\": \"visual\",\n      \"frame_idx\": 1,\n      \"assertion\": \"The boy in green opens his envelope.\",\n      \"is_core\": false\n    ,\n      \"field\": \"action_score\"\n    , \"stated_value\": 0.9\n    , \"source_text\": \"boy in green open envelope\"\n    , \"event\": \"opening\"\n    , \"text\": \"The boy in green opens his envelope.\"\n    }\n  ]\n}",
+      "verified_v2": false,
+      "verified_none": "not_applicable",
+      "badge_v2": "unverified",
+      "badge_none": "skipped",
+      "mismatched_fields": [
+        "raw_answer"
+      ],
+      "parity_ok": false
+    },
+    {
+      "video_id": "3079724515",
+      "qid": "8",
+      "question": "why did the boy in green look back at the beginning of the video",
+      "v2_wall_s": 2.11,
+      "none_wall_s": 1.95,
+      "retrieved_frame_idxs_v2": [
+        50,
+        186,
+        74,
+        454,
+        22
+      ],
+      "retrieved_frame_idxs_none": [
+        50,
+        186,
+        74,
+        454,
+        22
+      ],
+      "raw_answer_v2": "{ \"query\": \"why did the boy in green look back at the beginning of the video\", \"claims\": [ {\"claim_type\": \"visual\", \"frame_idx\": 0, \"assertion\": \"A boy wearing a green shirt is seen looking back at the camera.\", \"is_core\": true, \"field\": \"action_score\" , \"stated_value\": 0.95, \"source_text\": \"At the beginning of the video, there's a shot of a boy wearing a green shirt looking back at the camera.\" , \"event\": \"looking back\", \"text\": \"A boy in green looks back at the camera\"}]}",
+      "raw_answer_none": "{ \"query\": \"why did the boy in green look back at the beginning of the video\", \"claims\": [ {\"claim_type\": \"visual\", \"frame_idx\": 0, \"assertion\": \"A boy wearing a green shirt is seen looking back at the camera.\", \"is_core\": true, \"field\": \"action_score\" , \"stated_value\": 0.95, \"source_text\": \"At the beginning of the video, there's a boy wearing a green shirt who is looking back at the camera.\" , \"event\": \"looking_back\", \"text\": \"A boy in green looks back at the camera\"}]}",
+      "context_text_match": true,
+      "answer_v2": "Insufficient verified evidence to answer this question.",
+      "answer_none": "{ \"query\": \"why did the boy in green look back at the beginning of the video\", \"claims\": [ {\"claim_type\": \"visual\", \"frame_idx\": 0, \"assertion\": \"A boy wearing a green shirt is seen looking back at the camera.\", \"is_core\": true, \"field\": \"action_score\" , \"stated_value\": 0.95, \"source_text\": \"At the beginning of the video, there's a boy wearing a green shirt who is looking back at the camera.\" , \"event\": \"looking_back\", \"text\": \"A boy in green looks back at the camera\"}]}",
+      "verified_v2": false,
+      "verified_none": "not_applicable",
+      "badge_v2": "unverified",
+      "badge_none": "skipped",
+      "mismatched_fields": [
+        "raw_answer"
+      ],
+      "parity_ok": false
+    },
+    {
+      "video_id": "3079724515",
+      "qid": "0",
+      "question": "what did the boy in black do after he walked to stand beside the boy in green",
+      "v2_wall_s": 2.32,
+      "none_wall_s": 1.9,
+      "retrieved_frame_idxs_v2": [
+        186,
+        834,
+        458,
+        856,
+        218
+      ],
+      "retrieved_frame_idxs_none": [
+        186,
+        834,
+        458,
+        856,
+        218
+      ],
+      "raw_answer_v2": "{ \"query\": \"what did the boy in black do after he walked to stand beside the boy in green\", \"claims\": [ {\"claim_type\": \"visual\", \"frame_idx\": 0, \"assertion\": \"The boy in black moved to slide.\", \"is_core\": true, \"field\": \"action_score\", \"stated_value\": 0.95, \"source_text\": \"A boy in a black shirt walks towards the camera and another boy in a green shirt is standing still.\" , \"event\": \"walked\" , \"text\": \"The boy in black moved to slide.\"}]}",
+      "raw_answer_none": "{ \"query\": \"what did the boy in black do after he walked to stand beside the boy in green\", \"claims\": [ {\"claim_type\": \"visual\", \"frame_idx\": 0, \"assertion\": \"The boy in black moved to slide.\", \"is_core\": true, \"field\": \"action_score\", \"stated_value\": 0.95, \"source_text\": \"A boy in a black jacket walks towards the camera and another boy in a green jacket stands beside him.\" , \"event\": \"walked to stand beside\" , \"text\": \"The boy in black moved to slide.\"}]}",
+      "context_text_match": true,
+      "answer_v2": "Insufficient verified evidence to answer this question.",
+      "answer_none": "{ \"query\": \"what did the boy in black do after he walked to stand beside the boy in green\", \"claims\": [ {\"claim_type\": \"visual\", \"frame_idx\": 0, \"assertion\": \"The boy in black moved to slide.\", \"is_core\": true, \"field\": \"action_score\", \"stated_value\": 0.95, \"source_text\": \"A boy in a black jacket walks towards the camera and another boy in a green jacket stands beside him.\" , \"event\": \"walked to stand beside\" , \"text\": \"The boy in black moved to slide.\"}]}",
+      "verified_v2": false,
+      "verified_none": "not_applicable",
+      "badge_v2": "unverified",
+      "badge_none": "skipped",
+      "mismatched_fields": [
+        "raw_answer"
+      ],
+      "parity_ok": false
+    },
+    {
+      "video_id": "3079724515",
+      "qid": "9",
+      "question": "how did the boy in grey eat his snacks",
+      "v2_wall_s": 6.15,
+      "none_wall_s": 4.73,
+      "retrieved_frame_idxs_v2": [
+        454,
+        188,
+        444,
+        70,
+        218
+      ],
+      "retrieved_frame_idxs_none": [
+        454,
+        188,
+        444,
+        70,
+        218
+      ],
+      "raw_answer_v2": "{\n\n  \"query\": \"how did the boy in grey eat his snacks\",\n  \"claims\": [\n    {\n      \"claim_type\": \"visual\",\n      \"frame_idx\": 0,\n      \"assertion\": \"The boy is sitting at a table with snacks.\",\n      \"is_core\": true\n    ,\n    \"field\": \"action_score\"\n    ,\n    \"stated_value\": 0.95\n    ,\n    \"source_text\": \"The boy in grey is sitting at the table, surrounded by various snacks.\"\n    ,\n    \"event\": \"sit\"\n    ,\n    \"text\": \"The boy in grey is sitting at a table with snacks.\"\n    }\n  ]\n}",
+      "raw_answer_none": "{\n\n  \"query\": \"how did the boy in grey eat his snacks\",\n  \"claims\": [\n    {\n      \"claim_type\": \"visual\",\n      \"frame_idx\": 0,\n      \"assertion\": \"The boy is sitting at a table with snacks.\",\n      \"is_core\": true\n    ,\n    \"field\": \"action_score\"\n    ,\n    \"stated_value\": 0.95\n    ,\n    \"source_text\": \"The boy in grey sits at the table, surrounded by various snack items.\"\n    ,\n    \"event\": \"sit\"\n    ,\n    \"text\": \"The boy is sitting at a table with snacks.\"\n    }\n  ]\n}",
+      "context_text_match": true,
+      "answer_v2": "Insufficient verified evidence to answer this question.",
+      "answer_none": "{\n\n  \"query\": \"how did the boy in grey eat his snacks\",\n  \"claims\": [\n    {\n      \"claim_type\": \"visual\",\n      \"frame_idx\": 0,\n      \"assertion\": \"The boy is sitting at a table with snacks.\",\n      \"is_core\": true\n    ,\n    \"field\": \"action_score\"\n    ,\n    \"stated_value\": 0.95\n    ,\n    \"source_text\": \"The boy in grey sits at the table, surrounded by various snack items.\"\n    ,\n    \"event\": \"sit\"\n    ,\n    \"text\": \"The boy is sitting at a table with snacks.\"\n    }\n  ]\n}",
+      "verified_v2": false,
+      "verified_none": "not_applicable",
+      "badge_v2": "unverified",
+      "badge_none": "skipped",
+      "mismatched_fields": [
+        "raw_answer"
+      ],
+      "parity_ok": false
+    }
+  ]
+}
