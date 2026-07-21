@@ -1,0 +1,136 @@
+[20:05:15] Videos to ingest (cold): ['3079724515', '6936757706', '8900428927']
+[IRIS codec warn] C:\Users\swara\IRIS\eval\data\nextqa\NExTVideo_flat\3079724515.mp4: 
+DIAGNOSTICS: {"backend": "LlamaServerBackend", "model": "granite4:micro", "captioner": "MiniCPMCaptioner", "captioner_model": "minicpm-v4.6", "api_key_present": false}
+[20:06:03] Ingested 3079724515: total=874 survivors=119 retention=13.616% wall=48.0607s rss_delta=939.82MB
+[20:06:04] Cache parity 3079724515: PASS
+DIAGNOSTICS: {"backend": "LlamaServerBackend", "model": "granite4:micro", "captioner": "MiniCPMCaptioner", "captioner_model": "minicpm-v4.6", "api_key_present": false}
+[20:06:24] Ingested 6936757706: total=600 survivors=80 retention=13.333% wall=20.8092s rss_delta=91.61MB
+[20:06:25] Cache parity 6936757706: PASS
+DIAGNOSTICS: {"backend": "LlamaServerBackend", "model": "granite4:micro", "captioner": "MiniCPMCaptioner", "captioner_model": "minicpm-v4.6", "api_key_present": false}
+[20:06:34] Ingested 8900428927: total=308 survivors=33 retention=10.714% wall=9.7136s rss_delta=-51.8MB
+[20:06:35] Cache parity 8900428927: PASS
+[20:06:35] Q 6936757706/11 (temporal, span=short): what did the boy in red do after he eat one spoon of his ice cream
+[_ensure_captions] video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\6936757706.mp4' unique_frame_seeks_requested=5 frames_decoded=112 survivor_count=80 decode_overhead_ratio=1.4
+[scene_retrieval] shortlisted 5/18 scenes, margin=0.0065 tau=0.015 branch=descend base_pool=23 post_pull_pool=23 cross_scene_edges_added=10
+[scene_retrieval] shortlisted 5/18 scenes, margin=0.0065 tau=0.015 branch=descend base_pool=23 post_pull_pool=23 cross_scene_edges_added=10
+[DEBUG] CerberusV verification: model_load_time = 13.6790s | inference_time = 9.2752s
+[20:08:34]   run A: answer='Insufficient verified evidence to answer this question.' verified=False nonmutated=True
+[scene_retrieval] shortlisted 5/18 scenes, margin=0.0065 tau=0.015 branch=descend base_pool=23 post_pull_pool=23 cross_scene_edges_added=10
+[scene_retrieval] shortlisted 5/18 scenes, margin=0.0065 tau=0.015 branch=descend base_pool=23 post_pull_pool=23 cross_scene_edges_added=10
+[DEBUG] CerberusV verification: model_load_time = 0.0000s | inference_time = 12.8126s
+[20:09:04]   run B: answer='He eats one spoonful of it. After eating that spoon, he spits it out. Therefore,'
+[20:09:04] Q 6936757706/0 (temporal, span=short): what did the lady do after she fed the girl in the middle of the video
+[_ensure_captions] video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\6936757706.mp4' unique_frame_seeks_requested=5 frames_decoded=102 survivor_count=80 decode_overhead_ratio=1.27
+[scene_retrieval] shortlisted 5/18 scenes, margin=0.0018 tau=0.015 branch=descend base_pool=25 post_pull_pool=25 cross_scene_edges_added=10
+[scene_retrieval] shortlisted 5/18 scenes, margin=0.0018 tau=0.015 branch=descend base_pool=25 post_pull_pool=25 cross_scene_edges_added=10
+[DEBUG] CerberusV verification: model_load_time = 0.0000s | inference_time = 5.4413s
+[20:10:27]   run A: answer='Insufficient verified evidence to answer this question.' verified=False nonmutated=True
+[scene_retrieval] shortlisted 5/18 scenes, margin=0.0018 tau=0.015 branch=descend base_pool=25 post_pull_pool=25 cross_scene_edges_added=10
+[scene_retrieval] shortlisted 5/18 scenes, margin=0.0018 tau=0.015 branch=descend base_pool=25 post_pull_pool=25 cross_scene_edges_added=10
+[DEBUG] CerberusV verification: model_load_time = 0.0000s | inference_time = 5.2696s
+[20:10:40]   run B: answer='Insufficient verified evidence to answer this question.'
+[20:10:40] Q 6936757706/14 (causal, span=long): why did the lady hold a spoon at the beginning of the video
+[_ensure_captions] video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\6936757706.mp4' unique_frame_seeks_requested=1 frames_decoded=19 survivor_count=80 decode_overhead_ratio=0.24
+[scene_retrieval] shortlisted 5/18 scenes, margin=0.0026 tau=0.015 branch=descend base_pool=25 post_pull_pool=25 cross_scene_edges_added=10
+[scene_retrieval] shortlisted 5/18 scenes, margin=0.0026 tau=0.015 branch=descend base_pool=25 post_pull_pool=25 cross_scene_edges_added=10
+[DEBUG] CerberusV verification: model_load_time = 0.0000s | inference_time = 9.0212s
+[20:11:24]   run A: answer='Insufficient verified evidence to answer this question.' verified=False nonmutated=True
+[scene_retrieval] shortlisted 5/18 scenes, margin=0.0026 tau=0.015 branch=descend base_pool=25 post_pull_pool=25 cross_scene_edges_added=10
+[scene_retrieval] shortlisted 5/18 scenes, margin=0.0026 tau=0.015 branch=descend base_pool=25 post_pull_pool=25 cross_scene_edges_added=10
+[DEBUG] CerberusV verification: model_load_time = 0.0000s | inference_time = 7.2542s
+[20:11:41]   run B: answer='Insufficient verified evidence to answer this question.'
+[20:11:41] Q 6936757706/7 (causal, span=long): why did the lady held the spoonful of ice cream and looked at the girl
+[_ensure_captions] video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\6936757706.mp4' unique_frame_seeks_requested=3 frames_decoded=88 survivor_count=80 decode_overhead_ratio=1.1
+[scene_retrieval] shortlisted 5/18 scenes, margin=0.0030 tau=0.015 branch=descend base_pool=21 post_pull_pool=21 cross_scene_edges_added=10
+[scene_retrieval] shortlisted 5/18 scenes, margin=0.0030 tau=0.015 branch=descend base_pool=21 post_pull_pool=21 cross_scene_edges_added=10
+[DEBUG] CerberusV verification: model_load_time = 0.0000s | inference_time = 5.9364s
+[20:12:43]   run A: answer='The context suggests an offering or sharing interaction rather than seeking some' verified=False nonmutated=True
+[scene_retrieval] shortlisted 5/18 scenes, margin=0.0030 tau=0.015 branch=descend base_pool=21 post_pull_pool=21 cross_scene_edges_added=10
+[scene_retrieval] shortlisted 5/18 scenes, margin=0.0030 tau=0.015 branch=descend base_pool=21 post_pull_pool=21 cross_scene_edges_added=10
+[DEBUG] CerberusV verification: model_load_time = 0.0000s | inference_time = 5.8522s
+[20:12:57]   run B: answer='The context suggests a casual outdoor setting with social interaction, indicatin'
+[20:12:57] Q 3079724515/6 (temporal, span=long): what is the boy in grey doing as the boy in green opens his envelope
+[_ensure_captions] video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\3079724515.mp4' unique_frame_seeks_requested=5 frames_decoded=497 survivor_count=119 decode_overhead_ratio=4.18
+C:\Users\swara\IRIS\iris\query.py:913: RuntimeWarning: QUERY-CAPTION-001: GOP-seek decode overhead: frames_decoded_for_captions=497 > 3x survivor_count=119 (unique_frame_seeks_requested=5) for video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\3079724515.mp4'. This can indicate very sparse I-frames (long GOPs) forcing a long forward decode to reach mid-GOP caption targets.
+  frames_decoded_for_captions = _ensure_captions(index, retrieved_frames, config, question=question, choices=choices)
+[scene_retrieval] shortlisted 5/24 scenes, margin=0.0033 tau=0.015 branch=descend base_pool=18 post_pull_pool=18 cross_scene_edges_added=10
+[scene_retrieval] shortlisted 5/24 scenes, margin=0.0033 tau=0.015 branch=descend base_pool=18 post_pull_pool=18 cross_scene_edges_added=10
+[DEBUG] CerberusV verification: model_load_time = 0.0000s | inference_time = 15.9440s
+[20:14:22]   run A: answer='looking at envelop - less specific than "look at the envelopes" E. drink from cu' verified=False nonmutated=True
+[scene_retrieval] shortlisted 5/24 scenes, margin=0.0033 tau=0.015 branch=descend base_pool=18 post_pull_pool=18 cross_scene_edges_added=10
+[scene_retrieval] shortlisted 5/24 scenes, margin=0.0033 tau=0.015 branch=descend base_pool=18 post_pull_pool=18 cross_scene_edges_added=10
+[DEBUG] CerberusV verification: model_load_time = 0.0000s | inference_time = 26.8731s
+[20:15:14]   run B: answer='looking at envelop - The caption uses "envelopes" (plural), so this option is in'
+[20:15:14] Q 3079724515/8 (causal, span=long): why did the boy in green look back at the beginning of the video
+[_ensure_captions] video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\3079724515.mp4' unique_frame_seeks_requested=2 frames_decoded=127 survivor_count=119 decode_overhead_ratio=1.07
+[scene_retrieval] shortlisted 5/24 scenes, margin=0.0029 tau=0.015 branch=descend base_pool=30 post_pull_pool=35 cross_scene_edges_added=21
+[scene_retrieval] shortlisted 5/24 scenes, margin=0.0029 tau=0.015 branch=descend base_pool=30 post_pull_pool=35 cross_scene_edges_added=21
+[DEBUG] CerberusV verification: model_load_time = 0.0000s | inference_time = 6.2166s
+[20:16:05]   run A: answer='Insufficient verified evidence to answer this question.' verified=False nonmutated=True
+[scene_retrieval] shortlisted 5/24 scenes, margin=0.0029 tau=0.015 branch=descend base_pool=30 post_pull_pool=35 cross_scene_edges_added=21
+[scene_retrieval] shortlisted 5/24 scenes, margin=0.0029 tau=0.015 branch=descend base_pool=30 post_pull_pool=35 cross_scene_edges_added=21
+[DEBUG] CerberusV verification: model_load_time = 0.0000s | inference_time = 7.9949s
+[20:16:24]   run B: answer='To wait for his partner or observe surroundings before starting." This directly '
+[20:16:24] Q 3079724515/0 (temporal, span=long): what did the boy in black do after he walked to stand beside the boy i
+[_ensure_captions] video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\3079724515.mp4' unique_frame_seeks_requested=2 frames_decoded=47 survivor_count=119 decode_overhead_ratio=0.39
+[scene_retrieval] shortlisted 5/24 scenes, margin=0.0014 tau=0.015 branch=descend base_pool=24 post_pull_pool=24 cross_scene_edges_added=10
+[scene_retrieval] shortlisted 5/24 scenes, margin=0.0014 tau=0.015 branch=descend base_pool=24 post_pull_pool=24 cross_scene_edges_added=10
+[DEBUG] CerberusV verification: model_load_time = 0.0000s | inference_time = 11.6220s
+[20:17:30]   run A: answer='Insufficient verified evidence to answer this question.' verified=False nonmutated=True
+[scene_retrieval] shortlisted 5/24 scenes, margin=0.0014 tau=0.015 branch=descend base_pool=24 post_pull_pool=24 cross_scene_edges_added=10
+[scene_retrieval] shortlisted 5/24 scenes, margin=0.0014 tau=0.015 branch=descend base_pool=24 post_pull_pool=24 cross_scene_edges_added=10
+[DEBUG] CerberusV verification: model_load_time = 0.0000s | inference_time = 11.5164s
+[20:17:55]   run B: answer='Insufficient verified evidence to answer this question.'
+[20:17:55] Q 3079724515/9 (causal, span=long): how did the boy in grey eat his snacks
+[_ensure_captions] video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\3079724515.mp4' unique_frame_seeks_requested=4 frames_decoded=385 survivor_count=119 decode_overhead_ratio=3.24
+C:\Users\swara\IRIS\iris\query.py:913: RuntimeWarning: QUERY-CAPTION-001: GOP-seek decode overhead: frames_decoded_for_captions=385 > 3x survivor_count=119 (unique_frame_seeks_requested=4) for video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\3079724515.mp4'. This can indicate very sparse I-frames (long GOPs) forcing a long forward decode to reach mid-GOP caption targets.
+  frames_decoded_for_captions = _ensure_captions(index, retrieved_frames, config, question=question, choices=choices)
+[scene_retrieval] shortlisted 5/24 scenes, margin=0.0049 tau=0.015 branch=descend base_pool=28 post_pull_pool=32 cross_scene_edges_added=15
+[scene_retrieval] shortlisted 5/24 scenes, margin=0.0049 tau=0.015 branch=descend base_pool=28 post_pull_pool=32 cross_scene_edges_added=15
+[DEBUG] CerberusV verification: model_load_time = 0.0000s | inference_time = 12.2206s
+[20:19:30]   run A: answer='Insufficient verified evidence to answer this question.' verified=False nonmutated=True
+[scene_retrieval] shortlisted 5/24 scenes, margin=0.0049 tau=0.015 branch=descend base_pool=28 post_pull_pool=32 cross_scene_edges_added=15
+[scene_retrieval] shortlisted 5/24 scenes, margin=0.0049 tau=0.015 branch=descend base_pool=28 post_pull_pool=32 cross_scene_edges_added=15
+[DEBUG] CerberusV verification: model_load_time = 0.0000s | inference_time = 10.5036s
+[20:19:50]   run B: answer='The boy in grey ate his snacks using his hands. This is supported by multiple fr'
+[20:19:50] Q 8900428927/0 (causal, span=long): why did the elephant pat on the back of the boy who is lying on the gr
+[_ensure_captions] video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\8900428927.mp4' unique_frame_seeks_requested=5 frames_decoded=33 survivor_count=33 decode_overhead_ratio=1.0
+[scene_retrieval] shortlisted 3/3 scenes, base_pool=33 margin=0.0227 tau=0.015 branch=shortcut
+[scene_retrieval] shortlisted 3/3 scenes, base_pool=33 margin=0.0227 tau=0.015 branch=shortcut
+[DEBUG] CerberusV verification: model_load_time = 0.0000s | inference_time = 10.9323s
+[20:22:46]   run A: answer='Based on the frame evidence and captions, the most likely reason why the elephan' verified=False nonmutated=True
+[scene_retrieval] shortlisted 3/3 scenes, base_pool=33 margin=0.0227 tau=0.015 branch=shortcut
+[scene_retrieval] shortlisted 3/3 scenes, base_pool=33 margin=0.0227 tau=0.015 branch=shortcut
+[DEBUG] CerberusV verification: model_load_time = 0.0000s | inference_time = 19.0069s
+[20:23:53]   run B: answer='Based on the frame evidence and captions, the most likely reason why the elephan'
+[20:23:53] Q 8900428927/13 (temporal, span=long): what did the elephant do after it finished massaging the boy
+[scene_retrieval] shortlisted 3/3 scenes, base_pool=33 margin=0.0154 tau=0.015 branch=shortcut
+[scene_retrieval] shortlisted 3/3 scenes, base_pool=33 margin=0.0154 tau=0.015 branch=shortcut
+[DEBUG] CerberusV verification: model_load_time = 0.0000s | inference_time = 18.7933s
+[20:25:12]   run A: answer='Insufficient verified evidence to answer this question.' verified=False nonmutated=True
+[scene_retrieval] shortlisted 3/3 scenes, base_pool=33 margin=0.0154 tau=0.015 branch=shortcut
+[scene_retrieval] shortlisted 3/3 scenes, base_pool=33 margin=0.0154 tau=0.015 branch=shortcut
+[DEBUG] CerberusV verification: model_load_time = 0.0000s | inference_time = 10.2525s
+[20:25:53]   run B: answer='Insufficient verified evidence to answer this question.'
+[20:25:53] Q 8900428927/8 (causal, span=long): how was the elephant massaging the boy
+[scene_retrieval] shortlisted 3/3 scenes, base_pool=33 margin=0.0267 tau=0.015 branch=shortcut
+[scene_retrieval] shortlisted 3/3 scenes, base_pool=33 margin=0.0267 tau=0.015 branch=shortcut
+[DEBUG] CerberusV verification: model_load_time = 0.0000s | inference_time = 19.6228s
+[20:27:20]   run A: answer='Based on the frame evidence and captions, the best answer is: The elephant was u' verified=False nonmutated=True
+[scene_retrieval] shortlisted 3/3 scenes, base_pool=33 margin=0.0267 tau=0.015 branch=shortcut
+[scene_retrieval] shortlisted 3/3 scenes, base_pool=33 margin=0.0267 tau=0.015 branch=shortcut
+[DEBUG] CerberusV verification: model_load_time = 0.0000s | inference_time = 8.9916s
+[20:28:04]   run B: answer='Insufficient verified evidence to answer this question.'
+[20:28:04] Q 8900428927/2 (temporal, span=short): what did the girl do when the boy completed his massage
+[_ensure_captions] video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\8900428927.mp4' unique_frame_seeks_requested=5 frames_decoded=141 survivor_count=33 decode_overhead_ratio=4.27
+C:\Users\swara\IRIS\iris\query.py:913: RuntimeWarning: QUERY-CAPTION-001: GOP-seek decode overhead: frames_decoded_for_captions=141 > 3x survivor_count=33 (unique_frame_seeks_requested=5) for video='C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat\\8900428927.mp4'. This can indicate very sparse I-frames (long GOPs) forcing a long forward decode to reach mid-GOP caption targets.
+  frames_decoded_for_captions = _ensure_captions(index, retrieved_frames, config, question=question, choices=choices)
+[scene_retrieval] shortlisted 3/3 scenes, margin=0.0068 tau=0.015 branch=descend base_pool=33 post_pull_pool=33 cross_scene_edges_added=3
+[scene_retrieval] shortlisted 3/3 scenes, margin=0.0068 tau=0.015 branch=descend base_pool=33 post_pull_pool=33 cross_scene_edges_added=3
+[DEBUG] CerberusV verification: model_load_time = 0.0000s | inference_time = 12.1432s
+[20:30:56]   run A: answer='The girl was lying down and interacting with the boy during the massage. When th' verified=False nonmutated=True
+[scene_retrieval] shortlisted 3/3 scenes, margin=0.0068 tau=0.015 branch=descend base_pool=33 post_pull_pool=33 cross_scene_edges_added=3
+[scene_retrieval] shortlisted 3/3 scenes, margin=0.0068 tau=0.015 branch=descend base_pool=33 post_pull_pool=33 cross_scene_edges_added=3
+[DEBUG] CerberusV verification: model_load_time = 0.0000s | inference_time = 11.1083s
+[20:31:19]   run B: answer='Insufficient verified evidence to answer this question.'
+[20:31:19] DONE

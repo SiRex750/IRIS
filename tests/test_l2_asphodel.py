@@ -84,11 +84,12 @@ def test_add_frame_node():
     assert 20 in asphodel.graph.nodes
     assert asphodel.graph.has_edge(10, 20)
     
-    # max_score_range = 0.9 - 0.4 = 0.5
-    # coherence = 1.0 - abs(0.9 - 0.4) / 0.5 = 0.0
-    # verify coherence edge weight
+    # P1-09: motion similarity now uses 6-D cosine (motion_magnitude, divergence, curl,
+    # jacobian_frobenius, hessian_max_eigenvalue, motion_entropy). Since only
+    # motion_magnitude is non-zero for both nodes (5.0 and 2.0), their vectors are
+    # collinear → cosine = 1.0. Fully connected edge weight = alpha*0 + beta*1.0 = 0.6.
     edge_weight = asphodel.graph[10][20]["weight"]
-    assert pytest.approx(edge_weight) == 0.0
+    assert pytest.approx(edge_weight) == 0.6
 
     # Check pagerank updated
     pr_10 = asphodel.graph.nodes[10]["node_data"].pagerank_score

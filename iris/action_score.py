@@ -14,7 +14,8 @@ class ActionScoreConfig:
 
     Later, these values can move into iris_config.py and be tuned by GEPA.
     """
-    luma_diff_weight: float = 0.5  # weights the codec packet-size residual; field rename deferred to Phase 7 (pipeline.py retirement)
+    packet_size_weight: float = 0.5
+    luma_diff_weight: float | None = None  # deprecated
     motion_weight: float = 0.3
     luma_entropy_weight: float = 0.2
 
@@ -22,6 +23,18 @@ class ActionScoreConfig:
     peak_prominence: float = 0.05
     persistence_threshold: float = 0.4
     max_prominence: float = 0.5
+
+    def __post_init__(self) -> None:
+        if self.luma_diff_weight is not None:
+            import warnings
+            warnings.warn(
+                "luma_diff_weight is deprecated; use packet_size_weight instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            if self.packet_size_weight != 0.5 and self.packet_size_weight != self.luma_diff_weight:
+                raise ValueError("Conflicting values provided for deprecated 'luma_diff_weight' and new 'packet_size_weight'.")
+            self.packet_size_weight = self.luma_diff_weight
 
 
 class ActionScoreModule:
@@ -42,7 +55,9 @@ class ActionScoreModule:
         persistence_value
 
     Important:
-        This replaces PEAK / SALIENT / CANDIDATE / SKIP tier decisions.
+        This does not replace the PEAK / SALIENT / CANDIDATE / SKIP tier decisions,
+        which are already determined by Charon-V's codec-tier admission gate. It
+        computes continuous action scores for the admitted frames.
     """
 
     def __init__(self, config: ActionScoreConfig | None = None) -> None:
@@ -71,8 +86,10 @@ class ActionScoreModule:
         motion_n = self._normalize(motion)
         entropy_n = self._normalize(luma_entropy)
 
+        if self.config.packet_size_weight < 0 or self.config.motion_weight < 0 or self.config.luma_entropy_weight < 0:
+            raise ValueError("Action Score weights must be non-negative.")
         weight_sum = (
-            self.config.luma_diff_weight
+            self.config.packet_size_weight
             + self.config.motion_weight
             + self.config.luma_entropy_weight
         )
@@ -81,7 +98,7 @@ class ActionScoreModule:
             raise ValueError("Action Score weights must sum to a positive value.")
 
         action_score = (
-            self.config.luma_diff_weight * residual_n
+            self.config.packet_size_weight * residual_n
             + self.config.motion_weight * motion_n
             + self.config.luma_entropy_weight * entropy_n
         ) / weight_sum
@@ -99,18 +116,30 @@ class ActionScoreModule:
         persistence_by_index: dict[int, float] = {}
 
         if len(peak_indices) > 0:
-            max_prominence = float(np.max(prominences)) if len(prominences) else 1.0
-            if max_prominence < 1e-8:
-                max_prominence = 1.0
+            # P1-06: Divide by the globally configured max_prominence so that
+            # persistence values are comparable across different videos.
+            # Dividing by the local video maximum (np.max(prominences)) made
+            # persistence scores incomparable between videos processed in the
+            # same pipeline run.
+            configured_max = float(self.config.max_prominence)
+            if configured_max < 1e-8:
+                configured_max = 1.0
 
             for idx, prominence in zip(peak_indices, prominences):
-                persistence_value = max(0.0, min(float(prominence / max_prominence), 1.0))
+                persistence_value = max(0.0, min(float(prominence / configured_max), 1.0))
                 persistence_by_index[int(idx)] = persistence_value
 
         records: list[dict[str, Any]] = []
 
         for i, feature in enumerate(frame_features):
             persistence_value = persistence_by_index.get(i, 0.0)
+
+            # Find prominence if it is a peak in peak_indices
+            prom = 0.0
+            if i in peak_indices:
+                idx_pos = np.where(peak_indices == i)[0]
+                if len(idx_pos) > 0:
+                    prom = float(prominences[idx_pos[0]])
 
             records.append(
                 {
@@ -120,6 +149,10 @@ class ActionScoreModule:
                         persistence_value >= self.config.persistence_threshold
                     ),
                     "persistence_value": float(persistence_value),
+                    "packet_size_contrib": float(residual_n[i]),
+                    "motion_contrib": float(motion_n[i]),
+                    "luma_entropy_contrib": float(entropy_n[i]),
+                    "prominence_contrib": float(prom),
                 }
             )
 
@@ -144,8 +177,10 @@ class ActionScoreModule:
             min_value = float(np.min(values))
             max_value = float(np.max(values))
             if abs(max_value - min_value) < 1e-8:
-                # Truly constant signal — return neutral constant
-                return np.full_like(values, 0.5, dtype=np.float32)
+                # Truly constant signal — return 0.0 (no variation, not neutral midpoint).
+                # P1-06: Returning 0.5 for a constant signal falsely implies moderate
+                # activity; 0.0 correctly conveys that there is nothing to discriminate.
+                return np.zeros_like(values, dtype=np.float32)
             normalized = (values - min_value) / (max_value - min_value)
             return np.clip(normalized, 0.0, 1.0)
 

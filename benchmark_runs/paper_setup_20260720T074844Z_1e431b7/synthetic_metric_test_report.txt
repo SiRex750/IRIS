@@ -1,0 +1,30 @@
+[PASS] exact_match_iop: got=1.0 expected=1.0
+[PASS] exact_match_iou: got=1.0 expected=1.0
+[PASS] no_overlap_iop: got=0.0 expected=0.0
+[PASS] no_overlap_iou: got=0.0 expected=0.0
+[PASS] partial_overlap_iop: got=0.5 expected=0.5
+[PASS] partial_overlap_iou: got=0.3333333333333333 expected=0.3333333333333333
+[PASS] pred_inside_gold_iop: got=1.0 expected=1.0
+[PASS] pred_inside_gold_iou: got=0.2 expected=0.2
+[PASS] gold_inside_pred_iop: got=0.2 expected=0.2
+[PASS] gold_inside_pred_iou: got=0.2 expected=0.2
+[PASS] boundary_pred_iop: got=0.5 expected=0.5
+[PASS] boundary_pred_iou: got=0.5 expected=0.5
+[PASS] equality_at_0.3_iou: got=0.3 expected=0.3
+[PASS] equality_at_0.5_iop: got=0.5 expected=0.5
+[PASS] multi_gold_best_iop: got=0.75 expected=0.75
+[PASS] empty_prediction_iop: got=0.0 expected=0.0
+[PASS] empty_prediction_iou: got=0.0 expected=0.0
+[PASS] reversed_span_iop: got=0.0 expected=0.0
+[PASS] zero_duration_gold_iop: got=0.0 expected=0.0
+[PASS] out_of_bounds_iop: got=0.14285714285714285 expected=0.14285714285714285
+[PASS] acc_gqa_true: got=True expected=True
+[PASS] acc_gqa_false_low_iop: got=False expected=False
+[PASS] acc_gqa_false_wrong_answer: got=False expected=False
+[PASS] frame_to_seconds_exact: got=1.0 expected=1.0
+[PASS] frame_to_seconds_fractional_fps: got=1.5015015015015016 expected=1.5015015015015016
+[PASS] frame_to_seconds_zero_fps: raised ValueError as expected
+[PASS] temporal_hit_at_1_hit: got=1.0 expected=1.0
+[PASS] temporal_hit_at_1_miss: got=0.0 expected=0.0
+
+ALL SYNTHETIC METRIC TESTS PASSED (handwritten expected values, no real predictions used)

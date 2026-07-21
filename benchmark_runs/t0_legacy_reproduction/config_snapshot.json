@@ -1,0 +1,11 @@
+{
+  "dataset": "nextqa",
+  "video_root": "eval/data/nextqa/NExTVideo_flat",
+  "primary_retention_budget": 0.1,
+  "k_values": [
+    1,
+    5,
+    10
+  ],
+  "git_commit": "6f252ad8751efe60c19049fb5ed1c7bc554248dc"
+}

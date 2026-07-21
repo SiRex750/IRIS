@@ -1,0 +1,1 @@
+run_id,method_id,split,video_id,duration_s,total_frames,retained_frames,retention_pct,ingest_stage_status,question_count,sum_query_time_ms,wall_time_ms,index_size_bytes,peak_ram_mb,peak_vram_mb,failure_count

@@ -32,9 +32,9 @@ from iris.types import FrameRecord, IRISIndex
 
 # ── config ───────────────────────────────────────────────────────────────
 
-def test_cerberus_mode_default_legacy():
+def test_cerberus_mode_default_v2():
     cfg = IRISConfig()
-    assert cfg.cerberus_mode == "legacy"
+    assert cfg.cerberus_mode == "v2"
     cfg.validate()  # must not raise
 
 

@@ -1,0 +1,5 @@
+{
+  "sweep_dim": "ppr_damping",
+  "value": 0.8,
+  "availability": "IMPLEMENTED"
+}

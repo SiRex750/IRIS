@@ -1,0 +1,283 @@
+{
+  "n_questions": 12,
+  "n_deterministic": 4,
+  "ALL_DETERMINISTIC": false,
+  "records": [
+    {
+      "video_id": "6936757706",
+      "qid": "11",
+      "run_a_error": null,
+      "run_b_error": null,
+      "run_a_answer": "Insufficient verified evidence to answer this question.",
+      "run_b_answer": "He eats one spoonful of it. After eating that spoon, he spits it out. Therefore, based on the visual evidence from multiple frames showing the boy in red eating one spoon and then spitting it out, option B is the most accurate description of his actions after consuming that portion of ice cream.",
+      "run_a_retrieved": [
+        162,
+        180,
+        210,
+        231,
+        135
+      ],
+      "run_b_retrieved": [
+        162,
+        180,
+        210,
+        231,
+        135
+      ],
+      "DETERMINISTIC": false
+    },
+    {
+      "video_id": "6936757706",
+      "qid": "0",
+      "run_a_error": null,
+      "run_b_error": null,
+      "run_a_answer": "Insufficient verified evidence to answer this question.",
+      "run_b_answer": "Insufficient verified evidence to answer this question.",
+      "run_a_retrieved": [
+        289,
+        283,
+        359,
+        336,
+        371
+      ],
+      "run_b_retrieved": [
+        289,
+        283,
+        359,
+        336,
+        371
+      ],
+      "DETERMINISTIC": true
+    },
+    {
+      "video_id": "6936757706",
+      "qid": "14",
+      "run_a_error": null,
+      "run_b_error": null,
+      "run_a_answer": "Insufficient verified evidence to answer this question.",
+      "run_b_answer": "Insufficient verified evidence to answer this question.",
+      "run_a_retrieved": [
+        289,
+        359,
+        78,
+        371,
+        283
+      ],
+      "run_b_retrieved": [
+        289,
+        359,
+        78,
+        371,
+        283
+      ],
+      "DETERMINISTIC": true
+    },
+    {
+      "video_id": "6936757706",
+      "qid": "7",
+      "run_a_error": null,
+      "run_b_error": null,
+      "run_a_answer": "The context suggests an offering or sharing interaction rather than seeking something, showing displeasure, or asking her to stand in position.",
+      "run_b_answer": "The context suggests a casual outdoor setting with social interaction, indicating that the lady's action was to offer something enjoyable to the child.",
+      "run_a_retrieved": [
+        237,
+        210,
+        150,
+        171,
+        162
+      ],
+      "run_b_retrieved": [
+        237,
+        210,
+        150,
+        171,
+        162
+      ],
+      "DETERMINISTIC": false
+    },
+    {
+      "video_id": "3079724515",
+      "qid": "6",
+      "run_a_error": null,
+      "run_b_error": null,
+      "run_a_answer": "looking at envelop - less specific than \"look at the envelopes\" E. drink from cup - only mentioned in Frame 496, but not directly related to what the boy in grey is doing while the envelope is being opened Therefore, based on the consistent visual evidence across multiple frames showing both boys focused on examining the envelopes, with one opening it and the other holding an object near it, the most accurate description of what the boy in grey is doing is looking at the envelopes.",
+      "run_b_answer": "looking at envelop - The caption uses \"envelopes\" (plural), so this option is incomplete. Therefore, based on the consistent description of both boys being focused on examining the envelopes, the most accurate answer is that the boy in grey is looking at the envelopes as the boy in green opens one.",
+      "run_a_retrieved": [
+        454,
+        496,
+        14,
+        22,
+        50
+      ],
+      "run_b_retrieved": [
+        454,
+        496,
+        14,
+        22,
+        50
+      ],
+      "DETERMINISTIC": false
+    },
+    {
+      "video_id": "3079724515",
+      "qid": "8",
+      "run_a_error": null,
+      "run_b_error": null,
+      "run_a_answer": "Insufficient verified evidence to answer this question.",
+      "run_b_answer": "To wait for his partner or observe surroundings before starting.\" This directly explains why the boy in green looked back at the start of the video - he was likely waiting for a partner to join him or observing the environment before beginning an activity.",
+      "run_a_retrieved": [
+        50,
+        186,
+        74,
+        454,
+        22
+      ],
+      "run_b_retrieved": [
+        50,
+        186,
+        74,
+        454,
+        22
+      ],
+      "DETERMINISTIC": false
+    },
+    {
+      "video_id": "3079724515",
+      "qid": "0",
+      "run_a_error": null,
+      "run_b_error": null,
+      "run_a_answer": "Insufficient verified evidence to answer this question.",
+      "run_b_answer": "Insufficient verified evidence to answer this question.",
+      "run_a_retrieved": [
+        454,
+        186,
+        834,
+        856,
+        50
+      ],
+      "run_b_retrieved": [
+        454,
+        186,
+        834,
+        856,
+        50
+      ],
+      "DETERMINISTIC": true
+    },
+    {
+      "video_id": "3079724515",
+      "qid": "9",
+      "run_a_error": null,
+      "run_b_error": null,
+      "run_a_answer": "Insufficient verified evidence to answer this question.",
+      "run_b_answer": "The boy in grey ate his snacks using his hands. This is supported by multiple frames showing him holding and eating snacks, with no visible utensils like a spoon present.",
+      "run_a_retrieved": [
+        454,
+        188,
+        444,
+        70,
+        218
+      ],
+      "run_b_retrieved": [
+        454,
+        188,
+        444,
+        70,
+        218
+      ],
+      "DETERMINISTIC": false
+    },
+    {
+      "video_id": "8900428927",
+      "qid": "0",
+      "run_a_error": null,
+      "run_b_error": null,
+      "run_a_answer": "Based on the frame evidence and captions, the most likely reason why the elephant is patting the boy's back while he is lying on the ground is: B. Frames 272 and 280 (both at 9.1s) describe children being engaged in \"playful activities,\" suggesting an environment conducive to play. The presence of other children playing on mats and nearby suggests the scene is lively and likely involves recreational activity.",
+      "run_b_answer": "Based on the frame evidence and captions, the most likely reason why the elephant is patting the boy's back while he is lying on the ground is: B. Therefore, given the context of playfulness and amusement being described in the captions, the most appropriate answer is that the elephant's patting behavior is motivated by playing with the boy while he lies on the ground.",
+      "run_a_retrieved": [
+        278,
+        272,
+        280,
+        274,
+        282
+      ],
+      "run_b_retrieved": [
+        278,
+        272,
+        280,
+        274,
+        282
+      ],
+      "DETERMINISTIC": false
+    },
+    {
+      "video_id": "8900428927",
+      "qid": "13",
+      "run_a_error": null,
+      "run_b_error": null,
+      "run_a_answer": "Insufficient verified evidence to answer this question.",
+      "run_b_answer": "Insufficient verified evidence to answer this question.",
+      "run_a_retrieved": [
+        272,
+        278,
+        282,
+        274,
+        280
+      ],
+      "run_b_retrieved": [
+        272,
+        278,
+        282,
+        274,
+        280
+      ],
+      "DETERMINISTIC": true
+    },
+    {
+      "video_id": "8900428927",
+      "qid": "8",
+      "run_a_error": null,
+      "run_b_error": null,
+      "run_a_answer": "Based on the frame evidence and captions, the best answer is: The elephant was using its trunk to gently pat or massage the boy. The elephant isn't depicted jumping up in these frames  C, D. Lying down on back or face down doesn't match the standing posture and trunk motion described E.",
+      "run_b_answer": "Insufficient verified evidence to answer this question.",
+      "run_a_retrieved": [
+        272,
+        282,
+        278,
+        280,
+        274
+      ],
+      "run_b_retrieved": [
+        272,
+        282,
+        278,
+        280,
+        274
+      ],
+      "DETERMINISTIC": false
+    },
+    {
+      "video_id": "8900428927",
+      "qid": "2",
+      "run_a_error": null,
+      "run_b_error": null,
+      "run_a_answer": "The girl was lying down and interacting with the boy during the massage. When the boy completed his massage, the girl looked at the camera. She clapped the baby's hands in response to the action.\" This frame directly supports that when the boy finished his massage, the girl responded by looking at the camera and then clapping the baby's hands.",
+      "run_b_answer": "Insufficient verified evidence to answer this question.",
+      "run_a_retrieved": [
+        140,
+        138,
+        83,
+        98,
+        110
+      ],
+      "run_b_retrieved": [
+        140,
+        138,
+        83,
+        98,
+        110
+      ],
+      "DETERMINISTIC": false
+    }
+  ]
+}

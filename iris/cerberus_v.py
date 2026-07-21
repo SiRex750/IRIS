@@ -19,8 +19,8 @@ from iris.triple import KnowledgeTriple
 
 
 _SPACY_NLP = None
-_NLI_TOKENIZER = None
-_NLI_MODEL = None
+_NLI_TOKENIZERS: dict[str, Any] = {}
+_NLI_MODELS: dict[str, Any] = {}
 
 
 class CerberusV:
@@ -36,25 +36,27 @@ class CerberusV:
             import spacy
             try:
                 _SPACY_NLP = spacy.load("en_core_web_sm")
-            except OSError:
-                from spacy.cli import download
-                download("en_core_web_sm")
-                _SPACY_NLP = spacy.load("en_core_web_sm")
+            except OSError as e:
+                raise ImportError(
+                    "spaCy model 'en_core_web_sm' is missing and must be pre-installed before running offline. "
+                    "Please install it using: python -m spacy download en_core_web_sm"
+                ) from e
         return _SPACY_NLP
 
     def _get_nli_model(self) -> tuple[Any, Any]:
-        global _NLI_TOKENIZER, _NLI_MODEL
-        if _NLI_MODEL is None:
+        global _NLI_TOKENIZERS, _NLI_MODELS
+        if self.model_name not in _NLI_MODELS:
             import sys
             from transformers import AutoModelForSequenceClassification, AutoTokenizer
             import torch
-            _NLI_TOKENIZER = AutoTokenizer.from_pretrained(self.model_name)
-            _NLI_MODEL = AutoModelForSequenceClassification.from_pretrained(self.model_name)
-            _NLI_MODEL.eval()
+            _NLI_TOKENIZERS[self.model_name] = AutoTokenizer.from_pretrained(self.model_name)
+            model = AutoModelForSequenceClassification.from_pretrained(self.model_name)
+            model.eval()
             # Force CPU on Windows to prevent DeBERTa build_relative_position CUDA access violations
             device = torch.device("cpu" if sys.platform == "win32" else ("cuda" if torch.cuda.is_available() else "cpu"))
-            _NLI_MODEL.to(device)
-        return _NLI_TOKENIZER, _NLI_MODEL
+            model.to(device)
+            _NLI_MODELS[self.model_name] = model
+        return _NLI_TOKENIZERS[self.model_name], _NLI_MODELS[self.model_name]
 
     def get_verification_mode(
         self,
@@ -87,12 +89,21 @@ class CerberusV:
             claim_clean = re.sub(r'\{"tool":\s*".*?"\}', '', claim_clean)
             claim_clean = re.sub(r'\{"tool":\s*".*?",.*?\}', '', claim_clean, flags=re.DOTALL)
             
-            claims_match = re.search(r'CLAIMS\s*:\s*(\[.*?\])', claim_clean, re.DOTALL | re.IGNORECASE)
             raw = None
+            claims_match = re.search(r'CLAIMS\s*:\s*(\[.*?\])', claim_clean, re.DOTALL | re.IGNORECASE)
             if claims_match:
                 raw = claims_match.group(1)
-            elif claim_clean.strip().startswith('[') and claim_clean.strip().endswith(']'):
-                raw = claim_clean.strip()
+            else:
+                fence_match = re.search(r"```(?:json)?\s*(.*?)\s*```", claim_clean, re.DOTALL | re.IGNORECASE)
+                if fence_match:
+                    raw = fence_match.group(1).strip()
+                else:
+                    start_bracket = claim_clean.find('[')
+                    end_bracket = claim_clean.rfind(']')
+                    if start_bracket != -1 and end_bracket != -1 and end_bracket > start_bracket:
+                        raw = claim_clean[start_bracket:end_bracket + 1]
+                    elif claim_clean.strip().startswith('[') and claim_clean.strip().endswith(']'):
+                        raw = claim_clean.strip()
                 
             if raw:
                 raw_claims = None
@@ -164,7 +175,7 @@ class CerberusV:
             high_conf = [c for c in parsed_claims if self._confidence(c) >= 0.6]
             low_conf  = [c for c in parsed_claims if self._confidence(c) <  0.6]
             res = self._full_nli(high_conf, facts, mode, action_score)
-            res["verified"] += low_conf   # low-conf claims pass unverified
+            res["unverifiable"] += low_conf   # low-conf claims map to unverifiable
         else:  # ner_only
             res = self._ner_overlap(parsed_claims, facts, mode, action_score)
         t_inf = time.time() - t_inf_start
@@ -301,13 +312,25 @@ class CerberusV:
                     elif pred == 0:
                         label = "contradiction"
 
-                # Find entailment probability
+                # Find label confidence
                 entail_idx = 2
+                contrad_idx = 0
+                neutral_idx = 1
                 for idx, lbl in id2label.items():
-                    if "entail" in str(lbl).lower():
+                    lbl_str = str(lbl).lower()
+                    if "entail" in lbl_str:
                         entail_idx = idx
-                        break
-                entailment_score = prob_dist[entail_idx] if entail_idx < len(prob_dist) else prob_dist[-1]
+                    elif "contrad" in lbl_str:
+                        contrad_idx = idx
+                    elif "neutral" in lbl_str:
+                        neutral_idx = idx
+
+                if label == "entailment":
+                    score = prob_dist[entail_idx] if entail_idx < len(prob_dist) else prob_dist[-1]
+                elif label == "contradiction":
+                    score = prob_dist[contrad_idx] if contrad_idx < len(prob_dist) else prob_dist[0]
+                else:
+                    score = prob_dist[neutral_idx] if neutral_idx < len(prob_dist) else prob_dist[1]
 
                 # Negation pre-check via spaCy parse
                 claim_doc = nlp(claim)
@@ -317,7 +340,9 @@ class CerberusV:
                 negation_high_risk = has_negation_claim and not has_negation_fact
 
                 threshold = 0.5 if negation_high_risk else 0.85
-                if label == "entailment" and entailment_score <= threshold:
+                if label == "entailment" and score <= threshold:
+                    label = "neutral"
+                elif label == "contradiction" and score <= threshold:
                     label = "neutral"
 
                 # Geographic precision check
@@ -352,21 +377,9 @@ class CerberusV:
                     (claim_lemmas & fact_lemmas) or (claim_ents_set & fact_ents_set)
                 )
 
-                pair_results[(claim, fact)] = (label, entailment_score, has_topical_overlap)
+                pair_results[(claim, fact)] = (label, score, has_topical_overlap)
 
         # Aggregate results
-        # Fix 10: two-step aggregation.
-        #
-        # Step 1 — topical relevance filter:
-        #   Only facts that share at least one non-stopword lemma or named entity
-        #   with the claim are admitted to that claim's verdict pool.  A completely
-        #   off-topic fact line cannot veto an otherwise-supported claim.
-        #
-        # Step 2 — majority vote over relevant facts:
-        #   Contradiction wins only if contradicted_count > entailed_count.
-        #   This prevents a single low-persistence frame (persistence=0.0000 in the
-        #   fact text) from vetoing a claim that three other frames genuinely entail.
-        #   Relevant negation/geo checks (applied per-pair above) are preserved.
         verified = []
         rejected = []
         unverifiable = []
@@ -386,15 +399,16 @@ class CerberusV:
                 unverifiable.append(claim)
                 continue
 
-            entailed_count    = sum(1 for label, _ in relevant if label == "entailment")
-            contradicted_count = sum(1 for label, _ in relevant if label == "contradiction")
+            best_entail_score = max((score for label, score in relevant if label == "entailment"), default=0.0)
+            best_contrad_score = max((score for label, score in relevant if label == "contradiction"), default=0.0)
 
-            if contradicted_count > entailed_count:
-                # Contradictions outnumber entailments among relevant facts
+            if best_contrad_score > best_entail_score:
+                # Stronger contradiction defeats weaker entailment!
                 rejected.append(claim)
-            elif entailed_count > 0:
-                # At least one relevant fact entails, and entailments >= contradictions
+            elif best_entail_score > 0.0:
                 verified.append(claim)
+            elif best_contrad_score > 0.0:
+                rejected.append(claim)
             else:
                 unverifiable.append(claim)
 
@@ -426,13 +440,9 @@ class CerberusV:
             fact_entities.update(ent.text.lower() for ent in nlp(f).ents)
 
         for claim in claims:
-            claim_ents = {ent.text.lower() for ent in nlp(claim).ents}
-            if not claim_ents:
-                unverifiable.append(claim)
-            elif claim_ents & fact_entities:
-                verified.append(claim)
-            else:
-                unverifiable.append(claim)
+            # P1-20: Remove entity-overlap-as-verification; return unverifiable
+            # unless a relation-aware checker supports the claim.
+            unverifiable.append(claim)
 
         return {
             "verified":     verified,

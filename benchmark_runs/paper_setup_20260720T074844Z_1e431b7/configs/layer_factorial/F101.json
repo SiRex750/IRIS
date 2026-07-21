@@ -1,0 +1,38 @@
+{
+  "cell_id": "F101",
+  "executable": true,
+  "blocked_by": [],
+  "layer1": {
+    "retrieval_strategy": "hybrid",
+    "note": "production admission (IMPLEMENTED)"
+  },
+  "layer2": {
+    "ranking_mode": "legacy",
+    "alpha": 1.0,
+    "beta": 0.0,
+    "gamma": 0.0,
+    "delta": 0.0,
+    "note": "direct CLIP cosine over same survivor pool (IMPLEMENTED)"
+  },
+  "layer3": {
+    "cerberus_mode": "legacy",
+    "answerer_backend": "llama_server",
+    "answerer_model": "granite4:micro",
+    "verification": true,
+    "abstention": true,
+    "note": "production L3 (IMPLEMENTED)"
+  },
+  "shared_fairness_fields": {
+    "candidate_k": 8,
+    "model_revisions": {
+      "clip": "openai/CLIP@d05afc4",
+      "answerer": "granite4:micro",
+      "captioner": "moondream (vikhyatk/moondream2)"
+    },
+    "query_text_source": "eval/data/nextqa/val.csv question column, verbatim, no reformulation variance across cells",
+    "answer_normalization": "exact-match on normalized MC letter/index (lowercase, strip whitespace)",
+    "evaluator": "scripts/nextgqa_metrics.py (this setup)",
+    "timeout_seconds": 120,
+    "failure_accounting": "a failed/timed-out question counts as incorrect + IoP=0 + IoU=0, never excluded from the denominator"
+  }
+}

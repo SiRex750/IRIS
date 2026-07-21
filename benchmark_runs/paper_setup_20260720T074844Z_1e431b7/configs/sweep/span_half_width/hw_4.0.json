@@ -1,0 +1,5 @@
+{
+  "sweep_dim": "span_half_width_seconds",
+  "value": 4.0,
+  "availability": "NOT_IMPLEMENTED -- no span construction stage exists, see configs/peak_span_modes.json"
+}

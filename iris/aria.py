@@ -13,10 +13,13 @@ any LLM/VLM API directly — all calls go through here.
 Owner: Track B
 """
 from __future__ import annotations
+import logging
 import os
 from dataclasses import dataclass
 
 from iris.claim_contract import ANSWER_CLAIMS_WIRE_SCHEMA
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -56,7 +59,15 @@ class BLIPCaptioner:
         self._device = "cuda" if torch.cuda.is_available() else "cpu"
         self._model = self._model.to(self._device)
 
-    def caption(self, pil_image) -> str:
+    def caption(self, pil_image, focus_hint: str | None = None) -> str:
+        # NOTE: focus_hint is accepted for interface parity with
+        # MoondreamCaptioner/MiniCPMCaptioner (see _ensure_captions in
+        # query.py) but is not applied here -- BLIP's unconditional
+        # captioning API in this codebase does not take a text prompt, and
+        # conditional BLIP captioning (image + text prefix) has different
+        # continuation semantics that were out of scope for this fix. BLIP is
+        # a fallback-only captioner (see _clip.py::get_semantic_and_clip_caption),
+        # so this only affects behavior when the primary captioner has failed.
         import torch
         self._load()
         inputs = self._processor(pil_image, return_tensors="pt").to(self._device)
@@ -79,17 +90,31 @@ class MoondreamCaptioner:
             return
         from transformers import AutoModelForCausalLM, AutoTokenizer
         import torch
+        # P1-19: Respect CPU/GPU availability — do not hard-code device_map='cuda'.
+        # On CPU-only machines the hard-coded value crashes with a CUDA-not-available
+        # error.  The captioner still prefers GPU when one is available.
+        self._device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self._tokenizer = AutoTokenizer.from_pretrained('vikhyatk/moondream2', trust_remote_code=True)
-        self._model = AutoModelForCausalLM.from_pretrained('vikhyatk/moondream2', trust_remote_code=True, torch_dtype=torch.float16, device_map='cuda')
-        self._device = 'cuda'
+        self._model = AutoModelForCausalLM.from_pretrained(
+            'vikhyatk/moondream2',
+            trust_remote_code=True,
+            torch_dtype=torch.float16 if self._device == 'cuda' else torch.float32,
+            device_map=self._device,
+        )
 
-    def caption(self, pil_image) -> str:
+    BASE_PROMPT = (
+        'Describe only what is visually present in this single image. State objects, '
+        'people, colors, and positions. Do not describe motion or changes.'
+    )
+
+    def caption(self, pil_image, focus_hint: str | None = None) -> str:
         import torch
         self._load()
         if str(self._model.device) == 'cpu':
             self._model = self._model.to(self._device)
         enc = self._model.encode_image(pil_image)
-        return self._model.answer_question(enc, 'Describe only what is visually present in this single image. State objects, people, colors, and positions. Do not describe motion or changes.', self._tokenizer).strip()
+        prompt = self.BASE_PROMPT if not focus_hint else f"{self.BASE_PROMPT} {focus_hint}"
+        return self._model.answer_question(enc, prompt, self._tokenizer).strip()
 
 class MiniCPMCaptioner:
     """Local image captioner using MiniCPM via Ollama."""
@@ -114,62 +139,120 @@ class MiniCPMCaptioner:
             except Exception:
                 pass
         self.model_name = model_name or "minicpm-v"
+        # Seated production captioner is minicpm-v4.6 (confirmed via a separate
+        # live infra-seating pass) -- log which variant this instance actually
+        # resolved to so a misconfiguration (e.g. Ollama only has the older
+        # minicpm-v tag, or minicpm-v4.6 was never pulled) is visible in logs
+        # instead of silently answering with the wrong checkpoint.
+        logger.info(
+            "MiniCPMCaptioner resolved model_name=%r (endpoint=%r)",
+            self.model_name, self.endpoint,
+        )
         self.prompt = (
             "List everything visible in this image: every person, object, vehicle, "
             "and action. One short sentence per item. Only what is clearly visible."
         )
-        self.num_predict = 250
+        # Was 250: raised to make truncation rare in practice rather than
+        # discarding a real fraction of captions outright (an empty caption
+        # gives CerberusV zero evidence, strictly worse than a longer-but-
+        # complete one). Still not unbounded -- num_predict, not max_tokens,
+        # is what actually bounds a single Ollama generate call.
+        self.num_predict = 400
+        self.retry_num_predict = 700  # one retry at a higher budget before giving up
 
-    def caption(self, pil_image) -> str:
+    def caption(self, pil_image, focus_hint: str | None = None) -> str:
         import io
         import base64
-        import requests
-        import re
 
         # 1. Convert image to base64 JPEG
         buf = io.BytesIO()
         pil_image.convert("RGB").save(buf, format="JPEG")
         image_b64 = base64.b64encode(buf.getvalue()).decode("ascii")
 
-        # 2. Query Ollama vision endpoint
+        prompt = self.prompt if not focus_hint else f"{self.prompt} {focus_hint}"
+
+        _MINICPM_TRUNCATION_STATS["total_calls"] += 1
+
+        data = self._generate(image_b64, prompt, self.num_predict)
+        if data.get("done_reason") == "length":
+            _MINICPM_TRUNCATION_STATS["truncated_first_attempt"] += 1
+            # Retry once with a higher token budget before discarding --
+            # matches the surrounding "truncated captions give zero evidence"
+            # rationale: prefer a complete answer at higher cost over silently
+            # dropping the caption.
+            data = self._generate(image_b64, prompt, self.retry_num_predict)
+            if data.get("done_reason") == "length":
+                _MINICPM_TRUNCATION_STATS["truncated_after_retry"] += 1
+                return ""
+
+        raw = data.get("response", "").strip()
+
+        # Check and strip <think>...</think> blocks if present
+        import re
+        think_tag_re = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
+        cleaned = think_tag_re.sub("", raw).strip()
+
+        return cleaned
+
+    def _generate(self, image_b64: str, prompt: str, num_predict: int) -> dict:
+        import requests
+
         payload = {
             "model": self.model_name,
-            "prompt": self.prompt,
+            "prompt": prompt,
             "images": [image_b64],
             "options": {
                 "temperature": 0,
                 "seed": 42,
-                "num_predict": self.num_predict
+                "num_predict": num_predict,
             },
             "think": False,
             "stream": False,
         }
         resp = requests.post(f"{self.endpoint}/api/generate", json=payload, timeout=300)
         resp.raise_for_status()
+        return resp.json()
 
-        data = resp.json()
-        
-        # Discard truncated captions (ablation constraint)
-        if data.get("done_reason") == "length":
-            return ""
-            
-        raw = data.get("response", "").strip()
 
-        # Check and strip <think>...</think> blocks if present
-        think_tag_re = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
-        cleaned = think_tag_re.sub("", raw).strip()
+_MINICPM_TRUNCATION_STATS: dict[str, int] = {
+    "total_calls": 0,
+    "truncated_first_attempt": 0,
+    "truncated_after_retry": 0,
+}
 
-        return cleaned
+
+def get_minicpm_truncation_stats() -> dict:
+    """Truncation-rate instrumentation for MiniCPMCaptioner (item 5): was
+    previously invisible in layer3_outputs.csv -- a caption that got
+    discarded (done_reason=="length" on both the initial call and the retry)
+    left no trace anywhere. truncated_after_retry / total_calls is the rate
+    that should stay under 5% before minicpm-v4.6 is considered as a
+    default-captioner candidate over moondream, per the task instruction."""
+    stats = dict(_MINICPM_TRUNCATION_STATS)
+    stats["truncation_rate_after_retry"] = (
+        stats["truncated_after_retry"] / stats["total_calls"] if stats["total_calls"] else None
+    )
+    stats["first_attempt_truncation_rate"] = (
+        stats["truncated_first_attempt"] / stats["total_calls"] if stats["total_calls"] else None
+    )
+    return stats
+
+
+def reset_minicpm_truncation_stats() -> None:
+    _MINICPM_TRUNCATION_STATS["total_calls"] = 0
+    _MINICPM_TRUNCATION_STATS["truncated_first_attempt"] = 0
+    _MINICPM_TRUNCATION_STATS["truncated_after_retry"] = 0
 
 
 _ACTIVE_CAPTIONER: MiniCPMCaptioner | MoondreamCaptioner | BLIPCaptioner | None = None
 
-def get_captioner() -> MiniCPMCaptioner | MoondreamCaptioner | BLIPCaptioner:
+def get_captioner(config: Any = None) -> MiniCPMCaptioner | MoondreamCaptioner | BLIPCaptioner:
     global _ACTIVE_CAPTIONER
     if _ACTIVE_CAPTIONER is None:
         try:
-            from iris.iris_config import ConfigManager
-            config = ConfigManager().get_config()
+            if config is None:
+                from iris.iris_config import ConfigManager
+                config = ConfigManager().get_config()
             backend_type = getattr(config, 'captioner_backend', 'minicpm')
         except Exception:
             backend_type = 'minicpm'
@@ -187,11 +270,28 @@ def set_captioner(captioner: MiniCPMCaptioner | MoondreamCaptioner | BLIPCaption
     _ACTIVE_CAPTIONER = captioner
 
 def unload_captioner() -> None:
+    """Offload the active captioner's model weights and release the captioner.
+
+    P1-18: The previous implementation moved the model to CPU but kept
+    ``_ACTIVE_CAPTIONER`` alive.  A subsequent call to ``get_captioner()``
+    returned the same object and, when ``caption()`` detected
+    ``model.device == 'cpu'``, moved it back to GPU — but only for
+    MoondreamCaptioner.  BLIPCaptioner has no such re-move logic, so it would
+    silently run on CPU or crash with a device-mismatch on CUDA tensors.
+
+    Fix: fully null out ``_ACTIVE_CAPTIONER`` after unloading so that the next
+    ``get_captioner()`` constructs a fresh instance on the correct device.
+    """
     global _ACTIVE_CAPTIONER
     import torch
-    if _ACTIVE_CAPTIONER is not None and hasattr(_ACTIVE_CAPTIONER, '_model') and _ACTIVE_CAPTIONER._model is not None:
-        _ACTIVE_CAPTIONER._model.to('cpu')
-        torch.cuda.empty_cache()
+    if _ACTIVE_CAPTIONER is not None:
+        if hasattr(_ACTIVE_CAPTIONER, '_model') and _ACTIVE_CAPTIONER._model is not None:
+            try:
+                _ACTIVE_CAPTIONER._model.to('cpu')
+            except Exception:
+                pass  # ignore errors during offload (e.g. model already on CPU)
+            torch.cuda.empty_cache()
+        _ACTIVE_CAPTIONER = None
 
 
 _SYSTEM_PROMPT = (
@@ -300,7 +400,9 @@ class LLMBackend:
     """Abstract base class for LLM backends."""
     def generate(self, prompt: str, context: str, model: str | None = None,
                  system_prompt: str | None = None, response_format: dict | None = None,
-                 max_tokens: int | None = None, schema_format: bool = False) -> str:
+                 max_tokens: int | None = None, schema_format: bool = False,
+                 seed: int | None = None, keep_alive: int | None = None,
+                 debug_capture: dict | None = None) -> str:
         raise NotImplementedError("LLM backend must implement generate()")
 
 
@@ -324,13 +426,24 @@ class LlamaBackend(LLMBackend):
 
     def generate(self, prompt: str, context: str, model: str | None = None,
                  system_prompt: str | None = None, response_format: dict | None = None,
-                 max_tokens: int | None = None, schema_format: bool = False) -> str:
+                 max_tokens: int | None = None, schema_format: bool = False,
+                 seed: int | None = None, keep_alive: int | None = 0,
+                 debug_capture: dict | None = None) -> str:
+        # debug_capture: optional dict, populated in-place with the EXACT
+        # system/user prompt sent and the finish_reason/token usage the API
+        # returned, when not None. Read-only instrumentation for
+        # iris.debug_trace -- never changes the prompt built below or the
+        # string returned by this method.
         model_name = model or self.text_model
         sys_prompt = system_prompt if system_prompt is not None else _SYSTEM_PROMPT
         messages = [
             {"role": "system", "content": sys_prompt + f"Provided Frame Evidence and Retrieval Context:\n{context}"},
             {"role": "user", "content": prompt},
         ]
+        if debug_capture is not None:
+            debug_capture["system_prompt"] = messages[0]["content"]
+            debug_capture["user_prompt"] = messages[1]["content"]
+            debug_capture["model"] = model_name
         if schema_format:
             # Schema-constrained decoding (grammar-guaranteed structure) needs
             # Ollama's NATIVE /api/chat endpoint with format=<json-schema
@@ -344,6 +457,8 @@ class LlamaBackend(LLMBackend):
             import requests
             native_base = self.endpoint[:-3] if self.endpoint.endswith("/v1") else self.endpoint
             options: dict = {"temperature": 0.0}
+            if seed is not None:
+                options["seed"] = seed
             if max_tokens is not None:
                 options["num_predict"] = max_tokens
             payload = {
@@ -353,6 +468,8 @@ class LlamaBackend(LLMBackend):
                 "stream": False,
                 "options": options,
             }
+            if keep_alive is not None:
+                payload["keep_alive"] = keep_alive
             # timeout=600 (not 300): reasoning-capable models under
             # schema-format have been observed taking 300-350s+ for a SINGLE
             # attempt (qwen3.5-4b, task 4) -- 300s crashed a live run with an
@@ -361,6 +478,12 @@ class LlamaBackend(LLMBackend):
             resp = requests.post(f"{native_base}/api/chat", json=payload, timeout=600)
             resp.raise_for_status()
             data = resp.json()
+            if debug_capture is not None:
+                debug_capture["finish_reason"] = data.get("done_reason")
+                debug_capture["usage"] = {
+                    "prompt_tokens": data.get("prompt_eval_count"),
+                    "completion_tokens": data.get("eval_count"),
+                }
             return data["message"]["content"]
         if response_format is not None:
             # Best-effort: not every Ollama/openai-client version supports
@@ -371,16 +494,32 @@ class LlamaBackend(LLMBackend):
             try:
                 kwargs = dict(model=model_name, messages=messages, temperature=0.0,
                               response_format=response_format)
+                if seed is not None:
+                    kwargs["seed"] = seed
+                if keep_alive is not None:
+                    kwargs["extra_body"] = {"keep_alive": keep_alive}
                 if max_tokens is not None:
                     kwargs["max_tokens"] = max_tokens
                 response = self.client.chat.completions.create(**kwargs)
+                if debug_capture is not None:
+                    debug_capture["finish_reason"] = response.choices[0].finish_reason
+                    usage = getattr(response, "usage", None)
+                    debug_capture["usage"] = usage.to_dict() if usage and hasattr(usage, "to_dict") else None
                 return response.choices[0].message.content
             except Exception:
                 pass
         kwargs = dict(model=model_name, messages=messages, temperature=0.0)
+        if seed is not None:
+            kwargs["seed"] = seed
+        if keep_alive is not None:
+            kwargs["extra_body"] = {"keep_alive": keep_alive}
         if max_tokens is not None:
             kwargs["max_tokens"] = max_tokens
         response = self.client.chat.completions.create(**kwargs)
+        if debug_capture is not None:
+            debug_capture["finish_reason"] = response.choices[0].finish_reason
+            usage = getattr(response, "usage", None)
+            debug_capture["usage"] = usage.to_dict() if usage and hasattr(usage, "to_dict") else None
         return response.choices[0].message.content
 
 
@@ -394,6 +533,28 @@ class LlamaServerBackend(LLMBackend):
         self.text_model = text_model or "granite4:micro"
         self.timeout = timeout
         self._client = None
+        # Guard against the exact misconfiguration a separate infra-seating
+        # pass flagged: answerer_backend="llama_server" is meant to reach
+        # llama-server (which this class relies on for per-request
+        # cache_prompt=false -- required for the seed-based determinism fix),
+        # NOT Ollama's default port 11434. Ollama's OpenAI-compat endpoint
+        # would silently ignore the llama.cpp-specific cache_prompt field
+        # rather than erroring, so a request that lands there instead breaks
+        # the determinism guarantee with no visible failure. Warn, don't
+        # raise -- this is a strong signal, not a certainty (a real
+        # llama-server COULD be configured on 11434 by a non-default choice).
+        if "11434" in endpoint:
+            logger.warning(
+                "LlamaServerBackend constructed with endpoint=%r, which uses Ollama's "
+                "default port (11434). answerer_backend=\"llama_server\" requires an "
+                "actual llama-server process (the seated production answerer runs on "
+                "port 8091) -- llama-server's cache_prompt=false request parameter, "
+                "required for determinism, is silently ignored if this endpoint is "
+                "actually Ollama. If this is intentional (a non-default llama-server "
+                "port choice), ignore this warning.",
+                endpoint,
+                stacklevel=2,
+            )
 
     @property
     def client(self):
@@ -404,35 +565,28 @@ class LlamaServerBackend(LLMBackend):
 
     def generate(self, prompt: str, context: str, model: str | None = None,
                  system_prompt: str | None = None, response_format: dict | None = None,
-                 max_tokens: int | None = None, schema_format: bool = False) -> str:
+                 max_tokens: int | None = None, schema_format: bool = False,
+                 seed: int | None = None, keep_alive: int | None = None,
+                 debug_capture: dict | None = None) -> str:
+        # keep_alive is an Ollama-specific model-lifecycle parameter (see
+        # LlamaBackend); llama-server has no such concept and already
+        # disables its own analogous prompt-cache reuse via cache_prompt=False
+        # below, so this argument is accepted for interface parity and ignored.
+        # debug_capture: optional dict, populated in-place with the EXACT
+        # system/user prompt sent and the finish_reason/token usage the API
+        # returned, when not None. Read-only instrumentation for
+        # iris.debug_trace -- never changes the prompt built below or the
+        # string returned by this method.
         model_name = model or self.text_model
         sys_prompt = system_prompt if system_prompt is not None else _SYSTEM_PROMPT
         messages = [
             {"role": "system", "content": sys_prompt + f"Provided Frame Evidence and Retrieval Context:\n{context}"},
             {"role": "user", "content": prompt},
         ]
-        
-        # 1. Production direct requests.post path for schema_format
-        if schema_format and self._client is None:
-            import requests
-            payload = {
-                "model": "loaded",
-                "messages": messages,
-                "temperature": 0,
-                "cache_prompt": False,
-                "max_tokens": 1024,
-                "response_format": {
-                    "type": "json_schema",
-                    "json_schema": {
-                        "name": "answer_claims",
-                        "schema": ANSWER_CLAIMS_WIRE_SCHEMA,
-                        "strict": True
-                    }
-                }
-            }
-            resp = requests.post(f"{self.endpoint}/chat/completions", json=payload, timeout=self.timeout)
-            resp.raise_for_status()
-            return resp.json()["choices"][0]["message"]["content"]
+        if debug_capture is not None:
+            debug_capture["system_prompt"] = messages[0]["content"]
+            debug_capture["user_prompt"] = messages[1]["content"]
+            debug_capture["model"] = model_name
 
         # 2. Existing path (for non-schema or mock client unit tests)
         kwargs = {
@@ -442,7 +596,9 @@ class LlamaServerBackend(LLMBackend):
             "timeout": self.timeout,
             "extra_body": {"cache_prompt": False}
         }
-        
+        if seed is not None:
+            kwargs["seed"] = seed
+
         if schema_format:
             kwargs["response_format"] = {
                 "type": "json_schema",
@@ -459,7 +615,38 @@ class LlamaServerBackend(LLMBackend):
             kwargs["max_tokens"] = max_tokens
 
         try:
+            # 1. Production direct requests.post path for schema_format
+            if schema_format and self._client is None:
+                import requests
+                payload = {
+                    "model": model_name,
+                    "messages": messages,
+                    "temperature": 0,
+                    "seed": seed if seed is not None else 42,
+                    "cache_prompt": False,
+                    "max_tokens": max_tokens if max_tokens is not None else 1024,
+                    "response_format": {
+                        "type": "json_schema",
+                        "json_schema": {
+                            "name": "answer_claims",
+                            "schema": ANSWER_CLAIMS_WIRE_SCHEMA,
+                            "strict": True
+                        }
+                    }
+                }
+                resp = requests.post(f"{self.endpoint}/chat/completions", json=payload, timeout=self.timeout)
+                resp.raise_for_status()
+                data = resp.json()
+                if debug_capture is not None:
+                    debug_capture["finish_reason"] = data["choices"][0].get("finish_reason")
+                    debug_capture["usage"] = data.get("usage")
+                return data["choices"][0]["message"]["content"]
+
             response = self.client.chat.completions.create(**kwargs)
+            if debug_capture is not None:
+                debug_capture["finish_reason"] = response.choices[0].finish_reason
+                usage = getattr(response, "usage", None)
+                debug_capture["usage"] = usage.to_dict() if usage and hasattr(usage, "to_dict") else None
             return response.choices[0].message.content
         except Exception as e:
             # Fall back to native llama-server /completion endpoint
@@ -477,6 +664,7 @@ class LlamaServerBackend(LLMBackend):
             payload = {
                 "prompt": formatted_prompt,
                 "temperature": 0.0,
+                "seed": seed if seed is not None else 42,
                 "cache_prompt": False,
             }
             if schema_format:
@@ -488,7 +676,14 @@ class LlamaServerBackend(LLMBackend):
             try:
                 resp = requests.post(f"{native_base}/completion", json=payload, timeout=self.timeout)
                 resp.raise_for_status()
-                return resp.json()["content"]
+                data = resp.json()
+                if debug_capture is not None:
+                    debug_capture["finish_reason"] = data.get("stop_type") or data.get("stopped_eos")
+                    debug_capture["usage"] = {
+                        "prompt_tokens": data.get("tokens_evaluated"),
+                        "completion_tokens": data.get("tokens_predicted"),
+                    }
+                return data["content"]
             except Exception:
                 raise e
 
@@ -520,14 +715,25 @@ class OpenAIBackend(LLMBackend):
 
     def generate(self, prompt: str, context: str, model: str | None = None,
                  system_prompt: str | None = None, response_format: dict | None = None,
-                 max_tokens: int | None = None, schema_format: bool = False) -> str:
+                 max_tokens: int | None = None, schema_format: bool = False,
+                 seed: int | None = None, keep_alive: int | None = None,
+                 debug_capture: dict | None = None) -> str:
+        # keep_alive is an Ollama-specific model-lifecycle parameter (see
+        # LlamaBackend); the real OpenAI API has no such concept, so this
+        # argument is accepted for interface parity and ignored.
         model_name = model or self.text_model
         sys_prompt = system_prompt if system_prompt is not None else _SYSTEM_PROMPT
         messages = [
             {"role": "system", "content": sys_prompt + f"Provided Frame Evidence and Retrieval Context:\n{context}"},
             {"role": "user", "content": prompt},
         ]
+        if debug_capture is not None:
+            debug_capture["system_prompt"] = messages[0]["content"]
+            debug_capture["user_prompt"] = messages[1]["content"]
+            debug_capture["model"] = model_name
         kwargs = dict(model=model_name, messages=messages, temperature=0.0)
+        if seed is not None:
+            kwargs["seed"] = seed
         if schema_format:
             kwargs["response_format"] = {
                 "type": "json_schema",
@@ -538,6 +744,10 @@ class OpenAIBackend(LLMBackend):
         if max_tokens is not None:
             kwargs["max_tokens"] = max_tokens
         response = self.client.chat.completions.create(**kwargs)
+        if debug_capture is not None:
+            debug_capture["finish_reason"] = response.choices[0].finish_reason
+            usage = getattr(response, "usage", None)
+            debug_capture["usage"] = usage.to_dict() if usage and hasattr(usage, "to_dict") else None
         return response.choices[0].message.content
 
 
@@ -545,42 +755,49 @@ _ACTIVE_BACKEND: LLMBackend | None = None
 _BACKEND_OVERRIDDEN: bool = False
 
 
-def get_backend() -> LLMBackend:
-    """Returns the globally configured active LLM backend."""
+def get_backend(config: Any = None) -> LLMBackend:
+    """Returns the configured active LLM backend.
+
+    P1-16 / P1-17: Accept and respect config settings dynamically rather than
+    relying only on the static global configuration.
+    """
     global _ACTIVE_BACKEND, _BACKEND_OVERRIDDEN
     if _ACTIVE_BACKEND is None or not _BACKEND_OVERRIDDEN:
-        try:
-            from iris.iris_config import ConfigManager
-            config = ConfigManager().get_config()
-            cerberus_mode = getattr(config, "cerberus_mode", "legacy")
-        except Exception:
-            cerberus_mode = "legacy"
-            config = None
+        if config is None:
+            try:
+                from iris.iris_config import ConfigManager
+                config = ConfigManager().get_config()
+            except Exception:
+                config = None
 
-        if cerberus_mode == "v2" and config is not None:
-            backend_type = getattr(config, "answerer_backend", "llama_server")
-            if backend_type == "llama_server":
-                endpoint = getattr(config, "answerer_endpoint", "http://localhost:8080/v1")
-                model = getattr(config, "answerer_model", "granite4:micro")
-                timeout = getattr(config, "answerer_timeout", 600.0)
-                # Avoid recreating if it is already LlamaServerBackend with the correct parameters
-                if not isinstance(_ACTIVE_BACKEND, LlamaServerBackend) or \
-                   _ACTIVE_BACKEND.endpoint != endpoint or \
-                   _ACTIVE_BACKEND.text_model != model or \
-                   _ACTIVE_BACKEND.timeout != timeout:
-                    _ACTIVE_BACKEND = LlamaServerBackend(
-                        endpoint=endpoint,
-                        text_model=model,
-                        timeout=timeout
-                    )
-            else:
-                if not isinstance(_ACTIVE_BACKEND, LlamaBackend):
-                    _ACTIVE_BACKEND = LlamaBackend()
+        cerberus_mode = getattr(config, "cerberus_mode", "legacy") if config is not None else "legacy"
+        backend_type = getattr(config, "answerer_backend", "llama_server") if config is not None else "llama_server"
+
+        if backend_type == "llama_server" and config is not None:
+            endpoint = getattr(config, "answerer_endpoint", "http://localhost:8080/v1")
+            model = getattr(config, "answerer_model", "granite4:micro")
+            timeout = getattr(config, "answerer_timeout", 600.0)
+            # Avoid recreating if it is already LlamaServerBackend with the correct parameters
+            if not isinstance(_ACTIVE_BACKEND, LlamaServerBackend) or \
+               _ACTIVE_BACKEND.endpoint != endpoint or \
+               _ACTIVE_BACKEND.text_model != model or \
+               _ACTIVE_BACKEND.timeout != timeout:
+                _ACTIVE_BACKEND = LlamaServerBackend(
+                    endpoint=endpoint,
+                    text_model=model,
+                    timeout=timeout
+                )
         else:
-            if not isinstance(_ACTIVE_BACKEND, LlamaBackend) and _ACTIVE_BACKEND is not None:
-                _ACTIVE_BACKEND = LlamaBackend()
-            elif _ACTIVE_BACKEND is None:
-                _ACTIVE_BACKEND = LlamaBackend()
+            endpoint = getattr(config, "answerer_endpoint", "http://localhost:11434/v1") if config is not None else "http://localhost:11434/v1"
+            model = getattr(config, "answerer_model", None) if config is not None else None
+            # Default to LlamaBackend
+            if not isinstance(_ACTIVE_BACKEND, LlamaBackend) or \
+               _ACTIVE_BACKEND.endpoint != endpoint or \
+               _ACTIVE_BACKEND.text_model != (model or LlamaBackend.DEFAULT_TEXT_MODEL):
+                _ACTIVE_BACKEND = LlamaBackend(
+                    endpoint=endpoint,
+                    text_model=model
+                )
 
     return _ACTIVE_BACKEND
 
@@ -592,7 +809,8 @@ def set_backend(backend: LLMBackend) -> None:
     _BACKEND_OVERRIDDEN = True
 
 
-def generate(prompt: str, context: str, model: str | None = None) -> str:
+def generate(prompt: str, context: str, model: str | None = None, max_tokens: int | None = None,
+             config: Any = None, debug_capture: dict | None = None) -> str:
     """
     Generate a response from the active LLM backend.
 
@@ -600,39 +818,39 @@ def generate(prompt: str, context: str, model: str | None = None) -> str:
         prompt:  the user query or instruction
         context: formatted context string from L1 Elysium (as_context_text())
         model:   model identifier; if None, uses the backend's default
+        max_tokens: max tokens limit for generation
+        config: config snapshot to dynamically initialize the backend
+        debug_capture: optional dict, populated with the exact prompt sent and
+            finish_reason/usage returned, when not None (iris.debug_trace).
+            Never changes the prompt or the returned string.
 
     Returns:
         Raw string response from the model
     """
-    return get_backend().generate(prompt, context, model=model)
+    seed = getattr(config, "answerer_seed", 42) if config is not None else 42
+    keep_alive = getattr(config, "answerer_keep_alive", 0) if config is not None else 0
+    return get_backend(config).generate(prompt, context, model=model, max_tokens=max_tokens,
+                                         seed=seed, keep_alive=keep_alive, debug_capture=debug_capture)
 
 
 def generate_v2(prompt: str, context: str, model: str | None = None,
-                 max_tokens: int | None = None, schema_format: bool = False) -> str:
+                 max_tokens: int | None = None, schema_format: bool = False, config: Any = None,
+                 debug_capture: dict | None = None) -> str:
     """Cerberus v2 contract generation: _SYSTEM_PROMPT_V2 (AnswerClaims JSON
     schema + few-shot example) plus a best-effort format=json request to the
-    backend. Returns the RAW string response -- same raw-string contract as
-    generate(); parsing into AnswerClaims, the strict-parse retry, and
-    compliance-failure tracking are the caller's job
-    (iris.query._generate_answer_claims_v2), not this function's.
-
-    max_tokens is additive and defaults to None (unbounded, today's
-    production behavior unchanged); callers that want to cap runaway
-    generation (e.g. scripts/answerer_bakeoff.py) pass it explicitly.
-
-    schema_format is additive and defaults to False (byte-identical to
-    today: json-mode via response_format={"type":"json_object"}). When True,
-    routes to grammar-guaranteed schema-constrained decoding
-    (iris.claim_contract.ANSWER_CLAIMS_WIRE_SCHEMA) instead -- see
-    LlamaBackend.generate. Structure is then guaranteed by the grammar; the
-    caller parses via AnswerClaims.from_wire, not from_json.
+    backend.
     """
-    return get_backend().generate(
+    seed = getattr(config, "answerer_seed", 42) if config is not None else 42
+    keep_alive = getattr(config, "answerer_keep_alive", 0) if config is not None else 0
+    return get_backend(config).generate(
         prompt, context, model=model,
         system_prompt=_SYSTEM_PROMPT_V2,
         response_format={"type": "json_object"},
         max_tokens=max_tokens,
         schema_format=schema_format,
+        seed=seed,
+        keep_alive=keep_alive,
+        debug_capture=debug_capture,
     )
 
 
@@ -652,11 +870,11 @@ def get_caption_failures() -> list:
 # Diagnostics
 # ---------------------------------------------------------------------------
 
-def run_diagnostics() -> dict:
+def run_diagnostics(config: Any = None) -> dict:
     """Run startup diagnostics; raises RuntimeError if a required backend is misconfigured."""
     import json
 
-    backend = get_backend()
+    backend = get_backend(config)
     backend_class = backend.__class__.__name__
 
     api_key = os.environ.get("OPENAI_API_KEY")
@@ -669,7 +887,7 @@ def run_diagnostics() -> dict:
     else:
         model = "unknown"
 
-    captioner = get_captioner()
+    captioner = get_captioner(config)
     captioner_class = captioner.__class__.__name__
     captioner_model = getattr(captioner, "model_name", "unknown")
 
@@ -693,16 +911,28 @@ def run_diagnostics() -> dict:
 # Frame captioning entry point
 # ---------------------------------------------------------------------------
 
-def generate_caption_for_frame(frame, frame_idx: int | None = None) -> CaptionResult:
-    """Generate a semantic caption for a PyAV VideoFrame or PIL Image using the active captioner."""
+def generate_caption_for_frame(frame, frame_idx: int | None = None, config: Any = None,
+                                focus_hint: str | None = None) -> CaptionResult:
+    """Generate a semantic caption for a PyAV VideoFrame or PIL Image using the active captioner.
+
+    focus_hint: optional question/choices text (built by iris.query._build_focus_hint) telling
+    the captioner what detail matters for this query, so e.g. "a woman and two children eating
+    ice cream" can become "a woman in grey holding a spoon..." when the question hinges on
+    clothing color. None (the default) reproduces the old generic, question-blind prompt.
+    """
     import time
 
-    t_start = time.time()
+    t_start = time.monotonic()
 
     if frame is None:
         err_msg = "No frame provided for captioning."
         result = CaptionResult(success=False, caption="[CAPTION_FAILED]", error=err_msg)
-        _CAPTION_FAILURES.append({"frame_idx": frame_idx, "latency": 0.0, "error": err_msg})
+        # P2-06: Record actual elapsed time even for early-exit paths.
+        _CAPTION_FAILURES.append({
+            "frame_idx": frame_idx,
+            "latency": time.monotonic() - t_start,
+            "error": err_msg,
+        })
         return result
 
     # 1. Extract PIL image from PyAV frame if needed
@@ -711,16 +941,28 @@ def generate_caption_for_frame(frame, frame_idx: int | None = None) -> CaptionRe
     except Exception as e:
         err_msg = f"Failed to convert frame to image for captioning: {e}"
         result = CaptionResult(success=False, caption="[CAPTION_FAILED]", error=err_msg)
-        _CAPTION_FAILURES.append({"frame_idx": frame_idx, "latency": time.time() - t_start, "error": err_msg})
+        _CAPTION_FAILURES.append({"frame_idx": frame_idx, "latency": time.monotonic() - t_start, "error": err_msg})
         return result
 
     # 2. Caption with active captioner
     try:
-        captioner = get_captioner()
-        caption = captioner.caption(img)
+        captioner = get_captioner(config)
+        try:
+            caption = captioner.caption(img, focus_hint=focus_hint)
+        except TypeError:
+            # Backward compatibility with any captioner (e.g. a test double)
+            # whose caption() doesn't accept focus_hint yet.
+            caption = captioner.caption(img)
+        latency = time.monotonic() - t_start
+        # P2-06: Log empty captions as observable failures.
+        if not caption or not caption.strip():
+            err_msg = "Captioner returned empty string"
+            result = CaptionResult(success=False, caption="[CAPTION_EMPTY]", error=err_msg)
+            _CAPTION_FAILURES.append({"frame_idx": frame_idx, "latency": latency, "error": err_msg})
+            return result
         return CaptionResult(success=True, caption=caption)
     except Exception as e:
         err_msg = f"Captioning failed: {e}"
         result = CaptionResult(success=False, caption="[CAPTION_FAILED]", error=err_msg)
-        _CAPTION_FAILURES.append({"frame_idx": frame_idx, "latency": time.time() - t_start, "error": err_msg})
+        _CAPTION_FAILURES.append({"frame_idx": frame_idx, "latency": time.monotonic() - t_start, "error": err_msg})
         return result

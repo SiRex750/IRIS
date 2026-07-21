@@ -25,12 +25,13 @@ class IRISConfig:
     candidate_thresh: float = 0.08   # luma-diff floor for CANDIDATE tier
     peak_order:       int   = 3      # argrelextrema window for PEAK detection
     adaptive:         bool  = True   # Whether Charon-V uses adaptive thresholding
+    threshold_mode:   str   = "adaptive"  # "fixed" | "adaptive"
 
 
     # ── L2 Asphodel retrieval ─────────────────────────────────────────────
     alpha: float = 0.4   # semantic weight in L2 retrieval blend
     beta:  float = 0.3   # motion weight in L2 retrieval blend
-    gamma: float = 0.3   # persistence weight in L2 retrieval blend
+    gamma: float = 0.2   # persistence weight in L2 retrieval blend
     delta: float = 0.1   # PageRank/graph-structure weight in legacy retrieval blend
     retrieval_strategy: str = "hybrid"  # strategy: "peak_only", "top_k_action", "peak_neighbors", "hybrid"
     # CFG-004: Changed default from "legacy" to "ppr" — PPR is the correct default for Track A
@@ -38,10 +39,10 @@ class IRISConfig:
     codec_conf_source: str = "packet_size"  # "packet_size" = true demux size; "action_score" = proxy (Phase-6 diag fallback)
     codec_conf_pictype_norm: bool  = True   # per-pict-type normalization; False = global C_raw baseline (ablation)
     ppr_lambda:             float = 0.5    # rank-space blend weight: λ·sem_rank + (1-λ)·codec_rank
-    ppr_damping:            float = 0.5    # PPR teleport probability α passed to nx.pagerank
+    ppr_damping:            float = 0.5    # Damping factor d passed to nx.pagerank (teleport probability is 1 - d)
     
     # ── L2 Asphodel Graph representation mode ──
-    graph_mode:             str   = "flat"  # "flat" | "scene_sparse"
+    graph_mode:             str   = "scene_sparse"  # "flat" | "scene_sparse"
     scene_shortlist_width:  int   = 0      # scene_sparse coarse-prune width; 0 = auto max(4, ceil(sqrt(num_scenes)))
     scene_shortcut_margin:  float = 0.015  # margin > tau -> short-circuit (no PPR descent)
     scene_neighbor_window:  int   = 30     # anchor +/- N frames pulled into descent pool
@@ -62,7 +63,7 @@ class IRISConfig:
     cerberus_high_thresh: float = 0.70  # action_score >= this → full NLI
     cerberus_low_thresh:  float = 0.35  # action_score >= this → filtered NLI
     disable_nli:          bool  = False # completely bypass DeBERTa NLI, use ner_only
-    cerberus_mode:        str   = "legacy" # "legacy" or "v2"
+    cerberus_mode:        str   = "v2" # "legacy" or "v2"
 
     # ── Answerer Backend (Prompt 1) ────────────────────────────────────────
     answerer_backend:       str   = "llama_server"
@@ -71,9 +72,30 @@ class IRISConfig:
     answerer_schema_format: bool  = True
     answerer_max_tokens:    int   = 1024
     answerer_timeout:       float = 600.0
+    # Fixed sampling seed for the answerer LLM call. temperature=0.0 alone is
+    # NOT sufficient for determinism on Ollama/llama-server -- sampler state
+    # and batching can still introduce token-level variance (confirmed by a
+    # real smoke test: 1/12 repeated identical questions produced a different
+    # final answer with temperature=0.0 and no seed). Every backend forwards
+    # this as a top-level "seed" field.
+    answerer_seed:          int   = 42
+    # Ollama-specific: forces the model to be evicted from Ollama's in-memory
+    # "warm" cache immediately after each request (0 seconds). Empirically
+    # required for determinism on top of answerer_seed/temperature=0.0 -- a
+    # real smoke test found that even with seed pinned, a request served
+    # against an already-"warm" (previously-loaded) Ollama model handle
+    # produced different tokens than one served against a freshly (re)loaded
+    # handle, while repeated freshly-loaded calls were bit-identical to each
+    # other (confirmed with num_thread pinned to 1 too, which did NOT fix
+    # it -- ruling out floating-point reduction-order nondeterminism as the
+    # cause). Only meaningful for answerer_backend="llama" (LlamaBackend);
+    # LlamaServerBackend already disables its own analogous prompt cache via
+    # cache_prompt=False and has no "keep_alive" concept.
+    answerer_keep_alive:    int   = 0
 
     # ── Action Score Module ────────────────────────────────────────────────
-    luma_diff_weight:        float = 0.5
+    packet_size_weight:     float = 0.5
+    luma_diff_weight:       float | None = None  # deprecated
     motion_weight:          float = 0.3
     luma_entropy_weight:         float = 0.2
     peak_distance:          int   = 5
@@ -85,10 +107,22 @@ class IRISConfig:
     l2_retrieve_top_k:      int   = 5
 
     # ── Captioner Backend ──────────────────────────────────────────────────
-    captioner_backend:      str   = "moondream"  # "minicpm", "blip" or "moondream"
+    captioner_backend:      str   = "minicpm"  # "minicpm", "blip" or "moondream" -- seated/verified production captioner is minicpm-v4.6 (see MiniCPMCaptioner)
 
     # ── Visual Debug Mode ──────────────────────────────────────────────────
     visual_debug_mode:      bool  = False
+
+    # ── QA debug trace mode ─────────────────────────────────────────────────
+    # When True, iris.query.query() collects a full per-query diagnostic trace
+    # (retrieval telemetry, retrieved frame images, captions, the exact Granite
+    # prompt/output, Cerberus verification, timings) and writes it under
+    # debug_traces/<query_id>/. Every trace-collection call site is behind
+    # `if config.debug_trace:` so the cost is one boolean check per stage when
+    # disabled (default) -- no behavior or output change either way (see
+    # iris/debug_trace.py, tests/test_debug_trace.py::test_disabled_is_zero_overhead
+    # and test_answers_identical_with_trace_enabled).
+    debug_trace:             bool  = False
+    debug_trace_dir:         str   = "debug_traces"
 
     # ── ARIA / LLM model (CFG-005) ─────────────────────────────────────────
     # Override the Ollama/OpenAI model used by ARIA. Empty string = use backend default.
@@ -101,7 +135,10 @@ class IRISConfig:
     # ── L1 Elysium — capacity ─────────────────────────────────────────────
     # Maximum number of CachedFrame entries L1 holds at once.
     # When exceeded, the frame with the lowest keep_score is evicted.
+    use_l1: bool = False
     l1_capacity: int = 64
+    l1_hessian_saturation_scale: float = 10.0
+    codec_validation_level: str = "strict"  # "fast" | "strict"
 
     # ── L1 Elysium — eviction weights ────────────────────────────────────
     # These seven weights are used in CachedFrame.keep_score().
@@ -137,6 +174,18 @@ class IRISConfig:
     # that are not peaks go to HNSW)
     l2_salient_action_thresh: float = 0.35
 
+    def __post_init__(self) -> None:
+        if self.luma_diff_weight is not None:
+            import warnings
+            warnings.warn(
+                "luma_diff_weight is deprecated; use packet_size_weight instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            if self.packet_size_weight != 0.5 and self.packet_size_weight != self.luma_diff_weight:
+                raise ValueError("Conflicting values provided for deprecated 'luma_diff_weight' and new 'packet_size_weight'.")
+            self.packet_size_weight = self.luma_diff_weight
+
     def validate(self) -> None:
         """CFG-002: Sanity-check all config values using ValueError (not assert,
         which is stripped under python -O). Called by ConfigManager after loading.
@@ -146,13 +195,17 @@ class IRISConfig:
             if not condition:
                 raise ValueError(f"IRISConfig validation failed: {msg}")
 
+        _check(self.threshold_mode in {"fixed", "adaptive"}, f"Invalid threshold_mode '{self.threshold_mode}'")
+        _check(self.salient_thresh > self.candidate_thresh, f"salient_thresh ({self.salient_thresh}) must be greater than candidate_thresh ({self.candidate_thresh})")
+        _check(self.codec_validation_level in {"fast", "strict"}, f"Invalid codec_validation_level '{self.codec_validation_level}'")
         if not self.disable_nli:
             _check(0 < self.cerberus_low_thresh < self.cerberus_high_thresh < 1.0,
                    "Cerberus thresholds must satisfy: 0 < low < high < 1")
         _check(self.l1_capacity > 0, "l1_capacity must be a positive integer")
-        _check(self.luma_diff_weight >= 0 and self.motion_weight >= 0 and self.luma_entropy_weight >= 0,
+        _check(self.l1_hessian_saturation_scale > 0.0, "l1_hessian_saturation_scale must be positive")
+        _check(self.packet_size_weight >= 0 and self.motion_weight >= 0 and self.luma_entropy_weight >= 0,
                "Action score weights must be non-negative")
-        _check((self.luma_diff_weight + self.motion_weight + self.luma_entropy_weight) > 0,
+        _check((self.packet_size_weight + self.motion_weight + self.luma_entropy_weight) > 0,
                "Action score weights must sum to a positive value")
         _check(self.peak_distance > 0, "peak_distance must be positive")
         _check(self.peak_prominence >= 0, "peak_prominence must be non-negative")
@@ -165,11 +218,14 @@ class IRISConfig:
         _check(self.answerer_backend in {"llama_server", "llama", "openai", "mock"},
                f"Invalid answerer_backend '{self.answerer_backend}'")
         _check(self.answerer_max_tokens > 0, "answerer_max_tokens must be positive")
+        _check(isinstance(self.answerer_seed, int), "answerer_seed must be an int")
+        _check(isinstance(self.answerer_keep_alive, int), "answerer_keep_alive must be an int")
         _check(self.answerer_timeout > 0, "answerer_timeout must be positive")
         _check(self.alpha >= 0.0, "alpha must be non-negative")
         _check(self.beta >= 0.0, "beta must be non-negative")
         _check(self.gamma >= 0.0, "gamma must be non-negative")
         _check(self.delta >= 0.0, "delta must be non-negative")
+        _check(abs(self.alpha + self.beta + self.gamma + self.delta - 1.0) < 1e-5, "alpha, beta, gamma, delta must sum to 1.0")
         _check(self.retrieval_strategy in {"peak_only", "top_k_action", "peak_neighbors", "hybrid"},
                f"Invalid retrieval_strategy '{self.retrieval_strategy}'")
         _check(self.ranking_mode in {"legacy", "ppr"},

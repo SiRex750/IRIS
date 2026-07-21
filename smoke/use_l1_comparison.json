@@ -1,0 +1,526 @@
+{
+  "use_l1_False": {
+    "n": 12,
+    "n_errors": 0,
+    "n_abstained": 11,
+    "abstention_rate": 0.917,
+    "mean_total_latency_s": 52.48
+  },
+  "use_l1_True": {
+    "n": 12,
+    "n_errors": 0,
+    "n_abstained": 11,
+    "abstention_rate": 0.917,
+    "mean_total_latency_s": 51.32
+  },
+  "n_questions_with_different_retrieval": 12,
+  "n_questions_compared": 12,
+  "rows_off": [
+    {
+      "video_id": "6936757706",
+      "qid": "11",
+      "use_l1": false,
+      "error": null,
+      "abstained": true,
+      "verified": false,
+      "retrieved_frame_idxs": [
+        162,
+        180,
+        210,
+        231,
+        135
+      ],
+      "l1_consulted": false,
+      "l1_hit": false,
+      "l2_fallback": false,
+      "answer": "Insufficient verified evidence to answer this question.",
+      "total_latency_s": 97.93699999997625,
+      "wall_s": 97.94
+    },
+    {
+      "video_id": "6936757706",
+      "qid": "0",
+      "use_l1": false,
+      "error": null,
+      "abstained": true,
+      "verified": false,
+      "retrieved_frame_idxs": [
+        289,
+        283,
+        359,
+        336,
+        371
+      ],
+      "l1_consulted": false,
+      "l1_hit": false,
+      "l2_fallback": false,
+      "answer": "Insufficient verified evidence to answer this question.",
+      "total_latency_s": 47.92200000002049,
+      "wall_s": 47.91
+    },
+    {
+      "video_id": "6936757706",
+      "qid": "14",
+      "use_l1": false,
+      "error": null,
+      "abstained": true,
+      "verified": false,
+      "retrieved_frame_idxs": [
+        289,
+        359,
+        78,
+        371,
+        283
+      ],
+      "l1_consulted": false,
+      "l1_hit": false,
+      "l2_fallback": false,
+      "answer": "Insufficient verified evidence to answer this question.",
+      "total_latency_s": 51.39100000000326,
+      "wall_s": 51.38
+    },
+    {
+      "video_id": "6936757706",
+      "qid": "7",
+      "use_l1": false,
+      "error": null,
+      "abstained": false,
+      "verified": false,
+      "retrieved_frame_idxs": [
+        237,
+        210,
+        150,
+        171,
+        162
+      ],
+      "l1_consulted": false,
+      "l1_hit": false,
+      "l2_fallback": false,
+      "answer": "This indicates that there are multiple women and children present who are actively consuming ice cream.",
+      "total_latency_s": 55.90600000001723,
+      "wall_s": 55.91
+    },
+    {
+      "video_id": "3079724515",
+      "qid": "6",
+      "use_l1": false,
+      "error": null,
+      "abstained": true,
+      "verified": false,
+      "retrieved_frame_idxs": [
+        454,
+        496,
+        14,
+        22,
+        50
+      ],
+      "l1_consulted": false,
+      "l1_hit": false,
+      "l2_fallback": false,
+      "answer": "Insufficient verified evidence to answer this question.",
+      "total_latency_s": 47.625,
+      "wall_s": 47.62
+    },
+    {
+      "video_id": "3079724515",
+      "qid": "8",
+      "use_l1": false,
+      "error": null,
+      "abstained": true,
+      "verified": false,
+      "retrieved_frame_idxs": [
+        50,
+        186,
+        74,
+        454,
+        22
+      ],
+      "l1_consulted": false,
+      "l1_hit": false,
+      "l2_fallback": false,
+      "answer": "Insufficient verified evidence to answer this question.",
+      "total_latency_s": 58.81300000002375,
+      "wall_s": 58.8
+    },
+    {
+      "video_id": "3079724515",
+      "qid": "0",
+      "use_l1": false,
+      "error": null,
+      "abstained": true,
+      "verified": false,
+      "retrieved_frame_idxs": [
+        454,
+        186,
+        834,
+        856,
+        50
+      ],
+      "l1_consulted": false,
+      "l1_hit": false,
+      "l2_fallback": false,
+      "answer": "Insufficient verified evidence to answer this question.",
+      "total_latency_s": 50.42200000002049,
+      "wall_s": 50.43
+    },
+    {
+      "video_id": "3079724515",
+      "qid": "9",
+      "use_l1": false,
+      "error": null,
+      "abstained": true,
+      "verified": false,
+      "retrieved_frame_idxs": [
+        454,
+        188,
+        444,
+        70,
+        218
+      ],
+      "l1_consulted": false,
+      "l1_hit": false,
+      "l2_fallback": false,
+      "answer": "Insufficient verified evidence to answer this question.",
+      "total_latency_s": 43.21899999998277,
+      "wall_s": 43.22
+    },
+    {
+      "video_id": "8900428927",
+      "qid": "0",
+      "use_l1": false,
+      "error": null,
+      "abstained": true,
+      "verified": false,
+      "retrieved_frame_idxs": [
+        278,
+        272,
+        280,
+        274,
+        282
+      ],
+      "l1_consulted": false,
+      "l1_hit": false,
+      "l2_fallback": false,
+      "answer": "Insufficient verified evidence to answer this question.",
+      "total_latency_s": 52.5,
+      "wall_s": 52.5
+    },
+    {
+      "video_id": "8900428927",
+      "qid": "13",
+      "use_l1": false,
+      "error": null,
+      "abstained": true,
+      "verified": false,
+      "retrieved_frame_idxs": [
+        272,
+        278,
+        282,
+        274,
+        280
+      ],
+      "l1_consulted": false,
+      "l1_hit": false,
+      "l2_fallback": false,
+      "answer": "Insufficient verified evidence to answer this question.",
+      "total_latency_s": 39.625,
+      "wall_s": 39.64
+    },
+    {
+      "video_id": "8900428927",
+      "qid": "8",
+      "use_l1": false,
+      "error": null,
+      "abstained": true,
+      "verified": false,
+      "retrieved_frame_idxs": [
+        272,
+        282,
+        278,
+        280,
+        274
+      ],
+      "l1_consulted": false,
+      "l1_hit": false,
+      "l2_fallback": false,
+      "answer": "Insufficient verified evidence to answer this question.",
+      "total_latency_s": 40.14100000000326,
+      "wall_s": 40.15
+    },
+    {
+      "video_id": "8900428927",
+      "qid": "2",
+      "use_l1": false,
+      "error": null,
+      "abstained": true,
+      "verified": false,
+      "retrieved_frame_idxs": [
+        140,
+        138,
+        83,
+        98,
+        110
+      ],
+      "l1_consulted": false,
+      "l1_hit": false,
+      "l2_fallback": false,
+      "answer": "Insufficient verified evidence to answer this question.",
+      "total_latency_s": 44.21900000004098,
+      "wall_s": 44.23
+    }
+  ],
+  "rows_on": [
+    {
+      "video_id": "6936757706",
+      "qid": "11",
+      "use_l1": true,
+      "error": null,
+      "abstained": true,
+      "verified": false,
+      "retrieved_frame_idxs": [
+        518,
+        551,
+        569,
+        502,
+        508
+      ],
+      "l1_consulted": true,
+      "l1_hit": true,
+      "l2_fallback": false,
+      "answer": "Insufficient verified evidence to answer this question.",
+      "total_latency_s": 49.18800000002375,
+      "wall_s": 49.2
+    },
+    {
+      "video_id": "6936757706",
+      "qid": "0",
+      "use_l1": true,
+      "error": null,
+      "abstained": true,
+      "verified": false,
+      "retrieved_frame_idxs": [
+        518,
+        551,
+        569,
+        502,
+        508
+      ],
+      "l1_consulted": true,
+      "l1_hit": true,
+      "l2_fallback": false,
+      "answer": "Insufficient verified evidence to answer this question.",
+      "total_latency_s": 48.96799999999348,
+      "wall_s": 48.96
+    },
+    {
+      "video_id": "6936757706",
+      "qid": "14",
+      "use_l1": true,
+      "error": null,
+      "abstained": true,
+      "verified": false,
+      "retrieved_frame_idxs": [
+        518,
+        551,
+        569,
+        502,
+        508
+      ],
+      "l1_consulted": true,
+      "l1_hit": true,
+      "l2_fallback": false,
+      "answer": "Insufficient verified evidence to answer this question.",
+      "total_latency_s": 55.67199999996228,
+      "wall_s": 55.68
+    },
+    {
+      "video_id": "6936757706",
+      "qid": "7",
+      "use_l1": true,
+      "error": null,
+      "abstained": false,
+      "verified": false,
+      "retrieved_frame_idxs": [
+        518,
+        551,
+        569,
+        502,
+        362
+      ],
+      "l1_consulted": true,
+      "l1_hit": true,
+      "l2_fallback": false,
+      "answer": "The presence of ice cream is not explicitly stated in any frame.",
+      "total_latency_s": 55.98500000004424,
+      "wall_s": 55.97
+    },
+    {
+      "video_id": "3079724515",
+      "qid": "6",
+      "use_l1": true,
+      "error": null,
+      "abstained": true,
+      "verified": false,
+      "retrieved_frame_idxs": [
+        840,
+        810,
+        510,
+        600,
+        857
+      ],
+      "l1_consulted": true,
+      "l1_hit": true,
+      "l2_fallback": false,
+      "answer": "Insufficient verified evidence to answer this question.",
+      "total_latency_s": 61.06300000002375,
+      "wall_s": 61.06
+    },
+    {
+      "video_id": "3079724515",
+      "qid": "8",
+      "use_l1": true,
+      "error": null,
+      "abstained": true,
+      "verified": false,
+      "retrieved_frame_idxs": [
+        857,
+        840,
+        810,
+        510,
+        600
+      ],
+      "l1_consulted": true,
+      "l1_hit": true,
+      "l2_fallback": false,
+      "answer": "Insufficient verified evidence to answer this question.",
+      "total_latency_s": 46.63999999995576,
+      "wall_s": 46.65
+    },
+    {
+      "video_id": "3079724515",
+      "qid": "0",
+      "use_l1": true,
+      "error": null,
+      "abstained": true,
+      "verified": false,
+      "retrieved_frame_idxs": [
+        857,
+        840,
+        810,
+        600,
+        510
+      ],
+      "l1_consulted": true,
+      "l1_hit": true,
+      "l2_fallback": false,
+      "answer": "Insufficient verified evidence to answer this question.",
+      "total_latency_s": 49.625,
+      "wall_s": 49.63
+    },
+    {
+      "video_id": "3079724515",
+      "qid": "9",
+      "use_l1": true,
+      "error": null,
+      "abstained": true,
+      "verified": false,
+      "retrieved_frame_idxs": [
+        857,
+        840,
+        810,
+        600,
+        750
+      ],
+      "l1_consulted": true,
+      "l1_hit": true,
+      "l2_fallback": false,
+      "answer": "Insufficient verified evidence to answer this question.",
+      "total_latency_s": 50.67200000002049,
+      "wall_s": 50.68
+    },
+    {
+      "video_id": "8900428927",
+      "qid": "0",
+      "use_l1": true,
+      "error": null,
+      "abstained": true,
+      "verified": false,
+      "retrieved_frame_idxs": [
+        138,
+        175,
+        110,
+        146,
+        124
+      ],
+      "l1_consulted": true,
+      "l1_hit": true,
+      "l2_fallback": false,
+      "answer": "Insufficient verified evidence to answer this question.",
+      "total_latency_s": 62.64100000000326,
+      "wall_s": 62.65
+    },
+    {
+      "video_id": "8900428927",
+      "qid": "13",
+      "use_l1": true,
+      "error": null,
+      "abstained": true,
+      "verified": false,
+      "retrieved_frame_idxs": [
+        138,
+        175,
+        110,
+        146,
+        124
+      ],
+      "l1_consulted": true,
+      "l1_hit": true,
+      "l2_fallback": false,
+      "answer": "Insufficient verified evidence to answer this question.",
+      "total_latency_s": 47.34399999998277,
+      "wall_s": 47.34
+    },
+    {
+      "video_id": "8900428927",
+      "qid": "8",
+      "use_l1": true,
+      "error": null,
+      "abstained": true,
+      "verified": false,
+      "retrieved_frame_idxs": [
+        138,
+        175,
+        110,
+        146,
+        124
+      ],
+      "l1_consulted": true,
+      "l1_hit": true,
+      "l2_fallback": false,
+      "answer": "Insufficient verified evidence to answer this question.",
+      "total_latency_s": 47.18800000002375,
+      "wall_s": 47.2
+    },
+    {
+      "video_id": "8900428927",
+      "qid": "2",
+      "use_l1": true,
+      "error": null,
+      "abstained": true,
+      "verified": false,
+      "retrieved_frame_idxs": [
+        138,
+        175,
+        110,
+        146,
+        124
+      ],
+      "l1_consulted": true,
+      "l1_hit": true,
+      "l2_fallback": false,
+      "answer": "Insufficient verified evidence to answer this question.",
+      "total_latency_s": 40.81200000003446,
+      "wall_s": 40.81
+    }
+  ]
+}

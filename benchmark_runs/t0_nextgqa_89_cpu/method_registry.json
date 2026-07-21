@@ -1,0 +1,17 @@
+[
+  "Uniform",
+  "Random",
+  "Scene Change",
+  "I-frame Prior",
+  "Optical Flow",
+  "CLIP Query Top-K",
+  "CLIP K-Means",
+  "Luma Difference",
+  "Packet Size",
+  "Proposed Selection Only",
+  "Legacy Graph Direct",
+  "Semantic PPR Sparse",
+  "Codec PPR Sparse",
+  "Dense PPR",
+  "Proposed Graph"
+]

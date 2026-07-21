@@ -1,0 +1,140 @@
+{
+  "n_questions": 12,
+  "n_deterministic": 11,
+  "ALL_DETERMINISTIC": false,
+  "answerer_seed_used": 42,
+  "records": [
+    {
+      "video_id": "6936757706",
+      "qid": "11",
+      "same_retrieval": true,
+      "same_raw_answer": true,
+      "same_final_answer": true,
+      "DETERMINISTIC": true,
+      "answer_a": "The provided frame evidence does not include any information about a boy wearing red or eating ice cream.",
+      "answer_b": "The provided frame evidence does not include any information about a boy wearing red or eating ice cream.",
+      "wall_s": 94.85
+    },
+    {
+      "video_id": "6936757706",
+      "qid": "0",
+      "same_retrieval": true,
+      "same_raw_answer": false,
+      "same_final_answer": true,
+      "DETERMINISTIC": true,
+      "answer_a": "Insufficient verified evidence to answer this question.",
+      "answer_b": "Insufficient verified evidence to answer this question.",
+      "wall_s": 61.16
+    },
+    {
+      "video_id": "6936757706",
+      "qid": "14",
+      "same_retrieval": true,
+      "same_raw_answer": false,
+      "same_final_answer": true,
+      "DETERMINISTIC": true,
+      "answer_a": "Insufficient verified evidence to answer this question.",
+      "answer_b": "Insufficient verified evidence to answer this question.",
+      "wall_s": 67.19
+    },
+    {
+      "video_id": "6936757706",
+      "qid": "7",
+      "same_retrieval": true,
+      "same_raw_answer": false,
+      "same_final_answer": false,
+      "DETERMINISTIC": false,
+      "answer_a": "The caption from Frame 171 and Frame 162 both describe \"a woman and two children eating ice cream,\" indicating that all three individuals were engaged in consuming ice cream at some point during the video.",
+      "answer_b": "Insufficient verified evidence to answer this question.",
+      "wall_s": 65.99
+    },
+    {
+      "video_id": "3079724515",
+      "qid": "6",
+      "same_retrieval": true,
+      "same_raw_answer": false,
+      "same_final_answer": true,
+      "DETERMINISTIC": true,
+      "answer_a": "Insufficient verified evidence to answer this question.",
+      "answer_b": "Insufficient verified evidence to answer this question.",
+      "wall_s": 61.71
+    },
+    {
+      "video_id": "3079724515",
+      "qid": "8",
+      "same_retrieval": true,
+      "same_raw_answer": false,
+      "same_final_answer": true,
+      "DETERMINISTIC": true,
+      "answer_a": "Insufficient verified evidence to answer this question.",
+      "answer_b": "Insufficient verified evidence to answer this question.",
+      "wall_s": 69.57
+    },
+    {
+      "video_id": "3079724515",
+      "qid": "0",
+      "same_retrieval": true,
+      "same_raw_answer": false,
+      "same_final_answer": true,
+      "DETERMINISTIC": true,
+      "answer_a": "Insufficient verified evidence to answer this question.",
+      "answer_b": "Insufficient verified evidence to answer this question.",
+      "wall_s": 52.96
+    },
+    {
+      "video_id": "3079724515",
+      "qid": "9",
+      "same_retrieval": true,
+      "same_raw_answer": false,
+      "same_final_answer": true,
+      "DETERMINISTIC": true,
+      "answer_a": "Insufficient verified evidence to answer this question.",
+      "answer_b": "Insufficient verified evidence to answer this question.",
+      "wall_s": 44.73
+    },
+    {
+      "video_id": "8900428927",
+      "qid": "0",
+      "same_retrieval": true,
+      "same_raw_answer": false,
+      "same_final_answer": true,
+      "DETERMINISTIC": true,
+      "answer_a": "Insufficient verified evidence to answer this question.",
+      "answer_b": "Insufficient verified evidence to answer this question.",
+      "wall_s": 48.68
+    },
+    {
+      "video_id": "8900428927",
+      "qid": "13",
+      "same_retrieval": true,
+      "same_raw_answer": false,
+      "same_final_answer": true,
+      "DETERMINISTIC": true,
+      "answer_a": "Insufficient verified evidence to answer this question.",
+      "answer_b": "Insufficient verified evidence to answer this question.",
+      "wall_s": 42.22
+    },
+    {
+      "video_id": "8900428927",
+      "qid": "8",
+      "same_retrieval": true,
+      "same_raw_answer": false,
+      "same_final_answer": true,
+      "DETERMINISTIC": true,
+      "answer_a": "Insufficient verified evidence to answer this question.",
+      "answer_b": "Insufficient verified evidence to answer this question.",
+      "wall_s": 43.21
+    },
+    {
+      "video_id": "8900428927",
+      "qid": "2",
+      "same_retrieval": true,
+      "same_raw_answer": false,
+      "same_final_answer": true,
+      "DETERMINISTIC": true,
+      "answer_a": "Insufficient verified evidence to answer this question.",
+      "answer_b": "Insufficient verified evidence to answer this question.",
+      "wall_s": 63.65
+    }
+  ]
+}

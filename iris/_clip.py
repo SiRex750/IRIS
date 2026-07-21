@@ -14,6 +14,7 @@ import iris.aria as aria
 _CLIP_MODEL = None
 _CLIP_PREPROCESS = None
 _CLIP_TEXT_FEATURES = None
+_CLIP_REVISION_LOADED = None
 _BLIP_MODEL = None
 _BLIP_PROCESSOR = None
 
@@ -59,30 +60,29 @@ def get_generative_caption(pil_image, device: str) -> str:
 def get_zero_shot_caption(clip_embedding: np.ndarray, device: str) -> str:
     """Classify clip_embedding against a set of action/scene vocabulary labels."""
     global _CLIP_TEXT_FEATURES
-    
+
+    # P2-04: Domain-neutral vocabulary — no dataset-specific terms.
+    # The previous list contained "cartoon rabbit", "bunny's face", etc. which
+    # were tailored to the Big Buck Bunny test video and produced systematically
+    # wrong labels for any other content.
     vocabulary = [
-        "a cartoon rabbit standing in a field",
-        "a rabbit watching something",
-        "a butterfly flying near a rabbit",
-        "a rabbit sleeping on the grass",
-        "a badger or rodent appearing on screen",
-        "a close-up of a bunny's face",
-        "animals playing in the forest",
-        "a scenic green meadow with trees",
-        "a rodent or small animal moving",
-        "a cartoon character showing action or movement",
-        "a person walking or running",
-        "a person talking or speaking",
-        "a car or vehicle moving on a street",
-        "an indoor room or office setting",
-        "a group of people gathering",
+        "a person walking or running outdoors",
+        "a person talking or gesturing indoors",
+        "a group of people gathered together",
+        "a person cooking or preparing food",
         "a close-up of a person's face",
-        "a computer screen or technology interface",
-        "a person cooking or eating food",
-        "a street scene with buildings",
-        "a sports game or athletic activity",
+        "a car or vehicle moving on a road",
+        "a sports or athletic activity",
+        "a street or outdoor urban scene",
+        "an indoor room or office environment",
+        "a natural landscape with trees or grass",
+        "a crowd or public gathering",
+        "an animal or wildlife in its environment",
+        "a computer screen or technical interface",
+        "a scene showing physical action or movement",
+        "a calm or static scene with minimal motion",
     ]
-    
+
     model, _ = get_clip_model()
     if model is None:
         return "visual cues from the video"
@@ -91,7 +91,8 @@ def get_zero_shot_caption(clip_embedding: np.ndarray, device: str) -> str:
         import clip
         import torch
         
-        if _CLIP_TEXT_FEATURES is None:
+        if _CLIP_TEXT_FEATURES is None or _CLIP_TEXT_FEATURES.shape[0] != len(vocabulary):
+            # Recompute when cache is empty or vocabulary size has changed.
             text_inputs = clip.tokenize(vocabulary).to(device)
             with torch.no_grad():
                 text_features = model.encode_text(text_inputs)
@@ -107,11 +108,14 @@ def get_zero_shot_caption(clip_embedding: np.ndarray, device: str) -> str:
         return "visual cues from the video"
 
 
-def get_semantic_and_clip_caption(pil_img, frame, clip_emb, device) -> dict:
+def get_semantic_and_clip_caption(pil_img, frame, clip_emb, device, config: Any = None,
+                                   focus_hint: str | None = None) -> dict:
     clip_label = get_zero_shot_caption(clip_emb, device)
-    
+
     # 1. Try VLM OpenAI vision captioning first (ARIA)
-    caption_res = aria.generate_caption_for_frame(pil_img if pil_img is not None else frame)
+    caption_res = aria.generate_caption_for_frame(
+        pil_img if pil_img is not None else frame, config=config, focus_hint=focus_hint,
+    )
     if caption_res.success:
         semantic_caption = caption_res.caption
     else:
@@ -128,27 +132,38 @@ def get_semantic_and_clip_caption(pil_img, frame, clip_emb, device) -> dict:
     }
 
 
-def get_clip_model():
-    """Load and cache the CLIP ViT-B/32 model globally."""
-    global _CLIP_MODEL, _CLIP_PREPROCESS
+def get_clip_model(config: Any = None):
+    """Load and cache the CLIP model globally using the configured revision."""
+    global _CLIP_MODEL, _CLIP_PREPROCESS, _CLIP_REVISION_LOADED
+    revision = "ViT-B/32"
+    if config is not None:
+        revision = getattr(config, "clip_revision", "ViT-B/32") or "ViT-B/32"
+    
+    if _CLIP_MODEL is not None and _CLIP_REVISION_LOADED != revision:
+        # Reloading due to change in revision to prevent mixed embeddings
+        _CLIP_MODEL = None
+        _CLIP_PREPROCESS = None
+        
     if _CLIP_MODEL is None:
         import clip
         import torch
         device = "cuda" if torch.cuda.is_available() else "cpu"
         try:
-            _CLIP_MODEL, _CLIP_PREPROCESS = clip.load("ViT-B/32", device=device)
+            _CLIP_MODEL, _CLIP_PREPROCESS = clip.load(revision, device=device)
+            _CLIP_REVISION_LOADED = revision
         except Exception as e:
-            print(f"Warning: Failed to load CLIP model: {e}")
+            print(f"Warning: Failed to load CLIP model with revision {revision}: {e}")
             _CLIP_MODEL = None
             _CLIP_PREPROCESS = None
+            _CLIP_REVISION_LOADED = None
     return _CLIP_MODEL, _CLIP_PREPROCESS
 
 
-def get_frame_clip_embedding(frame: av.video.frame.VideoFrame, device: str) -> np.ndarray:
+def get_frame_clip_embedding(frame: av.video.frame.VideoFrame, device: str, config: Any = None) -> np.ndarray:
     """Convert PyAV frame to image and extract normalized CLIP feature embedding."""
-    model, preprocess = get_clip_model()
+    model, preprocess = get_clip_model(config)
     if model is None:
-        return np.zeros(512, dtype=np.float32)
+        raise ValueError("CLIP model not loaded; cannot extract frame embedding.")
     try:
         import torch
         img = frame.to_image()  # Returns PIL RGB Image
@@ -156,30 +171,36 @@ def get_frame_clip_embedding(frame: av.video.frame.VideoFrame, device: str) -> n
         with torch.no_grad():
             image_features = model.encode_image(image_input)
             image_features /= image_features.norm(dim=-1, keepdim=True)
-            return image_features.cpu().numpy().flatten().astype(np.float32)
+            emb = image_features.cpu().numpy().flatten().astype(np.float32)
+            if np.linalg.norm(emb) < 1e-6:
+                raise ValueError("Generated frame embedding has near-zero norm.")
+            return emb
     except Exception as e:
-        print(f"Warning: Failed to extract CLIP embedding for frame: {e}")
-        return np.zeros(512, dtype=np.float32)
+        raise ValueError(f"Failed to extract CLIP embedding for frame: {e}")
 
 
-def get_clip_embedding_from_pil(pil_image, device: str) -> np.ndarray:
+def get_clip_embedding_from_pil(pil_image, device: str, config: Any = None) -> np.ndarray:
     """Extract normalized CLIP embedding from a PIL image.
 
     Used by the PIL-cache fast path in wrapper_l2_retrieve to avoid re-opening
     the video file when Charon-V has already captured frame images during its
     2nd decode pass.
     """
-    model, preprocess = get_clip_model()
-    if model is None or pil_image is None:
-        return np.zeros(512, dtype=np.float32)
+    model, preprocess = get_clip_model(config)
+    if model is None:
+        raise ValueError("CLIP model not loaded; cannot extract PIL embedding.")
+    if pil_image is None:
+        raise ValueError("PIL image is None; cannot extract embedding.")
     try:
         import torch
         image_input = preprocess(pil_image).unsqueeze(0).to(device)
         with torch.no_grad():
             image_features = model.encode_image(image_input)
             image_features /= image_features.norm(dim=-1, keepdim=True)
-            return image_features.cpu().numpy().flatten().astype(np.float32)
+            emb = image_features.cpu().numpy().flatten().astype(np.float32)
+            if np.linalg.norm(emb) < 1e-6:
+                raise ValueError("Generated PIL embedding has near-zero norm.")
+            return emb
     except Exception as e:
-        print(f"Warning: Failed to extract CLIP embedding from PIL image: {e}")
-        return np.zeros(512, dtype=np.float32)
+        raise ValueError(f"Failed to extract CLIP embedding from PIL image: {e}")
 

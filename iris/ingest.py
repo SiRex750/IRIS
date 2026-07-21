@@ -134,6 +134,12 @@ def _build_graph(records: list, config: Any) -> L2Asphodel:
             "codec_conf":            float(_get(r, "codec_conf", 0.5)),
             "pict_type":             str(_get(r, "pict_type", "?")),
             "is_peak":               bool(_get(r, "is_peak", False)),
+            "scene_id":              int(_get(r, "scene_id", -1)),
+            "divergence":             float(_get(r, "divergence", 0.0)),
+            "curl":                   float(_get(r, "curl", 0.0)),
+            "jacobian_frobenius":     float(_get(r, "jacobian_frobenius", 0.0)),
+            "hessian_max_eigenvalue": float(_get(r, "hessian_max_eigenvalue", 0.0)),
+            "motion_entropy":         float(_get(r, "motion_entropy", 0.0)),
         })
         action_score_records.append({
             "action_score":      float(_get(r, "action_score", 0.0)),
@@ -184,7 +190,7 @@ def _build_index_from_records(
 
     # 1. Continuous action scoring (lifted from run_pipeline)
     asc = ActionScoreConfig(
-        luma_diff_weight=getattr(config, "luma_diff_weight", 0.5),
+        packet_size_weight=getattr(config, "packet_size_weight", 0.5),
         motion_weight=getattr(config, "motion_weight", 0.3),
         luma_entropy_weight=getattr(config, "luma_entropy_weight", 0.2),
         peak_distance=getattr(config, "peak_distance", 5),
@@ -217,6 +223,37 @@ def _build_index_from_records(
         frame["luma_entropy"] = raw_map.get(fi, {}).get("luma_entropy", 0.0)
         # pict_type is stored as "frame_type" in charon_v raw records ('I'/'P'/'B'); default '?' for skipped.
         frame["pict_type"] = raw_map.get(fi, {}).get("frame_type", "?")
+
+    # 3.5. If visual_debug_mode is enabled, save annotated candidate frames
+    if getattr(config, "visual_debug_mode", False):
+        import os
+        from PIL import ImageDraw
+        debug_frames_dir = os.path.join(os.path.dirname(str(video_path)), "debug_frames")
+        os.makedirs(debug_frames_dir, exist_ok=True)
+
+        if any(f.get("pil_image") is None for f in output_frames) and os.path.exists(str(video_path)):
+            try:
+                import av
+                frame_map = {f["frame_idx"]: f for f in output_frames}
+                container = av.open(str(video_path))
+                for idx, frame in enumerate(container.decode(video=0)):
+                    if idx in frame_map:
+                        frame_map[idx]["pil_image"] = frame.to_image()
+                container.close()
+            except Exception:
+                pass
+
+        for f in output_frames:
+            pil_img = f.get("pil_image")
+            if pil_img is None:
+                from PIL import Image
+                pil_img = Image.new("RGB", (640, 360), color=(73, 109, 137))
+            annotated = pil_img.copy()
+            draw = ImageDraw.Draw(annotated)
+            text = f"Frame {f['frame_idx']} | Score: {f.get('action_score', 0.0):.4f}"
+            draw.text((10, 10), text, fill=(255, 0, 0))
+            out_name = f"frame_{f['frame_idx']:04d}.png"
+            annotated.save(os.path.join(debug_frames_dir, out_name))
 
     # 4. Frame-selection strategy (config-driven, NOT query-driven) — lifted verbatim
     strategy = getattr(config, "retrieval_strategy", "hybrid")
@@ -272,13 +309,19 @@ def _build_index_from_records(
         for idx, frame in enumerate(container.decode(video=0)):
             if idx in frame_map:
                 f = frame_map[idx]
-                clip_emb = get_frame_clip_embedding(frame, device)
+                try:
+                    clip_emb = get_frame_clip_embedding(frame, device, config=config)
+                except TypeError:
+                    clip_emb = get_frame_clip_embedding(frame, device)
                 f["clip_embedding"] = clip_emb
                 f["caption"] = None
         container.close()
     else:
         for f in frames_to_index:
-            clip_emb = get_clip_embedding_from_pil(f["pil_image"], device)
+            try:
+                clip_emb = get_clip_embedding_from_pil(f["pil_image"], device, config=config)
+            except TypeError:
+                clip_emb = get_clip_embedding_from_pil(f["pil_image"], device)
             f["clip_embedding"] = clip_emb
             f["caption"] = None
 
@@ -348,8 +391,23 @@ def _build_index_from_records(
             packet_size=float(f.get("packet_size", 0.0)),
             pict_type=str(f.get("pict_type", "?")),
             codec_conf=float(codec_conf_map.get(fi, 0.5)),
-            scene_id=int(f.get("scene_id", -1)),
+            scene_id=int(node.scene_id),
         ))
+        f["scene_id"] = int(node.scene_id)
+        # Add end-to-end assertion that FrameRecord matches AsphodelNode
+        assert node.frame_idx == fi
+        assert abs(node.timestamp - float(f.get("timestamp", 0.0))) < 1e-6
+        assert abs(node.luma_diff_energy - float(f.get("luma_diff_energy", 0.0))) < 1e-6
+        assert abs(node.luma_entropy - float(f.get("luma_entropy", 0.0))) < 1e-6
+        assert abs(node.motion_magnitude - float(f.get("motion_magnitude", 0.0))) < 1e-6
+        assert abs(node.action_score - float(f.get("action_score", 0.0))) < 1e-6
+        assert abs(node.persistence_value - float(f.get("persistence_value", 0.0))) < 1e-6
+        assert abs(node.divergence - float(f.get("divergence", 0.0))) < 1e-6
+        assert abs(node.curl - float(f.get("curl", 0.0))) < 1e-6
+        assert abs(node.jacobian_frobenius - float(f.get("jacobian_frobenius", 0.0))) < 1e-6
+        assert abs(node.hessian_max_eigenvalue - float(f.get("hessian_max_eigenvalue", 0.0))) < 1e-6
+        assert abs(node.motion_entropy - float(f.get("motion_entropy", 0.0))) < 1e-6
+        assert node.scene_id == int(f.get("scene_id", -1))
 
     # 8. Video-level scalars (precomputed; index_action_score == old query_action_score)
     index_action_score = max((f.get("action_score", 0.0) for f in frames_to_index), default=0.5)
@@ -360,6 +418,36 @@ def _build_index_from_records(
 
     # 9. Config provenance
     config_snapshot = asdict(config) if is_dataclass(config) else dict(getattr(config, "__dict__", {}))
+
+    l1_cache = None
+    if getattr(config, "use_l1", False):
+        from iris.l1_elysium import L1ElysiumCache
+        from iris.cached_frame import CachedFrame
+        from iris.frame_motion_descriptor import FrameMotionDescriptor
+        l1_cache = L1ElysiumCache(config)
+        for fr in frames:
+            motion = FrameMotionDescriptor(
+                frame_idx=fr.frame_idx,
+                timestamp_sec=fr.timestamp,
+                luma_diff_energy=fr.luma_diff_energy,
+                divergence=fr.divergence,
+                curl=fr.curl,
+                jacobian_frobenius=fr.jacobian_frobenius,
+                hessian_max_eigenvalue=fr.hessian_max_eigenvalue,
+                motion_entropy=fr.motion_entropy,
+            )
+            cf = CachedFrame(
+                frame_idx=fr.frame_idx,
+                timestamp_sec=fr.timestamp,
+                action_score=fr.action_score,
+                persistence_value=fr.persistence_value,
+                is_peak=fr.is_peak,
+                pagerank=fr.pagerank_score,
+                motion=motion,
+                embedding=fr.clip_embedding,
+                caption=fr.caption,
+            )
+            l1_cache.admit(cf)
 
     return IRISIndex(
         video_path=str(video_path),
@@ -373,6 +461,7 @@ def _build_index_from_records(
         config_snapshot=config_snapshot,
         _graph=graph,
         _scene_centroids=_compute_scene_centroids(frames),
+        _l1_cache=l1_cache,
     )
 
 
@@ -380,11 +469,16 @@ def ingest(video_path: str | Path, config: Any = None, *, nms_window: int = 10) 
     """Run once per video. Decode + score + select + enrich + build graph."""
     config = _resolve_config(config)
 
+    peak_order_val = getattr(config, "peak_order", 3)
+    if not isinstance(peak_order_val, int) or peak_order_val <= 0:
+        raise ValueError(f"peak_order must be a positive integer, got {peak_order_val}")
+
     # INGEST-001 / CODEC-001: Validate codec before expensive parsing.
     # Reject hard-broken containers immediately; log a warning for soft issues.
     try:
         from iris import codec_validator
-        result = codec_validator.validate_video(str(video_path))
+        lvl = getattr(config, "codec_validation_level", "strict")
+        result = codec_validator.validate_video(str(video_path), level=lvl)
         if result.status == "reject":
             raise ValueError(
                 f"Video rejected by codec validator: {', '.join(result.reasons) if result.reasons else 'unknown'}"
@@ -407,16 +501,15 @@ def ingest(video_path: str | Path, config: Any = None, *, nms_window: int = 10) 
         salient_thresh=config.salient_thresh,
         adaptive=getattr(config, "adaptive", True),
         visual_debug_mode=getattr(config, "visual_debug_mode", False),
+        peak_order=peak_order_val,
+        threshold_mode=getattr(config, "threshold_mode", "adaptive"),
     )
-    # INGEST-002: parse_video already called _demux_packet_curve internally.
-    # Calling it again doubles the demux cost for every ingest. Reuse the
-    # packet curve that parse_video already computed.
-    # parse_video exposes all_frame_energies and iframe_indices via its first
-    # internal call; we recover them cheaply from the stats + raw_records.
-    # The authoritative source is still _demux_packet_curve; we call it once
-    # only to build the scene_spans (zero-decode, no RGB output).
-    all_frame_energies, iframe_indices, _, _ = charon_v._demux_packet_curve(str(video_path))
-    fps = charon_v.get_stream_fps(str(video_path))
+    # INGEST-002: parse_video already called _demux_packet_curve and get_stream_fps internally.
+    # We retrieve the precomputed all_frame_energies, iframe_indices, and fps directly
+    # from `stats` to avoid a redundant second packet demux pass and container open.
+    all_frame_energies = stats["all_frame_energies"]
+    iframe_indices = stats["iframe_indices"]
+    fps = stats["fps"]
     packet_curve = (all_frame_energies, iframe_indices, fps)
     return _build_index_from_records(
         output_frames, raw_records, stats, video_path, config, nms_window,
@@ -514,35 +607,35 @@ def load_index(path: str | Path) -> IRISIndex:
     path = Path(path)
     if not str(path).endswith(".npz"):
         path = Path(str(path) + ".npz")
-    data = np.load(path, allow_pickle=False)
-    manifest = json.loads(data["__manifest__"].item())
+    with np.load(path, allow_pickle=False) as data:
+        manifest = json.loads(data["__manifest__"].item())
 
-    frames: list[FrameRecord] = []
-    for d in manifest["frames"]:
-        emb_key = f"emb_{d['frame_idx']}"
-        emb = data[emb_key].astype(np.float32) if emb_key in data.files else None
-        frames.append(FrameRecord(
-            frame_idx=d["frame_idx"],
-            timestamp=d["timestamp"],
-            luma_diff_energy=d["luma_diff_energy"],
-            luma_entropy=d["luma_entropy"],
-            motion_magnitude=d["motion_magnitude"],
-            action_score=d["action_score"],
-            persistence_value=d["persistence_value"],
-            is_peak=d["is_peak"],
-            divergence=d.get("divergence", 0.0),
-            curl=d.get("curl", 0.0),
-            jacobian_frobenius=d.get("jacobian_frobenius", 0.0),
-            hessian_max_eigenvalue=d.get("hessian_max_eigenvalue", 0.0),
-            motion_entropy=d.get("motion_entropy", 0.0),
-            caption=d["caption"],
-            clip_embedding=emb,
-            pagerank_score=d["pagerank_score"],
-            packet_size=d.get("packet_size", 0.0),
-            pict_type=d.get("pict_type", "?"),
-            codec_conf=d.get("codec_conf", 0.5),
-            scene_id=d.get("scene_id", -1),
-        ))
+        frames: list[FrameRecord] = []
+        for d in manifest["frames"]:
+            emb_key = f"emb_{d['frame_idx']}"
+            emb = data[emb_key].astype(np.float32) if emb_key in data.files else None
+            frames.append(FrameRecord(
+                frame_idx=d["frame_idx"],
+                timestamp=d["timestamp"],
+                luma_diff_energy=d["luma_diff_energy"],
+                luma_entropy=d["luma_entropy"],
+                motion_magnitude=d["motion_magnitude"],
+                action_score=d["action_score"],
+                persistence_value=d["persistence_value"],
+                is_peak=d["is_peak"],
+                divergence=d.get("divergence", 0.0),
+                curl=d.get("curl", 0.0),
+                jacobian_frobenius=d.get("jacobian_frobenius", 0.0),
+                hessian_max_eigenvalue=d.get("hessian_max_eigenvalue", 0.0),
+                motion_entropy=d.get("motion_entropy", 0.0),
+                caption=d["caption"],
+                clip_embedding=emb,
+                pagerank_score=d["pagerank_score"],
+                packet_size=d.get("packet_size", 0.0),
+                pict_type=d.get("pict_type", "?"),
+                codec_conf=d.get("codec_conf", 0.5),
+                scene_id=d.get("scene_id", -1),
+            ))
 
     index = IRISIndex(
         video_path=manifest["video_path"],
@@ -578,4 +671,38 @@ def load_index(path: str | Path) -> IRISIndex:
         index._graph._refresh_scene_ids()
         index._graph._update_pagerank()
     index._scene_centroids = _compute_scene_centroids(index.frames)
+
+    # Rebuild L1 Cache on loaded IRISIndex if use_l1 is enabled
+    if index.config_snapshot.get("use_l1", False):
+        from iris.iris_config import IRISConfig
+        from iris.l1_elysium import L1ElysiumCache
+        from iris.cached_frame import CachedFrame
+        from iris.frame_motion_descriptor import FrameMotionDescriptor
+        config = IRISConfig(**index.config_snapshot)
+        l1_cache = L1ElysiumCache(config)
+        for fr in index.frames:
+            motion = FrameMotionDescriptor(
+                frame_idx=fr.frame_idx,
+                timestamp_sec=fr.timestamp,
+                luma_diff_energy=fr.luma_diff_energy,
+                divergence=fr.divergence,
+                curl=fr.curl,
+                jacobian_frobenius=fr.jacobian_frobenius,
+                hessian_max_eigenvalue=fr.hessian_max_eigenvalue,
+                motion_entropy=fr.motion_entropy,
+            )
+            cf = CachedFrame(
+                frame_idx=fr.frame_idx,
+                timestamp_sec=fr.timestamp,
+                action_score=fr.action_score,
+                persistence_value=fr.persistence_value,
+                is_peak=fr.is_peak,
+                pagerank=fr.pagerank_score,
+                motion=motion,
+                embedding=fr.clip_embedding,
+                caption=fr.caption,
+            )
+            l1_cache.admit(cf)
+        index._l1_cache = l1_cache
+
     return index

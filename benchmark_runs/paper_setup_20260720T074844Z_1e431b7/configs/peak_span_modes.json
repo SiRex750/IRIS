@@ -1,0 +1,35 @@
+{
+  "status": "NOT_IMPLEMENTED",
+  "finding": "canonical_pipeline.md documents that no CLIP-peak-reranking-of-PPR-candidates stage and no predicted-temporal-span construction exist anywhere in iris/ as of commit 1e431b7. IRIS answers from a retrieved frame SET, not a predicted [start,end] interval. The three peak-selection configurations requested by the task (ppr_score_legacy, raw_clip_same_pool, clip_in_ppr_topk) and span construction (peak timestamp, span half-width, boundary clamping) therefore cannot be registered as configuration of an existing stage -- they require new code.",
+  "registered_as_placeholders_for_future_implementation": {
+    "ppr_score_legacy": {
+      "description": "Use existing PPR score (retrieve_ppr output order) as the peak/ranking signal -- this ALREADY EXISTS as the default retrieval behavior (no new code needed for this one arm specifically).",
+      "availability": "IMPLEMENTED (is simply the current default L2 retrieval output, re-labeled)"
+    },
+    "raw_clip_same_pool": {
+      "description": "Re-rank the same PPR candidate pool by raw CLIP cosine similarity only, ignoring PPR score.",
+      "availability": "NOT_IMPLEMENTED -- would require a new re-ranking function taking retrieve_ppr's candidate node IDs and the query embedding, sorting by cosine sim only; must reuse the exact same candidate set (no re-ingestion, no new PPR run) per task requirement",
+      "requirement_notes": [
+        "must use the same PPR candidate set (verify by asserting set(candidate_ids_before) == set(candidate_ids_after))",
+        "must use the same query embedding (call _embed_query once, reuse)",
+        "must not require re-ingestion",
+        "deterministic tie-break required (e.g. stable sort by (-cosine_sim, frame_idx))"
+      ]
+    },
+    "clip_in_ppr_topk": {
+      "description": "Within the PPR top-K candidate set, select the CLIP-peak frame (max cosine sim) as the single peak; changes peak selection only, does not alter PPR candidate membership.",
+      "availability": "NOT_IMPLEMENTED -- same new-code requirement as raw_clip_same_pool, narrower (selects 1 peak, not a full re-ranking)"
+    }
+  },
+  "span_construction_placeholders": {
+    "peak_timestamp": "would be the timestamp of the selected peak node -- NOT_IMPLEMENTED (no peak-selection stage exists yet, see above)",
+    "span_half_width_seconds_candidates": [1.0, 1.5, 2.2, 3.0, 4.0],
+    "boundary_clamping": "clamp [peak_ts - half_width, peak_ts + half_width] to [0, video_duration] -- trivial once peak_timestamp exists, NOT_IMPLEMENTED",
+    "predicted_start_end": "NOT_IMPLEMENTED -- no predicted_span object exists in iris/ today",
+    "legacy_scattered_topk_ablation": {
+      "description": "min(retrieved_timestamps) to max(retrieved_timestamps) across the full (possibly scattered) top-K pool, registered as an explicitly-named legacy ablation ('scattered_minmax_span') and NEVER the implicit default once span construction is implemented.",
+      "availability": "trivially computable today from existing retrieved-frame timestamps (min/max), but is NOT wired as an official predicted-span output anywhere -- it is exactly what eval/grounding_scorer.py::iop() already does internally (pred_s=min(ts_list), pred_e=max(ts_list)), which is precisely why that file's IoP is flagged in metric_registry.json as diverging from the official per-gold-span-max protocol when there is no true single predicted span."
+    }
+  },
+  "no_default_selection_made": "Per task instruction, this setup does NOT select a best peak mode or span width. All three peak-selection configs and the span-width sweep values are registered as pending future implementation work, not as executable choices."
+}

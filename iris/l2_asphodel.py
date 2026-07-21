@@ -80,6 +80,11 @@ class AsphodelNode:
     scene_id:              int = 0
     last_retrieval_score:  float = 0.0
     retrieval_contributions: dict = field(default_factory=dict)
+    divergence:             float = 0.0
+    curl:                   float = 0.0
+    jacobian_frobenius:     float = 0.0
+    hessian_max_eigenvalue: float = 0.0
+    motion_entropy:         float = 0.0
 
 
 class L2Asphodel:
@@ -134,8 +139,22 @@ class L2Asphodel:
             self.graph_motion_top_k = int(self._cfg(config, "graph_motion_top_k", self.graph_motion_top_k))
             self.graph_semantic_threshold = float(self._cfg(config, "graph_semantic_threshold", self.graph_semantic_threshold))
             self.debug_retrieval = bool(self._cfg(config, "graph_debug_retrieval", self.debug_retrieval))
-            self.salient_thresh = float(self._cfg(config, "salient_thresh", self.salient_thresh))
+            self.salient_thresh = float(
+                # P2-05: L2 graph tier assignment uses action_score (not luma-diff),
+                # so it should read l2_salient_action_thresh rather than salient_thresh.
+                # salient_thresh is Charon-V's luma-diff floor — a different concept.
+                # Fall back to salient_thresh for any config snapshot that predates the
+                # dedicated l2_salient_action_thresh field.
+                self._cfg(
+                    config,
+                    "l2_salient_action_thresh",
+                    self._cfg(config, "salient_thresh", self.salient_thresh),
+                )
+            )
+
             self.candidate_thresh = float(self._cfg(config, "candidate_thresh", self.candidate_thresh))
+        self.config = config
+        self._tiered_index = None
 
     @staticmethod
     def _cfg(config: Any, key: str, default: Any) -> Any:
@@ -217,6 +236,16 @@ class L2Asphodel:
                 self.graph.nodes[nid]["node_data"].frame_idx,
             ),
         )
+        # P1-12: If authoritative scene IDs have already been assigned (e.g. from
+        # ingest's valley-based scene segmentation), preserve them instead of overwriting.
+        # Check if any node has a valid non-default scene_id (>= 0).
+        has_authoritative = any(
+            self.graph.nodes[nid]["node_data"].scene_id >= 0
+            for nid in sorted_ids
+        )
+        if has_authoritative:
+            return
+
         scene_id = 0
         first = True
         for nid in sorted_ids:
@@ -240,9 +269,39 @@ class L2Asphodel:
         return max(0.0, float(np.dot(node_u.embedding, node_v.embedding) / (norm_u * norm_v)))
 
     def _motion_similarity(self, node_u: AsphodelNode, node_v: AsphodelNode, max_score_range: float) -> float:
+        # P1-09: Build a normalized motion feature vector from available corrected signals:
+        # motion_magnitude, divergence, curl, jacobian_frobenius, hessian_max_eigenvalue, motion_entropy.
+        # Divergence is signed. We compute cosine similarity over this 6-D vector.
+        vu = np.array([
+            node_u.motion_magnitude,
+            node_u.divergence,
+            node_u.curl,
+            node_u.jacobian_frobenius,
+            node_u.hessian_max_eigenvalue,
+            node_u.motion_entropy
+        ], dtype=np.float32)
+
+        vv = np.array([
+            node_v.motion_magnitude,
+            node_v.divergence,
+            node_v.curl,
+            node_v.jacobian_frobenius,
+            node_v.hessian_max_eigenvalue,
+            node_v.motion_entropy
+        ], dtype=np.float32)
+
+        norm_u = float(np.linalg.norm(vu))
+        norm_v = float(np.linalg.norm(vv))
+
+        if norm_u > 1e-8 and norm_v > 1e-8:
+            cosine = float(np.dot(vu, vv) / (norm_u * norm_v))
+            return max(0.0, min(1.0, cosine))
+
+        # Fallback: action_score-based similarity for nodes without motion descriptors.
         if max_score_range == 0.0:
             return 1.0
         return max(0.0, 1.0 - (abs(node_u.action_score - node_v.action_score) / max_score_range))
+
 
     def _temporal_proximity(self, node_u: AsphodelNode, node_v: AsphodelNode) -> float:
         dt = abs(float(node_u.timestamp) - float(node_v.timestamp))
@@ -265,28 +324,94 @@ class L2Asphodel:
             base = self.alpha * semantic + self.beta * motion + 0.1 * temporal
         return max(1e-6, float(base))
 
-    def _add_weighted_edge(self, u: int, v: int, edge_type: str, max_score_range: float) -> None:
+    def _add_weighted_edge_to_graph(
+        self,
+        target_graph: nx.Graph,
+        u: int,
+        v: int,
+        edge_type: str,
+        max_score_range: float,
+    ) -> str:
+        """Graph-targeted edge insertion using the shared weighting helpers.
+
+        Reads node data from *target_graph* (not self.graph), so it safely
+        operates on any NetworkX graph — including temporary subgraph copies
+        used in scene_sparse DESCEND retrieval — without ever swapping
+        self.graph or sharing mutable state across concurrent queries.
+
+        Args:
+            target_graph:    The NetworkX graph to insert the edge into.
+            u, v:            Node IDs (must already exist in target_graph).
+            edge_type:       Edge family label used by _edge_weight.
+            max_score_range: Pre-computed action-score range for motion normalisation.
+
+        Returns:
+            "new"       — edge was not present and has been inserted.
+            "updated"   — an existing edge with lower weight was replaced.
+            "unchanged" — an existing edge had equal-or-greater weight; no write.
+
+        Raises:
+            KeyError: If u or v is absent from target_graph, or if either node
+                      lacks a "node_data" attribute.  We raise rather than
+                      silently skip so callers get an actionable diagnostic.
+        """
         if u == v:
-            return
-        node_u = self.graph.nodes[u]["node_data"]
-        node_v = self.graph.nodes[v]["node_data"]
+            return "unchanged"
+        if u not in target_graph.nodes:
+            raise KeyError(f"Node {u!r} is not present in the target graph.")
+        if v not in target_graph.nodes:
+            raise KeyError(f"Node {v!r} is not present in the target graph.")
+        node_u = target_graph.nodes[u].get("node_data")
+        node_v = target_graph.nodes[v].get("node_data")
+        if node_u is None:
+            raise KeyError(f"Node {u!r} exists in target_graph but has no 'node_data' attribute.")
+        if node_v is None:
+            raise KeyError(f"Node {v!r} exists in target_graph but has no 'node_data' attribute.")
         semantic = self._semantic_similarity(node_u, node_v)
         motion = self._motion_similarity(node_u, node_v, max_score_range)
         temporal = self._temporal_proximity(node_u, node_v)
         weight = self._edge_weight(semantic, motion, temporal, edge_type)
-        if self.graph.has_edge(u, v):
-            existing = self.graph[u][v]
+        if target_graph.has_edge(u, v):
+            existing = target_graph[u][v]
+            # P1-11: Preserve all relationship labels.  A pair can legitimately
+            # have multiple relationship types (e.g. temporal AND semantic_salient).
+            # Accumulate edge_type labels as a pipe-separated set so no relationship
+            # is silently discarded, while still keeping the highest weight.
+            existing_types: set[str] = set(
+                existing.get("edge_type", "").split("|")
+            )
+            existing_types.discard("")
+            existing_types.add(edge_type)
+            merged_type = "|".join(sorted(existing_types))
             if weight <= existing.get("weight", 0.0):
-                return
-        self.graph.add_edge(
+                # Weaker weight — update only the label set, not the weight.
+                target_graph[u][v]["edge_type"] = merged_type
+                return "unchanged"
+            # Stronger weight — update weight AND label set.
+            outcome = "updated"
+        else:
+            merged_type = edge_type
+            outcome = "new"
+        target_graph.add_edge(
             u,
             v,
             weight=weight,
-            edge_type=edge_type,
+            edge_type=merged_type,
             semantic_weight=semantic,
             motion_weight=motion,
             temporal_weight=temporal,
         )
+        return outcome
+
+
+    def _add_weighted_edge(self, u: int, v: int, edge_type: str, max_score_range: float) -> None:
+        """Insert or update a weighted edge in the *production* graph (self.graph).
+
+        Thin wrapper around _add_weighted_edge_to_graph that always targets
+        self.graph.  Preserved verbatim for backward-compatibility with all
+        internal callers (_add_temporal_edges, _add_hierarchy_edges, etc.).
+        """
+        self._add_weighted_edge_to_graph(self.graph, u, v, edge_type, max_score_range)
 
     def _add_temporal_edges(self, sorted_ids: list[int], max_score_range: float) -> None:
         window = max(0, int(self.graph_temporal_window))
@@ -299,13 +424,16 @@ class L2Asphodel:
     def _nearest_node(self, node: AsphodelNode, candidates: list[AsphodelNode]) -> AsphodelNode | None:
         if not candidates:
             return None
-        return min(
-            candidates,
-            key=lambda cand: (
-                abs(float(cand.timestamp) - float(node.timestamp)),
-                abs(int(cand.frame_idx) - int(node.frame_idx)),
-            ),
-        )
+        same_scene_cands = [c for c in candidates if c.scene_id == node.scene_id]
+        if same_scene_cands:
+            return min(
+                same_scene_cands,
+                key=lambda cand: (
+                    abs(float(cand.timestamp) - float(node.timestamp)),
+                    abs(int(cand.frame_idx) - int(node.frame_idx)),
+                ),
+            )
+        return None
 
     def _add_hierarchy_edges(self, sorted_ids: list[int], max_score_range: float) -> None:
         nodes = [self.graph.nodes[nid]["node_data"] for nid in sorted_ids]
@@ -317,13 +445,19 @@ class L2Asphodel:
             if parent is not None:
                 self._add_weighted_edge(parent.frame_idx, node.frame_idx, "hierarchy_peak_salient", max_score_range)
 
-        candidate_parents = salient or peaks
+        # P1-13: Prevent orphaned L3_CANDIDATE nodes.  If neither salient nor peak
+        # nodes exist (e.g. a short, homogeneous video segment), fall back to all
+        # nodes so every candidate still receives at least one parent edge.
+        # Exclude the node itself to prevent self-parenting and subsequent edge skipping.
+        candidate_parents = salient or peaks or nodes
         for node in nodes:
             if node.tier != "L3_CANDIDATE":
                 continue
-            parent = self._nearest_node(node, candidate_parents)
+            parents_pool = [p for p in candidate_parents if p.frame_idx != node.frame_idx]
+            parent = self._nearest_node(node, parents_pool)
             if parent is not None:
                 self._add_weighted_edge(parent.frame_idx, node.frame_idx, "hierarchy_salient_candidate", max_score_range)
+
 
     def _add_salient_semantic_edges(self, sorted_ids: list[int], max_score_range: float) -> None:
         top_k = max(0, int(self.graph_semantic_top_k))
@@ -333,35 +467,316 @@ class L2Asphodel:
             nid for nid in sorted_ids
             if self.graph.nodes[nid]["node_data"].tier == "L2_SALIENT"
         ]
-        for u in salient_ids:
-            node_u = self.graph.nodes[u]["node_data"]
-            sims = []
-            for v in salient_ids:
-                if u == v:
-                    continue
-                node_v = self.graph.nodes[v]["node_data"]
-                semantic = self._semantic_similarity(node_u, node_v)
-                if semantic >= self.graph_semantic_threshold:
-                    sims.append((semantic, v))
-            sims.sort(reverse=True)
-            for _, v in sims[:top_k]:
-                self._add_weighted_edge(u, v, "semantic_salient", max_score_range)
+        K = len(salient_ids)
+        if K < 2:
+            return
+
+        # P1-10: Vectorized pairwise cosine similarity with bounded memory / ANN.
+        nodes_data = [self.graph.nodes[nid]["node_data"] for nid in salient_ids]
+        embs = [nd.embedding for nd in nodes_data]
+
+        # Fall back to scalar loop for any node that lacks an embedding.
+        if any(e is None for e in embs):
+            for u in salient_ids:
+                node_u = self.graph.nodes[u]["node_data"]
+                sims = []
+                for v in salient_ids:
+                    if u == v:
+                        continue
+                    node_v = self.graph.nodes[v]["node_data"]
+                    semantic = self._semantic_similarity(node_u, node_v)
+                    if semantic >= self.graph_semantic_threshold:
+                        sims.append((semantic, v))
+                sims.sort(reverse=True)
+                for _, v in sims[:top_k]:
+                    self._add_weighted_edge(u, v, "semantic_salient", max_score_range)
+            return
+
+        mat = np.array([e.astype(np.float32) for e in embs])
+        norms = np.linalg.norm(mat, axis=1, keepdims=True)
+        norms = np.where(norms < 1e-8, 1e-8, norms)
+        mat_n = mat / norms
+
+        # Telemetry & small inputs exact fallback (K < 200)
+        if K < 200:
+            sim_matrix = np.dot(mat_n, mat_n.T).astype(float)
+            np.fill_diagonal(sim_matrix, -1.0)
+            for i, u in enumerate(salient_ids):
+                row = sim_matrix[i]
+                candidates = [
+                    (float(row[j]), salient_ids[j])
+                    for j in range(len(salient_ids))
+                    if i != j and row[j] >= self.graph_semantic_threshold
+                ]
+                candidates.sort(reverse=True)
+                for _, v in candidates[:top_k]:
+                    self._add_weighted_edge(u, v, "semantic_salient", max_score_range)
+            return
+
+        # Large inputs: FAISS / HNSW path to avoid O(K^2) memory
+        try:
+            import faiss
+            index = faiss.IndexFlatIP(mat_n.shape[1])
+            index.add(mat_n)
+            sims, indices = index.search(mat_n, min(top_k + 1, K))
+            for i, u in enumerate(salient_ids):
+                for score, idx in zip(sims[i], indices[i]):
+                    if idx < 0 or idx >= K:
+                        continue
+                    v = salient_ids[idx]
+                    if u != v and score >= self.graph_semantic_threshold:
+                        self._add_weighted_edge(u, v, "semantic_salient", max_score_range)
+        except ImportError:
+            # Bounded O(N) memory fallback via chunking
+            chunk_size = 100
+            for chunk_start in range(0, K, chunk_size):
+                chunk_end = min(chunk_start + chunk_size, K)
+                chunk = mat_n[chunk_start:chunk_end]
+                sim_chunk = np.dot(chunk, mat_n.T).astype(float)
+                for idx_in_chunk in range(chunk_end - chunk_start):
+                    i = chunk_start + idx_in_chunk
+                    u = salient_ids[i]
+                    row = sim_chunk[idx_in_chunk]
+                    candidates = [
+                        (float(row[j]), salient_ids[j])
+                        for j in range(K)
+                        if i != j and row[j] >= self.graph_semantic_threshold
+                    ]
+                    candidates.sort(reverse=True)
+                    for _, v in candidates[:top_k]:
+                        self._add_weighted_edge(u, v, "semantic_salient", max_score_range)
 
     def _add_motion_neighbor_edges(self, sorted_ids: list[int], max_score_range: float) -> None:
         top_k = max(0, int(self.graph_motion_top_k))
         if top_k == 0:
             return
-        for u in sorted_ids:
-            node_u = self.graph.nodes[u]["node_data"]
-            sims = []
-            for v in sorted_ids:
-                if u == v:
+        N = len(sorted_ids)
+        if N < 2:
+            return
+
+        # P1-10: Bounded pairwise motion similarity.
+        nodes_data = [self.graph.nodes[nid]["node_data"] for nid in sorted_ids]
+        mat = np.array([
+            [nd.motion_magnitude, nd.divergence, nd.curl, nd.jacobian_frobenius, nd.hessian_max_eigenvalue, nd.motion_entropy]
+            for nd in nodes_data
+        ], dtype=np.float32)
+
+        norms = np.linalg.norm(mat, axis=1)
+        use_vectorized = bool(np.all(norms > 1e-8))
+        if not use_vectorized:
+            for u in sorted_ids:
+                node_u = self.graph.nodes[u]["node_data"]
+                sims = []
+                for v in sorted_ids:
+                    if u == v:
+                        continue
+                    node_v = self.graph.nodes[v]["node_data"]
+                    sims.append((self._motion_similarity(node_u, node_v, max_score_range), v))
+                sims.sort(reverse=True)
+                for _, v in sims[:top_k]:
+                    self._add_weighted_edge(u, v, "motion_neighbor", max_score_range)
+            return
+
+        mat_n = mat / norms[:, None]
+
+        # Telemetry & small inputs exact fallback (N < 200)
+        if N < 200:
+            sim_matrix = np.clip(np.dot(mat_n, mat_n.T), 0.0, 1.0).astype(float)
+            np.fill_diagonal(sim_matrix, -1.0)
+            for i, u in enumerate(sorted_ids):
+                row = sim_matrix[i]
+                top_indices = np.argpartition(row, -top_k)[-top_k:]
+                top_indices = sorted(top_indices, key=lambda x: -row[x])
+                for j in top_indices:
+                    if j != i and row[j] >= 0.0:
+                        self._add_weighted_edge(u, sorted_ids[j], "motion_neighbor", max_score_range)
+            return
+
+        # Large inputs: O(N log N) time and O(N) memory nearest-neighbors via cKDTree
+        from scipy.spatial import cKDTree
+        tree = cKDTree(mat_n)
+        dists, indices = tree.query(mat_n, k=min(top_k + 1, N))
+        for i, u in enumerate(sorted_ids):
+            for d, idx in zip(dists[i], indices[i]):
+                if idx < 0 or idx >= N:
                     continue
-                node_v = self.graph.nodes[v]["node_data"]
-                sims.append((self._motion_similarity(node_u, node_v, max_score_range), v))
-            sims.sort(reverse=True)
-            for _, v in sims[:top_k]:
-                self._add_weighted_edge(u, v, "motion_neighbor", max_score_range)
+                v = sorted_ids[idx]
+                if u != v:
+                    self._add_weighted_edge(u, v, "motion_neighbor", max_score_range)
+
+    # ── Cross-scene edge helper (scene_sparse DESCEND) ───────────────────────
+
+    def add_cross_scene_edges(
+        self,
+        pool_ids: list[int],
+        scene_of: dict[int, int],
+        *,
+        mode: str,
+        threshold_percentile: float,
+        scene_anchors: dict[int, int],
+        graph: nx.Graph,
+    ) -> int:
+        """Add temporary cross-scene edges to *graph* (a subgraph copy).
+
+        This is the scene_sparse DESCEND helper described in §2c-ii.  It
+        populates *graph* — normally the induced subgraph copy built in
+        scene_retrieval.py — with edges that bridge frames belonging to
+        different scene segments.  The production self.graph is **never**
+        written to: all edges go exclusively into the supplied *graph* argument.
+
+        Args:
+            pool_ids:             Frame IDs that make up the retrieval pool.
+                                  Every ID must exist as a node in *graph*.
+            scene_of:             Mapping {frame_idx: scene_id} for every pool
+                                  frame.  Must cover all pool_ids.
+            mode:                 Cross-scene edge strategy — one of:
+                                    "all"        — every cross-scene pair.
+                                    "threshold"  — pairs above a percentile
+                                                   of pairwise semantic sims.
+                                    "rep_only"   — one representative per
+                                                   scene via scene_anchors
+                                                   (production default).
+            threshold_percentile: Percentile cutoff in [0, 100] used when
+                                  mode="threshold"; ignored for other modes.
+            scene_anchors:        {scene_id: frame_idx} mapping one
+                                  representative frame per scene.  Used by
+                                  mode="rep_only".
+            graph:                Target NetworkX graph (must already contain
+                                  all pool_ids as nodes with 'node_data').
+
+        Returns:
+            Number of genuinely *new* cross-scene edges inserted into *graph*.
+            Updated edges (stronger weight replacing weaker), unchanged edges,
+            same-scene pairs, and duplicate attempts are not counted.
+
+        Raises:
+            ValueError: For invalid mode or threshold_percentile.
+            KeyError:   For missing nodes/scene assignments/anchor frames.
+        """
+        # ── Validation ────────────────────────────────────────────────────────
+        _VALID_MODES = {"all", "threshold", "rep_only"}
+        if mode not in _VALID_MODES:
+            raise ValueError(
+                f"add_cross_scene_edges: mode must be one of {sorted(_VALID_MODES)!r}, "
+                f"got {mode!r}."
+            )
+        if not (0.0 <= threshold_percentile <= 100.0):
+            raise ValueError(
+                f"add_cross_scene_edges: threshold_percentile must be in [0, 100], "
+                f"got {threshold_percentile!r}."
+            )
+        for pid in pool_ids:
+            if pid not in graph.nodes:
+                raise KeyError(
+                    f"add_cross_scene_edges: pool_id {pid!r} is not a node in the "
+                    f"supplied graph.  Ensure the subgraph copy was built correctly."
+                )
+            if pid not in scene_of:
+                raise KeyError(
+                    f"add_cross_scene_edges: pool_id {pid!r} has no entry in scene_of."
+                )
+        for scene_id, anchor_fid in scene_anchors.items():
+            if anchor_fid in scene_of and scene_of[anchor_fid] != scene_id:
+                raise ValueError(
+                    f"add_cross_scene_edges: scene_anchors declares frame {anchor_fid!r} "
+                    f"as the representative of scene {scene_id!r}, but scene_of says "
+                    f"that frame belongs to scene {scene_of[anchor_fid]!r}."
+                )
+
+        # Deterministic ordering: sort once, generate each unordered pair once.
+        sorted_ids = sorted(pool_ids)
+
+        # Pre-compute action-score range for motion similarity (same formula as
+        # the production graph build path).
+        action_scores = [graph.nodes[pid]["node_data"].action_score for pid in sorted_ids]
+        if len(action_scores) >= 2:
+            max_score_range = max(action_scores) - min(action_scores)
+        else:
+            max_score_range = 0.0
+
+        new_edges_added: int = 0
+
+        if mode == "all":
+            # ── mode="all": densest diagnostic mode ───────────────────────────
+            # Every cross-scene pair receives a cross_scene_all edge via the
+            # shared weighting helper.
+            for i, u in enumerate(sorted_ids):
+                for v in sorted_ids[i + 1:]:
+                    if scene_of[u] == scene_of[v]:
+                        continue
+                    outcome = self._add_weighted_edge_to_graph(
+                        graph, u, v, "cross_scene_all", max_score_range
+                    )
+                    if outcome == "new":
+                        new_edges_added += 1
+
+        elif mode == "threshold":
+            # ── mode="threshold": percentile-gated semantic similarity ─────────
+            # 1. Collect all eligible cross-scene pairs (stable, sorted order).
+            # 2. Compute semantic similarity for each.
+            # 3. Determine the percentile cutoff.
+            # 4. Add pairs whose sim is finite, > 0, and >= cutoff.
+            pairs: list[tuple[int, int]] = []
+            sims: list[float] = []
+            for i, u in enumerate(sorted_ids):
+                node_u = graph.nodes[u]["node_data"]
+                for v in sorted_ids[i + 1:]:
+                    if scene_of[u] == scene_of[v]:
+                        continue
+                    node_v = graph.nodes[v]["node_data"]
+                    sim = self._semantic_similarity(node_u, node_v)
+                    pairs.append((u, v))
+                    sims.append(sim)
+
+            if not pairs:
+                # No eligible cross-scene pairs — nothing to add.
+                return 0
+
+            sim_array = np.array(sims, dtype=np.float64)
+            # Handle all-zero case: cutoff = 0 means nothing clears the
+            # "> 0" guard, so we return 0 edges — safe and deterministic.
+            if np.all(sim_array == 0.0):
+                cutoff = 0.0
+            else:
+                cutoff = float(np.percentile(sim_array, threshold_percentile))
+
+            for (u, v), sim in zip(pairs, sims):
+                if not np.isfinite(sim):
+                    continue
+                if sim <= 0.0:
+                    continue
+                if sim < cutoff:
+                    continue
+                outcome = self._add_weighted_edge_to_graph(
+                    graph, u, v, "cross_scene_threshold", max_score_range
+                )
+                if outcome == "new":
+                    new_edges_added += 1
+
+        else:  # mode == "rep_only"
+            # ── mode="rep_only": representative-only sparse mode ───────────────
+            # Connect each unordered pair of scene representatives.
+            # Maximum new edges for S represented scenes = S*(S-1)/2.
+            # This is the production-default mode — no all-pairs frame edges.
+            sorted_scenes = sorted(scene_anchors.keys())
+            for i, scene_a in enumerate(sorted_scenes):
+                anchor_a = scene_anchors[scene_a]
+                for scene_b in sorted_scenes[i + 1:]:
+                    anchor_b = scene_anchors[scene_b]
+                    # scene_a != scene_b by construction (different loop indices)
+                    # Verify both anchors exist in the graph (may have been
+                    # excluded from pool — skip gracefully rather than crashing).
+                    if anchor_a not in graph.nodes or anchor_b not in graph.nodes:
+                        continue
+                    outcome = self._add_weighted_edge_to_graph(
+                        graph, anchor_a, anchor_b, "cross_scene_rep", max_score_range
+                    )
+                    if outcome == "new":
+                        new_edges_added += 1
+
+        return new_edges_added
+
+    # ─────────────────────────────────────────────────────────────────────────
 
     def _update_pagerank(self) -> None:
         """
@@ -445,6 +860,7 @@ class L2Asphodel:
         tier = self._assign_tier(action_score=action_score, is_peak=is_peak, pict_type=pict_type)
 
         # Instantiate AsphodelNode
+        # P1-12: Propagate the authoritatively assigned scene_id from the feature record
         node_obj = AsphodelNode(
             frame_idx=frame_idx,
             timestamp=timestamp,
@@ -460,6 +876,12 @@ class L2Asphodel:
             codec_conf=codec_conf,
             tier=tier,
             pict_type=pict_type,
+            scene_id=int(get_val(feature_record, "scene_id", -1)),
+            divergence=float(get_val(feature_record, "divergence", 0.0)),
+            curl=float(get_val(feature_record, "curl", 0.0)),
+            jacobian_frobenius=float(get_val(feature_record, "jacobian_frobenius", 0.0)),
+            hessian_max_eigenvalue=float(get_val(feature_record, "hessian_max_eigenvalue", 0.0)),
+            motion_entropy=float(get_val(feature_record, "motion_entropy", 0.0)),
         )
 
         # Add node to NetworkX graph
@@ -477,7 +899,9 @@ class L2Asphodel:
             return "L1_PEAK"
         if action_score >= self.salient_thresh:
             return "L2_SALIENT"
-        return "L3_CANDIDATE"
+        if action_score >= self.candidate_thresh:
+            return "L3_CANDIDATE"
+        return "L4_SKIP"
 
     def enrich_node(self, frame_idx: int, triples: list, embedding: np.ndarray) -> None:
         """
@@ -529,6 +953,17 @@ class L2Asphodel:
                 return record.get(key, default)
             return getattr(record, key, default)
 
+        # P2-03: Reject mismatched parallel lists up-front.  Python's zip() would
+        # silently truncate to the shorter list, causing frames to be dropped without
+        # any diagnostic.  A ValueError here is immediately actionable.
+        if len(feature_records) != len(action_score_records):
+            raise ValueError(
+                f"add_frame_nodes_bulk: parallel list length mismatch — "
+                f"feature_records has {len(feature_records)} element(s) but "
+                f"action_score_records has {len(action_score_records)} element(s). "
+                f"Each feature record must have a corresponding action_score record."
+            )
+
         for feature_record, action_score_record in zip(feature_records, action_score_records):
             frame_idx         = int(get_val(feature_record, "frame_idx"))
             timestamp         = float(get_val(feature_record, "timestamp", 0.0))
@@ -547,6 +982,8 @@ class L2Asphodel:
             is_peak         = bool(get_val(feature_record, "is_peak", False))
             tier            = self._assign_tier(action_score=action_score, is_peak=is_peak, pict_type=pict_type)
 
+            # P1-12: Propagate the authoritatively assigned scene_id from feature record
+            scene_id = int(get_val(feature_record, "scene_id", -1))
             node_obj = AsphodelNode(
                 frame_idx=frame_idx,
                 timestamp=timestamp,
@@ -562,6 +999,12 @@ class L2Asphodel:
                 codec_conf=codec_conf,
                 tier=tier,
                 pict_type=pict_type,
+                scene_id=scene_id,
+                divergence=float(get_val(feature_record, "divergence", 0.0)),
+                curl=float(get_val(feature_record, "curl", 0.0)),
+                jacobian_frobenius=float(get_val(feature_record, "jacobian_frobenius", 0.0)),
+                hessian_max_eigenvalue=float(get_val(feature_record, "hessian_max_eigenvalue", 0.0)),
+                motion_entropy=float(get_val(feature_record, "motion_entropy", 0.0)),
             )
             self.graph.add_node(frame_idx, node_data=node_obj)
 
@@ -589,6 +1032,50 @@ class L2Asphodel:
         # Single recompute after all enrichments applied.
         self._update_all_edge_weights(node_groups=node_groups)
         self._update_pagerank()
+
+        # Build and populate L2TieredIndex
+        try:
+            import faiss
+            from iris.l2_index import L2TieredIndex
+            from iris.iris_config import IRISConfig
+            cfg = self.config
+            if not isinstance(cfg, IRISConfig):
+                # reconstruct if it's a dictionary or snapshot
+                cfg_snap = cfg if isinstance(cfg, dict) else dict(getattr(cfg, "__dict__", {}))
+                cfg = IRISConfig(**cfg_snap)
+
+            # Detect actual embedding dim from first embedding
+            actual_dim = None
+            for node_id in self.graph.nodes:
+                nd = self.graph.nodes[node_id]["node_data"]
+                if nd.embedding is not None:
+                    actual_dim = nd.embedding.shape[0]
+                    break
+
+            if actual_dim is not None and actual_dim != getattr(cfg, "l2_dim", 512):
+                # Embedding dim doesn't match configured dim — skip tiered index
+                import logging
+                logging.getLogger(__name__).debug(
+                    "L2TieredIndex skipped: embedding dim %d != config dim %d",
+                    actual_dim, getattr(cfg, "l2_dim", 512),
+                )
+                self._tiered_index = None
+            else:
+                self._tiered_index = L2TieredIndex(cfg)
+                for node_id in self.graph.nodes:
+                    nd = self.graph.nodes[node_id]["node_data"]
+                    if nd.embedding is not None:
+                        # Map nd.tier to PEAK/SALIENT/CANDIDATE/SKIP
+                        tier_str = nd.tier.replace("L1_", "").replace("L2_", "").replace("L3_", "")
+                        self._tiered_index.add(
+                            frame_idx=nd.frame_idx,
+                            embedding=nd.embedding,
+                            action_score=nd.action_score,
+                            is_peak=(tier_str == "PEAK")
+                        )
+                self._tiered_index.force_train_pq()
+        except (ImportError, ValueError):
+            self._tiered_index = None
 
     def retrieve(
         self,
@@ -628,14 +1115,24 @@ class L2Asphodel:
         scores = [node.action_score for node in nodes_data]
         max_score_range = max(scores) - min(scores) if len(scores) > 1 else 0.0
 
+        # Pre-compute semantic similarities via L2TieredIndex if available
+        tiered_sims = {}
+        if self._tiered_index is not None and query_embedding is not None:
+            search_results = self._tiered_index.search(query_embedding, top_k=len(nodes_data))
+            for res in search_results:
+                tiered_sims[res["frame_idx"]] = res["score"]
+
         scored_nodes = []
         for node in nodes_data:
             semantic_sim = 0.0
-            if node.embedding is not None and query_embedding is not None:
-                norm_node = np.linalg.norm(node.embedding)
-                norm_query = np.linalg.norm(query_embedding)
-                if norm_node > 0.0 and norm_query > 0.0:
-                    semantic_sim = float(np.dot(node.embedding, query_embedding) / (norm_node * norm_query))
+            if query_embedding is not None:
+                if self._tiered_index is not None:
+                    semantic_sim = tiered_sims.get(node.frame_idx, 0.0)
+                elif node.embedding is not None:
+                    norm_node = np.linalg.norm(node.embedding)
+                    norm_query = np.linalg.norm(query_embedding)
+                    if norm_node > 0.0 and norm_query > 0.0:
+                        semantic_sim = float(np.dot(node.embedding, query_embedding) / (norm_node * norm_query))
             
             if max_score_range == 0.0:
                 motion_query_sim = 1.0
@@ -682,6 +1179,8 @@ class L2Asphodel:
         top_k: int = 5,
         damping: float = 0.5,
         lambda_: float = 0.5,
+        *,
+        graph_override: "nx.Graph | None" = None,
     ) -> list[AsphodelNode]:
         """
         Codec-discounted Personalized PageRank retrieval (6.2b mechanism).
@@ -696,10 +1195,48 @@ class L2Asphodel:
         a degenerate query would make sem_rank uniform, which collapses PPR to
         unguided PageRank and yields unpredictable results. Let the fallback
         sort (action_score + luma_diff_energy) take over instead.
+
+        Args:
+            query_embedding: CLIP query embedding, or None for codec-only seed.
+            top_k:           Number of top nodes to return.
+            damping:         PageRank damping factor α ∈ (0, 1).
+            lambda_:         Blend weight for semantic rank vs codec rank ∈ [0, 1].
+            graph_override:  If provided, run PPR over this graph instead of
+                             self.graph.  Used by the scene_sparse DESCEND path
+                             to run PPR over a temporary induced subgraph copy
+                             without mutating the production graph.  Every node
+                             in the override graph must carry a 'node_data'
+                             attribute.  When None (the default), the method is
+                             fully backward-compatible with its pre-patch
+                             behaviour.
+
+        Returns:
+            List of up to top_k AsphodelNode objects ranked by PPR score,
+            stable-sorted by node ID to break ties deterministically.
+
+        Raises:
+            KeyError: If graph_override contains a node without 'node_data'.
         """
-        node_ids = list(self.graph.nodes)
+        # Resolve the graph to operate on.  This single binding is the only
+        # place where the choice between the production graph and the override
+        # is made.  Everything below uses `g` — there is no remaining
+        # self.graph reference inside the PPR computation.
+        g: nx.Graph = graph_override if graph_override is not None else self.graph
+
+        node_ids = list(g.nodes)
         if not node_ids:
             return []
+
+        # Validate override nodes carry node_data (fail-fast; do not silently
+        # degrade into AttributeError deep inside the ranking loop).
+        if graph_override is not None:
+            for nid in node_ids:
+                if g.nodes[nid].get("node_data") is None:
+                    raise KeyError(
+                        f"retrieve_ppr: graph_override node {nid!r} has no "
+                        f"'node_data' attribute.  All nodes in the override graph "
+                        f"must carry an AsphodelNode as 'node_data'."
+                    )
 
         # SCENE-002: Reject zero-norm query embedding before computing sem_rank
         if query_embedding is not None:
@@ -715,7 +1252,7 @@ class L2Asphodel:
         # Semantic similarity (ReLU-clamped cosine)
         raw_sem: dict = {}
         for nid in node_ids:
-            node = self.graph.nodes[nid]["node_data"]
+            node = g.nodes[nid]["node_data"]
             sem = 0.0
             if query_embedding is not None and node.embedding is not None:
                 norm_node = np.linalg.norm(node.embedding)
@@ -728,7 +1265,7 @@ class L2Asphodel:
         sem_rank = _rank_pct(raw_sem)
 
         # Rank-percentile of pre-computed codec_conf (do NOT re-normalize the values themselves)
-        raw_codec = {nid: self.graph.nodes[nid]["node_data"].codec_conf for nid in node_ids}
+        raw_codec = {nid: g.nodes[nid]["node_data"].codec_conf for nid in node_ids}
         codec_rank = _rank_pct(raw_codec)
 
         # Additive rank-space blend, ReLU, sum-normalize
@@ -745,7 +1282,7 @@ class L2Asphodel:
 
         try:
             pr = nx.pagerank(
-                self.graph,
+                g,
                 weight="weight",
                 personalization=seed,
                 alpha=damping,
@@ -753,11 +1290,11 @@ class L2Asphodel:
         except (nx.NetworkXError, ZeroDivisionError):
             # L2-006: Narrowed from bare except to only catch expected failures.
             # Other exceptions (memory, unexpected graph state) should propagate.
-            pr = nx.pagerank(self.graph, weight="weight", personalization=None, alpha=damping)
+            pr = nx.pagerank(g, weight="weight", personalization=None, alpha=damping)
             teleport_fallback = True
 
         for nid, score in pr.items():
-            node = self.graph.nodes[nid]["node_data"]
+            node = g.nodes[nid]["node_data"]
             node.last_retrieval_score = score
             node.retrieval_contributions = {
                 "sem_rank":        sem_rank[nid],
@@ -770,8 +1307,10 @@ class L2Asphodel:
                 "scene_id":        node.scene_id,
             }
 
-        sorted_ids = sorted(pr, key=lambda k: pr[k], reverse=True)
-        return [self.graph.nodes[k]["node_data"] for k in sorted_ids[:top_k]]
+        # Stable tie-break by node ID so repeated calls with identical inputs
+        # always produce the same ordering (SCENE-003 determinism requirement).
+        sorted_ids = sorted(pr, key=lambda k: (-pr[k], k))
+        return [g.nodes[k]["node_data"] for k in sorted_ids[:top_k]]
 
     def export_graph_data(self, max_edges: int | None = None) -> dict:
         """Export the actual L2 graph for debugging/UI visualization.

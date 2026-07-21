@@ -127,7 +127,7 @@ def test_build_retrieved_ppr_mode():
     idx = _make_index(graph, n=n)
 
     from iris.iris_config import IRISConfig
-    config = IRISConfig(ranking_mode="ppr", l2_retrieve_top_k=top_k)
+    config = IRISConfig(ranking_mode="ppr", l2_retrieve_top_k=top_k, graph_mode="flat")
 
     query_emb = embeddings[0].copy()
     frames = q._build_retrieved(idx, query_emb, config)

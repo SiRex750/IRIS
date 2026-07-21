@@ -1,0 +1,1 @@
+run_id,method_id,split,video_id,peak_ram_mb,peak_vram_mb,cpu_utilization_pct,gpu_utilization_pct,index_size_bytes,energy_joules

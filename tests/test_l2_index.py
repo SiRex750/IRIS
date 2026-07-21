@@ -34,6 +34,7 @@ def make_config(**overrides) -> IRISConfig:
         "l2_pq_nbits": 8,
         "l2_pq_min_train": 10,  # Low threshold for test speed
         "l2_salient_action_thresh": 0.35,
+        "candidate_thresh": 0.0,
     }
     defaults.update(overrides)
     return IRISConfig(**defaults)
@@ -243,6 +244,38 @@ def test_candidate_searchable_after_force_train():
     results = idx.search(target_emb, top_k=1)
     assert len(results) == 1
     assert results[0]["frame_idx"] == 42
+
+
+def test_candidate_added_after_pq_trained_is_searchable():
+    """
+    P1-15 regression: candidate frames added after PQ index is trained
+    must be added directly to the PQ index and remain searchable, rather
+    than being left stranded in candidate_buffer.
+    """
+    # Use nbits=3 so PQ requires 2^3 = 8 vectors to train, and min_train=8
+    cfg = make_config(l2_pq_min_train=8, l2_pq_nbits=3)
+    idx = L2TieredIndex(cfg)
+
+    # 1. Add 8 candidate frames to trigger automatic PQ training
+    for i in range(8):
+        idx.add(frame_idx=i, embedding=random_embedding(), action_score=0.05, is_peak=False)
+
+    assert idx.stats()["candidate"]["pq_trained"]
+    assert idx.stats()["candidate"]["buffer_pending"] == 0
+
+    # 2. Add a new candidate frame after PQ training is already finalized
+    target_emb = random_embedding()
+    idx.add(frame_idx=99, embedding=target_emb, action_score=0.05, is_peak=False)
+
+    # Should not end up in buffer
+    assert idx.stats()["candidate"]["buffer_pending"] == 0
+    assert idx.stats()["candidate"]["count"] == 9
+
+    # 3. Verify it is searchable
+    results = idx.search(target_emb, top_k=1)
+    assert len(results) == 1
+    assert results[0]["frame_idx"] == 99
+
 
 
 # ── 4. Batch operations ──────────────────────────────────────────────────

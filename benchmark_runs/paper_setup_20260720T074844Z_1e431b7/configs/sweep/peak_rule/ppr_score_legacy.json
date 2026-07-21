@@ -1,0 +1,5 @@
+{
+  "sweep_dim": "peak_rule",
+  "value": "ppr_score_legacy",
+  "availability": "IMPLEMENTED"
+}

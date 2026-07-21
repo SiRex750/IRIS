@@ -1,0 +1,66 @@
+{
+  "dataset_name": "NExT-GQA",
+  "dataset_version_target": "official (Xiao et al., CVPR 2024) -- val: 567 videos / 3358 questions, test: 990 videos / 5553 questions",
+  "official_source_note": "Official dataset/download location not recorded in this repo; not fetched during this setup task (no network dataset download performed, per task constraints).",
+  "status": "OFFICIAL_DATASET_NOT_VERIFIED -- SETUP GATE 3 (dataset manifest complete) DOES NOT PASS AT OFFICIAL SCALE",
+
+  "local_assets_found": {
+    "video_root": "eval/data/nextqa/NExTVideo_flat",
+    "video_root_abs_path_at_capture": "C:\\Users\\swara\\IRIS\\eval\\data\\nextqa\\NExTVideo_flat",
+    "video_file_count": 91,
+    "video_extension_distribution": { "mp4": 91, "metadata_sidecar": 91, "gitignore": 1, "TAG": 1 },
+    "video_root_total_size_bytes_approx": 384901120,
+    "video_root_total_size_human": "367M",
+
+    "question_csv": "eval/data/nextqa/val.csv",
+    "question_csv_sha256": "c1b93f52ee47b3a2b277b4dcccaa020901410aa841920121e8a8a3774e787c49",
+    "question_csv_format": "NExT-QA multiple-choice rows: video,frame_count,width,height,question,answer,qid,type,a0,a1,a2,a3,a4",
+    "question_csv_unique_video_count": 1000,
+    "question_csv_row_count_incl_header": 8565,
+
+    "grounding_annotation_val": "eval/data/nextqa/gsub_val.json",
+    "grounding_annotation_val_sha256": "0c16c31699238a0f2b8ace45aeed7f193149ce2f011d6ed4f1ef7170ef5d41e9",
+    "grounding_annotation_val_video_count": 999,
+    "grounding_annotation_val_schema": "dict keyed by video_id -> {duration (seconds), fps, location: {question_index_str: [[start_sec, end_sec], ...]}}",
+
+    "grounding_annotation_test": "eval/data/nextqa/gsub_test.json",
+    "grounding_annotation_test_sha256": "0c16c31699238a0f2b8ace45aeed7f193149ce2f011d6ed4f1ef7170ef5d41e9",
+    "grounding_annotation_test_video_count": 999,
+
+    "integrity_finding_critical": "gsub_val.json and gsub_test.json are BYTE-IDENTICAL (same SHA-256, same 999-video keyset). This means there is NO distinct official test-split grounding annotation file present in the repo -- 'test' is a duplicate of 'val'. This alone is disqualifying for running an official test-split evaluation and is recorded as a blocking finding in setup_failures.jsonl.",
+
+    "video_coverage_finding": "Only 91 of the videos referenced by val.csv / gsub_val.json have an actual .mp4 file under NExTVideo_flat (91 present vs 1000 referenced in val.csv, 999 in gsub_val.json). This repo checkout has never held the full NExT-GQA video corpus -- only a small locally-curated subset."
+  },
+
+  "non_official_working_subset": {
+    "name": "nextqa_exp1a_subset (informal internal name; historically referred to as 'the 89-question subset', actually 92 videos / 89 with usable events / 255 timed events)",
+    "csv_path": "data/nextqa_exp1a/nextqa_exp1a_subset.csv",
+    "csv_sha256": "a156ebf10826906ec505839debab2b3ae3be7afa44daaeae1a949f4195585348",
+    "video_count": 89,
+    "event_row_count": 255,
+    "all_89_videos_confirmed_present_on_disk": true,
+    "columns": ["video_id", "path", "query", "start_time", "end_time", "event_label", "split", "duration"],
+    "time_unit": "seconds",
+    "multiple_gold_spans_per_question": "not modeled in this CSV -- one (start_time,end_time) row per query/event; if a query recurs across rows it is a distinct annotated event, not a second gold span for the same question",
+    "known_prior_usage": "consumed by benchmark_runs/t0_nextgqa_89_cpu (an earlier, smaller exploratory run -- not an official NExT-GQA evaluation, not reused/overwritten by this setup task)",
+    "explicit_label": "THIS IS A PLACEHOLDER / DRY-RUN DATASET. It does not meet official NExT-GQA split sizes (567 val / 990 test videos; 3358 / 5553 questions). Per explicit user decision on 2026-07-20, it is registered here so that setup infrastructure (schemas, commands, split guard, sweep configs) can be authored and dry-run tested against real files without waiting on an official dataset acquisition step. No metric may be reported against this subset as if it were the official NExT-GQA result."
+  },
+
+  "official_split_verification": {
+    "validation_videos_expected": 567,
+    "validation_videos_found": "NOT VERIFIABLE -- no dataset artifact in this repo is confirmably the official 567-video val split (gsub_val.json has 999 keys, not 567, and its provenance/authenticity relative to the official release is unverified)",
+    "test_videos_expected": 990,
+    "test_videos_found": "NOT VERIFIABLE -- gsub_test.json is byte-identical to gsub_val.json, confirming it is not an independent official test annotation",
+    "validation_questions_expected": 3358,
+    "validation_questions_found": "NOT COMPUTED -- grounding-annotation question count depends on resolving the gsub_val.json authenticity question first",
+    "test_questions_expected": 5553,
+    "test_questions_found": "NOT COMPUTED, see above",
+    "video_duration_source": "gsub_val.json 'duration' field (seconds) where present; local mp4 sidecar '.metadata' files for the 91 locally-held videos (not cross-validated against gsub duration in this pass)",
+    "frame_rate_source": "gsub_val.json 'fps' field where present",
+    "verdict": "STOP CONDITION MET per task Section 3 ('Stop if official dataset counts or mappings cannot be verified'). Recorded and NOT bypassed: full official-scale dataset setup is an open blocker, see setup_failures.jsonl and setup_report.md. Only the explicitly-labeled non-official 89-video subset above is registered as usable for infrastructure dry-runs."
+  },
+
+  "missing_file_list": "not enumerable at official scale (no manifest of official file names available locally to diff against)",
+  "duplicate_id_list": ["gsub_val.json and gsub_test.json are duplicate content, see integrity_finding_critical"],
+  "invalid_annotation_list": "not evaluated at official scale; not evaluated for the placeholder subset (would require running the metric/validation code against it, which is out of scope for this SETUP-ONLY task per instructions)"
+}

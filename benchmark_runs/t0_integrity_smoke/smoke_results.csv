@@ -1,0 +1,22 @@
+query,method_name,Temporal Hit@1,Temporal Hit@5,Temporal Hit@10,MRR,Precision@5,coverage,min_temporal_distance,median_latency_seconds,p95_latency_seconds
+Find the event: why did the girls hold each other s hands,action_persistence_selection_rank,1.0,1.0,1.0,1.0,0.4,1.0,0.0,1.2000033166259527e-05,0.0001400199718773365
+Find the event: why did the girls hold each other s hands,clip_query_same_pool,1.0,1.0,1.0,1.0,1.0,1.0,0.0,0.0007676999666728079,0.0011044200393371284
+Find the event: why did the girls hold each other s hands,legacy_sparse_direct,1.0,1.0,1.0,1.0,0.4,1.0,0.0,0.0009044999605976045,0.0009379600058309733
+Find the event: why did the girls hold each other s hands,semantic_ppr_sparse,1.0,1.0,1.0,1.0,1.0,1.0,0.0,0.004182000004220754,0.0046328800148330625
+Find the event: why did the girls hold each other s hands,codec_ppr_sparse,0.0,1.0,1.0,0.2,0.2,1.0,0.0,0.0037139999913051724,0.003747319965623319
+Find the event: why did the girls hold each other s hands,proposed_sparse_hybrid_ppr,1.0,1.0,1.0,1.0,0.2,1.0,0.0,0.003834300034213811,0.004427100042812526
+Find the event: why did the girls hold each other s hands,dense_hybrid_ppr,1.0,1.0,1.0,1.0,0.4,1.0,0.0,0.0054095000377856195,0.005730559967923909
+Find the event: what does the girl with ponytail do to her hair at the start,action_persistence_selection_rank,0.0,1.0,1.0,0.5,0.2,1.0,0.0,1.0500021744519472e-05,1.4380004722625016e-05
+Find the event: what does the girl with ponytail do to her hair at the start,clip_query_same_pool,1.0,1.0,1.0,1.0,0.2,1.0,0.0,0.0006711999885737896,0.0007163400179706514
+Find the event: what does the girl with ponytail do to her hair at the start,legacy_sparse_direct,0.0,1.0,1.0,0.5,0.2,1.0,0.0,0.0008071000338532031,0.0008896000101231039
+Find the event: what does the girl with ponytail do to her hair at the start,semantic_ppr_sparse,0.0,1.0,1.0,0.25,0.4,1.0,0.0,0.003977200016379356,0.004166440002154559
+Find the event: what does the girl with ponytail do to her hair at the start,codec_ppr_sparse,0.0,0.0,1.0,0.14285714285714285,0.0,1.0,0.0,0.0035857000038959086,0.003755419992376119
+Find the event: what does the girl with ponytail do to her hair at the start,proposed_sparse_hybrid_ppr,0.0,1.0,1.0,0.5,0.6,1.0,0.0,0.0035952000180259347,0.0038281399523839355
+Find the event: what does the girl with ponytail do to her hair at the start,dense_hybrid_ppr,0.0,0.0,1.0,0.1111111111111111,0.0,1.0,0.0,0.004856100014876574,0.005197740008588881
+Find the event: how do the girls exchange greetings after talking,action_persistence_selection_rank,1.0,1.0,1.0,1.0,0.4,1.0,0.0,1.1400028597563505e-05,1.3499986380338669e-05
+Find the event: how do the girls exchange greetings after talking,clip_query_same_pool,1.0,1.0,1.0,1.0,0.6,1.0,0.0,0.0006142000202089548,0.0006319599924609065
+Find the event: how do the girls exchange greetings after talking,legacy_sparse_direct,1.0,1.0,1.0,1.0,0.4,1.0,0.0,0.0007955000037327409,0.0008145399973727762
+Find the event: how do the girls exchange greetings after talking,semantic_ppr_sparse,0.0,1.0,1.0,0.3333333333333333,0.6,1.0,0.0,0.0035974999773316085,0.0037657800363376736
+Find the event: how do the girls exchange greetings after talking,codec_ppr_sparse,0.0,1.0,1.0,0.2,0.2,1.0,0.0,0.003405100025702268,0.0038549200282432137
+Find the event: how do the girls exchange greetings after talking,proposed_sparse_hybrid_ppr,0.0,1.0,1.0,0.5,0.2,1.0,0.0,0.003688400029204786,0.0038042400032281876
+Find the event: how do the girls exchange greetings after talking,dense_hybrid_ppr,1.0,1.0,1.0,1.0,0.4,1.0,0.0,0.0051389000145718455,0.005339719995390624
