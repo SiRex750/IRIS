@@ -1,3 +1,4 @@
+
 """Part 1 parity proof: cerberus_mode="v2" vs cerberus_mode="none" must produce
 IDENTICAL retrieved_frame_idxs, context_text, and raw_answer -- only answer,
 verified, and badge may differ. Run against the fixed 12-question validation
