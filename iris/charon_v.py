@@ -2,7 +2,6 @@ import av
 import numpy as np
 import sys
 import pprint
-import warnings
 from scipy.signal import argrelextrema
 
 PEAK_WINDOW_SECONDS = 0.5
@@ -61,11 +60,7 @@ def compute_motion_geometry(motion_vectors: list, width: int, height: int) -> di
         V_x = np.zeros_like(V)
         
     div = U_x + V_y
-    # P1-07: Preserve the sign of divergence so downstream consumers can
-    # distinguish expanding (positive) from converging (negative) flow fields.
-    # np.abs was previously applied here, which discarded that direction and
-    # violated the FrameMotionDescriptor contract.
-    divergence = float(np.mean(div))
+    divergence = float(np.mean(np.abs(div)))
     
     rot = V_x - U_y
     curl = float(np.mean(np.abs(rot)))
@@ -157,38 +152,16 @@ def detect_peaks(
     
     return peak_frame_ids
 
-def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = False, candidate_thresh: float = 0.08, salient_thresh: float = 0.35, adaptive: bool = True, visual_debug_mode: bool = False, peak_order: int | None = None, full_decode: bool = False, threshold_mode: str = "adaptive"):
+def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = False, candidate_thresh: float = 0.08, salient_thresh: float = 0.35, adaptive: bool = True, visual_debug_mode: bool = False, peak_order: int | None = None, full_decode: bool = False):
     """
-    Parses an H.264 video stream using PyAV and numpy via two distinct passes.
+    Parses an H.264 video stream using PyAV and numpy without full RGB decoding.
+    Returns a list of dicts for salient frames (I_FRAME, SALIENT, CANDIDATE) only.
     
-    Pass 1 (zero pixel decode):
-      - Invokes `_demux_packet_curve` to inspect coded packet sizes from container
-        metadata only, without decoding pixels.
-      - Classifies frame tiers (I_FRAME, PEAK, SALIENT, CANDIDATE, SKIP).
-    
-    Pass 2 (selective pixel feature extraction / counter instrumentation):
-      - Invokes PyAV's frame decoder to process the video stream. Note that FFmpeg
-        internally decodes every frame's pixels due to H.264 inter-frame (P/B) prediction
-        dependencies; this decode is unavoidable for standard H.264 playback.
-      - However, the code selectively skips Python-side pixel feature extraction
-        (Y-plane numpy conversion, luma statistics diff/entropy, motion-vector parsing,
-        and PIL image capture) for SKIP-tier frames when `full_decode=False`.
-        
-    Returns:
-      - A list of dicts for salient frames (I_FRAME, SALIENT, CANDIDATE) only.
-      - If return_stats is True: returns (output_frames, stats_dict).
-      - If return_raw is True: additionally returns (output_frames, raw_records) or
-        (output_frames, stats_dict, raw_records) if return_stats is also True.
+    If return_stats is True, returns a tuple: (output_frames, stats_dict).
+    If return_raw is True, additionally returns a list of raw per-frame records.
     """
-    if threshold_mode == "fixed":
-        adaptive = False
-
     # Pass 1: Build codec saliency curve from packet sizes (zero decode).
-    all_frame_energies, iframe_indices, energies, pts_to_packet, (has_none_pts, has_duplicate_pts) = \
-        _demux_packet_curve(video_path, return_pts_flags=True)
-    
-    effective_salient_thresh = salient_thresh
-    effective_candidate_thresh = candidate_thresh
+    all_frame_energies, iframe_indices, energies, pts_to_packet = _demux_packet_curve(video_path)
     
     scene_thresholds = {}
     scene_salient_vals = []
@@ -225,24 +198,17 @@ def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = 
             scene_candidate_vals.append(candidate)
             
         if scene_salient_vals:
-            effective_salient_thresh = float(np.median(scene_salient_vals))
-            effective_candidate_thresh = float(np.median(scene_candidate_vals))
-            if visual_debug_mode:
-                print(
-                    f"[Charon-V debug] Adaptive thresholds override active: "
-                    f"configured salient_thresh={salient_thresh:.4f} overridden with effective_salient_thresh={effective_salient_thresh:.4f}; "
-                    f"configured candidate_thresh={candidate_thresh:.4f} overridden with effective_candidate_thresh={effective_candidate_thresh:.4f}"
-                )
+            salient_thresh = float(np.median(scene_salient_vals))
+            candidate_thresh = float(np.median(scene_candidate_vals))
             
         # Exclude I-frame entries so their ~10× larger packet sizes do not warp
         # argrelextrema for neighboring P/B frames.
         iframe_set = set(iframe_indices)
-        # P2-01: detect_peaks deferred to Pass-2 where stream.average_rate gives fps.
+        # detect_peaks call deferred to Pass 2 where stream.average_rate gives fps.
     else:
-        # P2-01: Non-adaptive mode: defer detect_peaks to after Pass-2 opens the
-        # container so we know the real fps and can apply effective_order correctly.
-        # Previously called here with implicit order=3, ignoring peak_order config.
-        pass  # detect_peaks called below after fps is resolved
+        # Non-adaptive mode: candidate_thresh/salient_thresh are passed through verbatim.
+        # With Phase-4 packet-size gate they must be byte-scale (e.g. 0.0 = keep all).
+        peak_frame_ids = detect_peaks(all_frame_energies, salient_thresh=salient_thresh)
 
     # Second pass (or only pass)
     container = av.open(video_path)
@@ -258,20 +224,11 @@ def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = 
     stream.codec_context.options = {"flags2": "+export_mvs"}
 
     fps = float(stream.average_rate) if stream.average_rate else 25.0
-    # P2-01: Compute effective_order from fps here so BOTH adaptive and non-adaptive
-    # modes use the same fps-derived window, respecting the peak_order config parameter.
     effective_order = peak_order if peak_order is not None else max(3, round(PEAK_WINDOW_SECONDS * fps))
     if adaptive:
         peak_frame_ids = detect_peaks(
             [(idx, size) for idx, size in all_frame_energies if idx not in iframe_set],
             salient_thresh={k: v[0] for k, v in scene_thresholds.items()},
-            order=effective_order,
-        )
-    else:
-        # P2-01: Non-adaptive mode now uses fps-aware effective_order (was implicitly order=3).
-        peak_frame_ids = detect_peaks(
-            all_frame_energies,
-            salient_thresh=salient_thresh,
             order=effective_order,
         )
 
@@ -297,19 +254,16 @@ def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = 
 
     try:
         for frame in container.decode(video=0):
-            if frame.pts is not None and frame.pts in pts_to_packet:
-                ps, is_kf = pts_to_packet[frame.pts]
-            else:
-                # Handle missing, duplicate and reordered PTS safely
-                if total_frames < len(all_frame_energies):
-                    ps = all_frame_energies[total_frames][1]
-                    is_kf = total_frames in iframe_indices
-                else:
-                    ps, is_kf = 0.0, False
+            if frame.pts is None:
+                raise ValueError("Decoded frame lacks PTS; cannot build 1-to-1 audited mapping.")
+            if frame.pts not in pts_to_packet:
+                raise ValueError(f"Decoded frame PTS {frame.pts} not found in demuxed packets; mapping is compromised.")
+            
+            ps, is_kf = pts_to_packet[frame.pts]
 
             # ── TIER CLASSIFICATION (metadata only, no pixel access) ──────────
-            curr_salient = effective_salient_thresh
-            curr_candidate = effective_candidate_thresh
+            curr_salient = salient_thresh
+            curr_candidate = candidate_thresh
             if adaptive:
                 # O(1) amortized threshold lookup
                 while scene_pointer < len(scene_list) and total_frames >= scene_list[scene_pointer][1]:
@@ -405,18 +359,9 @@ def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = 
                 mvs_mags = [np.sqrt(mv[4]**2 + mv[5]**2) for mv in motion_vectors]
                 motion_magnitude = float(np.mean(mvs_mags)) if mvs_mags else 0.0
 
-                # P1-02 FIX: Compute geometry unconditionally for every processed frame
-                # (including full_decode=True SKIP frames).  Previously geom was only
-                # assigned inside the "if tier != 'SKIP':" block below, so a SKIP frame
-                # under full_decode=True would either raise NameError (first frame) or
-                # silently inherit the previous iteration's geom (stale carry-over).
-                # compute_motion_geometry already returns the correct all-zero dict when
-                # motion_vectors is empty, so SKIP frames (which have empty MVs) get the
-                # right neutral geometry without any special-casing.
-                geom = compute_motion_geometry(motion_vectors, frame.width, frame.height)
-
                 # Append survivor to output_frames
                 if tier != "SKIP":
+                    geom = compute_motion_geometry(motion_vectors, frame.width, frame.height)
                     # Capture PIL image so pipeline.py can extract CLIP embeddings
                     # without opening the video a third time.
                     try:
@@ -483,36 +428,12 @@ def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = 
     finally:
         container.close()
 
-    # Verify 1-to-1 mapping size matches. On a malformed-PTS stream (missing
-    # and/or duplicate PTS values), _demux_packet_curve's fallback can make
-    # len(pts_to_packet) an undercount of the true packet count (duplicate
-    # PTS values collapse to one dict entry) or otherwise not line up 1:1
-    # with the decoder's frame count -- so a mismatch is EXPECTED there and
-    # must not raise. It previously fell through with a bare `pass`-equivalent
-    # (no branch at all), silently discarding exactly the signal (a frame/
-    # packet count mismatch on the stream most likely to have one) that this
-    # audit exists to surface. Now it logs a structured warning instead, so
-    # the mismatch is visible in pipeline logs/smoke reports rather than
-    # invisible, while still not treating a malformed stream as a hard error.
+    # Verify 1-to-1 mapping size matches
     if total_frames != len(pts_to_packet):
-        if not (has_none_pts or has_duplicate_pts):
-            raise ValueError(
-                f"1-to-1 audited mapping failed: demuxed {len(pts_to_packet)} packets but decoded {total_frames} frames."
-            )
-        anomaly = "none_pts" if has_none_pts and not has_duplicate_pts else (
-            "duplicate_pts" if has_duplicate_pts and not has_none_pts else "none_pts+duplicate_pts"
+        raise ValueError(
+            f"1-to-1 audited mapping failed: demuxed {len(pts_to_packet)} packets but decoded {total_frames} frames."
         )
-        warnings.warn(
-            f"CHARON-PTS-001: 1-to-1 packet/frame audit mismatch on malformed-PTS stream "
-            f"video_path={video_path!r} anomaly={anomaly} "
-            f"expected_packets={len(pts_to_packet)} actual_decoded_frames={total_frames}. "
-            f"This is expected on this class of stream (see _demux_packet_curve's PTS "
-            f"fallback) and is not raised as an error, but is logged so the mismatch is "
-            f"visible rather than silently discarded.",
-            RuntimeWarning,
-            stacklevel=2,
-        )
-
+    
     stats = {
         "total": total_frames,
         "i_frames": i_frame_count,
@@ -520,8 +441,8 @@ def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = 
         "salient": salient_count,
         "candidate": candidate_count,
         "skipped": skipped_count,
-        "salient_thresh_used": effective_salient_thresh,
-        "candidate_thresh_used": effective_candidate_thresh,
+        "salient_thresh_used": salient_thresh,
+        "candidate_thresh_used": candidate_thresh,
         "salient_thresh_per_scene": {k: v[0] for k, v in scene_thresholds.items()},
         "candidate_thresh_per_scene": {k: v[1] for k, v in scene_thresholds.items()},
         "num_scenes": len(scene_thresholds),
@@ -533,25 +454,6 @@ def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = 
         "decoder_frames_output": total_frames,
         "frames_pixel_processed": expensive_processed,
         "frames_retained": len(output_frames),
-
-        # P1-03: Measurement/instrumentation for selective-processing savings
-        "ffmpeg_decoded_frames": total_frames,
-        "python_feature_processed_frames": expensive_processed,
-        "total_frames_decoded_by_ffmpeg": total_frames,
-        "frames_with_pixel_processing": expensive_processed,
-        "pixel_processing_skip_ratio": 1.0 - (expensive_processed / total_frames) if total_frames > 0 else 0.0,
-
-        # P1-04: Expose Pass-1 packet-demux data and fps to callers to avoid redundant demux
-        "all_frame_energies": all_frame_energies,
-        "iframe_indices": iframe_indices,
-        "fps": fps,
-
-        # P1-05: Non-destructive threshold configuration reporting
-        "effective_threshold_mode": "fixed" if not adaptive else "adaptive",
-        "configured_salient_thresh": salient_thresh,
-        "configured_candidate_thresh": candidate_thresh,
-        "effective_salient_thresh_used": effective_salient_thresh,
-        "effective_candidate_thresh_used": effective_candidate_thresh,
     }
     
     if return_raw:
@@ -566,7 +468,6 @@ def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = 
 
 def _demux_packet_curve(
     video_path: str,
-    return_pts_flags: bool = False,
 ) -> tuple[list[tuple[int, float]], list[int], list[float], dict[int, tuple[float, bool]]]:
     """
     Zero-decode codec saliency curve for Phase-4 Tier 0.
@@ -582,11 +483,6 @@ def _demux_packet_curve(
       energies:           packet_size_bytes for NON-keyframe frames only
                           (the pool used for percentile thresholds).
       pts_to_packet:      dictionary of pts -> (size, is_keyframe)
-      (has_none_pts, has_duplicate_pts): ONLY when return_pts_flags=True (appended as a 5th
-                          element) -- whether this stream needed the missing/duplicate-PTS
-                          fallback below. Default False to preserve the existing 4-tuple
-                          contract for the other two call sites (phase6_scene_calibrate.py,
-                          tests/test_demux_curve.py) that unpack exactly 4 values.
     Packet sizes are returned RAW (bytes, as float). No normalization.
     """
     container = av.open(video_path)
@@ -605,24 +501,19 @@ def _demux_packet_curve(
     finally:
         container.close()
 
-    # Re-sort to display order by pts; fallback on missing/duplicate PTS.
+    # Re-sort to display order by pts; fail closed on None pts.
     has_none_pts = any(p[0] is None for p in raw)
-    pts_seen = set()
-    has_duplicate_pts = False
-    for pts, _, _ in raw:
-        if pts is not None:
-            if pts in pts_seen:
-                has_duplicate_pts = True
-            pts_seen.add(pts)
+    if has_none_pts:
+        raise ValueError("Video contains packets with missing PTS; one-to-one audited mapping is impossible.")
+    
+    sorted_raw = sorted(raw, key=lambda p: p[0])
 
-    if has_none_pts or has_duplicate_pts:
-        # Fallback: keep demux order (which matches H.264 stream sequence)
-        sorted_raw = []
-        for i, (pts, size, is_kf) in enumerate(raw):
-            synthetic_pts = pts if pts is not None else i
-            sorted_raw.append((synthetic_pts, size, is_kf))
-    else:
-        sorted_raw = sorted(raw, key=lambda p: p[0])
+    # Check for duplicate PTS
+    pts_seen = set()
+    for pts, _, _ in sorted_raw:
+        if pts in pts_seen:
+            raise ValueError(f"Duplicate PTS {pts} found; one-to-one audited mapping is impossible.")
+        pts_seen.add(pts)
 
     all_frame_energies: list[tuple[int, float]] = []
     iframe_indices: list[int] = []
@@ -637,8 +528,6 @@ def _demux_packet_curve(
             energies.append(size)
         pts_to_packet[pts] = (size, is_kf)
 
-    if return_pts_flags:
-        return all_frame_energies, iframe_indices, energies, pts_to_packet, (has_none_pts, has_duplicate_pts)
     return all_frame_energies, iframe_indices, energies, pts_to_packet
 
 

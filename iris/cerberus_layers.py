@@ -135,23 +135,11 @@ def score_nli_pair(gate: Any, claim: str, fact: str) -> tuple[str, float]:
             label = "contradiction"
 
     entail_idx = 2
-    contrad_idx = 0
-    neutral_idx = 1
     for idx, lbl in id2label.items():
-        lbl_str = str(lbl).lower()
-        if "entail" in lbl_str:
+        if "entail" in str(lbl).lower():
             entail_idx = idx
-        elif "contrad" in lbl_str:
-            contrad_idx = idx
-        elif "neutral" in lbl_str:
-            neutral_idx = idx
-
-    if label == "entailment":
-        score = probs[entail_idx] if entail_idx < len(probs) else probs[-1]
-    elif label == "contradiction":
-        score = probs[contrad_idx] if contrad_idx < len(probs) else probs[0]
-    else:
-        score = probs[neutral_idx] if neutral_idx < len(probs) else probs[1]
+            break
+    entailment_score = probs[entail_idx] if entail_idx < len(probs) else probs[-1]
 
     claim_doc = nlp(claim)
     has_negation_claim = any(t.dep_ == "neg" or t.lower_ == "no" for t in claim_doc)
@@ -160,10 +148,13 @@ def score_nli_pair(gate: Any, claim: str, fact: str) -> tuple[str, float]:
     negation_high_risk = has_negation_claim and not has_negation_fact
 
     threshold = 0.5 if negation_high_risk else 0.85
-
-    if label == "entailment" and score <= threshold:
-        label = "neutral"
-    elif label == "contradiction" and score <= threshold:
+    # BUG (found via scripts/diag_l3_judge.py A2, same defect as
+    # iris/cerberus_v.py's _full_nli -- this function is a verbatim copy):
+    # `and negation_high_risk` made the 0.85 branch of the ternary above
+    # dead code -- this check only ever fired when negation_high_risk was
+    # True, where threshold was already forced to 0.5. Non-negation
+    # entailment pairs were NEVER floored. Fixed: drop the extra conjunct.
+    if label == "entailment" and entailment_score <= threshold:
         label = "neutral"
 
     if label == "entailment":
@@ -171,19 +162,19 @@ def score_nli_pair(gate: Any, claim: str, fact: str) -> tuple[str, float]:
         if claim_gpes and not any(gpe in fact.lower() for gpe in claim_gpes):
             label = "neutral"
 
-    return label, score
+    return label, entailment_score
 
 
 def _sentencize(gate: Any, caption_text: str) -> list[str]:
     """spaCy-sentencized caption, stripped of empties, with newlines/whitespace
     runs collapsed to a single space before splitting (same normalization as
-    L1 Elysium context formatter).
-    """
-    clean = re.sub(r"\s+", " ", caption_text).strip()
-    if not clean:
-        return []
+    scripts/diag_v4_moondream_captions.py:_split_sentences)."""
     nlp = gate._get_spacy()
-    return [str(s).strip() for s in nlp(clean).sents if str(s).strip()]
+    normalized = re.sub(r"\s+", " ", caption_text).strip()
+    if not normalized:
+        return []
+    doc = nlp(normalized)
+    return [s.text.strip() for s in doc.sents if s.text.strip()]
 
 
 @dataclass
@@ -192,10 +183,10 @@ class Layer2Result:
     best_sentence: str | None
     best_score: float
     n_sentences: int
-    oversize_sentences: list[str]
-    # Invariant (Task 10 parity with legacy verify_visual_claim):
-    # any_entailed must be True iff the visual claim's final verdict is
-    # "verified". (Under legacy logic, a visual claim was "verified" iff
+    oversize_sentences: list[str] = field(default_factory=list)
+    # Explicit per-sentence diagnostics for the within-frame spurious-
+    # rejection watch metric (scripts/smoke_v2.py): a "rejected" verdict
+    # means zero sentences entailed (entailment wins the verdict whenever
     # any sentence entails -- see the aggregation rule below), so
     # any_entailed is always False when verdict=="rejected" BY
     # CONSTRUCTION. It is reported anyway, honestly, rather than assumed --
@@ -231,10 +222,8 @@ def verify_visual_claim(claim: VisualClaim, caption_text: str, nli: Any) -> Laye
                 "layer2: sentence exceeds %d tokens (%d) for frame_idx=%s: %r",
                 OVERSIZE_SENTENCE_TOKENS, n_tokens, claim.frame_idx, sentence,
             )
-            scored.append((sentence, "neutral", 0.0))
-        else:
-            label, score = score_nli_pair(nli, claim.assertion, sentence)
-            scored.append((sentence, label, score))
+        label, score = score_nli_pair(nli, claim.assertion, sentence)
+        scored.append((sentence, label, score))
 
     if not scored:
         return Layer2Result(
@@ -245,13 +234,12 @@ def verify_visual_claim(claim: VisualClaim, caption_text: str, nli: Any) -> Laye
     entailed = [s for s in scored if s[1] == "entailment"]
     contradicted = [s for s in scored if s[1] == "contradiction"]
     best_contradiction = max(contradicted, key=lambda s: s[2]) if contradicted else None
-    best_entailment = max(entailed, key=lambda s: s[2]) if entailed else None
 
     if entailed:
-        best = best_entailment
+        best = max(entailed, key=lambda s: s[2])
         verdict = "verified"
     elif contradicted:
-        best = best_contradiction
+        best = max(contradicted, key=lambda s: s[2])
         verdict = "rejected"
     else:
         best = max(scored, key=lambda s: s[2])
@@ -263,7 +251,7 @@ def verify_visual_claim(claim: VisualClaim, caption_text: str, nli: Any) -> Laye
         best_score=best[2],
         n_sentences=len(sentences),
         oversize_sentences=oversize,
-        any_entailed=bool(entailed and verdict == "verified"),
+        any_entailed=bool(entailed),
         best_contradiction_sentence=best_contradiction[0] if best_contradiction else None,
         best_contradiction_score=best_contradiction[2] if best_contradiction else None,
     )
@@ -485,14 +473,6 @@ class ClaimVerdict:
     label: str  # verified|rejected|unverifiable|verified_absent|checked_pass|checked_fail|field_unavailable
     reason: str = ""
     detail: dict = field(default_factory=dict)
-
-    def to_dict(self) -> dict:
-        return {
-            "claim": self.claim.to_dict() if hasattr(self.claim, "to_dict") else self.claim,
-            "label": self.label,
-            "reason": self.reason,
-            "detail": self.detail,
-        }
 
 
 @dataclass

@@ -43,7 +43,7 @@ def _synthetic():
 
 def test_build_index_hermetic(patched):
     of, rr, st = _synthetic()
-    idx = ingest_mod._build_index_from_records(of, rr, st, "synthetic.mp4", IRISConfig(graph_mode="flat"), 10)
+    idx = ingest_mod._build_index_from_records(of, rr, st, "synthetic.mp4", IRISConfig(), 10)
 
     assert isinstance(idx, IRISIndex)
     assert idx._graph is not None
@@ -60,7 +60,7 @@ def test_build_index_hermetic(patched):
 
 def test_framerecords_enriched(patched):
     of, rr, st = _synthetic()
-    idx = ingest_mod._build_index_from_records(of, rr, st, "synthetic.mp4", IRISConfig(graph_mode="flat"), 10)
+    idx = ingest_mod._build_index_from_records(of, rr, st, "synthetic.mp4", IRISConfig(), 10)
     for fr in idx.frames:
         assert isinstance(fr, FrameRecord)
         assert fr.clip_embedding is not None

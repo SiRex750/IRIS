@@ -44,18 +44,12 @@ class ScriptedV2Backend(LLMBackend):
 
     def generate(self, prompt: str, context: str, model: str | None = None,
                  system_prompt: str | None = None, response_format: dict | None = None,
-                 max_tokens: int | None = None, schema_format: bool = False,
-                 seed: int | None = None, keep_alive: int | None = None,
-                 debug_capture: dict | None = None) -> str:
+                 max_tokens: int | None = None, schema_format: bool = False) -> str:
         self.calls.append({
             "prompt": prompt, "context": context, "model": model,
             "system_prompt": system_prompt, "response_format": response_format,
-            "max_tokens": max_tokens, "schema_format": schema_format, "seed": seed,
-            "keep_alive": keep_alive,
+            "max_tokens": max_tokens, "schema_format": schema_format,
         })
-        if debug_capture is not None:
-            debug_capture["system_prompt"] = system_prompt
-            debug_capture["user_prompt"] = prompt
         return self.responses.pop(0)
 
 
@@ -269,8 +263,6 @@ class _FakeIndex:
     peak_count = 3
     skipped_frames_ratio = 0.5
     storage_reduction_factor = 2.0
-    config_snapshot = {"graph_mode": "scene_sparse"}
-    _scene_centroids = {0: 0}
 
 
 _RETRIEVED_FRAMES = [
@@ -285,11 +277,9 @@ _RETRIEVED_FRAMES = [
 
 
 def _patch_query_plumbing(monkeypatch):
-    import numpy as np
-    fake_emb = np.zeros(512, dtype=np.float32)
-    monkeypatch.setattr(iris_query, "_embed_query", lambda question, config: (fake_emb, {}))
-    monkeypatch.setattr(iris_query, "_build_retrieved", lambda index, emb, config, trace=None: list(_RETRIEVED_FRAMES))
-    monkeypatch.setattr(iris_query, "_ensure_captions", lambda index, frames, config=None, **kw: 0)
+    monkeypatch.setattr(iris_query, "_embed_query", lambda question, config: None)
+    monkeypatch.setattr(iris_query, "_build_retrieved", lambda index, emb, config: list(_RETRIEVED_FRAMES))
+    monkeypatch.setattr(iris_query, "_ensure_captions", lambda index, frames: 0)
 
 
 def test_query_v2_compliance_failed_short_circuits(monkeypatch):
@@ -343,8 +333,8 @@ def test_query_v2_compliant_invokes_verify_answer(monkeypatch):
     assert len(calls) == 1
     assert result["compliance_failed"] is False
     assert result["badge"] == "verified"
-    assert result["claim_verdicts"] == [core_verdict.to_dict()]
-    assert result["core_claim_verdict"] == core_verdict.to_dict()
+    assert result["claim_verdicts"] == [core_verdict]
+    assert result["core_claim_verdict"] == core_verdict
     assert result["compliance_failure_labels"] == []
 
 

@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import os
 import sys
+import tempfile
 import traceback
 from pathlib import Path
 
@@ -247,42 +248,28 @@ async def process_video(
     if not query.strip():
         raise HTTPException(status_code=400, detail="Query string must not be empty.")
 
-    # ── 2. Persist upload to a content-addressed cache path ───────────────────
-    # P0-06: We used to write the upload to a NamedTemporaryFile which the
-    # finally block deletes.  A later cache hit calls iris_query.query(index, ...)
-    # which may need to reopen the video for lazy captioning — but the temp file
-    # is already gone.  Instead we persist the content under api_index_cache/
-    # using the SHA-256 hash as the filename so the path stays valid for the full
-    # lifetime of the cached IRISIndex.
-    content = await file.read()
-    video_sha = hashlib.sha256(content).hexdigest()
-
-    cache_dir = Path("api_index_cache")
-    cache_dir.mkdir(exist_ok=True)
-    persistent_video_path = cache_dir / f"{video_sha}{suffix}"
-
-    if not persistent_video_path.exists():
-        with open(persistent_video_path, "wb") as fp:
-            fp.write(content)
-
+    # ── 2. Save the upload to a temp file ─────────────────────────────────────
+    tmp_path: Path | None = None
     try:
-        # P0-01: validate_video() returns a ValidationResult *dataclass*, not a dict.
-        # Calling .get("status") raises AttributeError at runtime.  Use attribute access.
+        content = await file.read()
+
+        # API-004: Validate codec on upload before any expensive work.
+        # We hash the bytes here too for the cache key.
+        video_sha = hashlib.sha256(content).hexdigest()
+
+        with tempfile.NamedTemporaryFile(
+            suffix=suffix, delete=False, dir=tempfile.gettempdir()
+        ) as tmp:
+            tmp_path = Path(tmp.name)
+            tmp.write(content)
+
         try:
             from iris import codec_validator
-            cv_result = codec_validator.validate_video(str(persistent_video_path))
-            if cv_result.status == "reject":
-                # Remove the persisted file for rejected content so it doesn't linger.
-                try:
-                    persistent_video_path.unlink(missing_ok=True)
-                except OSError:
-                    pass
+            cv_result = codec_validator.validate_video(str(tmp_path))
+            if cv_result.get("status") == "reject":
                 raise HTTPException(
                     status_code=415,
-                    detail=(
-                        f"Video rejected by codec validator: "
-                        f"{', '.join(cv_result.reasons)}"
-                    ),
+                    detail=f"Video rejected by codec validator: {cv_result.get('reason')}",
                 )
         except ImportError:
             pass
@@ -295,9 +282,7 @@ async def process_video(
             # API-003: Run blocking ingest in a thread-pool executor so the async
             # event loop is not blocked while decoding/embedding the video.
             loop = asyncio.get_event_loop()
-            new_index = await loop.run_in_executor(
-                None, iris_ingest, str(persistent_video_path)
-            )
+            new_index = await loop.run_in_executor(None, iris_ingest, str(tmp_path))
             async with _INDEX_CACHE_LOCK:
                 _INDEX_CACHE[video_sha] = new_index
             index = new_index
@@ -305,15 +290,13 @@ async def process_video(
             index = cached_index
 
         # ── 4. Run query against the index ────────────────────────────────────
-        # P0-02: The original call was iris_query.query(index, query.strip(), verbose=True).
-        # The signature is query(question: str, index: IRISIndex, config=None).
-        # Arguments were reversed and `verbose` is not an accepted parameter.
+        # If the cached index path differs (e.g. temp file was deleted), we still
+        # have the live in-memory index and can query it directly.
         loop = asyncio.get_event_loop()
         result: dict = await loop.run_in_executor(
             None,
-            lambda: iris_query.query(query.strip(), index),
+            lambda: iris_query.query(index, query.strip(), verbose=True),
         )
-
 
         # ── 5. Build graph data from debug_info ───────────────────────────────
         debug_info = result.get("debug_info", {})
@@ -337,11 +320,12 @@ async def process_video(
         ) from exc
 
     finally:
-        # ── 7. No temp file cleanup needed ───────────────────────────────────
-        # P0-06 fix: the video is now written to api_index_cache/ and intentionally
-        # kept for the lifetime of the cached IRISIndex (same content-addressed key).
-        # There is nothing to delete here.
-        pass
+        # ── 7. Clean up temp file ─────────────────────────────────────────────
+        if tmp_path and tmp_path.exists():
+            try:
+                os.remove(tmp_path)
+            except OSError:
+                pass  # Best-effort cleanup
 
 
 # ── Health check ──────────────────────────────────────────────────────────────

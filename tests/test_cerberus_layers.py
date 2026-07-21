@@ -38,11 +38,12 @@ FIXTURE_PAIRS = [
 
 
 def test_score_nli_pair_parity():
-    """score_nli_pair must return the label-specific probability for each
-    predicted label (P1-21 fix: contradiction returns contradiction probability,
-    not entailment probability). The oracle in _capture_full_nli always records
-    entailment_score, which is the P1-21 bug -- so we verify labels match and
-    that the returned score is the correct label-specific probability."""
+    """score_nli_pair must reproduce, pair-for-pair, exactly what
+    CerberusV._full_nli's own inner loop computes. The oracle here is
+    scripts/diag_v2_scoping_separation.py:_capture_full_nli, an established
+    verbatim-logic clone of _full_nli that captures its per-pair (label,
+    score) instead of only the aggregated verdict -- reused as-is rather
+    than re-derived a third time in this test."""
     from scripts.diag_v2_scoping_separation import _capture_full_nli
 
     gate = get_nli_gate()
@@ -54,17 +55,10 @@ def test_score_nli_pair_parity():
         _capture_full_nli(gate, [claim], [fact], "full_nli", 0.9, records, "test_query")
         assert len(records) == 1
         oracle_label = records[0]["label"]
+        oracle_score = records[0]["entailment_score"]
 
         assert own_label == oracle_label, f"label mismatch for ({claim!r}, {fact!r})"
-        # P1-21: score_nli_pair now returns label-specific probability:
-        # entailment -> entailment prob, contradiction -> contradiction prob.
-        # The oracle always returns entailment prob (the original bug).
-        # So for entailment labels, scores should match. For non-entailment labels,
-        # score_nli_pair returns the label-specific prob which differs from entailment prob.
-        assert 0.0 <= own_score <= 1.0, f"score out of range for ({claim!r}, {fact!r})"
-        if own_label == "entailment":
-            oracle_score = records[0]["entailment_score"]
-            assert own_score == pytest.approx(oracle_score), f"entailment score mismatch for ({claim!r}, {fact!r})"
+        assert own_score == pytest.approx(oracle_score), f"score mismatch for ({claim!r}, {fact!r})"
 
 
 def test_verify_visual_claim_verified():

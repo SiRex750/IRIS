@@ -1,8 +1,0 @@
-{
-  "python_version": "3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]",
-  "platform": "Windows-10-10.0.26200-SP0",
-  "cpu_info": "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel",
-  "torch_version": "2.13.0+cpu",
-  "clip_revision": "ViT-B/32",
-  "cuda_available": false
-}

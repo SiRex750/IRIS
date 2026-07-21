@@ -84,4 +84,3 @@ class IRISIndex:
     # function of frames+scene_id, so it is rebuilt (not serialized) on load,
     # same lifecycle as _graph.
     _scene_centroids:         Any = field(default=None, repr=False, compare=False)
-    _l1_cache:                Any = field(default=None, repr=False, compare=False)

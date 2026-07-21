@@ -1,4 +1,0 @@
-video_id,duration_s,total_frames,frames_decoded_pass2,survivor_count,retention_pct,l1_runtime_s,l1_rss_delta_mb
-3079724515,29,874,119,119,13.616,48.0607,939.82
-6936757706,20,600,80,80,13.333,20.8092,91.61
-8900428927,10,308,33,33,10.714,9.7136,-51.8

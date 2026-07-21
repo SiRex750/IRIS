@@ -1,1 +1,0 @@
-run_id,method_id,split,video_id,cold_ingest_total_ms,n_questions_against_this_index,amortized_ingest_ms_per_question,mean_query_ms,amortized_plus_query_ms

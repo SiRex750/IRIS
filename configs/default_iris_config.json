@@ -2,11 +2,7 @@
   "salient_thresh": 0.35,
   "candidate_thresh": 0.08,
   "alpha": 0.4,
-  "beta": 0.3,
+  "beta": 0.6,
   "peak_order": 3,
-  "captioner_backend": "minicpm",
-  "answerer_backend": "llama_server",
-  "answerer_endpoint": "http://127.0.0.1:8091/v1",
-  "answerer_model": "granite4:micro",
-  "_comment": "Default config. GEPA optimizer will overwrite salient_thresh and candidate_thresh at runtime. captioner_backend/answerer_* are explicit here (not left to implicit IRISConfig dataclass defaults) so the seated production models (minicpm-v4.6 via Ollama at ingest time, granite4:micro via llama-server on port 8091 at query time) can't silently drift again -- see canonical_pipeline.md for the cache-provenance caveat this implies for pre-existing index_cache/ entries."
+  "_comment": "Default config. GEPA optimizer will overwrite salient_thresh and candidate_thresh at runtime."
 }

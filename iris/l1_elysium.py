@@ -181,21 +181,6 @@ class L1ElysiumCache:
         del self._frames[victim_idx]
 
     def _keep_score(self, frame: CachedFrame) -> float:
-        # P1-07: Normalize motion_entropy and hessian_max_eigenvalue.
-        # Entropy is normalized by its theoretical maximum log2(10) ~ 3.321928.
-        # Hessian is normalized using a configurable robust saturating scale (x / (x + scale)).
-        # This prevents unbounded raw motion geometry from swamping the [0, 1]-bounded terms,
-        # without using unstable per-query min-max scaling.
-        entropy = frame.motion.motion_entropy
-        hessian = frame.motion.hessian_max_eigenvalue
-
-        norm_entropy = min(max(entropy / 3.321928, 0.0), 1.0)
-
-        scale = getattr(self._config, "l1_hessian_saturation_scale", 10.0)
-        if scale <= 0.0:
-            scale = 10.0
-        norm_hessian = hessian / (hessian + scale)
-
         return frame.keep_score(
             total_admitted=self._admission_counter,
             w_action=self._config.l1_w_action,
@@ -205,10 +190,7 @@ class L1ElysiumCache:
             w_entropy=self._config.l1_w_entropy,
             w_hessian=self._config.l1_w_hessian,
             w_recency=self._config.l1_w_recency,
-            norm_entropy=norm_entropy,
-            norm_hessian=norm_hessian,
         )
-
 
     # ── Utility ───────────────────────────────────────────────────────────
 

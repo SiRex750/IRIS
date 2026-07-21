@@ -24,8 +24,3 @@ data/
 benchmark_results/
 *_output.log
 *.npz
-
-# Vendored third-party build (not part of this repo) and a personal research
-# archive -- both large, neither belongs in git history.
-llama.cpp/
-CCBD.zip

@@ -1,4 +1,0 @@
-c1b93f52ee47b3a2b277b4dcccaa020901410aa841920121e8a8a3774e787c49 *eval/data/nextqa/val.csv
-0c16c31699238a0f2b8ace45aeed7f193149ce2f011d6ed4f1ef7170ef5d41e9 *eval/data/nextqa/gsub_val.json
-0c16c31699238a0f2b8ace45aeed7f193149ce2f011d6ed4f1ef7170ef5d41e9 *eval/data/nextqa/gsub_test.json
-a156ebf10826906ec505839debab2b3ae3be7afa44daaeae1a949f4195585348 *data/nextqa_exp1a/nextqa_exp1a_subset.csv

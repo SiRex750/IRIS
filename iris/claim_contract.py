@@ -325,10 +325,7 @@ def claim_from_wire_dict(d: dict[str, Any]) -> tuple[Claim, list[str]]:
             if "is_core" not in d:
                 bad.append(k)
             continue
-        val = mapped.get(k)
-        if val is None:
-            bad.append(k)
-        elif isinstance(val, str) and not val.strip():
+        if mapped.get(k) is None:
             bad.append(k)
     if bad:
         quoted = ", ".join(f"{n!r}" for n in bad)
@@ -382,15 +379,13 @@ class AnswerClaims:
                 f"Visual/Absence claims, found {core_count}"
             )
 
-    def to_dict(self) -> dict:
-        return {
-            "query": self.query,
-            "claims": [c.to_dict() for c in self.claims],
-            "field_noise": self.field_noise,
-        }
-
     def to_json(self) -> str:
-        return json.dumps(self.to_dict())
+        return json.dumps(
+            {
+                "query": self.query,
+                "claims": [c.to_dict() for c in self.claims],
+            }
+        )
 
     @staticmethod
     def from_json(s: str) -> "AnswerClaims":

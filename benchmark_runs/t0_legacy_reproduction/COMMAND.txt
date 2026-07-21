@@ -1,7 +1,0 @@
-$env:CUDA_VISIBLE_DEVICES=""
-$env:TOKENIZERS_PARALLELISM="false"
-$env:OMP_NUM_THREADS="4"
-$env:MKL_NUM_THREADS="4"
-$env:OPENBLAS_NUM_THREADS="4"
-$env:NUMEXPR_NUM_THREADS="4"
-Start-Process -FilePath ".venv\Scripts\python.exe" -ArgumentList "-u", "benchmarks/t0_reproduction.py" -WorkingDirectory "c:\Users\swara\IRIS" -NoNewWindow -RedirectStandardOutput "benchmark_runs/t0_nextgqa_89_cpu/run.log" -RedirectStandardError "benchmark_runs/t0_nextgqa_89_cpu/run.log" -PassThru
