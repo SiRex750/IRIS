@@ -277,6 +277,7 @@ def _build_index_from_records(
     #      (below) does not read scene_id -- assignment only, no behavior change.
     #      packet_curve is None on the hermetic/synthetic-records path (no real
     #      video to demux) -- scene_id stays unassigned (-1) there.
+    scene_spans_time: dict[int, tuple[float, float]] = {}
     if packet_curve is not None:
         all_frame_energies, iframe_indices, fps = packet_curve
         scene_spans = charon_v.compute_valley_scene_boundaries(all_frame_energies, iframe_indices, fps)
@@ -288,6 +289,14 @@ def _build_index_from_records(
                     break
             else:
                 f["scene_id"] = -1
+        # Part 3c: persist the boundary times themselves (previously discarded
+        # right after the scene_id assignment above) -- additive only, no
+        # existing field or behavior touched.
+        if fps > 0:
+            scene_spans_time = {
+                scene_idx: (start / fps, end / fps)
+                for scene_idx, (start, end) in enumerate(scene_spans)
+            }
     else:
         for f in frames_to_index:
             f["scene_id"] = -1
@@ -459,6 +468,7 @@ def _build_index_from_records(
         skipped_frames_ratio=skipped_frames_ratio,
         storage_reduction_factor=storage_reduction_factor,
         config_snapshot=config_snapshot,
+        scene_spans=scene_spans_time,
         _graph=graph,
         _scene_centroids=_compute_scene_centroids(frames),
         _l1_cache=l1_cache,
@@ -592,6 +602,7 @@ def save_index(index: IRISIndex, path: str | Path) -> None:
         "skipped_frames_ratio":     index.skipped_frames_ratio,
         "storage_reduction_factor": index.storage_reduction_factor,
         "config_snapshot":          index.config_snapshot,
+        "scene_spans":              {str(k): v for k, v in getattr(index, "scene_spans", {}).items()},
     }
     arrays: dict[str, np.ndarray] = {"__manifest__": np.array(json.dumps(manifest))}
     arrays.update(embeddings)
@@ -648,6 +659,7 @@ def load_index(path: str | Path) -> IRISIndex:
         storage_reduction_factor=manifest["storage_reduction_factor"],
         config_snapshot=manifest["config_snapshot"],
         schema_version=manifest["schema_version"],
+        scene_spans={int(k): tuple(v) for k, v in manifest.get("scene_spans", {}).items()},
     )
     # Rebuild the live graph (projection + rebuild). config_snapshot is a dict;
     # L2Asphodel accepts dict configs for alpha/beta/gamma.

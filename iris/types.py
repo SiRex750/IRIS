@@ -77,6 +77,16 @@ class IRISIndex:
     # provenance: the config that built this index (query reuses these weights)
     config_snapshot:          dict[str, Any]
     schema_version:           int = 1
+    # Real scene boundaries, {scene_id: (start_time_s, end_time_s)}. Additive
+    # (Part 3c): previously charon_v.compute_valley_scene_boundaries's
+    # (start_idx, end_idx) spans were computed at ingest time to assign each
+    # frame's integer scene_id, then discarded. This persists the boundary
+    # times themselves (start_idx/fps, end_idx/fps -- average-fps
+    # approximation, since exact per-boundary-frame PTS would require
+    # decoding a frame the zero-decode packet-curve path never touches).
+    # Empty dict for old serialized indices (schema-compatible default) and
+    # for the hermetic/synthetic-records path (no real packet curve).
+    scene_spans:              dict[int, tuple[float, float]] = field(default_factory=dict)
     # in-memory only; excluded from serialization, equality, and repr
     _graph:                   Any = field(default=None, repr=False, compare=False)
     # Edgeless per-scene centroid index (Phase 6 scene-sparse groundwork): NOT a

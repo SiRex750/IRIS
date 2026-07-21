@@ -36,8 +36,86 @@ def best_over_gold_spans(gold_spans: list[list[float]], pred_span: tuple[float, 
 
 
 def predicted_span_from_frames(timestamps: list[float]) -> tuple[float, float]:
-    """Predicted grounding span = [min, max] timestamp among retrieved frames.
-    A single retrieved frame yields a zero-width span (point prediction)."""
+    """Method A (existing, unchanged): predicted span = [min, max] timestamp
+    among retrieved frames. A single retrieved frame yields a zero-width
+    span (point prediction)."""
     if not timestamps:
         return (0.0, 0.0)
     return (min(timestamps), max(timestamps))
+
+
+def _frame_score(frame: dict) -> float:
+    score = frame.get("pagerank_score")
+    if score is None:
+        score = frame.get("last_retrieval_score", 0.0)
+    return score
+
+
+def predicted_span_from_frames_clustered(
+    retrieved_frames: list[dict], gap_threshold_s: float = 3.0, tail_trim_pct: float = 20.0,
+) -> tuple[float, float]:
+    """Method B (Part 3c): score-weighted temporal clustering + tail-trim.
+
+    1. Sort by timestamp ascending.
+    2. Split into clusters wherever the gap between consecutive timestamps
+       exceeds gap_threshold_s.
+    3. Sum pagerank_score (falling back to last_retrieval_score) per
+       cluster; keep the cluster with the highest total.
+    4. Within that cluster, drop the bottom tail_trim_pct% of frames by
+       score (GranAlign-style refinement, avoids a cluster being diluted by
+       low-relevance frames sitting between two good ones).
+    5. Predicted span = [min, max] timestamp of what remains.
+
+    gap_threshold_s=3.0 and tail_trim_pct=20 are first-pass reasoned
+    defaults for this comparison pass, not tuned -- flagged as a future
+    micro-tuning candidate if this method wins.
+
+    With tail_trim_pct=0 and a single cluster (no gap exceeds
+    gap_threshold_s), this reduces to exactly Method A's output -- see
+    tests/test_span_methods.py::test_method_b_reduces_to_method_a.
+    """
+    if not retrieved_frames:
+        return (0.0, 0.0)
+
+    frames_sorted = sorted(retrieved_frames, key=lambda f: f["timestamp"])
+    clusters: list[list[dict]] = [[frames_sorted[0]]]
+    for f in frames_sorted[1:]:
+        if f["timestamp"] - clusters[-1][-1]["timestamp"] > gap_threshold_s:
+            clusters.append([f])
+        else:
+            clusters[-1].append(f)
+
+    best_cluster = max(clusters, key=lambda c: sum(_frame_score(f) for f in c))
+
+    n = len(best_cluster)
+    n_drop = int(n * tail_trim_pct / 100.0)
+    n_keep = max(1, n - n_drop)
+    kept = sorted(best_cluster, key=_frame_score, reverse=True)[:n_keep] if n_drop > 0 else best_cluster
+
+    timestamps = [f["timestamp"] for f in kept]
+    return (min(timestamps), max(timestamps))
+
+
+def predicted_span_from_frames_scene(
+    retrieved_frames: list[dict], scene_spans_map: dict[int, tuple[float, float]],
+) -> tuple[tuple[float, float], bool]:
+    """Method C (Part 3c): look up the real scene boundary of the top-ranked
+    retrieved frame (retrieved_frames[0], guaranteed rank-1 by
+    iris.l2_asphodel.retrieve_ppr's ordering contract) instead of inventing
+    a span from arbitrary retrieved timestamps.
+
+    Returns (predicted_span, fallback_triggered). Falls back to Method A
+    (over ALL retrieved frames, not just the top one) when the top frame's
+    scene_id is unassigned (-1, e.g. the hermetic/synthetic-records or
+    audio-only ingest path) or has no entry in scene_spans_map (e.g. an
+    index built before the Part 3c scene_spans persistence change)."""
+    if not retrieved_frames:
+        return (0.0, 0.0), False
+
+    top = retrieved_frames[0]
+    scene_id = top.get("retrieval_contributions", {}).get("scene_id", -1)
+    if scene_id is not None and scene_id >= 0 and scene_id in scene_spans_map:
+        return scene_spans_map[scene_id], False
+
+    timestamps = [f["timestamp"] for f in retrieved_frames]
+    return predicted_span_from_frames(timestamps), True

@@ -1,0 +1,25 @@
+{
+  "generated_note": "Method C required parity proof: iris/ingest.py + iris/types.py changed to persist scene_spans ({scene_id: (start_time_s, end_time_s)}) on IRISIndex, previously computed via charon_v.compute_valley_scene_boundaries and discarded right after integer scene_id assignment. Additive-only change verified against 5 fixed videos, ingested BEFORE and AFTER the code change, comparing every existing serialized field (all of save_index()'s manifest dict except the new scene_spans key, plus every CLIP embedding array byte-for-byte).",
+  "method": "manifest_like() in scripts/partc_capture_ingest_snapshot.py reproduces save_index()'s exact manifest dict construction in-memory (frames, graph_edges, index_action_score, stats, frames_processed, peak_count, skipped_frames_ratio, storage_reduction_factor, config_snapshot -- everything except the new scene_spans key), hashed with sha256(json.dumps(manifest, sort_keys=True)); embeddings hashed separately as raw float32 bytes.",
+  "fixed_videos": ["6936757706", "3079724515", "8900428927", "10001787725", "10030609934"],
+  "result": "ALL_MATCH = true -- every existing field byte-identical on all 5 videos, before vs after.",
+  "per_video": {
+    "6936757706": {"manifest_sha256_before": "matches after", "manifest_match": true, "embeddings_match": true, "n_frames": 80},
+    "3079724515": {"manifest_sha256_before": "matches after", "manifest_match": true, "embeddings_match": true, "n_frames": 119},
+    "8900428927": {"manifest_sha256_before": "matches after", "manifest_match": true, "embeddings_match": true, "n_frames": 33},
+    "10001787725": {"manifest_sha256_before": "matches after", "manifest_match": true, "embeddings_match": true, "n_frames": 121},
+    "10030609934": {"manifest_sha256_before": "matches after", "manifest_match": true, "embeddings_match": true, "n_frames": 198}
+  },
+  "new_field_sanity_check": {
+    "video": "6936757706",
+    "n_scenes_found": 18,
+    "coverage_check": "scene_spans[0][0]=0.0 -> scene_spans[17][1]=20.02 == video duration (20s); every frame's scene_id has a matching entry in scene_spans (verified: True)",
+    "sample": {"0": [0.0, 0.9342666666666667], "1": [0.9342666666666667, 2.3690333333333333], "17": [19.753066666666665, 20.02]}
+  },
+  "task3_finding_zero_decode_vs_redecode": {
+    "answer": "scene_spans recomputation does NOT require a full video re-decode.",
+    "why": "charon_v.compute_valley_scene_boundaries() is a pure function of (all_frame_energies, iframe_indices, fps) -- the packet_curve tuple already extracted at ingest time via lightweight packet-size demux (its own docstring: 'Zero-decode scene boundaries from the packet-size curve'). It was already being called at ingest.py:282 before this change to assign integer scene_id -- persisting the (start,end) values it already returns costs nothing extra computationally, just an additional dict built from data already in scope.",
+    "caveat_on_backfilling_ALREADY-CACHED_indexes": "packet_curve itself (all_frame_energies/iframe_indices/fps) is NOT persisted in the saved .npz index format (FrameRecord deliberately drops per-video-transient fields to keep the index small). So while a FRESH ingest() call gets scene_spans for free, an ALREADY-cached index from Families 1-4's tuning runs (built before this change) cannot be backfilled without re-running ingest() from the video file -- the packet curve has to be re-extracted (still zero-decode/lightweight, not a full pixel redecode, but not a pure in-memory backfill of the existing .npz either). Family 4's tuning indexes are re-ingested for the Part 3c comparison rather than backfilled in place, consistent with task 5's expectation that Method C costs more than Methods A/B."
+  },
+  "verdict": "PARITY_CONFIRMED -- Method C's ingest-side change is additive-only, all existing fields/behavior unchanged, safe to build Method C's scoring function on top of."
+}
