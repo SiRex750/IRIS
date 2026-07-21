@@ -1,0 +1,39 @@
+{"stage": "video_download", "video_id": "5996148663", "reason": "not found in VLM2Vec/nextqa-rawvideo (primary) or fcxfcx/NextQA (fallback mirror); no further mirrors checked"}
+{"stage": "video_download", "video_id": "6011836129", "reason": "not found in VLM2Vec/nextqa-rawvideo (primary) or fcxfcx/NextQA (fallback mirror); no further mirrors checked"}
+{"stage": "video_download", "video_id": "4367056464", "reason": "not found in VLM2Vec/nextqa-rawvideo (primary) or fcxfcx/NextQA (fallback mirror); no further mirrors checked"}
+{"stage": "video_download", "video_id": "6018490041", "reason": "not found in VLM2Vec/nextqa-rawvideo (primary) or fcxfcx/NextQA (fallback mirror); no further mirrors checked"}
+{"stage": "video_download", "video_id": "4372494989", "reason": "not found in VLM2Vec/nextqa-rawvideo (primary) or fcxfcx/NextQA (fallback mirror); no further mirrors checked"}
+{"stage": "structural_validate", "split": "val", "video_id": "6018490041", "qid": "6", "reason": "video file missing/not downloaded"}
+{"stage": "structural_validate", "split": "val", "video_id": "5996148663", "qid": "8", "reason": "video file missing/not downloaded"}
+{"stage": "structural_validate", "split": "val", "video_id": "4367056464", "qid": "3", "reason": "video file missing/not downloaded"}
+{"stage": "structural_validate", "split": "val", "video_id": "6018490041", "qid": "0", "reason": "video file missing/not downloaded"}
+{"stage": "structural_validate", "split": "val", "video_id": "5996148663", "qid": "0", "reason": "video file missing/not downloaded"}
+{"stage": "structural_validate", "split": "val", "video_id": "5996148663", "qid": "9", "reason": "video file missing/not downloaded"}
+{"stage": "structural_validate", "split": "val", "video_id": "4367056464", "qid": "9", "reason": "video file missing/not downloaded"}
+{"stage": "structural_validate", "split": "val", "video_id": "5996148663", "qid": "6", "reason": "video file missing/not downloaded"}
+{"stage": "structural_validate", "split": "val", "video_id": "4372494989", "qid": "2", "reason": "video file missing/not downloaded"}
+{"stage": "structural_validate", "split": "val", "video_id": "4372494989", "qid": "7", "reason": "video file missing/not downloaded"}
+{"stage": "structural_validate", "split": "val", "video_id": "6018490041", "qid": "5", "reason": "video file missing/not downloaded"}
+{"stage": "structural_validate", "split": "val", "video_id": "4367056464", "qid": "0", "reason": "video file missing/not downloaded"}
+{"stage": "structural_validate", "split": "val", "video_id": "6018490041", "qid": "1", "reason": "video file missing/not downloaded"}
+{"stage": "structural_validate", "split": "val", "video_id": "6018490041", "qid": "3", "reason": "video file missing/not downloaded"}
+{"stage": "structural_validate", "split": "val", "video_id": "4372494989", "qid": "4", "reason": "video file missing/not downloaded"}
+{"stage": "structural_validate", "split": "val", "video_id": "6011836129", "qid": "1", "reason": "video file missing/not downloaded"}
+{"stage": "structural_validate", "split": "val", "video_id": "4372494989", "qid": "5", "reason": "video file missing/not downloaded"}
+{"stage": "structural_validate", "split": "val", "video_id": "4367056464", "qid": "2", "reason": "video file missing/not downloaded"}
+{"stage": "structural_validate", "split": "val", "video_id": "5996148663", "qid": "7", "reason": "video file missing/not downloaded"}
+{"stage": "structural_validate", "split": "val", "video_id": "4367056464", "qid": "5", "reason": "video file missing/not downloaded"}
+{"stage": "structural_validate", "split": "val", "video_id": "4372494989", "qid": "0", "reason": "video file missing/not downloaded"}
+{"stage": "structural_validate", "split": "val", "video_id": "4372494989", "qid": "1", "reason": "video file missing/not downloaded"}
+{"stage": "structural_validate", "split": "val", "video_id": "4372494989", "qid": "6", "reason": "video file missing/not downloaded"}
+{"stage": "structural_validate", "split": "val", "video_id": "5996148663", "qid": "3", "reason": "video file missing/not downloaded"}
+{"stage": "structural_validate", "split": "val", "video_id": "6018490041", "qid": "7", "reason": "video file missing/not downloaded"}
+{"stage": "structural_validate", "split": "val", "video_id": "4367056464", "qid": "1", "reason": "video file missing/not downloaded"}
+{"stage": "structural_validate", "split": "val", "video_id": "4367056464", "qid": "8", "reason": "video file missing/not downloaded"}
+{"stage": "structural_validate", "split": "val", "video_id": "6011836129", "qid": "5", "reason": "video file missing/not downloaded"}
+{"stage": "structural_validate", "split": "val", "video_id": "6011836129", "qid": "6", "reason": "video file missing/not downloaded"}
+{"stage": "structural_validate", "split": "val", "video_id": "4372494989", "qid": "3", "reason": "video file missing/not downloaded"}
+{"stage": "structural_validate", "split": "val", "video_id": "5996148663", "qid": "5", "reason": "video file missing/not downloaded"}
+{"stage": "structural_validate", "split": "val", "video_id": "4367056464", "qid": "7", "reason": "video file missing/not downloaded"}
+{"stage": "structural_validate", "split": "val", "video_id": "6018490041", "qid": "4", "reason": "video file missing/not downloaded"}
+{"stage": "structural_validate", "split": "val", "video_id": "4367056464", "qid": "4", "reason": "video file missing/not downloaded"}

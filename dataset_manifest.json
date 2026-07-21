@@ -1,0 +1,58 @@
+{
+  "generated_utc": "2026-07-21T05:30:00Z",
+  "official_source_repo": "https://github.com/doc-doc/NExT-GQA",
+  "official_source_commit": "63772e0256ad9e34b83d6a108f1ba2041b924607",
+  "official_source_file_sha256": {
+    "val.csv": "4f99f7c11470c22017cf4fecdc91a6bb350b1c51e84a6005fb45d36ee50895d4",
+    "test.csv": "62c5637f12b96bb09fb099ae5c86495f96da08926a94700f1863c65ac5ca8b90",
+    "gsub_val.json": "4feb23e53102cb2d4779e857ff8f9fd9b552fc38435621406b2ed9b0bf76204b",
+    "gsub_test.json": "0c16c31699238a0f2b8ace45aeed7f193149ce2f011d6ed4f1ef7170ef5d41e9"
+  },
+  "video_source_primary": "VLM2Vec/nextqa-rawvideo (HuggingFace dataset)",
+  "video_source_fallback": "fcxfcx/NextQA (HuggingFace dataset) -- used for 9 videos missing from primary mirror",
+  "hf_download_workaround": "hf_hub_download(..., token=False) required on this box due to a stale cached HF OAuth token (see environment.json)",
+  "counts": {
+    "val": {
+      "expected_videos": 567,
+      "expected_questions": 3358,
+      "actual_videos_with_gold": 567,
+      "actual_questions_with_gold": 3358,
+      "videos_successfully_downloaded": 562
+    },
+    "test": {
+      "expected_videos": 990,
+      "expected_questions": 5553,
+      "actual_videos_with_gold": 990,
+      "actual_questions_with_gold": 5553,
+      "videos_successfully_downloaded": 990
+    }
+  },
+  "val_test_video_overlap": 0,
+  "n_setup_failures": 39,
+  "known_gaps": "5 val-split videos and 0 test-split videos not found on any of the 2 checked HF mirrors (see setup_failures.jsonl, stage=video_download) -- their questions cannot be scored, and the corresponding videos are excluded from val_tune/val_confirm.",
+  "schema_fixes_applied": [
+    "renamed CSV column video_id -> video",
+    "resolved literal-text 'answer' column to 0-4 index by matching against a0..a4 per row"
+  ],
+  "files_written": {
+    "eval/data/nextqa/val.csv": "ee0ef210ae341bec53fdeb723ae54958307ed2e49988d2d3763d3c22abf4201a",
+    "eval/data/nextqa/test.csv": "a8d67c5a648c9da8fb4f6fa9939ad1e31fb43f9a92fdab48ec38a1cd622e23db",
+    "eval/data/nextqa/gsub_val.json": "527f402851836224aa03c9d4b0016b858a678d21596a2348eb2bdb774c74970a",
+    "eval/data/nextqa/gsub_test.json": "0c16c31699238a0f2b8ace45aeed7f193149ce2f011d6ed4f1ef7170ef5d41e9"
+  },
+  "val_tune_confirm_split_manifest": "split_manifest.json",
+  "structural_validation_report": {
+    "val": {
+      "split": "val",
+      "rows_checked": 3358,
+      "rows_ok": 3324,
+      "unique_videos_checked": 562
+    },
+    "test": {
+      "split": "test",
+      "rows_checked": 5553,
+      "rows_ok": 5553,
+      "unique_videos_checked": 990
+    }
+  }
+}

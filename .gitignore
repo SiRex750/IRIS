@@ -29,3 +29,6 @@ benchmark_results/
 # archive -- both large, neither belongs in git history.
 llama.cpp/
 CCBD.zip
+
+# Transient scratch cache (HF file listing), regenerable, not a deliverable.
+.cache_primary_mirror_listing.json

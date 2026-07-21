@@ -1,0 +1,37 @@
+{
+  "frozen": {
+    "retrieval_strategy": "hybrid"
+  },
+  "completed_families": [
+    "retrieval_strategy"
+  ],
+  "selection_detail_retrieval_strategy": {
+    "selected": "hybrid",
+    "all_trials": [
+      {
+        "value": "peak_only",
+        "mIoP": 0.26394105176991467,
+        "IoP@0.5": 0.19031657355679701,
+        "median_retrieval_ms": 3.6967709893360734
+      },
+      {
+        "value": "top_k_action",
+        "mIoP": 0.25323502675444653,
+        "IoP@0.5": 0.18324022346368715,
+        "median_retrieval_ms": 3.399649984203279
+      },
+      {
+        "value": "peak_neighbors",
+        "mIoP": 0.26483383349068357,
+        "IoP@0.5": 0.1925512104283054,
+        "median_retrieval_ms": 3.7011619424447417
+      },
+      {
+        "value": "hybrid",
+        "mIoP": 0.277477858710939,
+        "IoP@0.5": 0.21527001862197392,
+        "median_retrieval_ms": 4.014145000837743
+      }
+    ]
+  }
+}
