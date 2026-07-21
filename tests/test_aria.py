@@ -346,7 +346,7 @@ def test_generate_module_function_defaults_seed_from_config():
 
         def generate(self, prompt, context, model=None, system_prompt=None,
                      response_format=None, max_tokens=None, schema_format=False,
-                     seed=None, keep_alive=None):
+                     seed=None, keep_alive=None, debug_capture=None):
             self.last_seed = seed
             self.last_keep_alive = keep_alive
             return "ok"

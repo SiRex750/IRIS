@@ -63,7 +63,7 @@ class IRISConfig:
     cerberus_high_thresh: float = 0.70  # action_score >= this → full NLI
     cerberus_low_thresh:  float = 0.35  # action_score >= this → filtered NLI
     disable_nli:          bool  = False # completely bypass DeBERTa NLI, use ner_only
-    cerberus_mode:        str   = "legacy" # "legacy" or "v2"
+    cerberus_mode:        str   = "v2" # "legacy" or "v2"
 
     # ── Answerer Backend (Prompt 1) ────────────────────────────────────────
     answerer_backend:       str   = "llama_server"
@@ -111,6 +111,18 @@ class IRISConfig:
 
     # ── Visual Debug Mode ──────────────────────────────────────────────────
     visual_debug_mode:      bool  = False
+
+    # ── QA debug trace mode ─────────────────────────────────────────────────
+    # When True, iris.query.query() collects a full per-query diagnostic trace
+    # (retrieval telemetry, retrieved frame images, captions, the exact Granite
+    # prompt/output, Cerberus verification, timings) and writes it under
+    # debug_traces/<query_id>/. Every trace-collection call site is behind
+    # `if config.debug_trace:` so the cost is one boolean check per stage when
+    # disabled (default) -- no behavior or output change either way (see
+    # iris/debug_trace.py, tests/test_debug_trace.py::test_disabled_is_zero_overhead
+    # and test_answers_identical_with_trace_enabled).
+    debug_trace:             bool  = False
+    debug_trace_dir:         str   = "debug_traces"
 
     # ── ARIA / LLM model (CFG-005) ─────────────────────────────────────────
     # Override the Ollama/OpenAI model used by ARIA. Empty string = use backend default.

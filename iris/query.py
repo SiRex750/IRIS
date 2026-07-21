@@ -222,21 +222,88 @@ def _embed_query(question: str, config: Any) -> tuple[np.ndarray, dict]:
 
 
 def _split_claims(raw_answer: str) -> list[str]:
-    """Sentence-level claim extraction. Lifted VERBATIM from pipeline.py 632-639.
-    Do not 'improve' the regex — parity depends on identical splitting."""
-    clean_answer = re.sub(r'\*\*.*?\*\*:?\s*', '', raw_answer)
+    """Sentence-level claim extraction.
+
+    NOTE ON PARITY: this docstring previously claimed the body below was
+    "Lifted VERBATIM from pipeline.py 632-639". That is no longer true --
+    iris/pipeline.py has been refactored since that note was written and no
+    longer contains any claim-splitting logic at all (its `run_pipeline()`
+    now just calls iris.ingest.ingest() + iris.query.query()). This function
+    is the sole, canonical claim-splitting implementation; there is nothing
+    left in pipeline.py to stay in parity with. If a second copy of this
+    logic is ever reintroduced elsewhere, apply any future fix here to that
+    copy too rather than letting them diverge silently.
+
+    Two bugs fixed here (found via debug_trace.py analysis of real
+    granite4:micro outputs, see debug_traces/4279106208__q10 and
+    debug_traces/3261079025__q4):
+
+    1. The old bold-strip regex (`r'\\*\\*.*?\\*\\*:?\\s*'`) deleted the ENTIRE
+       bolded span, not just the `**` markers -- so "...primarily to
+       **ensure the child's safety** (Option B)." lost its actual answer
+       content and became "...primarily to (Option B).", which CerberusV
+       then had nothing to verify against and rejected. Fixed to strip a
+       bold markdown LABEL (word(s) immediately followed by a colon, e.g.
+       "**Summary:**") entirely -- these are structural headers, not claim
+       content -- but otherwise only remove the `**` markers and KEEP the
+       bolded text, since inline emphasis around real answer content (e.g.
+       "**ensure the child's safety**") must survive into the claim.
+
+    2. The sentence-boundary regex treats ANY `[.!?]` followed by whitespace
+       as a sentence end, including a bare multiple-choice option label like
+       "A." / "B." / ... "E." embedded mid-answer (e.g. "...evidence: A.
+       support himself - ... B. strong wind - ..."). This orphaned each
+       letter onto the END of the PRECEDING clause instead of the start of
+       its own explanation, and truncated the resulting claims into
+       fragments that didn't correspond to any real sentence. Fixed by
+       protecting `<letter>. ` sequences (a single capital A-E followed by a
+       period and whitespace, anywhere except literally the first character
+       of the string) with a non-terminator placeholder before splitting,
+       then restoring the period afterward -- so an option's letter stays
+       attached to the start of its own explanation.
+    """
+    # Fix 1a: strip bold markdown LABELS specifically -- word(s) immediately
+    # followed by a colon inside the ** markers (e.g. "**Summary:**") are
+    # structural headers, not claim content, and are removed entirely.
+    clean_answer = re.sub(r'\*\*([^*]+?):\*\*\s*', '', raw_answer)
+    # Fix 1b: any OTHER bold span is inline emphasis around real content --
+    # strip only the ** markers, keep the text (previously this deleted it).
+    clean_answer = re.sub(r'\*\*(.*?)\*\*', r'\1', clean_answer)
     clean_answer = re.sub(r'^\s*[-*]\s+', '', clean_answer, flags=re.MULTILINE)
     clean_answer = re.sub(r'^\s*\d+\.\s+', '', clean_answer, flags=re.MULTILINE)
     clean_answer = re.sub(r'\n+', ' ', clean_answer).strip()
-    raw_sentences = re.split(r'(?<=[.!?])\s+', clean_answer)
+
+    # Fix 2: protect mid-answer multiple-choice letter labels ("A. " .. "E. ")
+    # from being mistaken for a sentence terminator. Skip index 0 -- if the
+    # answer opens with a bare option label there is no preceding clause for
+    # it to be wrongly re-attached to, so nothing to protect against there.
+    def _protect_option_label(m: re.Match) -> str:
+        return m.group(1) + '.\x00'
+
+    if clean_answer:
+        protected = clean_answer[0] + re.sub(
+            r'\b([A-E])\.\s', _protect_option_label, clean_answer[1:]
+        )
+    else:
+        protected = clean_answer
+
+    raw_sentences = re.split(r'(?<=[.!?])\s+', protected)
+    raw_sentences = [s.replace('\x00', ' ') for s in raw_sentences]
     return [s.strip() for s in raw_sentences if len(s.strip()) >= 12]
 
 
-def _build_retrieved(index: IRISIndex, query_embedding: np.ndarray, config: Any) -> list[dict]:
+def _build_retrieved(index: IRISIndex, query_embedding: np.ndarray, config: Any,
+                      trace: dict | None = None) -> list[dict]:
     """Mirror of wrapper_l2_retrieve's node->dict mapping + fallback (419-460),
     using the pre-built index._graph and index.frames. NO geometry keys (L1
     parity). Scores come from the graph node; is_peak/embedding/luma_entropy/
-    caption come from the matching FrameRecord."""
+    caption come from the matching FrameRecord.
+
+    trace: optional dict, forwarded to retrieve_scene_sparse (scene_sparse
+    graph_mode) or populated minimally for the flat-graph path. Read-only
+    instrumentation for iris.debug_trace -- see retrieve_scene_sparse's
+    docstring; does not change what is retrieved.
+    """
     index_graph_mode = index.config_snapshot.get("graph_mode", "flat") if index.config_snapshot else "flat"
     query_graph_mode = getattr(config, "graph_mode", "flat")
     if query_graph_mode != index_graph_mode:
@@ -247,7 +314,7 @@ def _build_retrieved(index: IRISIndex, query_embedding: np.ndarray, config: Any)
 
     if query_graph_mode == "scene_sparse":
         from iris.scene_retrieval import retrieve_scene_sparse
-        return retrieve_scene_sparse(index, query_embedding, config)
+        return retrieve_scene_sparse(index, query_embedding, config, trace=trace)
 
     l2_retrieve_top_k = getattr(config, "l2_retrieve_top_k", 5)
     frame_map = {fr.frame_idx: fr for fr in index.frames}
@@ -331,6 +398,21 @@ def _build_retrieved(index: IRISIndex, query_embedding: np.ndarray, config: Any)
                 "hessian_max_eigenvalue": getattr(fr, "hessian_max_eigenvalue", 0.0),
                 "motion_entropy": getattr(fr, "motion_entropy", 0.0),
             })
+    if trace is not None:
+        trace.update({
+            "branch": "flat_" + ranking_mode,
+            "shortlisted_scene_ids": None,
+            "num_scenes": None,
+            "scene_scores": None,
+            "margin": None,
+            "tau": None,
+            "base_pool": len(index.frames),
+            "post_pull_pool": len(index.frames),
+            "cross_scene_edges_added": None,
+            "retrieved_frame_idxs": [f["frame_idx"] for f in retrieved],
+            "retrieved_timestamps": [f["timestamp"] for f in retrieved],
+            "retrieved_scores": [f["last_retrieval_score"] for f in retrieved],
+        })
     return retrieved
 
 
@@ -394,8 +476,15 @@ def _match_predicted_choice(answer_text: str | None, choices: list[str] | None) 
 
 
 def _ensure_captions(index: IRISIndex, retrieved_frames: list[dict], config: Any = None,
-                      question: str | None = None, choices: list[str] | None = None) -> int:
+                      question: str | None = None, choices: list[str] | None = None,
+                      trace: dict | None = None) -> int:
     """Lazily caption retrieved frames lacking a cached caption.
+
+    trace: optional dict; when not None, trace["captions"] is populated with
+    one {frame_idx, timestamp, caption, caption_length, caption_generation_time}
+    record per frame actually captioned in this call (read-only instrumentation
+    for iris.debug_trace -- never changes which frames get captioned, the
+    prompt used, or the caption text produced).
 
     Captioning moved out of ingest() to keep build cost proportional to
     survivors *embedded*, not survivors *captioned*. The cache lives on each
@@ -472,9 +561,23 @@ def _ensure_captions(index: IRISIndex, retrieved_frames: list[dict], config: Any
                     pil_img = frame.to_image()
                 except Exception:
                     pil_img = None
+                if trace is not None:
+                    import time as _time
+                    _t0 = _time.perf_counter()
                 current_target.caption = get_semantic_and_clip_caption(
                     pil_img, frame, current_target.clip_embedding, device, config=config, focus_hint=focus_hint,
                 )
+                if trace is not None:
+                    _gen_time = _time.perf_counter() - _t0
+                    cap = current_target.caption
+                    cap_text = cap.get("semantic_caption") if isinstance(cap, dict) else cap
+                    trace.setdefault("captions", []).append({
+                        "frame_idx": current_target.frame_idx,
+                        "timestamp": current_target.timestamp,
+                        "caption": cap_text,
+                        "caption_length": len(cap_text) if cap_text else 0,
+                        "caption_generation_time": _gen_time,
+                    })
                 current_target = next(target_iter, None)
     finally:
         container.close()
@@ -677,8 +780,13 @@ def _generate_answer_claims_v2_wire(question: str, context: str, max_tokens: int
             return None, raw2, True, 2, failure_labels
 
 
-def _retrieve_with_l1(index: IRISIndex, query_embedding: np.ndarray, config: Any) -> tuple[list[dict], dict]:
-    """Retrieves frames using L1 Elysium Cache if use_l1 is enabled, with L2 fallback."""
+def _retrieve_with_l1(index: IRISIndex, query_embedding: np.ndarray, config: Any,
+                       trace: dict | None = None) -> tuple[list[dict], dict]:
+    """Retrieves frames using L1 Elysium Cache if use_l1 is enabled, with L2 fallback.
+
+    trace: optional dict forwarded to _build_retrieved/retrieve_scene_sparse when
+    the L2 path is taken. Read-only instrumentation for iris.debug_trace.
+    """
     telemetry = {
         "l1_consulted": False,
         "l1_hit": False,
@@ -687,7 +795,7 @@ def _retrieve_with_l1(index: IRISIndex, query_embedding: np.ndarray, config: Any
     }
     use_l1 = getattr(config, "use_l1", False)
     if not use_l1:
-        return _build_retrieved(index, query_embedding, config), telemetry
+        return _build_retrieved(index, query_embedding, config, trace=trace), telemetry
 
     # Rebuild L1 Cache on loaded IRISIndex if it is not present
     if getattr(index, "_l1_cache", None) is None:
@@ -758,11 +866,22 @@ def _retrieve_with_l1(index: IRISIndex, query_embedding: np.ndarray, config: Any
             })
         # Re-admit to update access recency / hit counter
         wrapper_populate_cache(index._l1_cache, retrieved)
+        if trace is not None:
+            trace.update({
+                "branch": "l1_hit",
+                "shortlisted_scene_ids": None, "num_scenes": None, "scene_scores": None,
+                "margin": None, "tau": None,
+                "base_pool": telemetry["l1_candidate_count"], "post_pull_pool": telemetry["l1_candidate_count"],
+                "cross_scene_edges_added": None,
+                "retrieved_frame_idxs": [f["frame_idx"] for f in retrieved],
+                "retrieved_timestamps": [f["timestamp"] for f in retrieved],
+                "retrieved_scores": [f["last_retrieval_score"] for f in retrieved],
+            })
         return retrieved, telemetry
     else:
         telemetry["l1_hit"] = False
         telemetry["l2_fallback"] = True
-        retrieved = _build_retrieved(index, query_embedding, config)
+        retrieved = _build_retrieved(index, query_embedding, config, trace=trace)
         # Update L1 access/PageRank state after retrieval
         wrapper_populate_cache(index._l1_cache, retrieved)
         pagerank_scores = {f["frame_idx"]: f.get("pagerank_score", 0.0) for f in retrieved}
@@ -778,12 +897,23 @@ def _call_embed_query(question: str, config: Any) -> tuple[np.ndarray, dict]:
     return res, {}
 
 
+def _claim_text(claim: Any) -> str:
+    """Extract the human-readable text of any Claim subtype (VisualClaim.assertion,
+    MetadataClaim.source_text, AbsenceClaim.event, GlobalClaim.text) for the
+    legacy-shaped verified/rejected/unverifiable string lists below."""
+    for attr in ("assertion", "source_text", "event", "text"):
+        val = getattr(claim, attr, None)
+        if val is not None:
+            return val
+    return str(claim)
+
+
 def _query_v2(question: str, index: IRISIndex, config: Any, choices: list[str] | None = None) -> dict:
     """cerberus_mode="v2" path: AnswerClaims JSON contract, layer 1/2/3
     router (iris.cerberus_layers.verify_answer), answer badge. Retrieval
     and lazy-captioning are identical to the legacy path -- only ARIA's
     prompt/parse and the verification step differ."""
-    from iris.cerberus_layers import Evidence, get_nli_gate, verify_answer
+    from iris.cerberus_layers import Evidence, _label_class, get_nli_gate, verify_answer
 
     t_l2_start = time.monotonic()
     query_embedding, embed_telemetry = _call_embed_query(question, config)
@@ -826,6 +956,9 @@ def _query_v2(question: str, index: IRISIndex, config: Any, choices: list[str] |
         claim_verdicts: list[dict] = []
         core_claim_verdict: dict | None = None
         is_verified = False
+        verified_claims: list[str] = []
+        rejected_claims: list[str] = []
+        unverifiable_claims: list[str] = []
         t_cerberus = 0.0
     else:
         t_cerberus_start = time.monotonic()
@@ -843,10 +976,32 @@ def _query_v2(question: str, index: IRISIndex, config: Any, choices: list[str] |
         core_claim_verdict = verification.core_claim_verdict.to_dict() if verification.core_claim_verdict else None
         is_verified = bool(badge in ("verified", "partially_verified", "partial"))
 
+        # Legacy-shaped claim-text buckets (schema parity for callers like
+        # pipeline.py's debug_info that predate v2 and read these keys).
+        verified_claims = [
+            _claim_text(v.claim) for v in verification.claim_verdicts if _label_class(v.label) == "pass"
+        ]
+        rejected_claims = [
+            _claim_text(v.claim) for v in verification.claim_verdicts if _label_class(v.label) == "reject"
+        ]
+        unverifiable_claims = [
+            _claim_text(v.claim) for v in verification.claim_verdicts if _label_class(v.label) == "unverifiable"
+        ]
+
+    # Badge-consistent final answer: mirrors legacy's abstention contract
+    # (present real content only when is_verified, else the same abstention
+    # message) rather than always surfacing the raw, possibly-unverified text.
+    final_answer = raw_answer if is_verified else "Insufficient verified evidence to answer this question."
+
     return {
-        "answer": raw_answer,
+        "answer": final_answer,
         "raw_answer": raw_answer,
+        "context_text": context_text,
         "verified": is_verified,
+        "nli_mocked": False,
+        "verified_claims": verified_claims,
+        "rejected_claims": rejected_claims,
+        "unverifiable_claims": unverifiable_claims,
         "answer_claims": answer_claims.to_dict() if answer_claims is not None else None,
         "compliance_failed": compliance_failed,
         "compliance_attempts": attempts,
@@ -854,7 +1009,7 @@ def _query_v2(question: str, index: IRISIndex, config: Any, choices: list[str] |
         "badge": badge,
         "claim_verdicts": claim_verdicts,
         "core_claim_verdict": core_claim_verdict,
-        "predicted_choice_idx": _match_predicted_choice(raw_answer, choices),
+        "predicted_choice_idx": _match_predicted_choice(final_answer, choices),
         "frames_processed": index.frames_processed,
         "peak_count": index.peak_count,
         "compression_ratio": index.skipped_frames_ratio,
@@ -880,13 +1035,16 @@ def _query_v2(question: str, index: IRISIndex, config: Any, choices: list[str] |
     }
 
 
-def query(question: str, index: IRISIndex, config: Any = None, choices: list[str] | None = None) -> dict:
+def query(question: str, index: IRISIndex, config: Any = None, choices: list[str] | None = None,
+          debug_context: dict | None = None) -> dict:
     """Answer one question against a loaded index. No video read, no graph rebuild.
     Returns the same result-dict shape as pipeline.run_pipeline (parity target).
 
-    Dispatches to _query_v2 when config.cerberus_mode == "v2"; the legacy
-    body below this check is otherwise completely unchanged (default
-    cerberus_mode="legacy" -> zero behavior change).
+    Dispatches to _query_v2 when config.cerberus_mode == "v2" (the default);
+    the legacy body below this check is otherwise completely unchanged and
+    only runs when cerberus_mode="legacy" is passed explicitly. Note:
+    debug_trace instrumentation (iris.debug_trace.DebugTrace) is wired into
+    the legacy body only -- _query_v2 has no debug-trace integration yet.
 
     choices: optional multiple-choice option strings (e.g. NExT-QA/NExT-GQA's
     5 options). Never pass the gold answer index/text here -- only the
@@ -896,21 +1054,52 @@ def query(question: str, index: IRISIndex, config: Any = None, choices: list[str
     returned "predicted_choice_idx" is a best-effort post-hoc match of the
     free-text answer back to a choice index (None if ambiguous/unmatched),
     for external Acc@QA-style scoring -- the pipeline itself never compares
-    against a gold index."""
+    against a gold index.
+
+    debug_context: optional dict of benchmark/manual-query metadata
+    ({video_id, question_id, question_type, split, ground_truth_answer,
+    ground_truth_options}) attached to the debug trace when
+    config.debug_trace is True (see iris.debug_trace). Purely additive
+    instrumentation -- has no effect on retrieval, captioning, prompting,
+    verification, or the returned answer when debug_trace is False (the
+    default), and every field is optional even when it is True.
+    """
     config = _config_from_index(index, config)
 
     if getattr(config, "cerberus_mode", "legacy") == "v2":
         return _query_v2(question, index, config, choices=choices)
 
+    trace = None
+    if getattr(config, "debug_trace", False):
+        from iris.debug_trace import DebugTrace
+        dctx = debug_context or {}
+        video_id = dctx.get("video_id")
+        if video_id is None:
+            from pathlib import Path as _Path
+            video_id = _Path(str(index.video_path)).stem
+        trace = DebugTrace.start(
+            out_root=getattr(config, "debug_trace_dir", "debug_traces"),
+            video_id=video_id, question=question,
+            question_type=dctx.get("question_type"), question_id=dctx.get("question_id"),
+            split=dctx.get("split"),
+        )
+        trace.set_ground_truth(dctx.get("ground_truth_answer"), dctx.get("ground_truth_options") or choices)
+
     t_l2_start = time.monotonic()
     query_embedding, embed_telemetry = _call_embed_query(question, config)
-    retrieved_frames, l1_telemetry = _retrieve_with_l1(index, query_embedding, config)
+    retrieval_trace = {} if trace is not None else None
+    retrieved_frames, l1_telemetry = _retrieve_with_l1(index, query_embedding, config, trace=retrieval_trace)
     t_l2 = time.monotonic() - t_l2_start
+    if trace is not None:
+        trace.retrieval = retrieval_trace or {}
+        trace.timings["retrieval_time"] = t_l2
+        trace.capture_frames(str(index.video_path), retrieved_frames)
 
     t_caption_start = time.monotonic()
+    caption_trace = {} if trace is not None else None
     try:
         try:
-            frames_decoded_for_captions = _ensure_captions(index, retrieved_frames, config, question=question, choices=choices)
+            frames_decoded_for_captions = _ensure_captions(index, retrieved_frames, config, question=question, choices=choices, trace=caption_trace)
         except TypeError:
             try:
                 frames_decoded_for_captions = _ensure_captions(index, retrieved_frames, config)
@@ -919,6 +1108,35 @@ def query(question: str, index: IRISIndex, config: Any = None, choices: list[str
     finally:
         aria.unload_captioner()
     t_caption = time.monotonic() - t_caption_start
+    if trace is not None:
+        # Full captions list for every RETRIEVED frame (task step 5), not just
+        # frames newly captioned in this call -- a frame already captioned by
+        # an earlier query against the same loaded index is a cache hit
+        # (FrameRecord.caption survives across queries, see _ensure_captions'
+        # docstring) and must still appear here with its existing caption
+        # text, just with caption_generation_time=None (not measured now).
+        newly_timed = {c["frame_idx"]: c for c in (caption_trace or {}).get("captions", [])}
+        full_captions = []
+        for f in retrieved_frames:
+            if f["frame_idx"] in newly_timed:
+                full_captions.append(newly_timed[f["frame_idx"]])
+                continue
+            cap = f.get("caption")
+            cap_text = cap.get("semantic_caption") if isinstance(cap, dict) else cap
+            full_captions.append({
+                "frame_idx": f["frame_idx"],
+                "timestamp": f["timestamp"],
+                "caption": cap_text,
+                "caption_length": len(cap_text) if cap_text else 0,
+                "caption_generation_time": None,  # cache hit: already captioned by an earlier query on this index
+            })
+        trace.captions = full_captions
+        trace.timings["caption_time"] = t_caption
+        try:
+            active_captioner = aria.get_captioner(config)
+            trace.set_captioner_info(type(active_captioner).__name__, getattr(active_captioner, "model_name", None))
+        except Exception:  # noqa: BLE001
+            trace.set_captioner_info(None, None)
 
     t_elysium_start = time.monotonic()
     cache_obj = wrapper_init_l1_cache(config)
@@ -928,14 +1146,28 @@ def query(question: str, index: IRISIndex, config: Any = None, choices: list[str
     t_aria_start = time.monotonic()
     context_text = cache_obj.as_context_text()
     answer_prompt = _build_answer_prompt(question, choices)
+    if trace is not None:
+        trace.timings["prompt_construction_time"] = time.monotonic() - t_aria_start
+    t_granite_start = time.monotonic()
+    granite_debug_capture = {} if trace is not None else None
     raw_answer = aria.generate(
         prompt=answer_prompt,
         context=context_text,
         model=getattr(config, "answerer_model", None),
         max_tokens=getattr(config, "answerer_max_tokens", None),
         config=config,
+        debug_capture=granite_debug_capture,
     )
+    t_granite = time.monotonic() - t_granite_start
     t_aria = time.monotonic() - t_aria_start
+    if trace is not None:
+        trace.timings["granite_generation_time"] = t_granite
+        trace.set_granite(
+            debug_capture=granite_debug_capture or {}, context_text=context_text,
+            focus_hint=_build_focus_hint(question, choices),
+            verification_instructions=None,  # cerberus_mode="legacy" verifies post-hoc via NLI/NER, not a second generative prompt -- see verification stage
+            raw_answer=raw_answer, generation_time=t_granite,
+        )
 
     claims = _split_claims(raw_answer)
 
@@ -944,11 +1176,27 @@ def query(question: str, index: IRISIndex, config: Any = None, choices: list[str
     is_verified, verified_claims, rejected_claims, unverifiable_claims, is_mocked = \
         wrapper_cerberus_gate(claims, cache_obj, max_score, config)
     t_cerberus = time.monotonic() - t_cerberus_start
+    if trace is not None:
+        trace.timings["cerberus_verification_time"] = t_cerberus
+        trace.set_verification(is_verified, verified_claims, rejected_claims, unverifiable_claims)
 
     if verified_claims:
         final_answer = " ".join(verified_claims)
     else:
         final_answer = "Insufficient verified evidence to answer this question."
+
+    if trace is not None:
+        dctx = debug_context or {}
+        trace.set_final_answer(
+            raw_answer=raw_answer, verified_answer=final_answer,
+            ground_truth_answer=dctx.get("ground_truth_answer"),
+            comparison_method="exact_match",
+        )
+        try:
+            trace.finalize()
+        except Exception:  # noqa: BLE001
+            # Debug-trace finalization must never break the real query response.
+            pass
 
     return {
         "answer": final_answer,

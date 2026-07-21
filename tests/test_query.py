@@ -1,10 +1,12 @@
 import inspect
+import re
 
 import numpy as np
 import pytest
 
 import iris.pipeline as p
 import iris.query as q
+from iris.iris_config import IRISConfig
 from iris.types import IRISIndex, FrameRecord
 
 
@@ -25,6 +27,97 @@ def test_split_claims_deterministic():
         "It then sits down near a table.",
         "short A second person enters from the left side.",
     ]
+
+
+# 2a. FIX 1 regression: bold-strip must preserve inline emphasis content, not
+# delete it. Real granite4:micro output (debug_traces/4279106208__q10) --
+# before the fix, "**ensure the child's safety**" was deleted entirely,
+# leaving CerberusV nothing to verify the actual answer content against.
+def test_split_claims_preserves_bolded_answer_content():
+    raw = (
+        "The lady held onto the child when going down the slide together primarily to "
+        "**ensure the child's safety** (Option B). This conclusion is supported by "
+        "multiple frames showing the lady holding the child while sliding, with captions "
+        "consistently emphasizing her actions were taken to prevent slipping or falling "
+        "and maintain playfulness in a safe environment."
+    )
+    claims = q._split_claims(raw)
+    assert any("ensure the child's safety" in c for c in claims), (
+        f"bolded answer content did not survive claim splitting: {claims}"
+    )
+    # and the bold label-stripping behavior (word(s)+colon inside **) is untouched
+    assert q._split_claims("**Summary:** A figure walks across the room.") == [
+        "A figure walks across the room.",
+    ]
+
+
+# 2b. FIX 2 regression: multiple-choice letter labels ("A." .. "E.") embedded
+# mid-answer must not be mistaken for sentence-ending punctuation. Real
+# granite4:micro output (debug_traces/3261079025__q4) -- before the fix, the
+# per-option reasoning fragmented with each NEXT option's letter orphaned
+# onto the END of the CURRENT option's explanation (e.g. "...himself B."),
+# and the answer-defining first sentence "The best answer is D." was split
+# away from "stabilize it.", its own explanation.
+_MC_RAW_ANSWER = (
+    'The best answer is D. stabilize it.\n\n'
+    'In all of the frames, there is consistent evidence that one of the men had to hold '
+    'onto the model airplane in order to provide stabilization during takeoff. The captions '
+    'repeatedly mention holding onto the plane due to strong wind or instability, which '
+    'directly supports the need for stabilization (option D) before the aircraft could '
+    'safely lift off.\n\n'
+    'For example:\n'
+    '- Frame 174 states "One man holds onto the plane due to strong wind or instability '
+    'during takeoff."\n'
+    '- Frame 171 mentions that one man held onto the plane "to ensure stabilization during '
+    'takeoff" as strong winds made it difficult for the plane to take off without support.\n'
+    '- Frames 219 and 197 both describe holding onto the plane "for stability during '
+    'takeoff."\n\n'
+    'The other options are not supported by the evidence:\n'
+    'A. support himself - There is no mention of the man needing to hold onto himself\n'
+    "B. strong wind - While this is a contributing factor, it doesn't fully explain why "
+    'stabilization was necessary\n'
+    'C. the boy could not control it - The captions do not suggest any issue with '
+    'controlling the plane\n'
+    'E. taking off - This option is too vague and does not capture the specific need for '
+    'stabilization mentioned in the frames\n\n'
+    'Therefore, based on the consistent evidence of strong wind conditions requiring '
+    'stabilization to ensure a safe takeoff, option D (stabilize it) is the best answer '
+    'supported by the provided frame captions.'
+)
+
+
+def test_split_claims_keeps_option_letters_attached_to_own_explanation():
+    claims = q._split_claims(_MC_RAW_ANSWER)
+
+    # The answer-defining sentence must not be severed from its own explanation.
+    assert "The best answer is D. stabilize it." in claims
+
+    # The real invariant this fix guarantees: each option letter's full
+    # explanation, in order, forms one INTACT, UNBROKEN run of text within a
+    # SINGLE claim -- i.e. it was never split apart and then had another
+    # option's letter glued onto its tail (the old bug: "...himself B." as
+    # the END of one claim, "strong wind - ..." as the START of the next).
+    # A naive substring-absence check on fragments like "...himself B." can't
+    # distinguish that from the CORRECT outcome (B.'s own explanation
+    # immediately follows within the same claim) -- so assert the whole
+    # multi-option block is one contiguous substring of a single claim.
+    full_options_block = (
+        "A. support himself - There is no mention of the man needing to hold onto himself "
+        "B. strong wind - While this is a contributing factor, it doesn't fully explain why "
+        "stabilization was necessary "
+        "C. the boy could not control it - The captions do not suggest any issue with "
+        "controlling the plane "
+        "E. taking off - This option is too vague and does not capture the specific need for "
+        "stabilization mentioned in the frames"
+    )
+    assert any(full_options_block in c for c in claims), (
+        f"option block was not preserved intact within a single claim.\nclaims={claims}"
+    )
+
+    # And confirm no claim is a truncated fragment ending exactly on an
+    # option letter with nothing after it (the old bug's shape).
+    for c in claims:
+        assert not re.search(r'\b[A-E]\.\s*$', c.strip()), f"claim ends on a bare orphaned option letter: {c!r}"
 
 
 # 3. query() wiring is hermetic: fake graph + patched aria + patched cerberus
@@ -76,7 +169,7 @@ def test_query_wiring(monkeypatch):
                         lambda claims, cache, score, config: (True, list(claims), [], [], False))
 
     idx = _index_with_fake_graph()
-    res = q.query("what happens?", idx)
+    res = q.query("what happens?", idx, config=IRISConfig(cerberus_mode="legacy"))
 
     assert res["frames_processed"] == 4
     assert res["peak_count"] == 1
@@ -110,7 +203,7 @@ def test_query_wiring_with_choices(monkeypatch):
 
     idx = _index_with_fake_graph()
     choices = ["red shirt", "blue shirt", "green shirt"]
-    res = q.query("what color is her shirt?", idx, choices=choices)
+    res = q.query("what color is her shirt?", idx, config=IRISConfig(cerberus_mode="legacy"), choices=choices)
 
     assert "A. red shirt" in captured_prompt["prompt"]
     assert "B. blue shirt" in captured_prompt["prompt"]
@@ -136,10 +229,11 @@ def test_parity_old_vs_new(monkeypatch):
     monkeypatch.setattr(q.aria, "generate", lambda prompt, context, *args, **kwargs: FIXED)
 
     question = "What is happening in this video?"
+    legacy_cfg = IRISConfig(cerberus_mode="legacy")
 
-    old = pipeline.run_pipeline(VIDEO, question)
+    old = pipeline.run_pipeline(VIDEO, question, config=legacy_cfg)
     index = ingest(VIDEO)
-    new = q.query(question, index)
+    new = q.query(question, index, config=legacy_cfg)
 
     # deterministic structural parity
     assert new["frames_processed"] == old["frames_processed"]

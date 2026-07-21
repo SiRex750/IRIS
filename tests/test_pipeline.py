@@ -99,15 +99,21 @@ def test_pipeline_integration(bbb_video):
         assert isinstance(result["rejected_claims"], list)
         assert isinstance(result["unverifiable_claims"], list)
 
-        # Fix 9b: is_verified must be consistent with the 3-way breakdown
-        expected_verified = (
-            len(result["rejected_claims"]) == 0
-            and len(result["unverifiable_claims"]) == 0
-        )
-        assert result["verified"] == expected_verified, (
-            f"is_verified={result['verified']} but rejected={result['rejected_claims']} "
-            f"unverifiable={result['unverifiable_claims']}"
-        )
+        # Mode-agnostic invariant: a rejected claim anywhere must never
+        # coexist with an overall "verified" result. This holds under both
+        # cerberus_mode="legacy" (strict: verified requires zero rejected AND
+        # zero unverifiable) and "v2" (badge system: any rejection anywhere
+        # forces badge="flagged", which is excluded from is_verified) -- but
+        # the reverse (zero rejected+unverifiable implies verified) does NOT
+        # hold under v2, where compliance_failed (JSON-contract parse
+        # failure) can also produce is_verified=False with empty claim lists,
+        # and "partial" badge intentionally counts as verified despite a
+        # nonzero unverifiable non-core claim. Don't hardcode legacy's
+        # stricter all-or-nothing formula here.
+        if result["rejected_claims"]:
+            assert result["verified"] is False, (
+                f"verified=True despite rejected_claims={result['rejected_claims']}"
+            )
 
         # verbose debug_info must include context_text and unverifiable_claims
         assert "context_text" in result["debug_info"]

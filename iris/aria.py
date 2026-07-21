@@ -401,7 +401,8 @@ class LLMBackend:
     def generate(self, prompt: str, context: str, model: str | None = None,
                  system_prompt: str | None = None, response_format: dict | None = None,
                  max_tokens: int | None = None, schema_format: bool = False,
-                 seed: int | None = None, keep_alive: int | None = None) -> str:
+                 seed: int | None = None, keep_alive: int | None = None,
+                 debug_capture: dict | None = None) -> str:
         raise NotImplementedError("LLM backend must implement generate()")
 
 
@@ -426,13 +427,23 @@ class LlamaBackend(LLMBackend):
     def generate(self, prompt: str, context: str, model: str | None = None,
                  system_prompt: str | None = None, response_format: dict | None = None,
                  max_tokens: int | None = None, schema_format: bool = False,
-                 seed: int | None = None, keep_alive: int | None = 0) -> str:
+                 seed: int | None = None, keep_alive: int | None = 0,
+                 debug_capture: dict | None = None) -> str:
+        # debug_capture: optional dict, populated in-place with the EXACT
+        # system/user prompt sent and the finish_reason/token usage the API
+        # returned, when not None. Read-only instrumentation for
+        # iris.debug_trace -- never changes the prompt built below or the
+        # string returned by this method.
         model_name = model or self.text_model
         sys_prompt = system_prompt if system_prompt is not None else _SYSTEM_PROMPT
         messages = [
             {"role": "system", "content": sys_prompt + f"Provided Frame Evidence and Retrieval Context:\n{context}"},
             {"role": "user", "content": prompt},
         ]
+        if debug_capture is not None:
+            debug_capture["system_prompt"] = messages[0]["content"]
+            debug_capture["user_prompt"] = messages[1]["content"]
+            debug_capture["model"] = model_name
         if schema_format:
             # Schema-constrained decoding (grammar-guaranteed structure) needs
             # Ollama's NATIVE /api/chat endpoint with format=<json-schema
@@ -467,6 +478,12 @@ class LlamaBackend(LLMBackend):
             resp = requests.post(f"{native_base}/api/chat", json=payload, timeout=600)
             resp.raise_for_status()
             data = resp.json()
+            if debug_capture is not None:
+                debug_capture["finish_reason"] = data.get("done_reason")
+                debug_capture["usage"] = {
+                    "prompt_tokens": data.get("prompt_eval_count"),
+                    "completion_tokens": data.get("eval_count"),
+                }
             return data["message"]["content"]
         if response_format is not None:
             # Best-effort: not every Ollama/openai-client version supports
@@ -484,6 +501,10 @@ class LlamaBackend(LLMBackend):
                 if max_tokens is not None:
                     kwargs["max_tokens"] = max_tokens
                 response = self.client.chat.completions.create(**kwargs)
+                if debug_capture is not None:
+                    debug_capture["finish_reason"] = response.choices[0].finish_reason
+                    usage = getattr(response, "usage", None)
+                    debug_capture["usage"] = usage.to_dict() if usage and hasattr(usage, "to_dict") else None
                 return response.choices[0].message.content
             except Exception:
                 pass
@@ -495,6 +516,10 @@ class LlamaBackend(LLMBackend):
         if max_tokens is not None:
             kwargs["max_tokens"] = max_tokens
         response = self.client.chat.completions.create(**kwargs)
+        if debug_capture is not None:
+            debug_capture["finish_reason"] = response.choices[0].finish_reason
+            usage = getattr(response, "usage", None)
+            debug_capture["usage"] = usage.to_dict() if usage and hasattr(usage, "to_dict") else None
         return response.choices[0].message.content
 
 
@@ -541,17 +566,27 @@ class LlamaServerBackend(LLMBackend):
     def generate(self, prompt: str, context: str, model: str | None = None,
                  system_prompt: str | None = None, response_format: dict | None = None,
                  max_tokens: int | None = None, schema_format: bool = False,
-                 seed: int | None = None, keep_alive: int | None = None) -> str:
+                 seed: int | None = None, keep_alive: int | None = None,
+                 debug_capture: dict | None = None) -> str:
         # keep_alive is an Ollama-specific model-lifecycle parameter (see
         # LlamaBackend); llama-server has no such concept and already
         # disables its own analogous prompt-cache reuse via cache_prompt=False
         # below, so this argument is accepted for interface parity and ignored.
+        # debug_capture: optional dict, populated in-place with the EXACT
+        # system/user prompt sent and the finish_reason/token usage the API
+        # returned, when not None. Read-only instrumentation for
+        # iris.debug_trace -- never changes the prompt built below or the
+        # string returned by this method.
         model_name = model or self.text_model
         sys_prompt = system_prompt if system_prompt is not None else _SYSTEM_PROMPT
         messages = [
             {"role": "system", "content": sys_prompt + f"Provided Frame Evidence and Retrieval Context:\n{context}"},
             {"role": "user", "content": prompt},
         ]
+        if debug_capture is not None:
+            debug_capture["system_prompt"] = messages[0]["content"]
+            debug_capture["user_prompt"] = messages[1]["content"]
+            debug_capture["model"] = model_name
 
         # 2. Existing path (for non-schema or mock client unit tests)
         kwargs = {
@@ -601,9 +636,17 @@ class LlamaServerBackend(LLMBackend):
                 }
                 resp = requests.post(f"{self.endpoint}/chat/completions", json=payload, timeout=self.timeout)
                 resp.raise_for_status()
-                return resp.json()["choices"][0]["message"]["content"]
+                data = resp.json()
+                if debug_capture is not None:
+                    debug_capture["finish_reason"] = data["choices"][0].get("finish_reason")
+                    debug_capture["usage"] = data.get("usage")
+                return data["choices"][0]["message"]["content"]
 
             response = self.client.chat.completions.create(**kwargs)
+            if debug_capture is not None:
+                debug_capture["finish_reason"] = response.choices[0].finish_reason
+                usage = getattr(response, "usage", None)
+                debug_capture["usage"] = usage.to_dict() if usage and hasattr(usage, "to_dict") else None
             return response.choices[0].message.content
         except Exception as e:
             # Fall back to native llama-server /completion endpoint
@@ -633,7 +676,14 @@ class LlamaServerBackend(LLMBackend):
             try:
                 resp = requests.post(f"{native_base}/completion", json=payload, timeout=self.timeout)
                 resp.raise_for_status()
-                return resp.json()["content"]
+                data = resp.json()
+                if debug_capture is not None:
+                    debug_capture["finish_reason"] = data.get("stop_type") or data.get("stopped_eos")
+                    debug_capture["usage"] = {
+                        "prompt_tokens": data.get("tokens_evaluated"),
+                        "completion_tokens": data.get("tokens_predicted"),
+                    }
+                return data["content"]
             except Exception:
                 raise e
 
@@ -666,7 +716,8 @@ class OpenAIBackend(LLMBackend):
     def generate(self, prompt: str, context: str, model: str | None = None,
                  system_prompt: str | None = None, response_format: dict | None = None,
                  max_tokens: int | None = None, schema_format: bool = False,
-                 seed: int | None = None, keep_alive: int | None = None) -> str:
+                 seed: int | None = None, keep_alive: int | None = None,
+                 debug_capture: dict | None = None) -> str:
         # keep_alive is an Ollama-specific model-lifecycle parameter (see
         # LlamaBackend); the real OpenAI API has no such concept, so this
         # argument is accepted for interface parity and ignored.
@@ -676,6 +727,10 @@ class OpenAIBackend(LLMBackend):
             {"role": "system", "content": sys_prompt + f"Provided Frame Evidence and Retrieval Context:\n{context}"},
             {"role": "user", "content": prompt},
         ]
+        if debug_capture is not None:
+            debug_capture["system_prompt"] = messages[0]["content"]
+            debug_capture["user_prompt"] = messages[1]["content"]
+            debug_capture["model"] = model_name
         kwargs = dict(model=model_name, messages=messages, temperature=0.0)
         if seed is not None:
             kwargs["seed"] = seed
@@ -689,6 +744,10 @@ class OpenAIBackend(LLMBackend):
         if max_tokens is not None:
             kwargs["max_tokens"] = max_tokens
         response = self.client.chat.completions.create(**kwargs)
+        if debug_capture is not None:
+            debug_capture["finish_reason"] = response.choices[0].finish_reason
+            usage = getattr(response, "usage", None)
+            debug_capture["usage"] = usage.to_dict() if usage and hasattr(usage, "to_dict") else None
         return response.choices[0].message.content
 
 
@@ -750,7 +809,8 @@ def set_backend(backend: LLMBackend) -> None:
     _BACKEND_OVERRIDDEN = True
 
 
-def generate(prompt: str, context: str, model: str | None = None, max_tokens: int | None = None, config: Any = None) -> str:
+def generate(prompt: str, context: str, model: str | None = None, max_tokens: int | None = None,
+             config: Any = None, debug_capture: dict | None = None) -> str:
     """
     Generate a response from the active LLM backend.
 
@@ -760,6 +820,9 @@ def generate(prompt: str, context: str, model: str | None = None, max_tokens: in
         model:   model identifier; if None, uses the backend's default
         max_tokens: max tokens limit for generation
         config: config snapshot to dynamically initialize the backend
+        debug_capture: optional dict, populated with the exact prompt sent and
+            finish_reason/usage returned, when not None (iris.debug_trace).
+            Never changes the prompt or the returned string.
 
     Returns:
         Raw string response from the model
@@ -767,11 +830,12 @@ def generate(prompt: str, context: str, model: str | None = None, max_tokens: in
     seed = getattr(config, "answerer_seed", 42) if config is not None else 42
     keep_alive = getattr(config, "answerer_keep_alive", 0) if config is not None else 0
     return get_backend(config).generate(prompt, context, model=model, max_tokens=max_tokens,
-                                         seed=seed, keep_alive=keep_alive)
+                                         seed=seed, keep_alive=keep_alive, debug_capture=debug_capture)
 
 
 def generate_v2(prompt: str, context: str, model: str | None = None,
-                 max_tokens: int | None = None, schema_format: bool = False, config: Any = None) -> str:
+                 max_tokens: int | None = None, schema_format: bool = False, config: Any = None,
+                 debug_capture: dict | None = None) -> str:
     """Cerberus v2 contract generation: _SYSTEM_PROMPT_V2 (AnswerClaims JSON
     schema + few-shot example) plus a best-effort format=json request to the
     backend.
@@ -786,6 +850,7 @@ def generate_v2(prompt: str, context: str, model: str | None = None,
         schema_format=schema_format,
         seed=seed,
         keep_alive=keep_alive,
+        debug_capture=debug_capture,
     )
 
 

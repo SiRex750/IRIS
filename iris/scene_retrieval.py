@@ -134,6 +134,7 @@ def retrieve_scene_sparse(
     query_embedding: np.ndarray,
     config: Any,
     scorer: SceneScorer | None = None,
+    trace: dict | None = None,
 ) -> list[dict]:
     """Coarse-prune to a scene shortlist via centroid similarity (2c-i), then
     gate on the max-sim margin between the best scene and the runner-up scene:
@@ -145,6 +146,14 @@ def retrieve_scene_sparse(
 
     Deterministic: pure function of stored fields (embeddings, scene_id,
     centroids, action_score), no RNG, stable tie-break by frame_idx.
+
+    trace: optional dict, populated in-place with the exact telemetry values
+    already computed for the `[scene_retrieval] ...` log line (scene ids,
+    scores, margin, tau, branch, base_pool, post_pull_pool,
+    cross_scene_edges_added) when not None. Read-only instrumentation hook
+    for iris.debug_trace -- does not affect which branch is taken, what is
+    returned, or any decision made by this function. None (default) costs
+    nothing extra beyond the `is not None` checks already guarding it.
     """
     # SCENE-002: Reject invalid query embeddings (all-zero or near-zero norm) before shortlist creation.
     q_norm = np.linalg.norm(query_embedding)
@@ -188,6 +197,21 @@ def retrieve_scene_sparse(
             f"[scene_retrieval] shortlisted {len(shortlisted_scene_ids)}/{num_scenes} scenes, "
             f"survivor pool = 0 frames, branch=shortcut (empty pool)"
         )
+        if trace is not None:
+            trace.update({
+                "shortlisted_scene_ids": sorted(shortlisted_scene_ids),
+                "num_scenes": num_scenes,
+                "scene_scores": dict(scene_ranking),
+                "branch": "shortcut",
+                "reason": "empty_pool",
+                "base_pool": 0,
+                "post_pull_pool": 0,
+                "margin": None,
+                "tau": None,
+                "cross_scene_edges_added": 0,
+                "retrieved_frame_idxs": [],
+                "retrieved_timestamps": [],
+            })
         return []
 
     pool_matrix = np.stack([np.asarray(fr.clip_embedding, dtype=np.float32) for fr in survivors])
@@ -246,6 +270,21 @@ def retrieve_scene_sparse(
             f"[scene_retrieval] shortlisted {len(shortlisted_scene_ids)}/{num_scenes} scenes, "
             f"base_pool={len(survivors)} margin={margin:.4f} tau={tau} branch=shortcut"
         )
+        if trace is not None:
+            trace.update({
+                "shortlisted_scene_ids": sorted(shortlisted_scene_ids),
+                "num_scenes": num_scenes,
+                "scene_scores": dict(scene_ranking),
+                "branch": "shortcut",
+                "margin": margin,
+                "tau": tau,
+                "base_pool": len(survivors),
+                "post_pull_pool": len(survivors),
+                "cross_scene_edges_added": 0,
+                "retrieved_frame_idxs": [f["frame_idx"] for f in exact_top],
+                "retrieved_timestamps": [f["timestamp"] for f in exact_top],
+                "retrieved_scores": [f["last_retrieval_score"] for f in exact_top],
+            })
         return exact_top
 
     # ── DESCEND ──────────────────────────────────────────────────────────
@@ -325,5 +364,21 @@ def retrieve_scene_sparse(
         f"margin={margin:.4f} tau={tau} branch=descend base_pool={len(survivors)} "
         f"post_pull_pool={len(pool_frames)} cross_scene_edges_added={cross_edges_added}"
     )
+
+    if trace is not None:
+        trace.update({
+            "shortlisted_scene_ids": sorted(shortlisted_scene_ids),
+            "num_scenes": num_scenes,
+            "scene_scores": dict(scene_ranking),
+            "branch": "descend",
+            "margin": margin,
+            "tau": tau,
+            "base_pool": len(survivors),
+            "post_pull_pool": len(pool_frames),
+            "cross_scene_edges_added": cross_edges_added,
+            "retrieved_frame_idxs": [f["frame_idx"] for f in result],
+            "retrieved_timestamps": [f["timestamp"] for f in result],
+            "retrieved_scores": [f["last_retrieval_score"] for f in result],
+        })
 
     return result
