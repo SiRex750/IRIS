@@ -83,3 +83,68 @@ span less often satisfies the strict threshold. lambda=0.25 -- mostly
 codec-driven with a modest semantic nudge to pick the *right* event, not
 just *an* eventful moment -- is the sweet spot for the strict, primary-tie-
 break metric this task selects on.
+
+## Family: ppr_damping
+
+Grid: [0.5, 0.65, 0.8, 0.85, 0.9]
+
+| value | mIoP | IoP@0.5 | mIoU | median_retrieval_ms | n_scored |
+|---|---|---|---|---|---|
+| 0.5 **<- selected** | 0.2777 | 0.2287 | 0.1937 | 4.0 | 2685 |
+| 0.65 | 0.2751 | 0.2179 | 0.1961 | 3.9 | 2685 |
+| 0.8 | 0.2735 | 0.2108 | 0.2021 | 3.9 | 2685 |
+| 0.85 | 0.2742 | 0.2101 | 0.2039 | 4.0 | 2685 |
+| 0.9 | 0.2728 | 0.2056 | 0.2052 | 4.1 | 2685 |
+
+Selected **ppr_damping = 0.5** (mIoP primary; IoP@0.5 tie-break if within 0.005; then lower median retrieval latency; then default).
+
+## Family: ppr_damping
+
+`ppr_damping` maps directly to `alpha` in `iris/l2_asphodel.py:1288`'s
+`nx.pagerank(g, weight="weight", personalization=seed, alpha=damping)` --
+networkx's standard PageRank damping factor, legal range (0,1) exclusive
+(already enforced by `IRISConfig._check(0.0 < self.ppr_damping < 1.0, ...)`).
+Confirmed from the actual call site, not assumed.
+
+Grid: [0.50, 0.65, 0.80, 0.85, 0.90]
+
+| value | mIoP | IoP@0.5 | mIoU | median_retrieval_ms | n_scored |
+|---|---|---|---|---|---|
+| 0.50 **<- selected (= default)** | 0.2777 | 0.2287 | 0.1937 | 4.0 | 2685 |
+| 0.65 | 0.2751 | 0.2179 | 0.1961 | 3.9 | 2685 |
+| 0.80 | 0.2735 | 0.2108 | 0.2021 | 3.9 | 2685 |
+| 0.85 | 0.2742 | 0.2101 | 0.2039 | 4.0 | 2685 |
+| 0.90 | 0.2728 | 0.2056 | 0.2052 | 4.1 | 2685 |
+
+Selected **ppr_damping = 0.50** -- the pre-tuning default. All 5 values are
+mutually within 0.005 mIoP of the top (max spread 0.0049), so the whole
+family is decided by the IoP@0.5 tie-break, which favors 0.50 clearly and
+monotonically over every other value tested. This is the STOP CONDITION's
+"tuned value does not beat default" case, reported as a genuine negative
+result -- no ppr_damping deviation from 0.50 is adopted.
+
+mIoU (not the selection metric) increases with damping (0.1937 at 0.5 ->
+peak 0.2052 at 0.9) -- the same disagreement pattern as Families 1 and 2:
+a looser/union-normalized metric favors more diffusion, while the strict
+IoP@0.5 tie-break favors less.
+
+Mechanistic read: damping (`alpha`) controls how much PageRank mass
+continues propagating outward along graph edges vs. teleporting back to the
+personalized seed distribution at each iteration. Low damping keeps
+PageRank mass concentrated near the directly-seeded, highest-relevance
+frames; high damping lets relevance diffuse further through the graph to
+seed-adjacent-but-not-seed frames before resetting, broadening the
+effective candidate pool the top-k draws from. That broader pool raises
+mIoU (better union-normalized coverage on average) but hurts IoP@0.5 (the
+selection landing precisely inside a short gold window becomes less
+likely) -- the same "concentration helps precision, diffusion helps
+union-coverage" trade-off already seen with `ppr_lambda` in Family 2, just
+driven by a different graph-propagation mechanism.
+
+**Honesty check on magnitude:** this family's move is effectively zero --
+the winner IS the untouched default, not a new value discovered by tuning.
+Compared to Family 2's real (if modest) +0.0134 IoP@0.5 gain from tuning
+`ppr_lambda` away from its default, Family 3 found no improvement available
+at all in this parameter. Not inflating this into a "damping was
+confirmed optimal" success story beyond what it is: a clean negative
+result on a 5-point grid.

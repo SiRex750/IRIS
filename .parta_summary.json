@@ -1,0 +1,34 @@
+{
+  "n_total_questions": 2685,
+  "n_survived": 2681,
+  "ceiling": 0.9985102420856611,
+  "by_family": {
+    "causal": {
+      "rate": 0.9980818414322251,
+      "n": 1564
+    },
+    "temporal": {
+      "rate": 0.9991079393398751,
+      "n": 1121
+    },
+    "other": {
+      "rate": null,
+      "n": 0
+    }
+  },
+  "by_span_bucket": {
+    "short (<=2.5s)": {
+      "rate": 0.9918032786885246,
+      "n": 488
+    },
+    "long (>2.5s)": {
+      "rate": 1.0,
+      "n": 2197
+    }
+  },
+  "failure_cluster": {
+    "n_failures": 4,
+    "failure_median_retention_pct": 13.415,
+    "success_median_retention_pct": 13.404
+  }
+}
