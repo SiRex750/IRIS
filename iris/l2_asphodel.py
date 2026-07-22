@@ -921,6 +921,8 @@ class L2Asphodel:
         top_k: int = 5,
         damping: float = 0.5,
         lambda_: float = 0.5,
+        *,
+        graph_override: "nx.Graph | None" = None,
     ) -> list[AsphodelNode]:
         """
         Codec-discounted Personalized PageRank retrieval (6.2b mechanism).
@@ -935,10 +937,34 @@ class L2Asphodel:
         a degenerate query would make sem_rank uniform, which collapses PPR to
         unguided PageRank and yields unpredictable results. Let the fallback
         sort (action_score + luma_diff_energy) take over instead.
+
+        graph_override: If provided, run PPR over this graph instead of
+            self.graph.  Used by the scene_sparse DESCEND path to run PPR
+            over a temporary induced subgraph copy without mutating the
+            production graph.  Every node in the override graph must carry
+            a 'node_data' attribute.  When None (the default), the method is
+            fully backward-compatible with its pre-patch behaviour.
         """
-        node_ids = list(self.graph.nodes)
+        # Resolve the graph to operate on.  This single binding is the only
+        # place where the choice between the production graph and the override
+        # is made.  Everything below uses `g` — there is no remaining
+        # self.graph reference inside the PPR computation.
+        g: nx.Graph = graph_override if graph_override is not None else self.graph
+
+        node_ids = list(g.nodes)
         if not node_ids:
             return []
+
+        # Validate override nodes carry node_data (fail-fast; do not silently
+        # degrade into AttributeError deep inside the ranking loop).
+        if graph_override is not None:
+            for nid in node_ids:
+                if g.nodes[nid].get("node_data") is None:
+                    raise KeyError(
+                        f"retrieve_ppr: graph_override node {nid!r} has no "
+                        f"'node_data' attribute.  All nodes in the override graph "
+                        f"must carry an AsphodelNode as 'node_data'."
+                    )
 
         # SCENE-002: Reject zero-norm query embedding before computing sem_rank
         if query_embedding is not None:
@@ -954,7 +980,7 @@ class L2Asphodel:
         # Semantic similarity (ReLU-clamped cosine)
         raw_sem: dict = {}
         for nid in node_ids:
-            node = self.graph.nodes[nid]["node_data"]
+            node = g.nodes[nid]["node_data"]
             sem = 0.0
             if query_embedding is not None and node.embedding is not None:
                 norm_node = np.linalg.norm(node.embedding)
@@ -967,7 +993,7 @@ class L2Asphodel:
         sem_rank = _rank_pct(raw_sem)
 
         # Rank-percentile of pre-computed codec_conf (do NOT re-normalize the values themselves)
-        raw_codec = {nid: self.graph.nodes[nid]["node_data"].codec_conf for nid in node_ids}
+        raw_codec = {nid: g.nodes[nid]["node_data"].codec_conf for nid in node_ids}
         codec_rank = _rank_pct(raw_codec)
 
         # Additive rank-space blend, ReLU, sum-normalize
@@ -984,7 +1010,7 @@ class L2Asphodel:
 
         try:
             pr = nx.pagerank(
-                self.graph,
+                g,
                 weight="weight",
                 personalization=seed,
                 alpha=damping,
@@ -992,11 +1018,11 @@ class L2Asphodel:
         except (nx.NetworkXError, ZeroDivisionError):
             # L2-006: Narrowed from bare except to only catch expected failures.
             # Other exceptions (memory, unexpected graph state) should propagate.
-            pr = nx.pagerank(self.graph, weight="weight", personalization=None, alpha=damping)
+            pr = nx.pagerank(g, weight="weight", personalization=None, alpha=damping)
             teleport_fallback = True
 
         for nid, score in pr.items():
-            node = self.graph.nodes[nid]["node_data"]
+            node = g.nodes[nid]["node_data"]
             node.last_retrieval_score = score
             node.retrieval_contributions = {
                 "sem_rank":        sem_rank[nid],
@@ -1010,7 +1036,7 @@ class L2Asphodel:
             }
 
         sorted_ids = sorted(pr, key=lambda k: pr[k], reverse=True)
-        return [self.graph.nodes[k]["node_data"] for k in sorted_ids[:top_k]]
+        return [g.nodes[k]["node_data"] for k in sorted_ids[:top_k]]
 
     def export_graph_data(self, max_edges: int | None = None) -> dict:
         """Export the actual L2 graph for debugging/UI visualization.
