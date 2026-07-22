@@ -1,7 +1,7 @@
 {
   "frozen": {
     "retrieval_strategy": "hybrid",
-    "ppr_lambda": 0.25,
+    "ppr_lambda": 0.5,
     "ppr_damping": 0.5,
     "l2_retrieve_top_k": 4
   },

@@ -11,6 +11,8 @@ For multiple gold spans, take the max-overlap span (never concatenate).
 """
 from __future__ import annotations
 
+import numpy as np
+
 
 def get_tIoU(gold_span: tuple[float, float], pred_span: tuple[float, float]) -> tuple[float, float]:
     g0, g1 = gold_span
@@ -51,8 +53,35 @@ def _frame_score(frame: dict) -> float:
     return score
 
 
+def _pick_peak_by_clip(retrieved_frames: list[dict], query_embedding) -> dict | None:
+    """Highest CLIP-cosine frame WITHIN the already-retrieved pool.
+    Returns None when unavailable (caller must fall back to retrieved_frames[0]
+    explicitly and record that fallback -- never let this fail silently)."""
+    if query_embedding is None:
+        return None
+    q = np.asarray(query_embedding, dtype=np.float32).ravel()
+    qn = float(np.linalg.norm(q))
+    if qn == 0.0:
+        return None
+    q = q / qn
+    best, best_sim = None, -1.0
+    for fr in retrieved_frames:
+        emb = fr.get("clip_embedding")
+        if emb is None:
+            continue
+        v = np.asarray(emb, dtype=np.float32).ravel()
+        vn = float(np.linalg.norm(v))
+        if vn == 0.0:
+            continue
+        sim = float(np.dot(q, v / vn))
+        if sim > best_sim:
+            best, best_sim = fr, sim
+    return best
+
+
 def predicted_span_from_frames_clustered(
     retrieved_frames: list[dict], gap_threshold_s: float = 3.0, tail_trim_pct: float = 20.0,
+    query_embedding=None,
 ) -> tuple[float, float]:
     """Method B (Part 3c): score-weighted temporal clustering + tail-trim.
 
@@ -85,7 +114,13 @@ def predicted_span_from_frames_clustered(
         else:
             clusters[-1].append(f)
 
-    best_cluster = max(clusters, key=lambda c: sum(_frame_score(f) for f in c))
+    anchor = _pick_peak_by_clip(retrieved_frames, query_embedding)
+    if anchor is not None:
+        anchor_idx = anchor["frame_idx"]
+        best_cluster = next((c for c in clusters if any(f["frame_idx"] == anchor_idx for f in c)),
+                             max(clusters, key=lambda c: sum(_frame_score(f) for f in c)))
+    else:
+        best_cluster = max(clusters, key=lambda c: sum(_frame_score(f) for f in c))
 
     n = len(best_cluster)
     n_drop = int(n * tail_trim_pct / 100.0)
@@ -98,6 +133,7 @@ def predicted_span_from_frames_clustered(
 
 def predicted_span_from_frames_scene(
     retrieved_frames: list[dict], scene_spans_map: dict[int, tuple[float, float]],
+    query_embedding=None,
 ) -> tuple[tuple[float, float], bool]:
     """Method C (Part 3c): look up the real scene boundary of the top-ranked
     retrieved frame (retrieved_frames[0], guaranteed rank-1 by
@@ -112,8 +148,8 @@ def predicted_span_from_frames_scene(
     if not retrieved_frames:
         return (0.0, 0.0), False
 
-    top = retrieved_frames[0]
-    scene_id = top.get("retrieval_contributions", {}).get("scene_id", -1)
+    top = _pick_peak_by_clip(retrieved_frames, query_embedding) or retrieved_frames[0]
+    scene_id = top.get("scene_id")
     if scene_id is not None and scene_id >= 0 and scene_id in scene_spans_map:
         return scene_spans_map[scene_id], False
 

@@ -61,8 +61,8 @@ def test_method_b_falls_back_to_last_retrieval_score():
 
 def test_method_c_looks_up_top_frame_scene():
     frames = [
-        {"timestamp": 5.0, "retrieval_contributions": {"scene_id": 2}},
-        {"timestamp": 50.0, "retrieval_contributions": {"scene_id": 7}},
+        {"timestamp": 5.0, "scene_id": 2},
+        {"timestamp": 50.0, "scene_id": 7},
     ]
     scene_spans = {2: (4.0, 6.5), 7: (49.0, 51.0)}
     span, fallback = predicted_span_from_frames_scene(frames, scene_spans)

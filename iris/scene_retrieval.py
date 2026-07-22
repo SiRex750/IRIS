@@ -76,6 +76,7 @@ def _frame_to_dict(fr: Any, sim: float) -> dict:
         "pagerank_score": 0.0,
         "last_retrieval_score": sim,
         "retrieval_contributions": {},
+        "scene_id": getattr(fr, "scene_id", None),
     }
 
 

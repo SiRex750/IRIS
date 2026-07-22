@@ -39,7 +39,7 @@ FRESH_CACHE_DIR = REPO / "tuning" / "index_cache_scenespans"
 FRESH_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 K_GRID = [4, 5, 8, 12, 16]
-FROZEN = {"retrieval_strategy": "hybrid", "ppr_lambda": 0.25, "ppr_damping": 0.5}
+FROZEN = {"retrieval_strategy": "hybrid", "ppr_lambda": 0.5, "ppr_damping": 0.5}
 GAP_THRESHOLD_S = 3.0
 TAIL_TRIM_PCT = 20.0
 
@@ -138,8 +138,8 @@ def main():
             timestamps = [f["timestamp"] for f in frames]
 
             span_a = predicted_span_from_frames(timestamps)
-            span_b = predicted_span_from_frames_clustered(frames, GAP_THRESHOLD_S, TAIL_TRIM_PCT)
-            span_c, fallback = predicted_span_from_frames_scene(frames, index.scene_spans)
+            span_b = predicted_span_from_frames_clustered(frames, GAP_THRESHOLD_S, TAIL_TRIM_PCT, query_embedding=qe)
+            span_c, fallback = predicted_span_from_frames_scene(frames, index.scene_spans, query_embedding=qe)
 
             sa = score_span(span_a, gold_spans)
             sb = score_span(span_b, gold_spans)
