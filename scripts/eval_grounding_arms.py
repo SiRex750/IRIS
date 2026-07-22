@@ -139,6 +139,7 @@ def main() -> None:
 
     per_arm_pq: dict[str, dict] = {}          # arm -> (vid,qid) -> fiw
     per_arm_pq_iop: dict[str, dict] = {}      # arm -> (vid,qid) -> iop
+    per_arm_pq_pig: dict[str, dict] = {}      # arm -> (vid,qid) -> peak_in_gold
     per_arm_agg: dict[str, dict] = {}
     branch_by_question: dict[tuple, str] = {}  # (video,qid) -> "shortcut"/"descend", from rep_only arm
 
@@ -150,9 +151,10 @@ def main() -> None:
             scene_retrieval.SCENE_DIAG_RECORDS.clear()
             cfg = IRISConfig(**{**cfg_kwargs, "scene_diag": True})
 
-        fiw_list, iop_list = [], []
+        fiw_list, iop_list, pig_list = [], [], []
         pq: dict[tuple, float] = {}
         pq_iop: dict[tuple, float] = {}
+        pq_pig: dict[tuple, int] = {}
         for row in grounded_rows:
             vid, qid = row["video"], str(row["qid"])
             index = idxs.get(vid)
@@ -162,25 +164,31 @@ def main() -> None:
             emb = _embed_query(row["question"], cfg)
             retrieved = _build_retrieved(index, emb, cfg)
             ts = [f["timestamp"] for f in retrieved]
-            span = predict_span(
+            span, t_peak = predict_span(
                 retrieved, mode=SPAN_MODE, half_width=SPAN_HALF_WIDTH,
                 duration=duration_by_vid.get(vid), query_embedding=emb,
+                return_peak=True,
             )
             fiw_val = frames_in_window(ts, gold_spans)
             iop_val = iop(span, gold_spans)
+            pig_val = 1 if (t_peak is not None and any(float(s) <= t_peak <= float(e) for s, e in gold_spans)) else 0
             fiw_list.append(fiw_val)
             iop_list.append(iop_val)
+            pig_list.append(pig_val)
             pq[(vid, qid)] = fiw_val
             pq_iop[(vid, qid)] = iop_val
+            pq_pig[(vid, qid)] = pig_val
 
             if "rep" in arm_name and scene_retrieval.SCENE_DIAG_RECORDS:
                 branch_by_question[(vid, qid)] = scene_retrieval.SCENE_DIAG_RECORDS[-1]["branch"]
 
         per_arm_pq[arm_name] = pq
         per_arm_pq_iop[arm_name] = pq_iop
+        per_arm_pq_pig[arm_name] = pq_pig
         per_arm_agg[arm_name] = {
             "fiw": statistics.mean(fiw_list) if fiw_list else None,
             "iop": statistics.mean(iop_list) if iop_list else None,
+            "peak_in_gold": statistics.mean(pig_list) if pig_list else None,
             "n": len(fiw_list),
         }
 
@@ -203,13 +211,13 @@ def main() -> None:
 
     # ── report ───────────────────────────────────────────────────────────────
     print("=== 4-ARM GROUNDING TABLE (FiW = fraction of retrieved timestamps in gold window) ===")
-    hdr = f"{'arm':<20} | {'FiW':>8} | {'IoP':>8} | {'n':>4}"
+    hdr = f"{'arm':<20} | {'FiW':>8} | {'IoP':>8} | {'peak_in_gold':>12} | {'n':>4}"
     print(hdr)
     print("-" * len(hdr))
     for arm_name, _ in ARMS:
         a = per_arm_agg[arm_name]
-        print(f"{arm_name:<20} | {_fmt(a['fiw']):>8} | {_fmt(a['iop']):>8} | {a['n']:>4}")
-    print(f"{'uniform floor':<20} | {_fmt(uniform_agg['fiw']):>8} | {_fmt(uniform_agg['iop']):>8} | {uniform_agg['n']:>4}")
+        print(f"{arm_name:<20} | {_fmt(a['fiw']):>8} | {_fmt(a['iop']):>8} | {_fmt(a['peak_in_gold']):>12} | {a['n']:>4}")
+    print(f"{'uniform floor':<20} | {_fmt(uniform_agg['fiw']):>8} | {_fmt(uniform_agg['iop']):>8} | {'  N/A  ':>12} | {uniform_agg['n']:>4}")
     print()
 
     # ── per-family breakdown (the T row is load-bearing) ────────────────────
@@ -324,6 +332,10 @@ def main() -> None:
         "per_arm_pq": {
             arm: {f"{v}|{q}": val for (v, q), val in pq.items()}
             for arm, pq in per_arm_pq.items()
+        },
+        "per_arm_pq_peak_in_gold": {
+            arm: {f"{v}|{q}": val for (v, q), val in pq.items()}
+            for arm, pq in per_arm_pq_pig.items()
         },
     }
     with open(logs_dir / "scene_sparse_ab_perq.json", "w", encoding="utf-8") as fh:

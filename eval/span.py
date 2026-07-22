@@ -148,10 +148,12 @@ def predict_span(
     duration: float | None = None,
     peak_source: str = "clip_in_ppr_top8",
     query_embedding: Any | None = None,
-) -> tuple[float, float] | None:
+    return_peak: bool = False,
+) -> tuple[float, float] | tuple[tuple[float, float] | None, float | None] | None:
     """Build the predicted temporal span from retrieved frames.
 
     Returns (start, end), or None for empty input.
+    When return_peak=True, returns ((start, end), peak_timestamp).
 
     frames: sequence with a timestamp (.timestamp or .timestamp_sec — normalize
             INSIDE this function; callers must not adapt) and a relevance score
@@ -177,11 +179,12 @@ def predict_span(
         peak_source="clip_in_ppr_top8"; not a second embedding computation.
     """
     if not frames:
-        return None
+        return (None, None) if return_peak else None
 
     if mode == "minmax":
         timestamps = [_frame_timestamp(f) for f in frames]
-        return (min(timestamps), max(timestamps))
+        span = (min(timestamps), max(timestamps))
+        return (span, None) if return_peak else span
 
     if mode == "ppr_peak":
         if half_width is None:
@@ -207,6 +210,8 @@ def predict_span(
         start = max(start, 0.0)
         if duration is not None:
             end = min(end, duration)
-        return (start, end)
+        span = (start, end)
+        return (span, t_star) if return_peak else span
 
     raise ValueError(f"Unknown span mode: {mode!r}")
+
