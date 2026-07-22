@@ -155,3 +155,51 @@ def predicted_span_from_frames_scene(
 
     timestamps = [f["timestamp"] for f in retrieved_frames]
     return predicted_span_from_frames(timestamps), True
+
+
+def predicted_span_from_frames_peak(
+    retrieved_frames: list[dict], query_embedding,
+    half_width_s: float = 2.2, duration_s: float | None = None,
+) -> tuple[tuple[float, float], bool]:
+    """Method D (Part 3c): fixed-width window centred on the highest
+    CLIP-similarity frame within the retrieved pool.
+
+    Retrieval is NOT changed -- only which retrieved frame anchors the span.
+    Reuses the same query embedding retrieval already used; no second embed
+    path, no new model call.
+
+    Returns (predicted_span, used_clip_anchor). used_clip_anchor=False means
+    _pick_peak_by_clip returned None (no query embedding, zero-norm vector,
+    or no frame carries clip_embedding) and this fell back to
+    retrieved_frames[0] -- the same degrade-to-rank-1 discipline Methods B/C
+    already use, so the caller can log it the same way as Method C's
+    `fallback_triggered`.
+
+    half_width_s=2.2 is a provisional constant, NOT derived from data or
+    tuned -- a starting guess pending the val_tune sweep. Do not treat it as
+    validated until that run reports back.
+    """
+    if not retrieved_frames:
+        return (0.0, 0.0), False
+
+    peak = _pick_peak_by_clip(retrieved_frames, query_embedding)
+    used_clip_anchor = peak is not None
+    if peak is None:
+        peak = retrieved_frames[0]
+
+    t = float(peak["timestamp"])
+    lo = max(0.0, t - half_width_s)
+    hi = t + half_width_s
+    if duration_s is not None:
+        hi = min(float(duration_s), hi)
+    return (lo, hi), used_clip_anchor
+
+
+def is_zero_width_span(span: tuple[float, float]) -> bool:
+    """True when a predicted span collapses to a single instant
+    (min timestamp == max timestamp). Methods B and D can both degenerate
+    to this -- a single-frame cluster for B, or an anchor frame sitting at
+    duration_s for D's clamp -- and a zero-width span mints IoP=1.0 whenever
+    it happens to land inside the gold span, which silently inflates the
+    metric unless callers track how often it happens."""
+    return span[0] == span[1]
