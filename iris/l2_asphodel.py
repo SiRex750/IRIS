@@ -265,6 +265,71 @@ class L2Asphodel:
             base = self.alpha * semantic + self.beta * motion + 0.1 * temporal
         return max(1e-6, float(base))
 
+    def _add_weighted_edge_to_graph(
+        self,
+        target_graph: nx.Graph,
+        u: int,
+        v: int,
+        edge_type: str,
+        max_score_range: float,
+    ) -> str:
+        """Graph-targeted edge insertion using the shared weighting helpers.
+
+        Reads node data from *target_graph* (not self.graph), so it safely
+        operates on any NetworkX graph — including temporary subgraph copies
+        used in scene_sparse DESCEND retrieval — without ever swapping
+        self.graph or sharing mutable state across concurrent queries.
+
+        Args:
+            target_graph:    The NetworkX graph to insert the edge into.
+            u, v:            Node IDs (must already exist in target_graph).
+            edge_type:       Edge family label used by _edge_weight.
+            max_score_range: Pre-computed action-score range for motion normalisation.
+
+        Returns:
+            "new"       — edge was not present and has been inserted.
+            "updated"   — an existing edge with lower weight was replaced.
+            "unchanged" — an existing edge had equal-or-greater weight; no write.
+
+        Raises:
+            KeyError: If u or v is absent from target_graph, or if either node
+                      lacks a "node_data" attribute.  We raise rather than
+                      silently skip so callers get an actionable diagnostic.
+        """
+        if u == v:
+            return "unchanged"
+        if u not in target_graph.nodes:
+            raise KeyError(f"Node {u!r} is not present in the target graph.")
+        if v not in target_graph.nodes:
+            raise KeyError(f"Node {v!r} is not present in the target graph.")
+        node_u = target_graph.nodes[u].get("node_data")
+        node_v = target_graph.nodes[v].get("node_data")
+        if node_u is None:
+            raise KeyError(f"Node {u!r} exists in target_graph but has no 'node_data' attribute.")
+        if node_v is None:
+            raise KeyError(f"Node {v!r} exists in target_graph but has no 'node_data' attribute.")
+        semantic = self._semantic_similarity(node_u, node_v)
+        motion = self._motion_similarity(node_u, node_v, max_score_range)
+        temporal = self._temporal_proximity(node_u, node_v)
+        weight = self._edge_weight(semantic, motion, temporal, edge_type)
+        if target_graph.has_edge(u, v):
+            existing = target_graph[u][v]
+            if weight <= existing.get("weight", 0.0):
+                return "unchanged"
+            outcome = "updated"
+        else:
+            outcome = "new"
+        target_graph.add_edge(
+            u,
+            v,
+            weight=weight,
+            edge_type=edge_type,
+            semantic_weight=semantic,
+            motion_weight=motion,
+            temporal_weight=temporal,
+        )
+        return outcome
+
     def _add_weighted_edge(self, u: int, v: int, edge_type: str, max_score_range: float) -> None:
         if u == v:
             return
@@ -362,6 +427,180 @@ class L2Asphodel:
             sims.sort(reverse=True)
             for _, v in sims[:top_k]:
                 self._add_weighted_edge(u, v, "motion_neighbor", max_score_range)
+
+    # ── Cross-scene edge helper (scene_sparse DESCEND) ───────────────────────
+
+    def add_cross_scene_edges(
+        self,
+        pool_ids: list[int],
+        scene_of: dict[int, int],
+        *,
+        mode: str,
+        threshold_percentile: float,
+        scene_anchors: dict[int, int],
+        graph: nx.Graph,
+    ) -> int:
+        """Add temporary cross-scene edges to *graph* (a subgraph copy).
+
+        This is the scene_sparse DESCEND helper described in §2c-ii.  It
+        populates *graph* — normally the induced subgraph copy built in
+        scene_retrieval.py — with edges that bridge frames belonging to
+        different scene segments.  The production self.graph is **never**
+        written to: all edges go exclusively into the supplied *graph* argument.
+
+        Args:
+            pool_ids:             Frame IDs that make up the retrieval pool.
+                                  Every ID must exist as a node in *graph*.
+            scene_of:             Mapping {frame_idx: scene_id} for every pool
+                                  frame.  Must cover all pool_ids.
+            mode:                 Cross-scene edge strategy — one of:
+                                    "all"        — every cross-scene pair.
+                                    "threshold"  — pairs above a percentile
+                                                   of pairwise semantic sims.
+                                    "rep_only"   — one representative per
+                                                   scene via scene_anchors
+                                                   (production default).
+            threshold_percentile: Percentile cutoff in [0, 100] used when
+                                  mode="threshold"; ignored for other modes.
+            scene_anchors:        {scene_id: frame_idx} mapping one
+                                  representative frame per scene.  Used by
+                                  mode="rep_only".
+            graph:                Target NetworkX graph (must already contain
+                                  all pool_ids as nodes with 'node_data').
+
+        Returns:
+            Number of genuinely *new* cross-scene edges inserted into *graph*.
+            Updated edges (stronger weight replacing weaker), unchanged edges,
+            same-scene pairs, and duplicate attempts are not counted.
+
+        Raises:
+            ValueError: For invalid mode or threshold_percentile.
+            KeyError:   For missing nodes/scene assignments/anchor frames.
+        """
+        # ── Validation ────────────────────────────────────────────────────────
+        _VALID_MODES = {"all", "threshold", "rep_only"}
+        if mode not in _VALID_MODES:
+            raise ValueError(
+                f"add_cross_scene_edges: mode must be one of {sorted(_VALID_MODES)!r}, "
+                f"got {mode!r}."
+            )
+        if not (0.0 <= threshold_percentile <= 100.0):
+            raise ValueError(
+                f"add_cross_scene_edges: threshold_percentile must be in [0, 100], "
+                f"got {threshold_percentile!r}."
+            )
+        for pid in pool_ids:
+            if pid not in graph.nodes:
+                raise KeyError(
+                    f"add_cross_scene_edges: pool_id {pid!r} is not a node in the "
+                    f"supplied graph.  Ensure the subgraph copy was built correctly."
+                )
+            if pid not in scene_of:
+                raise KeyError(
+                    f"add_cross_scene_edges: pool_id {pid!r} has no entry in scene_of."
+                )
+        for scene_id, anchor_fid in scene_anchors.items():
+            if anchor_fid in scene_of and scene_of[anchor_fid] != scene_id:
+                raise ValueError(
+                    f"add_cross_scene_edges: scene_anchors declares frame {anchor_fid!r} "
+                    f"as the representative of scene {scene_id!r}, but scene_of says "
+                    f"that frame belongs to scene {scene_of[anchor_fid]!r}."
+                )
+
+        # Deterministic ordering: sort once, generate each unordered pair once.
+        sorted_ids = sorted(pool_ids)
+
+        # Pre-compute action-score range for motion similarity (same formula as
+        # the production graph build path).
+        action_scores = [graph.nodes[pid]["node_data"].action_score for pid in sorted_ids]
+        if len(action_scores) >= 2:
+            max_score_range = max(action_scores) - min(action_scores)
+        else:
+            max_score_range = 0.0
+
+        new_edges_added: int = 0
+
+        if mode == "all":
+            # ── mode="all": densest diagnostic mode ───────────────────────────
+            # Every cross-scene pair receives a cross_scene_all edge via the
+            # shared weighting helper.
+            for i, u in enumerate(sorted_ids):
+                for v in sorted_ids[i + 1:]:
+                    if scene_of[u] == scene_of[v]:
+                        continue
+                    outcome = self._add_weighted_edge_to_graph(
+                        graph, u, v, "cross_scene_all", max_score_range
+                    )
+                    if outcome == "new":
+                        new_edges_added += 1
+
+        elif mode == "threshold":
+            # ── mode="threshold": percentile-gated semantic similarity ─────────
+            # 1. Collect all eligible cross-scene pairs (stable, sorted order).
+            # 2. Compute semantic similarity for each.
+            # 3. Determine the percentile cutoff.
+            # 4. Add pairs whose sim is finite, > 0, and >= cutoff.
+            pairs: list[tuple[int, int]] = []
+            sims: list[float] = []
+            for i, u in enumerate(sorted_ids):
+                node_u = graph.nodes[u]["node_data"]
+                for v in sorted_ids[i + 1:]:
+                    if scene_of[u] == scene_of[v]:
+                        continue
+                    node_v = graph.nodes[v]["node_data"]
+                    sim = self._semantic_similarity(node_u, node_v)
+                    pairs.append((u, v))
+                    sims.append(sim)
+
+            if not pairs:
+                # No eligible cross-scene pairs — nothing to add.
+                return 0
+
+            sim_array = np.array(sims, dtype=np.float64)
+            # Handle all-zero case: cutoff = 0 means nothing clears the
+            # "> 0" guard, so we return 0 edges — safe and deterministic.
+            if np.all(sim_array == 0.0):
+                cutoff = 0.0
+            else:
+                cutoff = float(np.percentile(sim_array, threshold_percentile))
+
+            for (u, v), sim in zip(pairs, sims):
+                if not np.isfinite(sim):
+                    continue
+                if sim <= 0.0:
+                    continue
+                if sim < cutoff:
+                    continue
+                outcome = self._add_weighted_edge_to_graph(
+                    graph, u, v, "cross_scene_threshold", max_score_range
+                )
+                if outcome == "new":
+                    new_edges_added += 1
+
+        else:  # mode == "rep_only"
+            # ── mode="rep_only": representative-only sparse mode ───────────────
+            # Connect each unordered pair of scene representatives.
+            # Maximum new edges for S represented scenes = S*(S-1)/2.
+            # This is the production-default mode — no all-pairs frame edges.
+            sorted_scenes = sorted(scene_anchors.keys())
+            for i, scene_a in enumerate(sorted_scenes):
+                anchor_a = scene_anchors[scene_a]
+                for scene_b in sorted_scenes[i + 1:]:
+                    anchor_b = scene_anchors[scene_b]
+                    # scene_a != scene_b by construction (different loop indices)
+                    # Verify both anchors exist in the graph (may have been
+                    # excluded from pool — skip gracefully rather than crashing).
+                    if anchor_a not in graph.nodes or anchor_b not in graph.nodes:
+                        continue
+                    outcome = self._add_weighted_edge_to_graph(
+                        graph, anchor_a, anchor_b, "cross_scene_rep", max_score_range
+                    )
+                    if outcome == "new":
+                        new_edges_added += 1
+
+        return new_edges_added
+
+    # ─────────────────────────────────────────────────────────────────────────
 
     def _update_pagerank(self) -> None:
         """
