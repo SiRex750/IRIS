@@ -1,7 +1,8 @@
-"""Part 3c: three-way span-construction method comparison (A: min-max,
-B: score-weighted clustering, C: real scene-boundary lookup) across the
-same l2_retrieve_top_k grid Family 4 used. ONE retrieval call per (K,
-question) -- all three methods scored from the same retrieved_frames list.
+"""Part 3c: four-way span-construction method comparison (A: min-max,
+B: score-weighted clustering, C: real scene-boundary lookup, D: peak-anchored
+fixed-width window) across the same l2_retrieve_top_k grid Family 4 used.
+ONE retrieval call per (K, question) -- all four methods scored from the
+same retrieved_frames list.
 
 Does NOT touch tuning/frozen_state.json for retrieval_strategy/ppr_lambda/
 ppr_damping/l2_retrieve_top_k -- those stay exactly as already frozen.
@@ -33,6 +34,7 @@ from iris.query import _call_embed_query, _retrieve_with_l1  # noqa: E402
 from eval.metrics import (  # noqa: E402
     best_over_gold_spans, predicted_span_from_frames,
     predicted_span_from_frames_clustered, predicted_span_from_frames_scene,
+    predicted_span_from_frames_peak,
 )
 
 FRESH_CACHE_DIR = REPO / "tuning" / "index_cache_scenespans"
@@ -42,6 +44,9 @@ K_GRID = [4, 5, 8, 12, 16]
 FROZEN = {"retrieval_strategy": "hybrid", "ppr_lambda": 0.5, "ppr_damping": 0.5}
 GAP_THRESHOLD_S = 3.0
 TAIL_TRIM_PCT = 20.0
+# Provisional, not tuned -- fit on the IRIS2 team's N=64 pilot before the
+# anchor fix landed. Swept in the follow-up full-scale run, not frozen here.
+HALF_WIDTH_S = 2.2
 
 
 def ensure_fresh_indexes(video_ids: list[str], cfg, n_workers: int = 8) -> dict[str, str]:
@@ -112,9 +117,10 @@ def main():
               f"{len(index_paths)}/{len(video_ids)} indexes ready", flush=True)
 
         index_cache: dict = {}
-        method_scores = {"A": [], "B": [], "C": []}
+        method_scores = {"A": [], "B": [], "C": [], "D": []}
         n_clusters_list = []
         n_fallback = 0
+        n_clip_fallback = 0
         n_peak_in_gold = 0
         n_scored = 0
         t0 = time.perf_counter()
@@ -140,10 +146,14 @@ def main():
             span_a = predicted_span_from_frames(timestamps)
             span_b = predicted_span_from_frames_clustered(frames, GAP_THRESHOLD_S, TAIL_TRIM_PCT, query_embedding=qe)
             span_c, fallback = predicted_span_from_frames_scene(frames, index.scene_spans, query_embedding=qe)
+            span_d, used_clip_anchor = predicted_span_from_frames_peak(
+                frames, qe, half_width_s=HALF_WIDTH_S, duration_s=q.get("duration"),
+            )
 
             sa = score_span(span_a, gold_spans)
             sb = score_span(span_b, gold_spans)
             sc = score_span(span_c, gold_spans)
+            sd = score_span(span_d, gold_spans)
 
             n_clust = n_clusters_for(frames, GAP_THRESHOLD_S)
             peak_top_ts = frames[0]["timestamp"]
@@ -152,9 +162,12 @@ def main():
             method_scores["A"].append(sa)
             method_scores["B"].append(sb)
             method_scores["C"].append(sc)
+            method_scores["D"].append(sd)
             n_clusters_list.append(n_clust)
             if fallback:
                 n_fallback += 1
+            if not used_clip_anchor:
+                n_clip_fallback += 1
             if peak_in_gold:
                 n_peak_in_gold += 1
             n_scored += 1
@@ -164,9 +177,13 @@ def main():
                 "span_a_start": round(span_a[0], 3), "span_a_end": round(span_a[1], 3),
                 "span_b_start": round(span_b[0], 3), "span_b_end": round(span_b[1], 3),
                 "span_c_start": round(span_c[0], 3), "span_c_end": round(span_c[1], 3),
-                "method_c_fallback": fallback, "n_clusters_b": n_clust,
-                "IoP_a": round(sa["IoP"], 4), "IoP_b": round(sb["IoP"], 4), "IoP_c": round(sc["IoP"], 4),
-                "IoU_a": round(sa["IoU"], 4), "IoU_b": round(sb["IoU"], 4), "IoU_c": round(sc["IoU"], 4),
+                "span_d_start": round(span_d[0], 3), "span_d_end": round(span_d[1], 3),
+                "method_c_fallback": fallback, "method_d_used_clip_anchor": used_clip_anchor,
+                "n_clusters_b": n_clust,
+                "IoP_a": round(sa["IoP"], 4), "IoP_b": round(sb["IoP"], 4),
+                "IoP_c": round(sc["IoP"], 4), "IoP_d": round(sd["IoP"], 4),
+                "IoU_a": round(sa["IoU"], 4), "IoU_b": round(sb["IoU"], 4),
+                "IoU_c": round(sc["IoU"], 4), "IoU_d": round(sd["IoU"], 4),
             })
             peak_in_gold_rows.append({
                 "k": k, "video": vid, "qid": q["qid"], "peak_in_gold": peak_in_gold,
@@ -192,15 +209,20 @@ def main():
 
         print(f"  [K={k}] peak_in_gold_rate={n_peak_in_gold/n_scored:.4f} "
               f"method_c_fallback_rate={n_fallback/n_scored:.4f} "
+              f"method_d_clip_fallback_rate={n_clip_fallback/n_scored:.4f} "
               f"mean_n_clusters_b={sum(n_clusters_list)/len(n_clusters_list):.2f} "
               f"scoring_wall_s={dt:.0f}", flush=True)
+        if n_clip_fallback:
+            print(f"  [K={k}] WARNING: method_d_clip_fallback_rate is non-zero "
+                  f"({n_clip_fallback}/{n_scored}) -- qe should never be None here; "
+                  f"investigate before trusting Method D numbers at this K.", flush=True)
 
     with open(REPO / "tuning" / "span_method_comparison.csv", "w", newline="") as f:
         fieldnames = ["k", "method", "mIoP", "IoP@0.3", "IoP@0.5", "mIoU", "IoU@0.3", "IoU@0.5", "n_scored"]
         w = csv.DictWriter(f, fieldnames=fieldnames)
         w.writeheader()
         for k in K_GRID:
-            for method in ["A", "B", "C"]:
+            for method in ["A", "B", "C", "D"]:
                 agg = trial_aggregates[(k, method)]
                 w.writerow({"k": k, "method": method, **{kk: round(vv, 5) if isinstance(vv, float) else vv for kk, vv in agg.items()}})
 

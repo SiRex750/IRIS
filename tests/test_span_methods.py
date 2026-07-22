@@ -1,9 +1,10 @@
-"""Part 3c unit tests for the three span-construction methods, run before
-trusting Method B/C's numbers in the family comparison."""
+"""Part 3c unit tests for the span-construction methods, run before
+trusting Method B/C/D's numbers in the family comparison."""
 from eval.metrics import (
     predicted_span_from_frames,
     predicted_span_from_frames_clustered,
     predicted_span_from_frames_scene,
+    predicted_span_from_frames_peak,
 )
 
 
@@ -85,3 +86,49 @@ def test_method_c_falls_back_when_scene_not_in_map():
     span, fallback = predicted_span_from_frames_scene(frames, {0: (0.0, 1.0)})
     assert span == (5.0, 5.0)
     assert fallback is True
+
+
+def test_method_d_centers_on_clip_best_frame():
+    frames = [
+        {"frame_idx": 0, "timestamp": 0.0, "pagerank_score": 0.9, "clip_embedding": [1, 0, 0]},
+        {"frame_idx": 1, "timestamp": 10.0, "pagerank_score": 0.05, "clip_embedding": [0, 1, 0]},
+        {"frame_idx": 2, "timestamp": 20.0, "pagerank_score": 0.05, "clip_embedding": [0, 0, 1]},
+    ]
+    query_embedding = [0, 1, 0]  # closest to frame_idx=1, which is neither rank-1 nor top pagerank
+    span, used_clip_anchor = predicted_span_from_frames_peak(frames, query_embedding, half_width_s=2.2)
+    assert span == (10.0 - 2.2, 10.0 + 2.2)
+    assert used_clip_anchor is True
+
+
+def test_method_d_falls_back_to_rank1_when_no_query_embedding():
+    frames = [
+        {"frame_idx": 0, "timestamp": 5.0, "clip_embedding": [1, 0, 0]},
+        {"frame_idx": 1, "timestamp": 15.0, "clip_embedding": [0, 1, 0]},
+    ]
+    span, used_clip_anchor = predicted_span_from_frames_peak(frames, None, half_width_s=2.2)
+    assert used_clip_anchor is False
+    assert span == (5.0 - 2.2, 5.0 + 2.2)
+
+
+def test_method_d_clamps_to_duration():
+    frames = [{"frame_idx": 0, "timestamp": 9.5, "clip_embedding": [1, 0, 0]}]
+    query_embedding = [1, 0, 0]
+    span, used_clip_anchor = predicted_span_from_frames_peak(
+        frames, query_embedding, half_width_s=2.2, duration_s=10.0,
+    )
+    assert used_clip_anchor is True
+    assert span[1] == 10.0
+
+
+def test_method_d_clamps_at_zero():
+    frames = [{"frame_idx": 0, "timestamp": 1.0, "clip_embedding": [1, 0, 0]}]
+    query_embedding = [1, 0, 0]
+    span, used_clip_anchor = predicted_span_from_frames_peak(frames, query_embedding, half_width_s=2.2)
+    assert used_clip_anchor is True
+    assert span[0] == 0.0
+
+
+def test_method_d_empty_frames():
+    span, used_clip_anchor = predicted_span_from_frames_peak([], [1, 0, 0], half_width_s=2.2)
+    assert span == (0.0, 0.0)
+    assert used_clip_anchor is False
