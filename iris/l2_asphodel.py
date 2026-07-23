@@ -80,6 +80,11 @@ class AsphodelNode:
     scene_id:              int = 0
     last_retrieval_score:  float = 0.0
     retrieval_contributions: dict = field(default_factory=dict)
+    divergence:             float = 0.0
+    curl:                   float = 0.0
+    jacobian_frobenius:     float = 0.0
+    hessian_max_eigenvalue: float = 0.0
+    motion_entropy:         float = 0.0
 
 
 class L2Asphodel:
@@ -121,6 +126,7 @@ class L2Asphodel:
         self.debug_retrieval: bool = False
         self.salient_thresh: float = 0.35
         self.candidate_thresh: float = 0.08
+        self.motion_similarity_mode: str = "action_score"
 
         # Parse config fields if provided (handling both IRISConfig classes and dictionaries)
         if config is not None:
@@ -136,6 +142,7 @@ class L2Asphodel:
             self.debug_retrieval = bool(self._cfg(config, "graph_debug_retrieval", self.debug_retrieval))
             self.salient_thresh = float(self._cfg(config, "salient_thresh", self.salient_thresh))
             self.candidate_thresh = float(self._cfg(config, "candidate_thresh", self.candidate_thresh))
+            self.motion_similarity_mode = self._cfg(config, "motion_similarity_mode", self.motion_similarity_mode)
 
     @staticmethod
     def _cfg(config: Any, key: str, default: Any) -> Any:
@@ -240,6 +247,40 @@ class L2Asphodel:
         return max(0.0, float(np.dot(node_u.embedding, node_v.embedding) / (norm_u * norm_v)))
 
     def _motion_similarity(self, node_u: AsphodelNode, node_v: AsphodelNode, max_score_range: float) -> float:
+        if self.motion_similarity_mode == "geometry_6d":
+            # P1-09: Build a normalized motion feature vector from available corrected signals:
+            # motion_magnitude, divergence, curl, jacobian_frobenius, hessian_max_eigenvalue, motion_entropy.
+            # Divergence is signed. We compute cosine similarity over this 6-D vector.
+            vu = np.array([
+                node_u.motion_magnitude,
+                node_u.divergence,
+                node_u.curl,
+                node_u.jacobian_frobenius,
+                node_u.hessian_max_eigenvalue,
+                node_u.motion_entropy
+            ], dtype=np.float32)
+
+            vv = np.array([
+                node_v.motion_magnitude,
+                node_v.divergence,
+                node_v.curl,
+                node_v.jacobian_frobenius,
+                node_v.hessian_max_eigenvalue,
+                node_v.motion_entropy
+            ], dtype=np.float32)
+
+            norm_u = float(np.linalg.norm(vu))
+            norm_v = float(np.linalg.norm(vv))
+
+            if norm_u > 1e-8 and norm_v > 1e-8:
+                cosine = float(np.dot(vu, vv) / (norm_u * norm_v))
+                return max(0.0, min(1.0, cosine))
+
+            # Fallback: action_score-based similarity for nodes without motion descriptors.
+            if max_score_range == 0.0:
+                return 1.0
+            return max(0.0, 1.0 - (abs(node_u.action_score - node_v.action_score) / max_score_range))
+
         if max_score_range == 0.0:
             return 1.0
         return max(0.0, 1.0 - (abs(node_u.action_score - node_v.action_score) / max_score_range))
@@ -314,16 +355,30 @@ class L2Asphodel:
         weight = self._edge_weight(semantic, motion, temporal, edge_type)
         if target_graph.has_edge(u, v):
             existing = target_graph[u][v]
+            # P1-11: Preserve all relationship labels.  A pair can legitimately
+            # have multiple relationship types (e.g. temporal AND semantic_salient).
+            # Accumulate edge_type labels as a pipe-separated set so no relationship
+            # is silently discarded, while still keeping the highest weight.
+            existing_types: set[str] = set(
+                existing.get("edge_type", "").split("|")
+            )
+            existing_types.discard("")
+            existing_types.add(edge_type)
+            merged_type = "|".join(sorted(existing_types))
             if weight <= existing.get("weight", 0.0):
+                # Weaker weight — update only the label set, not the weight.
+                target_graph[u][v]["edge_type"] = merged_type
                 return "unchanged"
+            # Stronger weight — update weight AND label set.
             outcome = "updated"
         else:
+            merged_type = edge_type
             outcome = "new"
         target_graph.add_edge(
             u,
             v,
             weight=weight,
-            edge_type=edge_type,
+            edge_type=merged_type,
             semantic_weight=semantic,
             motion_weight=motion,
             temporal_weight=temporal,
@@ -681,6 +736,11 @@ class L2Asphodel:
         codec_conf = float(get_val(feature_record, "codec_conf", 0.5))
         pict_type = str(get_val(feature_record, "pict_type", "?"))
         is_peak = bool(get_val(feature_record, "is_peak", False))
+        divergence = float(get_val(feature_record, "divergence", 0.0))
+        curl = float(get_val(feature_record, "curl", 0.0))
+        jacobian_frobenius = float(get_val(feature_record, "jacobian_frobenius", 0.0))
+        hessian_max_eigenvalue = float(get_val(feature_record, "hessian_max_eigenvalue", 0.0))
+        motion_entropy = float(get_val(feature_record, "motion_entropy", 0.0))
         tier = self._assign_tier(action_score=action_score, is_peak=is_peak, pict_type=pict_type)
 
         # Instantiate AsphodelNode
@@ -699,6 +759,11 @@ class L2Asphodel:
             codec_conf=codec_conf,
             tier=tier,
             pict_type=pict_type,
+            divergence=divergence,
+            curl=curl,
+            jacobian_frobenius=jacobian_frobenius,
+            hessian_max_eigenvalue=hessian_max_eigenvalue,
+            motion_entropy=motion_entropy,
         )
 
         # Add node to NetworkX graph
@@ -784,6 +849,11 @@ class L2Asphodel:
             codec_conf      = float(get_val(feature_record, "codec_conf", 0.5))
             pict_type       = str(get_val(feature_record, "pict_type", "?"))
             is_peak         = bool(get_val(feature_record, "is_peak", False))
+            divergence             = float(get_val(feature_record, "divergence", 0.0))
+            curl                   = float(get_val(feature_record, "curl", 0.0))
+            jacobian_frobenius     = float(get_val(feature_record, "jacobian_frobenius", 0.0))
+            hessian_max_eigenvalue = float(get_val(feature_record, "hessian_max_eigenvalue", 0.0))
+            motion_entropy         = float(get_val(feature_record, "motion_entropy", 0.0))
             tier            = self._assign_tier(action_score=action_score, is_peak=is_peak, pict_type=pict_type)
 
             node_obj = AsphodelNode(
@@ -801,6 +871,11 @@ class L2Asphodel:
                 codec_conf=codec_conf,
                 tier=tier,
                 pict_type=pict_type,
+                divergence=divergence,
+                curl=curl,
+                jacobian_frobenius=jacobian_frobenius,
+                hessian_max_eigenvalue=hessian_max_eigenvalue,
+                motion_entropy=motion_entropy,
             )
             self.graph.add_node(frame_idx, node_data=node_obj)
 

@@ -39,7 +39,8 @@ class IRISConfig:
     codec_conf_pictype_norm: bool  = True   # per-pict-type normalization; False = global C_raw baseline (ablation)
     ppr_lambda:             float = 0.5    # rank-space blend weight: λ·sem_rank + (1-λ)·codec_rank
     ppr_damping:            float = 0.5    # PPR teleport probability α passed to nx.pagerank
-    
+    motion_similarity_mode: str   = "action_score"  # "action_score" (default, today's behavior) | "geometry_6d"
+
     # ── L2 Asphodel Graph representation mode ──
     graph_mode:             str   = "flat"  # "flat" | "scene_sparse"
     scene_shortlist_width:  int   = 0      # scene_sparse coarse-prune width; 0 = auto max(4, ceil(sqrt(num_scenes)))
@@ -182,6 +183,8 @@ class IRISConfig:
                f"ppr_damping must be in (0.0, 1.0), got {self.ppr_damping}")
         _check(self.cerberus_mode in {"legacy", "v2"},
                f"Invalid cerberus_mode '{self.cerberus_mode}'")
+        _check(self.motion_similarity_mode in {"action_score", "geometry_6d"},
+               f"Invalid motion_similarity_mode '{self.motion_similarity_mode}'")
         _check(self.graph_mode in {"flat", "scene_sparse"},
                f"Invalid graph_mode '{self.graph_mode}'")
         _check(self.scene_shortlist_width >= 0,
