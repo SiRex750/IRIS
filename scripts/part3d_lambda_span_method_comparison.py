@@ -23,12 +23,15 @@ Diagnostic only: does NOT write to tuning/frozen_state.json. No lambda
 value is auto-frozen by this script -- that decision is made by a human
 after reading tuning/lambda_span_method_comparison.csv.
 
-NOT RUN as part of the task that wrote this file -- no video ingest, no
-scoring, no pytest invocation happened. This is a complete, runnable
-script staged for a later GPU pass.
+Use --lambdas to restrict the grid (e.g. a cheap lambda=0.50-only sanity
+pass before committing GPU time to the full 7-value grid). CSV rows are
+written and flushed after each lambda's four methods finish, not only at
+the very end, so a crash partway through the sweep doesn't lose completed
+cells.
 """
 from __future__ import annotations
 
+import argparse
 import csv
 import json
 import os
@@ -116,14 +119,26 @@ def score_span(pred_span, gold_spans) -> dict:
             "IoU@0.3": iou >= 0.3, "IoU@0.5": iou >= 0.5}
 
 
+def parse_args():
+    p = argparse.ArgumentParser()
+    p.add_argument("--lambdas", type=str, default=None,
+                    help="Comma-separated lambda subset (default: full 7-value grid). "
+                         "Use e.g. --lambdas 0.5 for a cheap sanity pass.")
+    return p.parse_args()
+
+
 def main():
+    args = parse_args()
+    lambda_grid = LAMBDA_GRID if not args.lambdas else [float(x) for x in args.lambdas.split(",")]
+
     questions = pt.load_val_tune_questions()
     print(f"[setup] {len(questions)} val_tune questions", flush=True)
+    print(f"[setup] lambda grid: {lambda_grid}", flush=True)
     video_ids = sorted({q["video"] for q in questions})
 
     # Ingest ONCE: ppr_lambda is not in INGEST_RELEVANT_KEYS, so every
     # lambda value in the grid shares the same on-disk index.
-    ingest_cfg = pt.make_config({**FROZEN_BASE, "ppr_lambda": LAMBDA_GRID[0]})
+    ingest_cfg = pt.make_config({**FROZEN_BASE, "ppr_lambda": lambda_grid[0]})
     print("[setup] ensuring fresh indexes (shared across all lambda values)...", flush=True)
     t_ingest0 = time.perf_counter()
     index_paths = ensure_fresh_indexes(video_ids, ingest_cfg, n_workers=8)
@@ -137,7 +152,18 @@ def main():
     per_question_rows = []
     trial_aggregates: dict[tuple, dict] = {}
 
-    for lam in LAMBDA_GRID:
+    csv_path = REPO / "tuning" / "lambda_span_method_comparison.csv"
+    csv_fieldnames = [
+        "lambda", "method", "mIoP", "IoP@0.3", "IoP@0.5", "mIoU", "IoU@0.3", "IoU@0.5", "n_scored",
+        "method_c_fallback_rate", "method_b_zero_width_rate",
+        "method_d_zero_width_rate", "method_d_clip_fallback_rate",
+    ]
+    csv_f = open(csv_path, "w", newline="")
+    csv_w = csv.DictWriter(csv_f, fieldnames=csv_fieldnames)
+    csv_w.writeheader()
+    csv_f.flush()
+
+    for lam in lambda_grid:
         cfg = pt.make_config({**FROZEN_BASE, "ppr_lambda": lam})
 
         method_scores = {"A": [], "B": [], "C": [], "D": []}
@@ -243,20 +269,15 @@ def main():
                   f"({n_clip_fallback}/{n_scored}) -- qe should never be None here; "
                   f"investigate before trusting Method D numbers at this lambda.", flush=True)
 
-    with open(REPO / "tuning" / "lambda_span_method_comparison.csv", "w", newline="") as f:
-        fieldnames = [
-            "lambda", "method", "mIoP", "IoP@0.3", "IoP@0.5", "mIoU", "IoU@0.3", "IoU@0.5", "n_scored",
-            "method_c_fallback_rate", "method_b_zero_width_rate",
-            "method_d_zero_width_rate", "method_d_clip_fallback_rate",
-        ]
-        w = csv.DictWriter(f, fieldnames=fieldnames)
-        w.writeheader()
-        for lam in LAMBDA_GRID:
-            for method in ["A", "B", "C", "D"]:
-                agg = trial_aggregates[(lam, method)]
-                row = {kk: round(vv, 5) if isinstance(vv, float) else vv for kk, vv in agg.items()}
-                w.writerow({"lambda": lam, "method": method, **row})
+        # Checkpoint: flush this lambda's four (lambda, method) rows to disk
+        # immediately so a crash later in the sweep doesn't lose them.
+        for method in ["A", "B", "C", "D"]:
+            agg = trial_aggregates[(lam, method)]
+            row = {kk: round(vv, 5) if isinstance(vv, float) else vv for kk, vv in agg.items()}
+            csv_w.writerow({"lambda": lam, "method": method, **row})
+        csv_f.flush()
 
+    csv_f.close()
     json.dump(per_question_rows[:500], open(REPO / ".part3d_per_question_sample.json", "w"), indent=2)
 
     print("LAMBDA_SPAN_METHOD_COMPARISON_COMPLETE", flush=True)
