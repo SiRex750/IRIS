@@ -138,3 +138,37 @@ def test_build_retrieved_ppr_mode():
         assert "action_score" in f
         assert "pagerank_score" in f
         assert "last_retrieval_score" in f
+
+
+# ── (e) regression: _build_retrieved's PPR branch must carry the FrameRecord's
+#       real scene_id, not the AsphodelNode's internal I-frame-segmentation
+#       scene_id (which _update_all_edge_weights unconditionally overwrites via
+#       _refresh_scene_ids on every graph build, so it never matches the
+#       ingest-time scene_spans keys Method C looks up) ──────────────────────
+
+def test_build_retrieved_ppr_mode_carries_frame_scene_id():
+    import iris.query as q
+
+    n = 4
+    graph, embeddings = _make_graph(n=n)
+    idx = _make_index(graph, n=n)
+    # Distinct, out-of-band scene_ids that could never collide with the
+    # small monotonic ints _refresh_scene_ids assigns off I-frame order.
+    for i, fr in enumerate(idx.frames):
+        fr.scene_id = 100 + i
+
+    from iris.iris_config import IRISConfig
+    config = IRISConfig(ranking_mode="ppr", l2_retrieve_top_k=n, graph_mode="flat")
+
+    query_emb = embeddings[0].copy()
+    frames = q._build_retrieved(idx, query_emb, config)
+
+    assert len(frames) == n
+    frame_scene_by_idx = {fr.frame_idx: fr.scene_id for fr in idx.frames}
+    for f in frames:
+        assert f["scene_id"] == frame_scene_by_idx[f["frame_idx"]], (
+            f"frame_idx={f['frame_idx']}: retrieved scene_id={f['scene_id']} "
+            f"does not match the FrameRecord's real scene_id "
+            f"{frame_scene_by_idx[f['frame_idx']]} -- _build_retrieved must "
+            f"read scene_id off the frame object (fr), not the graph node."
+        )
