@@ -112,7 +112,15 @@ def _divergence_metrics(prod_result: list[dict], pure_result: list[dict]) -> dic
 
 def _node_to_dict(node: Any, frame_map: dict) -> dict:
     """2c-ii shape: dict built from an AsphodelNode (post-PPR) + its matching
-    FrameRecord for the fields PPR doesn't carry (is_peak/caption/etc)."""
+    FrameRecord for the fields PPR doesn't carry (is_peak/caption/etc).
+
+    scene_id comes from fr (the FrameRecord), NOT node -- AsphodelNode.scene_id
+    is a monotonic I-frame-segmentation id that L2Asphodel._refresh_scene_ids
+    unconditionally overwrites on every graph build (including the induced
+    sub_graph copy retrieve_scene_sparse's DESCEND branch runs PPR over), so
+    it never matches the real valley-boundary scene_id this dict's caller
+    (eval.metrics.predicted_span_from_frames_scene) looks up in
+    index.scene_spans."""
     fr = frame_map.get(node.frame_idx)
     return {
         "frame_idx": node.frame_idx,
@@ -127,6 +135,7 @@ def _node_to_dict(node: Any, frame_map: dict) -> dict:
         "pagerank_score": node.pagerank_score,
         "last_retrieval_score": getattr(node, "last_retrieval_score", 0.0),
         "retrieval_contributions": getattr(node, "retrieval_contributions", {}),
+        "scene_id": getattr(fr, "scene_id", None),
     }
 
 

@@ -452,3 +452,22 @@ class TestEndToEndDescend:
             cfg = _Cfg()
             cfg.scene_crossscene_mode = mode
             assert isinstance(retrieve_scene_sparse(idx, self._Q, cfg), list)
+
+    def test_descend_result_carries_real_frame_scene_id(self):
+        """Regression: _node_to_dict must read scene_id off the FrameRecord,
+        not the AsphodelNode -- the node's own scene_id is a monotonic
+        I-frame-segmentation id that _refresh_scene_ids overwrites on every
+        graph build (including the induced sub_graph DESCEND runs PPR over),
+        unrelated to the real valley-boundary scene_id this dict's caller
+        (predicted_span_from_frames_scene) looks up in index.scene_spans."""
+        idx, _ = _descend_scenario()
+        result = retrieve_scene_sparse(idx, self._Q, _Cfg())
+        assert result, "expected at least one retrieved frame"
+        real_scene_by_idx = {fr.frame_idx: fr.scene_id for fr in idx.frames}
+        for fd in result:
+            assert "scene_id" in fd
+            assert fd["scene_id"] == real_scene_by_idx[fd["frame_idx"]], (
+                f"frame_idx={fd['frame_idx']}: retrieved scene_id={fd['scene_id']} "
+                f"does not match the FrameRecord's real scene_id "
+                f"{real_scene_by_idx[fd['frame_idx']]}"
+            )
