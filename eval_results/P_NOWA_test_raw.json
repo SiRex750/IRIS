@@ -1,0 +1,1126 @@
+{
+  "config": {
+    "graph_mode": "flat",
+    "ranking_mode": "ppr",
+    "codec_conf_source": "packet_size",
+    "codec_conf_pictype_norm": true,
+    "ppr_lambda": 0.5,
+    "ppr_damping": 0.5,
+    "l2_retrieve_top_k": 12,
+    "half_width": 2.2,
+    "span_mode": "ppr_peak",
+    "peak_source": "clip_in_ppr_top8"
+  },
+  "n_questions": 120,
+  "n_videos": 27,
+  "clip_anchor_fallback_rate": 0.0,
+  "metrics": {
+    "peak_in_gold": {
+      "point": 0.36666666666666664,
+      "ci_lo": 0.2871287128712871,
+      "ci_hi": 0.44537815126050423
+    },
+    "mIoP": {
+      "point": 0.33489417215854905,
+      "ci_lo": 0.24858676691425854,
+      "ci_hi": 0.4234550179023206
+    },
+    "IoP@0.5": {
+      "point": 0.35,
+      "ci_lo": 0.2627118644067797,
+      "ci_hi": 0.4435483870967742
+    },
+    "mIoU": {
+      "point": 0.185469147967234,
+      "ci_lo": 0.1402293690605936,
+      "ci_hi": 0.22826407263962767
+    },
+    "IoU@0.5": {
+      "point": 0.13333333333333333,
+      "ci_lo": 0.0847457627118644,
+      "ci_hi": 0.18032786885245902
+    }
+  },
+  "per_question": [
+    {
+      "video": "2793260225",
+      "qid": "6",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 1.0,
+      "iou": 0.5176470588235295,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "4094488636",
+      "qid": "4",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.8378181818181816,
+      "iou": 0.4230627983841352,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "9293415110",
+      "qid": "2",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.14772727272727282,
+      "iou": 0.037900874635568536,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "5635265624",
+      "qid": "2",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "5521781780",
+      "qid": "2",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 1.0,
+      "iou": 0.1981981981981982,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "5521781780",
+      "qid": "3",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.21612121212121244,
+      "iou": 0.11123241523441177,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "4264435046",
+      "qid": "6",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.9051315903898304,
+      "iou": 0.6057724867724867,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "4092992100",
+      "qid": "2",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "3557498300",
+      "qid": "7",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.5583939393939393,
+      "iou": 0.427808603997864,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "8495272210",
+      "qid": "6",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.5565075757575759,
+      "iou": 0.18761509011827626,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "3719793245",
+      "qid": "3",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "3105728894",
+      "qid": "7",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "4798585428",
+      "qid": "1",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "8254300526",
+      "qid": "3",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "5635265624",
+      "qid": "9",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.5038106060606066,
+      "iou": 0.42768027678990633,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "4798585428",
+      "qid": "4",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.6016590909090921,
+      "iou": 0.5039884250004778,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "5521781780",
+      "qid": "7",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 1.0,
+      "iou": 0.05339805825242716,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "10001787725",
+      "qid": "1",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "6772999108",
+      "qid": "9",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "2978295992",
+      "qid": "6",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "3902997424",
+      "qid": "4",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "3902997424",
+      "qid": "5",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.5949547834364588,
+      "iou": 0.5949547834364588,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "6772999108",
+      "qid": "2",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "8797589693",
+      "qid": "8",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "3550839192",
+      "qid": "2",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.40204545454545476,
+      "iou": 0.08875620892077678,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "8254300526",
+      "qid": "8",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.7613636363636357,
+      "iou": 0.3435897435897436,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "3557498300",
+      "qid": "4",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "4264435046",
+      "qid": "2",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.8285812239300612,
+      "iou": 0.21724344569288395,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "3105728894",
+      "qid": "0",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "3502722122",
+      "qid": "7",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 1.0,
+      "iou": 0.5641025641025644,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "4798585428",
+      "qid": "2",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "2829462646",
+      "qid": "7",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "8797589693",
+      "qid": "5",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.9105014105014103,
+      "iou": 0.7427436715908246,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "3557498300",
+      "qid": "5",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "2535384528",
+      "qid": "0",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "4798585428",
+      "qid": "5",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "2978295992",
+      "qid": "7",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "5521781780",
+      "qid": "8",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.7962803030303036,
+      "iou": 0.5747084328917234,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "5635265624",
+      "qid": "3",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.14710606060606057,
+      "iou": 0.05197787901986713,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "2717347132",
+      "qid": "8",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 1.0,
+      "iou": 0.30555555555555547,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "3557498300",
+      "qid": "10",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.7045454545454543,
+      "iou": 0.7045454545454543,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "6772999108",
+      "qid": "4",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "8495272210",
+      "qid": "0",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 1.0,
+      "iou": 0.316546762589928,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "10001787725",
+      "qid": "7",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "3719793245",
+      "qid": "5",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.15285646211680012,
+      "iou": 0.10310714285714298,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "8254300526",
+      "qid": "7",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.24621212121212144,
+      "iou": 0.2452830188679252,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "4092992100",
+      "qid": "8",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.6129545454545454,
+      "iou": 0.5183547953103979,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "5521781780",
+      "qid": "0",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "8495272210",
+      "qid": "2",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "3060478605",
+      "qid": "3",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "4707679105",
+      "qid": "5",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "4094488636",
+      "qid": "6",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.5922499999999999,
+      "iou": 0.5551436910163822,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "4092992100",
+      "qid": "4",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "4094488636",
+      "qid": "3",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "3105728894",
+      "qid": "6",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.5453560606060608,
+      "iou": 0.14198255271561097,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "2535384528",
+      "qid": "2",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "8254300526",
+      "qid": "1",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "8797589693",
+      "qid": "1",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "3105728894",
+      "qid": "4",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.8419166666666674,
+      "iou": 0.46917890630607145,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "3902997424",
+      "qid": "2",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.6332272727272727,
+      "iou": 0.38623194432892505,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "2717347132",
+      "qid": "0",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.4990000000000001,
+      "iou": 0.3324450366422386,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "3557498300",
+      "qid": "0",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 1.0,
+      "iou": 0.3188405797101449,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "2793260225",
+      "qid": "8",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.3581818181818183,
+      "iou": 0.17464539007092209,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "5635265624",
+      "qid": "4",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "2535384528",
+      "qid": "7",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 1.0,
+      "iou": 0.5304347826086959,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "2793260225",
+      "qid": "9",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.4945454545454546,
+      "iou": 0.46062658763759534,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "6772999108",
+      "qid": "3",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "3502722122",
+      "qid": "3",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 1.0,
+      "iou": 0.9103448275862069,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "2717347132",
+      "qid": "3",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 1.0,
+      "iou": 0.30344827586206885,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "3550839192",
+      "qid": "1",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 1.0,
+      "iou": 0.24444444444444435,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "8797589693",
+      "qid": "7",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "2793260225",
+      "qid": "3",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.5777272727272728,
+      "iou": 0.4834537847090148,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "8797589693",
+      "qid": "6",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "4264435046",
+      "qid": "5",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.1161363636363635,
+      "iou": 0.05220145060782502,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "4264435046",
+      "qid": "4",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.9975454545454546,
+      "iou": 0.8111924299549048,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "3557498300",
+      "qid": "6",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "4264435046",
+      "qid": "0",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 1.0,
+      "iou": 0.2391304347826086,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "8495272210",
+      "qid": "1",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "4264435046",
+      "qid": "7",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "8594309349",
+      "qid": "3",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.8162878787878791,
+      "iou": 0.7317487266553484,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "10001787725",
+      "qid": "5",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "8254300526",
+      "qid": "6",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 1.0,
+      "iou": 0.13253012048192778,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "8797589693",
+      "qid": "3",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "8797589693",
+      "qid": "0",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "2535384528",
+      "qid": "9",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.3688524590163934,
+      "iou": 0.3688524590163934,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "8594309349",
+      "qid": "1",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 1.0,
+      "iou": 0.40029761904761907,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "8495272210",
+      "qid": "7",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "3105728894",
+      "qid": "2",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.43181818181818094,
+      "iou": 0.43181818181818094,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "3557498300",
+      "qid": "3",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "2793260225",
+      "qid": "0",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.4902272727272729,
+      "iou": 0.170608241714783,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "4264435046",
+      "qid": "3",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 1.0,
+      "iou": 0.44444444444444464,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "8594309349",
+      "qid": "8",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "3502722122",
+      "qid": "6",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "3502722122",
+      "qid": "5",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.9590163934426229,
+      "iou": 0.26292134831460673,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "8495272210",
+      "qid": "10",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.2147878787878786,
+      "iou": 0.08250302635254671,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "3194558043",
+      "qid": "6",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "3902997424",
+      "qid": "0",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "3502722122",
+      "qid": "1",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 1.0,
+      "iou": 0.48888888888888893,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "8797589693",
+      "qid": "2",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "10001787725",
+      "qid": "3",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.5416097916097917,
+      "iou": 0.1700147826521648,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "5521781780",
+      "qid": "4",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "4707679105",
+      "qid": "10",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.2637889688249405,
+      "iou": 0.2637889688249405,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "5521781780",
+      "qid": "6",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.6978787878787883,
+      "iou": 0.5267612076852703,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "4092992100",
+      "qid": "6",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.5234090909090909,
+      "iou": 0.28798299362260854,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "2793260225",
+      "qid": "7",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "2717347132",
+      "qid": "1",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "4707679105",
+      "qid": "4",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.6867954545454544,
+      "iou": 0.6070388300757317,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "5521781780",
+      "qid": "1",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.6615151515151512,
+      "iou": 0.4942268508037125,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "3105728894",
+      "qid": "8",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "2535384528",
+      "qid": "1",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "4094488636",
+      "qid": "2",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "8254300526",
+      "qid": "9",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "5635265624",
+      "qid": "8",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.11744696969696987,
+      "iou": 0.05392404094651429,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "4092992100",
+      "qid": "7",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.47795454545454547,
+      "iou": 0.2629736151056646,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "4798585428",
+      "qid": "11",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.2954545454545444,
+      "iou": 0.2954545454545444,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "2535384528",
+      "qid": "5",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "3902997424",
+      "qid": "3",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.4999999999999996,
+      "iou": 0.4999999999999996,
+      "peak_in_gold": 1.0
+    },
+    {
+      "video": "9293415110",
+      "qid": "0",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "4092992100",
+      "qid": "5",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    },
+    {
+      "video": "4707679105",
+      "qid": "6",
+      "top_k": 12,
+      "half_width": 2.2,
+      "iop": 0.0,
+      "iou": 0.0,
+      "peak_in_gold": 0.0
+    }
+  ]
+}
