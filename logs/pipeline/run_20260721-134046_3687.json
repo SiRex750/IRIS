@@ -1,0 +1,52 @@
+{
+  "answer": "Insufficient verified evidence to answer this question.",
+  "raw_answer": "The video depicts a big buck bunny standing in a vibrant green meadow. It shows local motion spikes and residual energy changes corresponding to action moments.",
+  "context_text": "Frame 28\nTimestamp: 1.1s\n\nCaption:\n[CAPTION_FAILED]\n\nAction Score:\n0.96\n\nPersistence:\n1.00\n\n---\n\nFrame 68\nTimestamp: 2.7s\n\nCaption:\n[CAPTION_FAILED]\n\nAction Score:\n0.99\n\nPersistence:\n0.00\n\n---\n\nFrame 72\nTimestamp: 2.9s\n\nCaption:\n[CAPTION_FAILED]\n\nAction Score:\n1.00\n\nPersistence:\n1.00\n\n---\n\nFrame 34\nTimestamp: 1.4s\n\nCaption:\n[CAPTION_FAILED]\n\nAction Score:\n1.00\n\nPersistence:\n1.00\n\nSelection Reason:\nTop peak after NMS.\n\n---\n\nFrame 30\nTimestamp: 1.2s\n\nCaption:\n[CAPTION_FAILED]\n\nAction Score:\n0.98\n\nPersistence:\n0.00",
+  "verified": false,
+  "nli_mocked": false,
+  "verified_claims": [],
+  "rejected_claims": [],
+  "unverifiable_claims": [],
+  "answer_claims": null,
+  "compliance_failed": true,
+  "compliance_attempts": 2,
+  "compliance_failure_labels": [
+    "json_decode",
+    "json_decode"
+  ],
+  "badge": "unverified",
+  "claim_verdicts": [],
+  "core_claim_verdict": null,
+  "predicted_choice_idx": null,
+  "frames_processed": 28,
+  "peak_count": 7,
+  "compression_ratio": 0.888,
+  "skipped_frames_ratio": 0.888,
+  "storage_reduction_factor": 8.928571428571429,
+  "retrieved_frame_idxs": [
+    28,
+    68,
+    72,
+    34,
+    30
+  ],
+  "frames_decoded_for_captions": 73,
+  "query_telemetry": {
+    "embedding_backend": "torch-cuda",
+    "norm": 1.0001624822616577,
+    "fallback_reason": "none",
+    "effective_method": "direct",
+    "l1_consulted": false,
+    "l1_hit": false,
+    "l1_candidate_count": 0,
+    "l2_fallback": false
+  },
+  "timings": {
+    "l2_retrieval": 0.006082534906454384,
+    "lazy_caption": 2.999823161982931,
+    "elysium": 3.7024961784482e-05,
+    "aria": 3.7483987398445606e-05,
+    "cerberus_v2": 0.0,
+    "total": 3.0059802058385685
+  }
+}
