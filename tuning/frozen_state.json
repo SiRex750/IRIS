@@ -238,5 +238,37 @@
         "gold_peak_coverage_rate": 0.9977653631284916
       }
     ]
+  },
+  "peak_dist_prom_recheck_under_action_score_weights": {
+    "superseded": false,
+    "note": "select_best()'s raw tie-break chain mechanically returned peak_distance=3,peak_prominence=0.03 (mIoP=0.29774) over the prior selection peak_distance=5,peak_prominence=0.05 (mIoP=0.29782, re-evaluated fresh under the new weights) via IoP@0.5 tied with distance=8 then lower median latency (3.965ms vs 3.990ms). Per this task's own honesty standard ('if the new winner doesn't clear the tie-break band over the old selection, it's noise, not a new answer'), the mIoP gap between the raw winner and the prior selection is 0.00008 -- two orders of magnitude below the 0.005 tie-break band, roughly one question's worth of IoP@0.5 difference out of 2685. This was corrected by hand: peak_distance/peak_prominence are NOT updated away from (5, 0.05). All 4 combos are mutually statistically indistinguishable under the new weights too (mIoP spread 0.29774-0.29816, a 0.00042 total range), the same qualitative finding as the original Family 5 run -- just this time the tie-break chain's coin-flip-level distinctions happen to marginally favor a different label. RECONFIRMED, not superseded.",
+    "prior_selection": "peak_distance=5,peak_prominence=0.05",
+    "raw_select_best_output_not_adopted": "peak_distance=3,peak_prominence=0.03",
+    "all_trials": [
+      {
+        "value": "peak_distance=3,peak_prominence=0.03",
+        "mIoP": 0.2977354516367044,
+        "IoP@0.5": 0.30130353817504657,
+        "median_retrieval_ms": 3.965226002037525
+      },
+      {
+        "value": "peak_distance=5,peak_prominence=0.05",
+        "mIoP": 0.297819714053369,
+        "IoP@0.5": 0.30093109869646184,
+        "median_retrieval_ms": 3.9299970085266978
+      },
+      {
+        "value": "peak_distance=8,peak_prominence=0.05",
+        "mIoP": 0.2981601126209467,
+        "IoP@0.5": 0.30130353817504657,
+        "median_retrieval_ms": 3.990021999925375
+      },
+      {
+        "value": "peak_distance=5,peak_prominence=0.1",
+        "mIoP": 0.297819714053369,
+        "IoP@0.5": 0.30093109869646184,
+        "median_retrieval_ms": 3.9827870059525594
+      }
+    ]
   }
 }

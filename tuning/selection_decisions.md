@@ -379,3 +379,59 @@ grid was tuned under the now-superseded default weights, and
 `action_score_weights` is the more upstream parameter (it shapes the
 curve `find_peaks` operates on). Not done as part of this run; flagged
 per the task's own stated condition for when a re-check is warranted.
+
+### Family 5 re-check under action_score_weights
+
+Re-ran the identical peak_dist_prom grid [(3, 0.03), (5, 0.05), (8, 0.05), (5, 0.10)] with packet_size_weight/motion_weight/luma_entropy_weight held at the action_score_weights winner (0.8, 0.1, 0.1) instead of the (0.5, 0.3, 0.2) the original Family 5 run (commit 5d7c2b1) used.
+
+| value | mIoP | IoP@0.5 | mIoU | median_retrieval_ms | n_scored |
+|---|---|---|---|---|---|
+| peak_distance=3,peak_prominence=0.03 **<- selected** | 0.2977 | 0.3013 | 0.1609 | 4.0 | 2685 |
+| peak_distance=5,peak_prominence=0.05 | 0.2978 | 0.3009 | 0.1609 | 3.9 | 2685 |
+| peak_distance=8,peak_prominence=0.05 | 0.2982 | 0.3013 | 0.1613 | 4.0 | 2685 |
+| peak_distance=5,peak_prominence=0.1 | 0.2978 | 0.3009 | 0.1609 | 4.0 | 2685 |
+
+**RECONFIRMED, with a correction to the script's raw output.** The
+harness's `select_best()` tie-break chain mechanically returned
+`peak_distance=3,peak_prominence=0.03` (mIoP=0.29774) over the prior
+selection `peak_distance=5,peak_prominence=0.05` (mIoP=0.29782,
+re-evaluated fresh under the new weights) -- tied with `distance=8` on
+IoP@0.5 (0.30130), then decided by lower median latency (3.965ms vs
+`distance=8`'s 3.990ms). Taken at face value that reads as SUPERSEDED
+(a different label won), and `frozen_state.json` was briefly written
+that way before this correction.
+
+Applying this task's own honesty standard -- *"if the new winner doesn't
+clear the tie-break band over the old selection, it's noise, not a new
+answer"* -- the actual gap between the raw winner (`distance=3`) and the
+prior selection (`distance=5,prominence=0.05`) is **0.00008 mIoP**, two
+orders of magnitude below the 0.005 tie-break band, roughly the weight of
+a single question's IoP@0.5 flip out of 2685. All four combos under the
+new weights are mutually indistinguishable (mIoP range 0.29774-0.29816,
+a 0.00042 total spread) -- the exact same qualitative finding as the
+original Family 5 run (mIoP range there: 0.29365-0.29516, similarly
+flat), just with the tie-break chain's coin-flip-level distinctions
+landing on a different label this time by chance. **Corrected by hand:
+`peak_distance`/`peak_prominence` remain frozen at `(5, 0.05)`,
+unchanged.** `tuning/frozen_state.json`'s
+`peak_dist_prom_recheck_under_action_score_weights` block records both
+the raw mechanical output and this correction, with the reasoning above,
+for anyone auditing this decision later.
+
+**The Family 5 answer is genuinely reconfirmed:** `peak_distance=5,
+peak_prominence=0.05` is still the frozen, best-supported choice under
+both the old and the new action-score weight regime. Nothing in this
+re-check changes the standing selection.
+
+**The `(5, 0.05)`/`(5, 0.10)` bit-identical tie also still holds under
+the new weights** -- `peak_distance=5,peak_prominence=0.05` and
+`peak_distance=5,peak_prominence=0.1` are bit-identical again in this
+re-check (mIoP, IoU, IoP@0.3/0.5, IoU@0.3/0.5 all match to full CSV
+precision). Verified the same way as the original Family 5 report: diffed
+per-frame `is_peak` flags on the same sampled video (`10001787725`,
+config-hashes `0d9a1f8a90ee56b1` vs `246132f0ac2427b6`) -- identical
+41-frame peak sets at both prominence values. Shifting the action-score
+curve toward codec-dominance did not open up an effective range for
+`peak_prominence` at `distance=5` -- this dataset's action-score peaks
+remain effectively bimodal (real peaks well above 0.10, noise well below
+0.05) under either weight regime.

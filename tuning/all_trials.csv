@@ -29,3 +29,7 @@ action_score_weights,"packet_size_weight=0.8,motion_weight=0.1,luma_entropy_weig
 action_score_weights,"packet_size_weight=0.2,motion_weight=0.6,luma_entropy_weight=0.2",de72b2421d847823,2685,0.29035,0.15761,0.36164,0.29236,0.23724,0.1162,3.98,4.97,1089.5,,62.593,0.39166,0.99814
 action_score_weights,"packet_size_weight=0.2,motion_weight=0.2,luma_entropy_weight=0.6",2a04f74ea4f68236,2685,0.29162,0.15716,0.36387,0.29311,0.23687,0.11583,3.92,4.91,1091.4,,63.433,0.39692,0.99739
 action_score_weights,"packet_size_weight=0.34,motion_weight=0.33,luma_entropy_weight=0.33",dc0ed2c9915793d7,2685,0.29224,0.15764,0.36536,0.29199,0.23613,0.11657,3.96,4.97,1087.8,,63.549,0.39764,0.99777
+peak_dist_prom_recheck_under_action_score_weights,"peak_distance=3,peak_prominence=0.03",18eab8a1ac0b1d41,2685,0.29774,0.16094,0.37169,0.3013,0.2432,0.11881,3.97,4.91,1100.1,,,,
+peak_dist_prom_recheck_under_action_score_weights,"peak_distance=5,peak_prominence=0.05",0d9a1f8a90ee56b1,2685,0.29782,0.16087,0.37207,0.30093,0.24358,0.11918,3.93,4.83,102.3,,,,
+peak_dist_prom_recheck_under_action_score_weights,"peak_distance=8,peak_prominence=0.05",d23faf29616b7a3a,2685,0.29816,0.16133,0.3743,0.3013,0.2432,0.11955,3.99,5.02,1082.4,,,,
+peak_dist_prom_recheck_under_action_score_weights,"peak_distance=5,peak_prominence=0.1",246132f0ac2427b6,2685,0.29782,0.16087,0.37207,0.30093,0.24358,0.11918,3.98,5.09,1085.9,,,,
