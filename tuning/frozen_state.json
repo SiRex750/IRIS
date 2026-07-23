@@ -7,14 +7,18 @@
     "span_method": "D",
     "span_method_half_width_s": 2.2,
     "peak_distance": 5,
-    "peak_prominence": 0.05
+    "peak_prominence": 0.05,
+    "packet_size_weight": 0.8,
+    "motion_weight": 0.1,
+    "luma_entropy_weight": 0.1
   },
   "completed_families": [
     "retrieval_strategy",
     "ppr_lambda",
     "ppr_damping",
     "l2_retrieve_top_k",
-    "peak_dist_prom"
+    "peak_dist_prom",
+    "action_score_weights"
   ],
   "selection_detail_retrieval_strategy": {
     "selected": "hybrid",
@@ -182,6 +186,56 @@
         "mIoP": 0.2951557635471454,
         "IoP@0.5": 0.297951582867784,
         "median_retrieval_ms": 3.9454259967897087
+      }
+    ]
+  },
+  "selection_detail_action_score_weights": {
+    "selected": "packet_size_weight=0.8,motion_weight=0.1,luma_entropy_weight=0.1",
+    "all_trials": [
+      {
+        "value": "packet_size_weight=0.5,motion_weight=0.3,luma_entropy_weight=0.2",
+        "mIoP": 0.2951557635471454,
+        "IoP@0.5": 0.297951582867784,
+        "median_retrieval_ms": 3.9172580000013113,
+        "avg_peak_frame_count": 64.14222222222222,
+        "peak_fraction": 0.4013515580460809,
+        "gold_peak_coverage_rate": 0.9981378026070763
+      },
+      {
+        "value": "packet_size_weight=0.8,motion_weight=0.1,luma_entropy_weight=0.1",
+        "mIoP": 0.297819714053369,
+        "IoP@0.5": 0.30093109869646184,
+        "median_retrieval_ms": 3.9448169991374016,
+        "avg_peak_frame_count": 64.10222222222222,
+        "peak_fraction": 0.40110126951902886,
+        "gold_peak_coverage_rate": 0.9977653631284916
+      },
+      {
+        "value": "packet_size_weight=0.2,motion_weight=0.6,luma_entropy_weight=0.2",
+        "mIoP": 0.29035411103421943,
+        "IoP@0.5": 0.29236499068901306,
+        "median_retrieval_ms": 3.9790239970898256,
+        "avg_peak_frame_count": 62.593333333333334,
+        "peak_fraction": 0.3916598300819,
+        "gold_peak_coverage_rate": 0.9981378026070763
+      },
+      {
+        "value": "packet_size_weight=0.2,motion_weight=0.2,luma_entropy_weight=0.6",
+        "mIoP": 0.2916179577221348,
+        "IoP@0.5": 0.2931098696461825,
+        "median_retrieval_ms": 3.9167299983091652,
+        "avg_peak_frame_count": 63.43333333333333,
+        "peak_fraction": 0.3969158891499924,
+        "gold_peak_coverage_rate": 0.9973929236499068
+      },
+      {
+        "value": "packet_size_weight=0.34,motion_weight=0.33,luma_entropy_weight=0.33",
+        "mIoP": 0.29224291606591135,
+        "IoP@0.5": 0.29199255121042833,
+        "median_retrieval_ms": 3.959655005019158,
+        "avg_peak_frame_count": 63.54888888888889,
+        "peak_fraction": 0.3976389448948093,
+        "gold_peak_coverage_rate": 0.9977653631284916
       }
     ]
   }

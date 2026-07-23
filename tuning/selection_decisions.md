@@ -281,3 +281,101 @@ bit-identical tie into a "prominence was confirmed optimal" success story:
 the honest characterization is that this grid found no improvement
 available in either `peak_distance` or `peak_prominence` over the values
 already in use since Family 1.
+
+## Family: action_score_weights
+
+Grid: [(0.5, 0.3, 0.2), (0.8, 0.1, 0.1), (0.2, 0.6, 0.2), (0.2, 0.2, 0.6), (0.34, 0.33, 0.33)]
+
+| value | mIoP | IoP@0.5 | mIoU | median_retrieval_ms | n_scored | avg_peak_frame_count | peak_fraction | gold_peak_coverage_rate |
+|---|---|---|---|---|---|---|---|---|
+| packet_size_weight=0.5,motion_weight=0.3,luma_entropy_weight=0.2 | 0.2952 | 0.2980 | 0.1600 | 3.9 | 2685 | 64.14 | 0.4014 | 0.9981 |
+| packet_size_weight=0.8,motion_weight=0.1,luma_entropy_weight=0.1 **<- selected** | 0.2978 | 0.3009 | 0.1609 | 3.9 | 2685 | 64.10 | 0.4011 | 0.9978 |
+| packet_size_weight=0.2,motion_weight=0.6,luma_entropy_weight=0.2 | 0.2904 | 0.2924 | 0.1576 | 4.0 | 2685 | 62.59 | 0.3917 | 0.9981 |
+| packet_size_weight=0.2,motion_weight=0.2,luma_entropy_weight=0.6 | 0.2916 | 0.2931 | 0.1572 | 3.9 | 2685 | 63.43 | 0.3969 | 0.9974 |
+| packet_size_weight=0.34,motion_weight=0.33,luma_entropy_weight=0.33 | 0.2922 | 0.2920 | 0.1576 | 4.0 | 2685 | 63.55 | 0.3976 | 0.9978 |
+
+Selected **action_score_weights = packet_size_weight=0.8,motion_weight=0.1,luma_entropy_weight=0.1** (mIoP primary; IoP@0.5 tie-break if within 0.005; then lower median retrieval latency; then default).
+
+### Family action_score_weights supplementary analysis
+
+**This is a real, direct mIoP win, not a tie-break call.** Codec-dominant
+(0.8, 0.1, 0.1) beats the default by +0.0026 mIoP (0.29782 vs 0.29516),
+outside the 0.005 tie-break band on its own -- the first family since
+`l2_retrieve_top_k` (Family 4) where the winner is decided by raw mIoP
+rather than falling to the IoP@0.5 tie-break.
+
+**The winner did NOT win by admitting more or fewer PEAK-tier frames.**
+Codec-dominant's diagnostics are nearly identical to the default's
+(avg_peak_frame_count 64.10 vs 64.14, peak_fraction 0.4011 vs 0.4014,
+gold_peak_coverage_rate 0.9978 vs 0.9981 -- all differences well inside
+noise). If the mechanism were "more/fewer candidates in the hybrid
+retrieval pool," these would have moved with mIoP. They didn't.
+
+**Verified mechanistically (not just inferred from the diagnostics
+tying): diffed per-frame `is_peak` flags between the default
+(config-hash `b5c4454a6b9fd300`) and codec-dominant (config-hash
+`0d9a1f8a90ee56b1`) index caches for a sampled video (`10001787725`,
+121 frames).** Peak counts are close (43 default vs 41 codec-dominant,
+consistent with the diagnostics) but the sets are NOT the same peaks:
+only 27 of the ~43 frame indices are common to both. The other ~16 per
+side are near-miss swaps to an adjacent frame within the same motion
+burst, not new/removed events -- e.g. frame 20->30, 56->60, 209->207,
+247->251, 329->327, 378->387, 564->567, 625->627, 674->672, 692->687,
+716->724, 744->747, 979->987, 995->1001 (all single-digit-to-low-double-
+digit frame_idx shifts). Weighting `action_score` more toward
+`packet_size_weight` (codec-residual) shifts the exact local maximum
+`find_peaks` locks onto within each burst by a few frames, without
+materially changing how many bursts get admitted as peaks at all.
+
+**Correct framing (per this run's Known Limitation #3): this result
+changes which frames become PEAK-tier candidates, not "retrieval
+scoring."** `packet_size_weight`/`motion_weight`/`luma_entropy_weight`
+only feed `action_score` -> `is_peak` admission at ingest
+(`iris/action_score.py`'s `score_all()`); under the frozen
+`ranking_mode="ppr"`, `persistence_value`'s gamma-weighted term never
+fires (that's `ranking_mode="legacy"` only), so nothing here touched PPR
+ranking directly. The downstream mIoP gain comes entirely through Method
+D's CLIP-similarity anchor landing on a slightly different (marginally
+better-centered) frame within the retrieved pool once the PEAK-tier
+candidate set shifted by a few frames per video.
+
+**No bit-identical trials this family** (unlike Family 5's
+`peak_prominence=0.05` vs `0.10`) -- all 5 combos produced distinct
+mIoP/mIoU/IoP values, confirmed from `tuning/all_trials.csv`'s full
+(unrounded) precision, so no additional bit-identical-tie verification
+was needed beyond the mechanistic diff above.
+
+**Mechanistic read across all 5 trials:** `motion-dominant` (0.2, 0.6, 0.2)
+and `entropy-dominant` (0.2, 0.2, 0.6) both lose to the default on every
+metric, and unlike codec-dominant's win, their diagnostics move with
+their losses -- fewer PEAK-tier candidates (62.59 and 63.43 avg frames vs
+the default's 64.14, peak_fraction down to 0.3917/0.3969 from 0.4014).
+`motion_magnitude` and `luma_entropy` are noisier, more diffusely-varying
+signals per-frame than `packet_size` (a direct codec-residual proxy for
+genuine scene change); weighting the blend toward either one raises the
+`find_peaks` prominence threshold's effective bar relative to the noisier
+signal's dynamic range, admitting fewer frames as peaks -- straightforward
+"fewer candidates, worse coverage, worse mIoP," the same
+under-provisioning pattern seen when `l2_retrieve_top_k` or
+`peak_distance` were pushed too far in earlier families. `equal`
+weighting (0.34, 0.33, 0.33) sits between these losers and the winner
+(0.2922 mIoP, avg_peak_frame_count 63.55) -- diluting away from
+`packet_size_weight`'s dominance costs a little, consistent with codec
+residual being the most informative single channel for this dataset's
+short, precise NExT-GQA gold windows (same "motion/activity-peak signal
+beats diffuse semantic/entropy signal for temporal precision" pattern
+already established for `ppr_lambda` in Family 2).
+
+**Known Limitations carried forward from the task spec (not re-litigated
+here, just flagged):** (1) this entire run, like every family before it,
+happens under `ranking_mode="ppr"`, never compared against `"legacy"` by
+any val_tune mIoP/IoU sweep -- every number in this family is conditional
+on that untested architectural choice. (2) **Since this family's winner
+is NOT the default** (`(0.8, 0.1, 0.1)` beat `(0.5, 0.3, 0.2)`), Family
+5's `peak_distance` x `peak_prominence` 4-combo grid should be re-run
+once under these new weights as a cheap sanity check before treating
+`peak_distance=5`/`peak_prominence=0.05` as settled for good -- that
+grid was tuned under the now-superseded default weights, and
+`action_score_weights` is the more upstream parameter (it shapes the
+curve `find_peaks` operates on). Not done as part of this run; flagged
+per the task's own stated condition for when a re-check is warranted.

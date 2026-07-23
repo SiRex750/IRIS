@@ -68,15 +68,40 @@ DEFAULTS = {
     "l2_retrieve_top_k": 5,
     "peak_distance": 5,
     "peak_prominence": 0.05,
+    "packet_size_weight": 0.5,
+    "motion_weight": 0.3,
+    "luma_entropy_weight": 0.2,
 }
 
-INGEST_RELEVANT_KEYS = ["retrieval_strategy", "l2_retrieve_top_k", "peak_distance", "peak_prominence", "peak_order"]
+# packet_size_weight/motion_weight/luma_entropy_weight feed action_score
+# (iris/action_score.py's score_all(), ~lines 100-112), which determines
+# is_peak at ingest time -- these MUST be ingest-relevant, same class of
+# bug as the pre-commit-60202b5 scene_id omission and the pre-commit-
+# 5d7c2b1 stale Method D default: without this, ingest_config_hash()
+# can't distinguish weight combos and the harness would silently reuse a
+# cached index built under a different combo's ingest output.
+INGEST_RELEVANT_KEYS = ["retrieval_strategy", "l2_retrieve_top_k", "peak_distance", "peak_prominence", "peak_order",
+                        "packet_size_weight", "motion_weight", "luma_entropy_weight"]
+
+# Families whose grid values are tuples of multiple config fields rather
+# than a single scalar -- maps family name to the ordered list of
+# IRISConfig field names each tuple position overrides.
+TUPLE_FAMILIES = {
+    "peak_dist_prom": ["peak_distance", "peak_prominence"],
+    "action_score_weights": ["packet_size_weight", "motion_weight", "luma_entropy_weight"],
+}
 
 FAMILIES = {
     "retrieval_strategy": ["peak_only", "top_k_action", "peak_neighbors", "hybrid"],
     "ppr_lambda": [0.00, 0.10, 0.25, 0.50, 0.75, 0.90, 1.00],
     "ppr_damping": [0.50, 0.65, 0.80, 0.85, 0.90],
     "l2_retrieve_top_k": [4, 8, 12, 16],
+    # (packet_size_weight, motion_weight, luma_entropy_weight) -- action_score
+    # divides by the weight sum, so only the ratio between the three matters;
+    # these five combos are not redundant with any rescaled equivalent.
+    # Centered on the default (0.5, 0.3, 0.2) with each channel taken to a
+    # dominant extreme plus an equal-weighting control.
+    "action_score_weights": [(0.5, 0.3, 0.2), (0.8, 0.1, 0.1), (0.2, 0.6, 0.2), (0.2, 0.2, 0.6), (0.34, 0.33, 0.33)],
     # find_peaks(distance=..., prominence=...) small joint grid: distance
     # controls min samples between selected peaks, prominence the minimum
     # peak salience relative to neighboring troughs. Centered on the
@@ -85,7 +110,13 @@ FAMILIES = {
     # family requires a full re-ingest per combo just like family 1/4.
     "peak_dist_prom": [(3, 0.03), (5, 0.05), (8, 0.05), (5, 0.10)],
 }
-FAMILY_ORDER = ["retrieval_strategy", "ppr_lambda", "ppr_damping", "l2_retrieve_top_k", "peak_dist_prom"]
+# action_score_weights is the more upstream parameter (shapes the curve
+# find_peaks operates on) and belongs before peak_dist_prom in principle,
+# even though peak_dist_prom already ran first in practice (commit
+# 5d7c2b1) -- see tuning/selection_decisions.md's Family 5 limitations
+# note for why that ordering slip cost little (Family 5 landed on a clean
+# negative result, so no non-default value is conditionally at risk).
+FAMILY_ORDER = ["retrieval_strategy", "ppr_lambda", "ppr_damping", "l2_retrieve_top_k", "action_score_weights", "peak_dist_prom"]
 
 
 def load_frozen_state() -> dict:
@@ -246,16 +277,79 @@ def evaluate_config(cfg: IRISConfig, questions: list[dict], index_paths: dict[st
     }
 
 
+ALL_TRIALS_FIELDNAMES = [
+    "family", "trial_value", "config_hash", "n_questions_scored", "mIoP", "mIoU",
+    "IoP@0.3", "IoP@0.5", "IoU@0.3", "IoU@0.5", "median_retrieval_ms", "p95_retrieval_ms",
+    "wall_s", "selected",
+    # action_score_weights-only diagnostics (blank for every other family's rows):
+    # these three are the actual mechanism packet_size_weight/motion_weight/
+    # luma_entropy_weight act through (is_peak / L1_PEAK tier admission),
+    # not just the downstream mIoP/IoU numbers.
+    "avg_peak_frame_count", "peak_fraction", "gold_peak_coverage_rate",
+]
+
+
+def _migrate_all_trials_schema() -> None:
+    """One-time widen of an existing all_trials.csv written under the old
+    (pre-diagnostic-columns) header to ALL_TRIALS_FIELDNAMES, preserving
+    every prior row (diagnostic columns blank for families that never
+    computed them). No-op if the file doesn't exist yet or is already
+    on the current schema."""
+    if not ALL_TRIALS_PATH.exists():
+        return
+    with open(ALL_TRIALS_PATH, newline="") as f:
+        reader = csv.DictReader(f)
+        if reader.fieldnames == ALL_TRIALS_FIELDNAMES:
+            return
+        rows = list(reader)
+    with open(ALL_TRIALS_PATH, "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=ALL_TRIALS_FIELDNAMES, restval="")
+        w.writeheader()
+        for r in rows:
+            w.writerow(r)
+
+
 def append_trial_row(row: dict) -> None:
+    _migrate_all_trials_schema()
     write_header = not ALL_TRIALS_PATH.exists()
-    fieldnames = ["family", "trial_value", "config_hash", "n_questions_scored", "mIoP", "mIoU",
-                  "IoP@0.3", "IoP@0.5", "IoU@0.3", "IoU@0.5", "median_retrieval_ms", "p95_retrieval_ms",
-                  "wall_s", "selected"]
     with open(ALL_TRIALS_PATH, "a", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=fieldnames)
+        w = csv.DictWriter(f, fieldnames=ALL_TRIALS_FIELDNAMES, restval="")
         if write_header:
             w.writeheader()
         w.writerow(row)
+
+
+def compute_action_score_diagnostics(questions: list[dict], index_cache: dict[str, object]) -> dict:
+    """The actual mechanism packet_size_weight/motion_weight/luma_entropy_weight
+    act through: is_peak / L1_PEAK tier admission at ingest time (NOT
+    retrieval ranking directly -- persistence_value's gamma-weighted term
+    only fires under ranking_mode="legacy", which this project doesn't
+    use). Computed from index_cache, which evaluate_config() already
+    populated with every video's freshly-ingested index for this trial's
+    config-hash."""
+    peak_counts, total_frames_list = [], []
+    for idx in index_cache.values():
+        peak_counts.append(sum(1 for f in idx.frames if f.is_peak))
+        total_frames_list.append(len(idx.frames))
+
+    covered, n_q = 0, 0
+    for q in questions:
+        vid = q["video"]
+        if vid not in index_cache:
+            continue
+        idx = index_cache[vid]
+        n_q += 1
+        gold_spans = q["gold_spans"]
+        if any(f.is_peak and any(g[0] <= f.timestamp <= g[1] for g in gold_spans) for f in idx.frames):
+            covered += 1
+
+    total_peak = sum(peak_counts)
+    total_frames = sum(total_frames_list)
+    return {
+        "avg_peak_frame_count": (total_peak / len(peak_counts)) if peak_counts else 0.0,
+        "peak_fraction": (total_peak / total_frames) if total_frames else 0.0,
+        "gold_peak_coverage_rate": (covered / n_q) if n_q else 0.0,
+    }
 
 
 def select_best(trials: list[dict], default_value) -> dict:
@@ -297,24 +391,34 @@ def run_family(family: str, questions: list[dict]) -> None:
 
     for val in grid:
         t_start = time.perf_counter()
-        if family == "peak_dist_prom":
-            overrides = {**frozen_so_far, "peak_distance": val[0], "peak_prominence": val[1]}
-            label = f"distance={val[0]},prominence={val[1]}"
+        if family in TUPLE_FAMILIES:
+            field_names = TUPLE_FAMILIES[family]
+            overrides = {**frozen_so_far, **dict(zip(field_names, val))}
+            label = ",".join(f"{fn}={v}" for fn, v in zip(field_names, val))
         else:
             overrides = {**frozen_so_far, family: val}
             label = str(val)
 
         cfg = make_config(overrides)
-        print(f"  [trial] {family}={label}", flush=True)
+        print(f"  [trial] {family}={label} (codec_conf_source={cfg.codec_conf_source})", flush=True)
         index_paths = ensure_indexes(video_ids, cfg)
         index_cache.clear()  # different config-hash -> different cached objects; avoid cross-trial staleness
         metrics = evaluate_config(cfg, questions, index_paths, index_cache)
         wall_s = time.perf_counter() - t_start
+
+        diagnostics = {}
+        if family == "action_score_weights":
+            diagnostics = compute_action_score_diagnostics(questions, index_cache)
+            print(f"    [diag] avg_peak_frame_count={diagnostics['avg_peak_frame_count']:.2f} "
+                  f"peak_fraction={diagnostics['peak_fraction']:.4f} "
+                  f"gold_peak_coverage_rate={diagnostics['gold_peak_coverage_rate']:.4f}", flush=True)
+
         print(f"    -> mIoP={metrics['mIoP']:.4f} IoP@0.5={metrics['IoP@0.5']:.4f} "
               f"mIoU={metrics['mIoU']:.4f} n={metrics['n_questions_scored']} wall={wall_s:.0f}s", flush=True)
 
-        trials.append({"value": val, "label": label, "metrics": metrics, "cfg_hash": ingest_config_hash(cfg), "wall_s": wall_s})
-        append_trial_row({
+        trials.append({"value": val, "label": label, "metrics": metrics, "diagnostics": diagnostics,
+                        "cfg_hash": ingest_config_hash(cfg), "wall_s": wall_s})
+        row = {
             "family": family, "trial_value": label, "config_hash": ingest_config_hash(cfg),
             "n_questions_scored": metrics["n_questions_scored"], "mIoP": round(metrics["mIoP"], 5),
             "mIoU": round(metrics["mIoU"], 5), "IoP@0.3": round(metrics["IoP@0.3"], 5),
@@ -322,37 +426,54 @@ def run_family(family: str, questions: list[dict]) -> None:
             "IoU@0.5": round(metrics["IoU@0.5"], 5), "median_retrieval_ms": round(metrics["median_retrieval_ms"], 2),
             "p95_retrieval_ms": round(metrics["p95_retrieval_ms"], 2), "wall_s": round(wall_s, 1),
             "selected": "",
-        })
+        }
+        if diagnostics:
+            row["avg_peak_frame_count"] = round(diagnostics["avg_peak_frame_count"], 3)
+            row["peak_fraction"] = round(diagnostics["peak_fraction"], 5)
+            row["gold_peak_coverage_rate"] = round(diagnostics["gold_peak_coverage_rate"], 5)
+        append_trial_row(row)
 
-    default_val = DEFAULTS["peak_distance"], DEFAULTS["peak_prominence"] if family == "peak_dist_prom" else DEFAULTS.get(family)
-    best = select_best(trials, default_val if family != "peak_dist_prom" else (DEFAULTS["peak_distance"], DEFAULTS["peak_prominence"]))
+    if family in TUPLE_FAMILIES:
+        default_val = tuple(DEFAULTS[fn] for fn in TUPLE_FAMILIES[family])
+    else:
+        default_val = DEFAULTS.get(family)
+    best = select_best(trials, default_val)
 
-    # Mark selected row in the CSV (rewrite with the selected flag for this family's rows)
-    import pandas as _pd  # noqa
     print(f"[family={family}] SELECTED: {best['label']} (mIoP={best['metrics']['mIoP']:.4f})", flush=True)
 
-    if family == "peak_dist_prom":
-        frozen_so_far["peak_distance"] = best["value"][0]
-        frozen_so_far["peak_prominence"] = best["value"][1]
+    if family in TUPLE_FAMILIES:
+        for fn, v in zip(TUPLE_FAMILIES[family], best["value"]):
+            frozen_so_far[fn] = v
     else:
         frozen_so_far[family] = best["value"]
     state["frozen"] = frozen_so_far
     state["completed_families"].append(family)
     state[f"selection_detail_{family}"] = {"selected": best["label"], "all_trials": [
         {"value": t["label"], "mIoP": t["metrics"]["mIoP"], "IoP@0.5": t["metrics"]["IoP@0.5"],
-         "median_retrieval_ms": t["metrics"]["median_retrieval_ms"]} for t in trials
+         "median_retrieval_ms": t["metrics"]["median_retrieval_ms"], **t["diagnostics"]} for t in trials
     ]}
     save_frozen_state(state)
 
+    has_diagnostics = family == "action_score_weights"
     with open(TUNING_DIR / "selection_decisions.md", "a") as f:
         f.write(f"\n## Family: {family}\n\n")
         f.write(f"Grid: {grid}\n\n")
-        f.write("| value | mIoP | IoP@0.5 | mIoU | median_retrieval_ms | n_scored |\n")
-        f.write("|---|---|---|---|---|---|\n")
-        for t in trials:
-            mark = " **<- selected**" if t is best else ""
-            f.write(f"| {t['label']}{mark} | {t['metrics']['mIoP']:.4f} | {t['metrics']['IoP@0.5']:.4f} | "
-                    f"{t['metrics']['mIoU']:.4f} | {t['metrics']['median_retrieval_ms']:.1f} | {t['metrics']['n_questions_scored']} |\n")
+        if has_diagnostics:
+            f.write("| value | mIoP | IoP@0.5 | mIoU | median_retrieval_ms | n_scored | avg_peak_frame_count | peak_fraction | gold_peak_coverage_rate |\n")
+            f.write("|---|---|---|---|---|---|---|---|---|\n")
+            for t in trials:
+                mark = " **<- selected**" if t is best else ""
+                d = t["diagnostics"]
+                f.write(f"| {t['label']}{mark} | {t['metrics']['mIoP']:.4f} | {t['metrics']['IoP@0.5']:.4f} | "
+                        f"{t['metrics']['mIoU']:.4f} | {t['metrics']['median_retrieval_ms']:.1f} | {t['metrics']['n_questions_scored']} | "
+                        f"{d['avg_peak_frame_count']:.2f} | {d['peak_fraction']:.4f} | {d['gold_peak_coverage_rate']:.4f} |\n")
+        else:
+            f.write("| value | mIoP | IoP@0.5 | mIoU | median_retrieval_ms | n_scored |\n")
+            f.write("|---|---|---|---|---|---|\n")
+            for t in trials:
+                mark = " **<- selected**" if t is best else ""
+                f.write(f"| {t['label']}{mark} | {t['metrics']['mIoP']:.4f} | {t['metrics']['IoP@0.5']:.4f} | "
+                        f"{t['metrics']['mIoU']:.4f} | {t['metrics']['median_retrieval_ms']:.1f} | {t['metrics']['n_questions_scored']} |\n")
         f.write(f"\nSelected **{family} = {best['label']}** "
                 f"(mIoP primary; IoP@0.5 tie-break if within 0.005; then lower median retrieval latency; then default).\n")
 
