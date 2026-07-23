@@ -10,7 +10,9 @@
     "peak_prominence": 0.05,
     "packet_size_weight": 0.8,
     "motion_weight": 0.1,
-    "luma_entropy_weight": 0.1
+    "luma_entropy_weight": 0.1,
+    "persistence_threshold": 0.4,
+    "max_prominence": 0.5
   },
   "completed_families": [
     "retrieval_strategy",
@@ -18,7 +20,8 @@
     "ppr_damping",
     "l2_retrieve_top_k",
     "peak_dist_prom",
-    "action_score_weights"
+    "action_score_weights",
+    "persistence_gate"
   ],
   "selection_detail_retrieval_strategy": {
     "selected": "hybrid",
@@ -268,6 +271,58 @@
         "mIoP": 0.297819714053369,
         "IoP@0.5": 0.30093109869646184,
         "median_retrieval_ms": 3.9827870059525594
+      }
+    ]
+  },
+  "selection_detail_persistence_gate": {
+    "selected": "persistence_threshold=0.4,max_prominence=0.5",
+    "note": "select_best()'s raw tie-break chain mechanically returned persistence_threshold=0.6,max_prominence=0.5 (mIoP=0.29848, the single highest raw mIoP AND highest IoP@0.5 of all 5 trials) as the winner over the default (0.4, 0.5, mIoP=0.29782). Per this task's own honesty standard (applied identically to the Family 5 re-check's (3,0.03)->(5,0.05) correction): the gap is 0.00066 mIoP, well under the 0.005 tie-break band, and the IoP@0.5 gap (0.00075, ~0.25% relative) is smaller than every previously-accepted tie-break win in this series (Family 4's K=4 win: ~3.1% relative; Family 2's original, later-overturned-by-bootstrap-CI lambda=0.25 win: ~6.2% relative). This is the thinnest tie-break margin seen in the whole tuning series -- corrected by hand: persistence_threshold/max_prominence remain frozen at the untouched default (0.4, 0.5). The raw mechanical output is preserved here for audit, exactly as done for the Family 5 re-check.",
+    "raw_select_best_output_not_adopted": "persistence_threshold=0.6,max_prominence=0.5",
+    "all_trials": [
+      {
+        "value": "persistence_threshold=0.4,max_prominence=0.5",
+        "mIoP": 0.297819714053369,
+        "IoP@0.5": 0.30093109869646184,
+        "median_retrieval_ms": 3.9432619960280135,
+        "avg_peak_frame_count": 64.10222222222222,
+        "peak_fraction": 0.40110126951902886,
+        "gold_peak_coverage_rate": 0.9977653631284916
+      },
+      {
+        "value": "persistence_threshold=0.2,max_prominence=0.5",
+        "mIoP": 0.2972175471327664,
+        "IoP@0.5": 0.3001862197392924,
+        "median_retrieval_ms": 3.954719999455847,
+        "avg_peak_frame_count": 64.55111111111111,
+        "peak_fraction": 0.4039100629892793,
+        "gold_peak_coverage_rate": 0.9977653631284916
+      },
+      {
+        "value": "persistence_threshold=0.6,max_prominence=0.5",
+        "mIoP": 0.2984771546918728,
+        "IoP@0.5": 0.3016759776536313,
+        "median_retrieval_ms": 3.9776030025677755,
+        "avg_peak_frame_count": 61.6,
+        "peak_fraction": 0.38544433166010816,
+        "gold_peak_coverage_rate": 0.9973929236499068
+      },
+      {
+        "value": "persistence_threshold=0.8,max_prominence=0.25",
+        "mIoP": 0.297819714053369,
+        "IoP@0.5": 0.30093109869646184,
+        "median_retrieval_ms": 3.9502799918409437,
+        "avg_peak_frame_count": 64.10222222222222,
+        "peak_fraction": 0.40110126951902886,
+        "gold_peak_coverage_rate": 0.9977653631284916
+      },
+      {
+        "value": "persistence_threshold=0.4,max_prominence=0.8",
+        "mIoP": 0.2980301652443247,
+        "IoP@0.5": 0.30130353817504657,
+        "median_retrieval_ms": 3.9703259972156957,
+        "avg_peak_frame_count": 60.45777777777778,
+        "peak_fraction": 0.3782972037209561,
+        "gold_peak_coverage_rate": 0.9973929236499068
       }
     ]
   }

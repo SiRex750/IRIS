@@ -435,3 +435,151 @@ curve toward codec-dominance did not open up an effective range for
 `peak_prominence` at `distance=5` -- this dataset's action-score peaks
 remain effectively bimodal (real peaks well above 0.10, noise well below
 0.05) under either weight regime.
+
+## Family: persistence_gate
+
+Grid: [(0.4, 0.5), (0.2, 0.5), (0.6, 0.5), (0.8, 0.25), (0.4, 0.8)]
+
+| value | mIoP | IoP@0.5 | mIoU | median_retrieval_ms | n_scored | avg_peak_frame_count | peak_fraction | gold_peak_coverage_rate |
+|---|---|---|---|---|---|---|---|---|
+| persistence_threshold=0.4,max_prominence=0.5 (default) **<- selected** | 0.2978 | 0.3009 | 0.1609 | 3.9 | 2685 | 64.10 | 0.4011 | 0.9978 |
+| persistence_threshold=0.2,max_prominence=0.5 | 0.2972 | 0.3002 | 0.1607 | 4.0 | 2685 | 64.55 | 0.4039 | 0.9978 |
+| persistence_threshold=0.6,max_prominence=0.5 | 0.2985 | 0.3017 | 0.1610 | 4.0 | 2685 | 61.60 | 0.3854 | 0.9974 |
+| persistence_threshold=0.8,max_prominence=0.25 | 0.2978 | 0.3009 | 0.1609 | 4.0 | 2685 | 64.10 | 0.4011 | 0.9978 |
+| persistence_threshold=0.4,max_prominence=0.8 | 0.2980 | 0.3013 | 0.1610 | 4.0 | 2685 | 60.46 | 0.3783 | 0.9974 |
+
+Selected **persistence_gate = persistence_threshold=0.4,max_prominence=0.5 (the untouched default)** (mIoP primary; IoP@0.5 tie-break if within 0.005; then lower median retrieval latency; then default) -- see supplementary analysis below for why the raw mechanical winner was corrected.
+
+### Family persistence_gate supplementary analysis
+
+**The product-matched pair confirms the algebra exactly, at full float
+precision.** `persistence_threshold=0.4,max_prominence=0.5` (default,
+effective cutoff 0.4*0.5=0.20) and `persistence_threshold=0.8,
+max_prominence=0.25` (same 0.20 cutoff via a different split) produce
+**identical mIoP to 15 decimal places** (`0.297819714053369` for both,
+from the unrounded `tuning/all_trials.csv`/`frozen_state.json` values --
+not just matching at display rounding). Every other metric (mIoU,
+IoP@0.3/0.5, IoU@0.3/0.5, all three diagnostics) matches too. Verified
+mechanistically, not just from the aggregate numbers: diffed per-frame
+`is_peak` flags between the two config-hashes
+(`4edae64ed40256e3` vs `b9e6ab6d5bc84de9`) on a sampled video
+(`10001787725`, 121 frames) -- identical 41-frame peak sets. **`is_peak`
+depends only on the threshold product, exactly as the algebra in
+`iris/action_score.py`'s `score_all()` predicts.**
+
+**But `max_prominence`'s absolute scale is NOT fully inert -- it does
+something beyond gating `is_peak`, and this needed its own explanation
+rather than a shrug (per the task's explicit instruction).** Diffing the
+*continuous* `persistence_value` field (not just the `is_peak` boolean)
+between the same two trials on the same sampled video found it diverges
+on 2 of 121 frames -- e.g. frame 862: `persistence_value=0.740` at
+`max_prominence=0.5` vs `clip(prominence/0.25, 0, 1)=1.0` at
+`max_prominence=0.25` (the smaller denominator pushes the ratio past 1.0
+and clips it). Neither divergence happened to flip that frame's `is_peak`
+outcome in this instance (both values still cleared their respective
+trial's threshold), which is why the aggregate metrics stayed bit-
+identical here -- but this is a coincidence of these specific frames'
+values, not a structural guarantee.
+
+Checked where else the continuous `persistence_value` is read, to see if
+this divergence is live or dead beyond `is_peak` gating:
+- `iris/l2_asphodel.py:1094`'s `retrieve()` method includes a
+  `persistence_value * gamma` term in its "Total_Score" formula --
+  confirmed from `iris/query.py:324-326`'s dispatch that this method
+  (the "legacy" ranking path) is only reached when
+  `ranking_mode != "ppr"`. Under this run's frozen `ranking_mode="ppr"`,
+  `retrieve_ppr()` (a separate method) is used instead, which does not
+  reference `persistence_value` -- so this specific path is confirmed
+  NOT reachable under the frozen config, matching the task's stated
+  expectation.
+- **`iris/cached_frame.py`'s `keep_score()` (`w_persist=0.15` default
+  weight), called from `iris/l1_elysium.py`'s `_keep_score()` L1 cache
+  eviction logic, DOES read `persistence_value` directly -- and this is
+  reachable regardless of `ranking_mode`.** It decides which frames
+  survive L1's admit/evict competition during ingest, upstream of and
+  independent from the L2/PPR ranking-mode split. This is a genuinely
+  live mechanism through which `max_prominence`'s absolute scale could
+  matter beyond `is_peak` gating.
+- `iris/l1_elysium.py:269` also writes `persistence_value` directly into
+  the caption/context text shown to the answerer
+  (`f"Persistence:\n{frame.persistence_value:.2f}"`) -- reachable
+  regardless of `ranking_mode`, though not exercised by this
+  retrieval-only harness (`cerberus_mode="none"`, no captioner call).
+  `iris/cerberus_layers.py`'s `_FIELD_TO_ATTR["persistence"] =
+  "persistence_value"` is the other place flagged in the original task
+  spec -- also confirmed real, but likewise only reachable through
+  Cerberus verification, which this harness disables.
+
+**Honest characterization: `max_prominence`'s absolute scale is
+architecturally live beyond `is_peak` gating (via L1 `keep_score` and
+the answerer-visible persistence text), but in this specific sweep that
+liveness didn't move any observable retrieval metric** -- the
+`w_persist=0.15` weight is modest among `keep_score`'s ~7 terms, and the
+`persistence_value` shifts caused by this grid's `max_prominence` values
+were apparently too small/rare to flip an eviction decision that
+mattered for the final retrieved pool, at least on the sampled video and
+in aggregate across all 2685 questions. This is a "quiescent, not dead"
+finding -- worth re-checking if `max_prominence` is ever pushed to a more
+extreme value, or if `w_persist` itself is tuned, but not something this
+run's evidence supports treating as currently consequential.
+
+**Selection: the raw `select_best()` mechanical output does not survive
+the honesty check applied in the Family 5 re-check.**
+`persistence_threshold=0.6,max_prominence=0.5` (stricter cutoff, 0.30)
+is the single highest-mIoP AND highest-IoP@0.5 trial of the five
+(mIoP=0.29848, IoP@0.5=0.30168), so `select_best()` mechanically selected
+it. But the margin over the default is `+0.00066` mIoP -- two orders of
+magnitude short of the 0.005 tie-break band -- and its IoP@0.5 edge
+(`+0.00075`, ~0.25% relative) is the thinnest tie-break margin seen
+anywhere in this tuning series: smaller than Family 4's `l2_retrieve_top_k=4`
+win (~3.1% relative IoP@0.5 gain, called "a real, if modest, win") and
+smaller than Family 2's original `ppr_lambda=0.25` win (~6.2% relative,
+itself later found NOT to survive bootstrap-CI scrutiny in Part 3e and
+walked back to the default). Applying the same standard used for the
+Family 5 re-check's `(3,0.03)` -> `(5,0.05)` correction: **this is noise,
+not a genuine new answer.** Corrected by hand -- `persistence_threshold`/
+`max_prominence` remain frozen at the untouched default `(0.4, 0.5)`. The
+raw mechanical output and this reasoning are both recorded in
+`tuning/frozen_state.json`'s `selection_detail_persistence_gate` block
+for audit.
+
+**Directional signal worth flagging, not adopting:** the two
+stricter-cutoff trials (`(0.6, 0.5)` cutoff=0.30 and `(0.4, 0.8)`
+cutoff=0.32) both beat the default on mIoP/IoP@0.5 while admitting
+visibly fewer peaks (avg 61.60 and 60.46 vs the default's 64.10) --
+directionally consistent with Family 4's "fewer, more precise candidates"
+pattern (`l2_retrieve_top_k`). But unlike Family 4, where the effect was
+large enough to clear this task's own honesty bar, here it doesn't --
+both margins are inside the same noise band as `(0.6, 0.5)`'s. A finer,
+bootstrap-CI-validated sweep in the stricter direction (e.g.
+`persistence_threshold` in `[0.5, 0.6, 0.7]` at fixed `max_prominence`)
+would be needed to know whether this trend is real or continues to be
+noise -- not done here, flagged as a candidate for later, not acted on
+now.
+
+**Honesty check on magnitude:** this is a clean negative result, the same
+character as Family 3 (`ppr_damping`) and the Family 5 re-check -- no
+tuned value beats the untouched default once the tie-break margin is
+held to the standard the rest of this series uses. `(0.2, 0.5)` (looser)
+is a real, if modest, straightforward loss (fewer peaks admitted barely
+moves; mIoP/IoP@0.5 both down slightly). The mechanistic story across all
+5 trials: **`persistence_threshold`/`max_prominence`'s effective cutoff
+has almost no room to move this dataset's numbers** -- the action-score
+peak distribution (already shaped by the frozen `packet_size_weight=0.8`
+weighting and `peak_distance=5`/`peak_prominence=0.05`) is apparently
+concentrated enough that varying the downstream persistence gate from
+0.10 to 0.32 effective cutoff barely touches which frames get admitted
+(avg peak count ranges only 60.46-64.55 across the whole grid, a ~7%
+spread) or the resulting mIoP (0.2972-0.2985, a 0.0013 total spread).
+
+**This closes out Topic 1 (the ingest-time peak-detection environment).**
+`peak_distance`/`peak_prominence` (Family 5, reconfirmed twice: once at
+launch, once under the `action_score_weights` winner) and
+`action_score_weights` (a real winner, `packet_size_weight`-dominant) are
+settled; `persistence_gate` closes with the untouched default,
+reconfirmed via the same honesty standard the last re-check established.
+`peak_order` remains confirmed dead code for the live Track B path
+(feeds only a legacy/unused tier variable in `iris/charon_v.py`);
+`nms_window` remains unreachable from this harness (not a config field,
+not plumbed). Nothing further is planned in this specific environment
+unless something later reopens a question.

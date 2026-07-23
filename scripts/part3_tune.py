@@ -71,6 +71,8 @@ DEFAULTS = {
     "packet_size_weight": 0.5,
     "motion_weight": 0.3,
     "luma_entropy_weight": 0.2,
+    "persistence_threshold": 0.4,
+    "max_prominence": 0.5,
 }
 
 # packet_size_weight/motion_weight/luma_entropy_weight feed action_score
@@ -80,8 +82,13 @@ DEFAULTS = {
 # 5d7c2b1 stale Method D default: without this, ingest_config_hash()
 # can't distinguish weight combos and the harness would silently reuse a
 # cached index built under a different combo's ingest output.
+# persistence_threshold/max_prominence gate is_peak the same way
+# (score_all()'s persistence_value = clip(prominence / max_prominence, 0, 1);
+# is_peak = persistence_value >= persistence_threshold) -- same class of
+# gap, fixed here (pre-commit-<this> omission).
 INGEST_RELEVANT_KEYS = ["retrieval_strategy", "l2_retrieve_top_k", "peak_distance", "peak_prominence", "peak_order",
-                        "packet_size_weight", "motion_weight", "luma_entropy_weight"]
+                        "packet_size_weight", "motion_weight", "luma_entropy_weight",
+                        "persistence_threshold", "max_prominence"]
 
 # Families whose grid values are tuples of multiple config fields rather
 # than a single scalar -- maps family name to the ordered list of
@@ -89,7 +96,13 @@ INGEST_RELEVANT_KEYS = ["retrieval_strategy", "l2_retrieve_top_k", "peak_distanc
 TUPLE_FAMILIES = {
     "peak_dist_prom": ["peak_distance", "peak_prominence"],
     "action_score_weights": ["packet_size_weight", "motion_weight", "luma_entropy_weight"],
+    "persistence_gate": ["persistence_threshold", "max_prominence"],
 }
+
+# Families whose diagnostics (avg_peak_frame_count/peak_fraction/
+# gold_peak_coverage_rate) are worth computing -- both act through the
+# identical is_peak mechanism at ingest time.
+DIAGNOSTIC_FAMILIES = {"action_score_weights", "persistence_gate"}
 
 FAMILIES = {
     "retrieval_strategy": ["peak_only", "top_k_action", "peak_neighbors", "hybrid"],
@@ -109,6 +122,17 @@ FAMILIES = {
     # prominence, kept small (4 combos, not the full 3x3=9) since this
     # family requires a full re-ingest per combo just like family 1/4.
     "peak_dist_prom": [(3, 0.03), (5, 0.05), (8, 0.05), (5, 0.10)],
+    # (persistence_threshold, max_prominence) -- is_peak = clip(prominence /
+    # max_prominence, 0, 1) >= persistence_threshold, so is_peak algebraically
+    # depends only on the product persistence_threshold * max_prominence
+    # (default 0.4*0.5=0.20). Grid tests both whether the product matters at
+    # all AND whether max_prominence's absolute scale matters independently
+    # of that product (max_prominence also independently rescales the
+    # continuous persistence_value field stored per-frame): two combos move
+    # the effective cutoff via each knob separately, one combo (0.8, 0.25)
+    # reaches the SAME 0.20 cutoff as the default via a different threshold/
+    # max_prominence split -- a direct product-invariance test.
+    "persistence_gate": [(0.4, 0.5), (0.2, 0.5), (0.6, 0.5), (0.8, 0.25), (0.4, 0.8)],
 }
 # action_score_weights is the more upstream parameter (shapes the curve
 # find_peaks operates on) and belongs before peak_dist_prom in principle,
@@ -116,7 +140,11 @@ FAMILIES = {
 # 5d7c2b1) -- see tuning/selection_decisions.md's Family 5 limitations
 # note for why that ordering slip cost little (Family 5 landed on a clean
 # negative result, so no non-default value is conditionally at risk).
-FAMILY_ORDER = ["retrieval_strategy", "ppr_lambda", "ppr_damping", "l2_retrieve_top_k", "action_score_weights", "peak_dist_prom"]
+# persistence_gate is the last parameter in the ingest-time peak-detection
+# chain (peak_order is dead code for the live path; nms_window isn't
+# plumbed into this harness) -- runs last, closing out Topic 1.
+FAMILY_ORDER = ["retrieval_strategy", "ppr_lambda", "ppr_damping", "l2_retrieve_top_k", "action_score_weights",
+                "peak_dist_prom", "persistence_gate"]
 
 
 def load_frozen_state() -> dict:
@@ -281,10 +309,10 @@ ALL_TRIALS_FIELDNAMES = [
     "family", "trial_value", "config_hash", "n_questions_scored", "mIoP", "mIoU",
     "IoP@0.3", "IoP@0.5", "IoU@0.3", "IoU@0.5", "median_retrieval_ms", "p95_retrieval_ms",
     "wall_s", "selected",
-    # action_score_weights-only diagnostics (blank for every other family's rows):
-    # these three are the actual mechanism packet_size_weight/motion_weight/
-    # luma_entropy_weight act through (is_peak / L1_PEAK tier admission),
-    # not just the downstream mIoP/IoU numbers.
+    # DIAGNOSTIC_FAMILIES-only diagnostics (blank for every other family's
+    # rows): these three are the actual mechanism action_score_weights and
+    # persistence_gate act through (is_peak / L1_PEAK tier admission), not
+    # just the downstream mIoP/IoU numbers.
     "avg_peak_frame_count", "peak_fraction", "gold_peak_coverage_rate",
 ]
 
@@ -319,14 +347,15 @@ def append_trial_row(row: dict) -> None:
         w.writerow(row)
 
 
-def compute_action_score_diagnostics(questions: list[dict], index_cache: dict[str, object]) -> dict:
-    """The actual mechanism packet_size_weight/motion_weight/luma_entropy_weight
-    act through: is_peak / L1_PEAK tier admission at ingest time (NOT
-    retrieval ranking directly -- persistence_value's gamma-weighted term
-    only fires under ranking_mode="legacy", which this project doesn't
-    use). Computed from index_cache, which evaluate_config() already
-    populated with every video's freshly-ingested index for this trial's
-    config-hash."""
+def compute_peak_diagnostics(questions: list[dict], index_cache: dict[str, object]) -> dict:
+    """The actual mechanism both action_score_weights (packet_size_weight/
+    motion_weight/luma_entropy_weight) and persistence_gate
+    (persistence_threshold/max_prominence) act through: is_peak / L1_PEAK
+    tier admission at ingest time (NOT retrieval ranking directly --
+    persistence_value's gamma-weighted term only fires under
+    ranking_mode="legacy", which this project doesn't use). Computed from
+    index_cache, which evaluate_config() already populated with every
+    video's freshly-ingested index for this trial's config-hash."""
     peak_counts, total_frames_list = [], []
     for idx in index_cache.values():
         peak_counts.append(sum(1 for f in idx.frames if f.is_peak))
@@ -407,8 +436,8 @@ def run_family(family: str, questions: list[dict]) -> None:
         wall_s = time.perf_counter() - t_start
 
         diagnostics = {}
-        if family == "action_score_weights":
-            diagnostics = compute_action_score_diagnostics(questions, index_cache)
+        if family in DIAGNOSTIC_FAMILIES:
+            diagnostics = compute_peak_diagnostics(questions, index_cache)
             print(f"    [diag] avg_peak_frame_count={diagnostics['avg_peak_frame_count']:.2f} "
                   f"peak_fraction={diagnostics['peak_fraction']:.4f} "
                   f"gold_peak_coverage_rate={diagnostics['gold_peak_coverage_rate']:.4f}", flush=True)
@@ -454,7 +483,7 @@ def run_family(family: str, questions: list[dict]) -> None:
     ]}
     save_frozen_state(state)
 
-    has_diagnostics = family == "action_score_weights"
+    has_diagnostics = family in DIAGNOSTIC_FAMILIES
     with open(TUNING_DIR / "selection_decisions.md", "a") as f:
         f.write(f"\n## Family: {family}\n\n")
         f.write(f"Grid: {grid}\n\n")
