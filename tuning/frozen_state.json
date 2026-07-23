@@ -3,13 +3,18 @@
     "retrieval_strategy": "hybrid",
     "ppr_lambda": 0.5,
     "ppr_damping": 0.5,
-    "l2_retrieve_top_k": 4
+    "l2_retrieve_top_k": 4,
+    "span_method": "D",
+    "span_method_half_width_s": 2.2,
+    "peak_distance": 5,
+    "peak_prominence": 0.05
   },
   "completed_families": [
     "retrieval_strategy",
     "ppr_lambda",
     "ppr_damping",
-    "l2_retrieve_top_k"
+    "l2_retrieve_top_k",
+    "peak_dist_prom"
   ],
   "selection_detail_retrieval_strategy": {
     "selected": "hybrid",
@@ -148,6 +153,35 @@
         "mIoP": 0.2604286826298688,
         "IoP@0.5": 0.17653631284916202,
         "median_retrieval_ms": 3.721534041687846
+      }
+    ]
+  },
+  "selection_detail_peak_dist_prom": {
+    "selected": "distance=5,prominence=0.05",
+    "all_trials": [
+      {
+        "value": "distance=3,prominence=0.03",
+        "mIoP": 0.29484207226810416,
+        "IoP@0.5": 0.297951582867784,
+        "median_retrieval_ms": 3.936604000045918
+      },
+      {
+        "value": "distance=5,prominence=0.05",
+        "mIoP": 0.2951557635471454,
+        "IoP@0.5": 0.297951582867784,
+        "median_retrieval_ms": 3.910514002200216
+      },
+      {
+        "value": "distance=8,prominence=0.05",
+        "mIoP": 0.29365186435797347,
+        "IoP@0.5": 0.2964618249534451,
+        "median_retrieval_ms": 3.9275719900615513
+      },
+      {
+        "value": "distance=5,prominence=0.1",
+        "mIoP": 0.2951557635471454,
+        "IoP@0.5": 0.297951582867784,
+        "median_retrieval_ms": 3.9454259967897087
       }
     ]
   }

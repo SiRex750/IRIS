@@ -212,3 +212,72 @@ result, but also not a dramatic breakthrough -- a genuine ~0.4% relative
 mIoP improvement and a real ~3% relative IoP@0.5 improvement over the
 untouched default, decided by the tie-break rule exactly as it's designed
 to be used.
+
+## Family: peak_dist_prom
+
+Grid: [(3, 0.03), (5, 0.05), (8, 0.05), (5, 0.1)]
+
+| value | mIoP | IoP@0.5 | mIoU | median_retrieval_ms | n_scored |
+|---|---|---|---|---|---|
+| distance=3,prominence=0.03 | 0.2948 | 0.2980 | 0.1598 | 3.9 | 2685 |
+| distance=5,prominence=0.05 **<- selected** | 0.2952 | 0.2980 | 0.1600 | 3.9 | 2685 |
+| distance=8,prominence=0.05 | 0.2937 | 0.2965 | 0.1592 | 3.9 | 2685 |
+| distance=5,prominence=0.1 | 0.2952 | 0.2980 | 0.1600 | 3.9 | 2685 |
+
+Selected **peak_dist_prom = distance=5,prominence=0.05** (mIoP primary; IoP@0.5 tie-break if within 0.005; then lower median retrieval latency; then default).
+
+### Family 5 supplementary analysis
+
+**All values (full metrics from `tuning/all_trials.csv`):**
+
+| value | mIoP | mIoU | IoP@0.3 | IoP@0.5 | IoU@0.3 | IoU@0.5 | wall_s |
+|---|---|---|---|---|---|---|---|
+| distance=3,prominence=0.03 | 0.29484 | 0.15984 | 0.36797 | 0.29795 | 0.23948 | 0.12067 | 1100.9 |
+| distance=5,prominence=0.05 (default) **<- selected** | 0.29516 | 0.16003 | 0.36872 | 0.29795 | 0.23985 | 0.12142 | 106.4 |
+| distance=8,prominence=0.05 | 0.29365 | 0.15923 | 0.36872 | 0.29646 | 0.23985 | 0.11881 | 1089.1 |
+| distance=5,prominence=0.10 | 0.29516 | 0.16003 | 0.36872 | 0.29795 | 0.23985 | 0.12142 | 1088.4 |
+
+**Prominence=0.10 is a complete no-op at distance=5 on this dataset, not just a
+near-tie.** `distance=5,prominence=0.05` and `distance=5,prominence=0.10`
+are bit-identical across every one of the six scoring metrics above,
+computed independently over the same 2685 questions from two separately
+built full ingests (config-hashes `23e55c57a3b14534` and
+`9f288740c132690c` -- confirmed distinct, both required a fresh 450-video
+ingest, no cache was shared between them). Verified this isn't a
+wiring bug: diffing the two index caches' per-frame `is_peak` flags for a
+sampled video shows the identical 43-frame peak set at both prominence
+values, and `iris/action_score.py`'s `find_peaks(..., prominence=self.config.peak_prominence)`
+call confirms `peak_prominence` is genuinely threaded through and not
+dead code. The honest read: this dataset's action-score peaks are
+effectively bimodal at `distance=5` -- real motion peaks sit comfortably
+above 0.10 prominence and noise sits below 0.05, so raising the floor from
+0.05 to 0.10 filters nothing extra. `peak_prominence` has no effective
+range on this data at the currently-frozen `distance=5`.
+
+**Mechanistic read (distance):** `peak_distance` sets the minimum spacing
+`scipy.find_peaks` enforces between selected local maxima in the
+action-score signal -- it, not `peak_prominence`, is what actually moves
+the numbers here. Tightening to `distance=3` lets peaks pack closer
+together in fast-motion segments (more candidate PEAK-tier frames feeding
+the hybrid retrieval pool), which very slightly hurts precision (mIoP
+-0.00032, mIoU -0.00019 vs default) without buying anything -- likely
+diluting the PEAK-tier pool with near-duplicate, temporally adjacent
+frames rather than adding genuinely new salient moments. Loosening to
+`distance=8` forces sparser peaks, which can merge or drop distinct local
+maxima in busy segments -- this costs more (mIoP -0.00151, IoP@0.5
+-0.00149 vs default, both larger than the distance=3 gaps), suggesting
+under-spacing loses real evidence faster than over-spacing dilutes it.
+Both directions move away from default in the same (negative) direction
+mIoP-wise, and neither clears the 0.005 tie-break band -- default spacing
+(`distance=5`) is not just untouched, it's the best of the four tested.
+
+**Honesty check on magnitude:** this is a clean negative result, the same
+character as Family 3 (`ppr_damping`) -- no tuned value beats the
+untouched default `(5, 0.05)`. `distance=3` and `distance=8` are both
+mechanistically worse (if only slightly, and within the tie-break band).
+`(5, 0.10)` doesn't beat the default either -- it doesn't even differ from
+it, since prominence has no effect at this spacing. Not inflating a
+bit-identical tie into a "prominence was confirmed optimal" success story:
+the honest characterization is that this grid found no improvement
+available in either `peak_distance` or `peak_prominence` over the values
+already in use since Family 1.

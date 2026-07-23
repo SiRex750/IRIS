@@ -36,23 +36,7 @@ from iris.iris_config import IRISConfig  # noqa: E402
 # itself is loaded from the canonical, registry-designated module (Part 2c
 # consolidation: eval/metrics.py's independent IoP/IoU reimplementation is
 # retired from this harness in favor of the one validated module).
-from eval.metrics import predicted_span_from_frames, predicted_span_from_frames_clustered  # noqa: E402
-
-# Part 3c method comparison (tuning/span_method_report.md): Method B
-# (score-weighted temporal clustering + tail-trim) beat Method A (min-max)
-# outright at every tested l2_retrieve_top_k (4,5,8,12,16), margin always
-# outside the 0.005 tie-break band -- adopted as the default span
-# construction for Family 5 onward and the eventual official test run.
-# gap_threshold_s/tail_trim_pct are first-pass reasoned defaults from that
-# comparison, not (yet) separately tuned.
-SPAN_METHOD_GAP_THRESHOLD_S = 3.0
-SPAN_METHOD_TAIL_TRIM_PCT = 20.0
-
-
-def default_predicted_span(retrieved_frames: list[dict]) -> tuple[float, float]:
-    return predicted_span_from_frames_clustered(
-        retrieved_frames, gap_threshold_s=SPAN_METHOD_GAP_THRESHOLD_S, tail_trim_pct=SPAN_METHOD_TAIL_TRIM_PCT,
-    )
+from eval.metrics import predicted_span_from_frames, predicted_span_from_frames_peak  # noqa: E402
 
 import importlib.util as _importlib_util  # noqa: E402
 _NEXTGQA_METRICS_PATH = REPO / "benchmark_runs/paper_setup_20260720T074844Z_1e431b7/scripts/nextgqa_metrics.py"
@@ -112,6 +96,28 @@ def load_frozen_state() -> dict:
 
 def save_frozen_state(state: dict) -> None:
     FROZEN_STATE_PATH.write_text(json.dumps(state, indent=2))
+
+
+# Part 3e (tuning/family2_k_span_method_report.md, the 140-cell K x lambda x
+# span-method sweep) superseded Part 3c's Method B pick: Method B's raw mIoP
+# win was substantially inflated by zero-width spans (29.8% at the frozen
+# K=4), an IoP-metric artifact rather than genuine localization, while
+# Method D (fixed-width window centred on the CLIP-similarity peak frame)
+# is essentially invariant to both K and lambda across the whole grid and
+# has 0.00% zero-width incidence everywhere. Method D was adopted as the
+# default span construction for Family 5 onward and the eventual official
+# test run. half_width_s is read live from tuning/frozen_state.json's
+# frozen block (falling back to 2.2, the provisional constant used
+# throughout Part 3c/3d/3e, only if the state file predates this key).
+SPAN_METHOD_D_HALF_WIDTH_S = load_frozen_state()["frozen"].get("span_method_half_width_s", 2.2)
+
+
+def default_predicted_span(retrieved_frames: list[dict], query_embedding=None) -> tuple[float, float]:
+    span, _used_clip_anchor = predicted_span_from_frames_peak(
+        retrieved_frames, query_embedding,
+        half_width_s=SPAN_METHOD_D_HALF_WIDTH_S,
+    )
+    return span
 
 
 def make_config(overrides: dict) -> IRISConfig:
@@ -220,7 +226,7 @@ def evaluate_config(cfg: IRISConfig, questions: list[dict], index_paths: dict[st
         dt_ms = (time.perf_counter() - t0) * 1000
         retrieval_ms.append(dt_ms)
 
-        pred_span = default_predicted_span(retrieved_frames)
+        pred_span = default_predicted_span(retrieved_frames, query_embedding)
         iou, iop = best_over_gold_spans(q["gold_spans"], pred_span)
         ious.append(iou)
         iops.append(iop)
