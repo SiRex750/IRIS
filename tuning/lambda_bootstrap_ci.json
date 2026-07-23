@@ -1,0 +1,138 @@
+[
+  {
+    "method": "A",
+    "lambda": 0.9,
+    "mIoP": 0.28315,
+    "ci_lo": 0.27121,
+    "ci_hi": 0.29602,
+    "n": 2685
+  },
+  {
+    "method": "A",
+    "lambda": 1.0,
+    "mIoP": 0.2825,
+    "ci_lo": 0.26936,
+    "ci_hi": 0.29569,
+    "n": 2685
+  },
+  {
+    "method": "A",
+    "lambda": 0.75,
+    "mIoP": 0.28115,
+    "ci_lo": 0.26708,
+    "ci_hi": 0.29359,
+    "n": 2685
+  },
+  {
+    "method": "A",
+    "comparison": "0.9_vs_1.0",
+    "ci_overlap": true
+  },
+  {
+    "method": "A",
+    "comparison": "0.9_vs_0.75",
+    "ci_overlap": true
+  },
+  {
+    "method": "B",
+    "lambda": 0.5,
+    "mIoP": 0.31276,
+    "ci_lo": 0.29621,
+    "ci_hi": 0.32989,
+    "n": 2685
+  },
+  {
+    "method": "B",
+    "lambda": 0.75,
+    "mIoP": 0.3076,
+    "ci_lo": 0.29128,
+    "ci_hi": 0.32414,
+    "n": 2685
+  },
+  {
+    "method": "B",
+    "lambda": 1.0,
+    "mIoP": 0.30689,
+    "ci_lo": 0.29051,
+    "ci_hi": 0.3236,
+    "n": 2685
+  },
+  {
+    "method": "B",
+    "comparison": "0.5_vs_0.75",
+    "ci_overlap": true
+  },
+  {
+    "method": "B",
+    "comparison": "0.5_vs_1.0",
+    "ci_overlap": true
+  },
+  {
+    "method": "C",
+    "lambda": 0.9,
+    "mIoP": 0.28254,
+    "ci_lo": 0.26934,
+    "ci_hi": 0.29471,
+    "n": 2685
+  },
+  {
+    "method": "C",
+    "lambda": 1.0,
+    "mIoP": 0.2819,
+    "ci_lo": 0.26929,
+    "ci_hi": 0.29473,
+    "n": 2685
+  },
+  {
+    "method": "C",
+    "lambda": 0.75,
+    "mIoP": 0.28055,
+    "ci_lo": 0.26778,
+    "ci_hi": 0.29259,
+    "n": 2685
+  },
+  {
+    "method": "C",
+    "comparison": "0.9_vs_1.0",
+    "ci_overlap": true
+  },
+  {
+    "method": "C",
+    "comparison": "0.9_vs_0.75",
+    "ci_overlap": true
+  },
+  {
+    "method": "D",
+    "lambda": 0.5,
+    "mIoP": 0.30206,
+    "ci_lo": 0.28787,
+    "ci_hi": 0.31666,
+    "n": 2685
+  },
+  {
+    "method": "D",
+    "lambda": 0.75,
+    "mIoP": 0.29963,
+    "ci_lo": 0.28484,
+    "ci_hi": 0.3136,
+    "n": 2685
+  },
+  {
+    "method": "D",
+    "lambda": 1.0,
+    "mIoP": 0.2994,
+    "ci_lo": 0.28528,
+    "ci_hi": 0.31506,
+    "n": 2685
+  },
+  {
+    "method": "D",
+    "comparison": "0.5_vs_0.75",
+    "ci_overlap": true
+  },
+  {
+    "method": "D",
+    "comparison": "0.5_vs_1.0",
+    "ci_overlap": true
+  }
+]
