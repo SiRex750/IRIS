@@ -1,0 +1,67 @@
+{
+  "n_videos": 112,
+  "n_frames_total": 18378,
+  "load_errors": [],
+  "features": {
+    "motion_magnitude": {
+      "present": true,
+      "n": 18378,
+      "frac_exactly_zero": 0.2648819240396126,
+      "nonzero_min": 0.0004166666666666667,
+      "nonzero_median": 5.013740412258812,
+      "nonzero_max": 98.63406731530291,
+      "nonzero_std": 8.895756321866084,
+      "flag_unpopulated": false
+    },
+    "divergence": {
+      "present": true,
+      "n": 18378,
+      "frac_exactly_zero": 0.26613342039394927,
+      "nonzero_min": -3.235511302947998,
+      "nonzero_median": -0.050200045108795166,
+      "nonzero_max": 1.1370738744735718,
+      "nonzero_std": 0.32700392020069513,
+      "flag_unpopulated": false
+    },
+    "curl": {
+      "present": true,
+      "n": 18378,
+      "frac_exactly_zero": 0.2648819240396126,
+      "nonzero_min": 0.00041666667675599456,
+      "nonzero_median": 1.3934610486030579,
+      "nonzero_max": 19.555416107177734,
+      "nonzero_std": 1.9965367023636114,
+      "flag_unpopulated": false
+    },
+    "jacobian_frobenius": {
+      "present": true,
+      "n": 18378,
+      "frac_exactly_zero": 0.2648819240396126,
+      "nonzero_min": 0.0008333333535119891,
+      "nonzero_median": 2.2809349298477173,
+      "nonzero_max": 30.69226837158203,
+      "nonzero_std": 3.247028355941785,
+      "flag_unpopulated": false
+    },
+    "hessian_max_eigenvalue": {
+      "present": true,
+      "n": 18378,
+      "frac_exactly_zero": 0.2648819240396126,
+      "nonzero_min": 0.001145833288319409,
+      "nonzero_median": 2.1178568601608276,
+      "nonzero_max": 31.521276473999023,
+      "nonzero_std": 3.1578960491918875,
+      "flag_unpopulated": false
+    },
+    "motion_entropy": {
+      "present": true,
+      "n": 18378,
+      "frac_exactly_zero": 0.2648819240396126,
+      "nonzero_min": 0.00972576354026076,
+      "nonzero_median": 1.5557933547060958,
+      "nonzero_max": 3.2114752910195814,
+      "nonzero_std": 0.6569571524028089,
+      "flag_unpopulated": false
+    }
+  }
+}
