@@ -322,3 +322,16 @@ PLACEMENT (indicative, n=120, val-derived split, ~8pt CI vs published full-test 
 below MUPA-2B 0.287 (CI excludes it), in the same band as SeViLA 0.166/LangRepo 0.171/
 FrozenBiLM+NG+ 0.175, above FrozenBiLM 0.158/Temp[CLIP] 0.147 — with a sub-2B answerer on CPU.
 TEST HALF IS NOW BURNED. No further test-half measurement without a new split.
+
+## 2026-07-24 — latency A/B: tie at 30s video, scene_sparse scales better; flat stays default
+
+POOLED tie (flat 0.001959s vs scene_sparse 0.001909s, -2.5%) at VAL scale (406 Qs/59 videos, CPU).
+Mechanism confirmed: PPR time drops 47% on the induced subgraph, but subgraph induction overhead
+(.subgraph().copy() cost, scales with SOURCE graph) cancels the saving at these video lengths.
+SCALING trend: crossover ~100 frames; below it scene_sparse is 10% slower, above 300 frames it is
+41% faster; flat's latency grows ~2x steeper than scene_sparse across the tested range. Longest
+videos tested are 599 frames (n=66) — CCTV footage is ~100x longer, so this is a hypothesis with
+supporting evidence, not a verified claim at CCTV scale. Retrieval is ~0.003% of end-to-end cost
+(query embedding 0.016s, answerer ~60s), so this only matters for the long-video scaling argument.
+DECISION: flat stays default (no accuracy gain, no latency gain at these lengths). scene_sparse's
+case should be tested properly in P4/VIRAT where videos run minutes to hours.
