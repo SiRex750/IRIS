@@ -301,3 +301,24 @@ HELD-OUT TEST (300d857, one run, frozen config): peak_in_gold 0.3667 [0.2871,0.4
 IoU@0.5 0.1333 [0.0847,0.1803]. TEST came in above VAL; CIs overlap heavily so val and test are
 CONSISTENT, not test-is-better. Likely driver: TEST has fewer multi-interval (structurally
 uncapturable) questions than VAL (6.7% vs 11.3%).
+
+## 2026-07-22 — held-out Acc@GQA = 0.1667; two corrections
+
+SEAM CHECK PASSED: grounding reproduced EXACTLY across both test-half touches (mIoP 0.3349,
+IoP@0.5 0.3500), so both runs compose into one held-out result (dc59de3, second and final touch).
+PRIMARY: Acc@GQA = 0.1667 [0.088,0.243], n=120/27 videos. SECONDARY: Acc@QA 0.375 [0.275,0.477];
+P(correct|grounded) 0.476 (n=42); P(correct|ungrounded) 0.321 (25/78).
+CORRECTION 1 — answerer is not negligible: held-out P(correct|grounded)=0.476 sits at the floor of
+A6's in-sample CI [0.45,0.84] (A6 not contradicted, but its conclusion doesn't survive) — perfect
+grounding gives +0.31 headroom, perfect answerer gives +0.18. P2 (answerer diagnostic) moves back
+to LIVE, but no test half remains to validate it held out without a new split.
+CORRECTION 2 — proposed-vs-uniform Acc@QA downgraded: held out +0.120 [0.000,0.248] (touches zero)
+vs in-sample +0.31 [+0.16,+0.45]; survives vs random at +0.127 [+0.036,+0.229]. Honest claim:
+retrieval beats random sampling on accuracy; advantage over uniform is positive but not
+statistically separated at n=120.
+REPLICATED: grounded-vs-ungrounded correctness gap held at ~15pt in both samples (65 vs 46
+in-sample; 47.6 vs 32.1 held out) — supports faithfulness independent of absolute levels.
+PLACEMENT (indicative, n=120, val-derived split, ~8pt CI vs published full-test figures): 0.1667 is
+below MUPA-2B 0.287 (CI excludes it), in the same band as SeViLA 0.166/LangRepo 0.171/
+FrozenBiLM+NG+ 0.175, above FrozenBiLM 0.158/Temp[CLIP] 0.147 — with a sub-2B answerer on CPU.
+TEST HALF IS NOW BURNED. No further test-half measurement without a new split.
