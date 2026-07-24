@@ -88,6 +88,32 @@ declining monotonically past rank 1.
 - **Branch: concentrated at ranks 2-4 — a different query-conditional signal
   plausibly recovers those questions** (not the tail-of-k branch).
 
+## Corrected top_k=8 read (registered quantity)
+
+The prereg registers the read at top_k=8 only. The three top-k=8-only
+video-clustered bootstrap statistics (406 questions / 59 videos, seed=20260710,
+num_boot=1000, recomputed directly from the top_k=8 subset of
+eval_results/P_funnel_raw.json's per_question rows — no retrieval re-run):
+
+| quantity | mean | 95% CI |
+|---|---|---|
+| pool_coverage | 0.6604 | [0.5858, 0.7354] |
+| peak_in_gold | 0.3241 | [0.2674, 0.3822] |
+| selection_headroom (paired, pool_coverage - peak_in_gold per question, bootstrapped as one statistic) | 0.3363 | [0.2778, 0.3939] |
+
+These match the top_k=8 entries already in the per-top_k tables above and in
+`by_top_k["8"]` of P_funnel_raw.json — those tables were already the
+top_k=8-only (not pooled-across-top_k) cluster bootstrap. The genuinely
+pooled-across-all-four-top_k bootstrap is the separate `bootstrap` block at
+the top level of P_funnel_raw.json (mean selection_headroom 0.4387, CI
+[0.3856, 0.4970], printed to terminal as `[BOOTSTRAP] pooled across top_ks
+run`) — that number is not the registered quantity and is not used below.
+
+selection_headroom CI-lower = 0.2778 >= 0.15 → **branch: material headroom;
+in-pool caption reranking is the highest-EV cheap experiment** — same branch
+as before, now confirmed against the top_k=8-only registered read rather than
+any pooled-across-top_k figure.
+
 ## STOP
 
 This run selects nothing. No frozen value, default, or threshold has been
