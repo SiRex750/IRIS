@@ -20,6 +20,7 @@ from typing import Any
 import numpy as np
 
 import iris.aria as aria
+from iris import _perf
 from iris.types import IRISIndex
 
 
@@ -149,24 +150,28 @@ def _config_from_index(index: IRISIndex, config: Any) -> Any:
 
 def _embed_query(question: str, config: Any) -> np.ndarray:
     """Query-text CLIP embedding. Lifted from wrapper_l2_retrieve (323-335)."""
-    from iris._clip import get_clip_model
+    _t0 = time.perf_counter()
     try:
-        import clip
-        import torch
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-    except Exception:
-        return np.zeros(512, dtype=np.float32)
-    model, _ = get_clip_model()
-    if model is None:
-        return np.zeros(512, dtype=np.float32)
-    try:
-        text_input = clip.tokenize([question]).to(device)
-        with torch.no_grad():
-            qf = model.encode_text(text_input)
-            qf /= qf.norm(dim=-1, keepdim=True)
-            return qf.cpu().numpy().flatten().astype(np.float32)
-    except Exception:
-        return np.zeros(512, dtype=np.float32)
+        from iris._clip import get_clip_model
+        try:
+            import clip
+            import torch
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+        except Exception:
+            return np.zeros(512, dtype=np.float32)
+        model, _ = get_clip_model()
+        if model is None:
+            return np.zeros(512, dtype=np.float32)
+        try:
+            text_input = clip.tokenize([question]).to(device)
+            with torch.no_grad():
+                qf = model.encode_text(text_input)
+                qf /= qf.norm(dim=-1, keepdim=True)
+                return qf.cpu().numpy().flatten().astype(np.float32)
+        except Exception:
+            return np.zeros(512, dtype=np.float32)
+    finally:
+        _perf.record_time("query_embed_s", time.perf_counter() - _t0)
 
 
 def _split_claims(raw_answer: str) -> list[str]:
@@ -185,6 +190,14 @@ def _build_retrieved(index: IRISIndex, query_embedding: np.ndarray, config: Any)
     using the pre-built index._graph and index.frames. NO geometry keys (L1
     parity). Scores come from the graph node; is_peak/embedding/luma_entropy/
     caption come from the matching FrameRecord."""
+    _t_total0 = time.perf_counter()
+    try:
+        return _build_retrieved_timed(index, query_embedding, config)
+    finally:
+        _perf.record_time("total_retrieval_s", time.perf_counter() - _t_total0)
+
+
+def _build_retrieved_timed(index: IRISIndex, query_embedding: np.ndarray, config: Any) -> list[dict]:
     index_graph_mode = index.config_snapshot.get("graph_mode", "flat") if index.config_snapshot else "flat"
     query_graph_mode = getattr(config, "graph_mode", "flat")
     if query_graph_mode != index_graph_mode:
@@ -207,12 +220,14 @@ def _build_retrieved(index: IRISIndex, query_embedding: np.ndarray, config: Any)
         if ranking_mode == "ppr":
             lambda_ = getattr(config, "ppr_lambda", 0.5)
             damping  = getattr(config, "ppr_damping", 0.5)
+            _t_ppr0 = time.perf_counter()
             retrieved_nodes = graph.retrieve_ppr(
                 query_embedding,
                 top_k=l2_retrieve_top_k,
                 damping=damping,
                 lambda_=lambda_,
             )
+            _perf.record_time("flat_ppr_s", time.perf_counter() - _t_ppr0)
         else:
             retrieved_nodes = graph.retrieve(
                 query_embedding,

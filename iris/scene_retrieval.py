@@ -13,10 +13,13 @@ build == reload, whichever branch a given query takes.
 from __future__ import annotations
 
 import math
+import time
 from abc import ABC, abstractmethod
 from typing import Any
 
 import numpy as np
+
+from iris import _perf
 
 
 def _cosine_batch(query: np.ndarray, matrix: np.ndarray) -> np.ndarray:
@@ -166,7 +169,9 @@ def retrieve_scene_sparse(
     shortlist_width = getattr(config, "scene_shortlist_width", 0) or max(4, math.ceil(math.sqrt(num_scenes)))
     shortlist_width = min(shortlist_width, num_scenes)
 
+    _t_centroid0 = time.perf_counter()
     scene_ranking = scorer.score(query_embedding, centroids)
+    _perf.record_time("scene_centroid_rank_s", time.perf_counter() - _t_centroid0)
     shortlisted_scene_ids = {sid for sid, _ in scene_ranking[:shortlist_width]}
 
     survivors = [
@@ -249,6 +254,7 @@ def retrieve_scene_sparse(
         return exact_top
 
     # ── DESCEND ──────────────────────────────────────────────────────────
+    _t_subgraph0 = time.perf_counter()
     window = getattr(config, "scene_neighbor_window", 30)
     base_pool_ids = {fr.frame_idx for fr in survivors}
     neighbor_frames = [
@@ -283,6 +289,9 @@ def retrieve_scene_sparse(
     # production graph clean across queries and lets sparsity sweeps (2c-iv)
     # compare modes on the same pool without leaking edges between them.
     sub_graph = graph.graph.subgraph(pool_ids).copy()
+    _perf.record_time("subgraph_induction_s", time.perf_counter() - _t_subgraph0)
+
+    _t_cross0 = time.perf_counter()
     cross_edges_added = graph.add_cross_scene_edges(
         pool_ids, scene_of,
         mode=crossscene_mode,
@@ -290,9 +299,11 @@ def retrieve_scene_sparse(
         scene_anchors=scene_anchor_frame,
         graph=sub_graph,
     )
+    _perf.record_time("cross_scene_edges_s", time.perf_counter() - _t_cross0)
 
     damping = getattr(config, "ppr_damping", 0.5)
     lambda_ = getattr(config, "ppr_lambda", 0.5)
+    _t_ppr0 = time.perf_counter()
     ppr_nodes = graph.retrieve_ppr(
         query_embedding,
         top_k=l2_retrieve_top_k,
@@ -300,6 +311,7 @@ def retrieve_scene_sparse(
         lambda_=lambda_,
         graph_override=sub_graph,
     )
+    _perf.record_time("scene_ppr_s", time.perf_counter() - _t_ppr0)
 
     frame_map = {fr.frame_idx: fr for fr in pool_frames}
     result = [_node_to_dict(node, frame_map) for node in ppr_nodes]

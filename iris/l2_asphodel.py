@@ -16,6 +16,8 @@ import numpy as np
 import scipy.sparse
 from typing import Any, List, Dict, Union, Optional
 
+from iris import _perf
+
 
 def _rank_pct(values: dict) -> dict:
     """Average-tied rank-percentile in [0, 1] over {node_id: float}."""
@@ -1025,6 +1027,8 @@ class L2Asphodel:
         # is made.  Everything below uses `g` — there is no remaining
         # self.graph reference inside the PPR computation.
         g: nx.Graph = graph_override if graph_override is not None else self.graph
+        _perf.record_count("ppr_nodes", g.number_of_nodes())
+        _perf.record_count("ppr_edges", g.number_of_edges())
 
         node_ids = list(g.nodes)
         if not node_ids:
