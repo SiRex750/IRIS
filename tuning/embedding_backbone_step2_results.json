@@ -1,0 +1,18 @@
+{
+  "control_clip_vit_b32": {
+    "n_questions": 236,
+    "n_pairs": 49291,
+    "auc": 0.5907416931449176,
+    "cohens_d": 0.3155566410501751,
+    "approx_retrieved_in_gold_rate": 0.5550847457627118,
+    "top1_in_gold_rate": 0.3347457627118644
+  },
+  "siglip2_base_patch16_224": {
+    "n_questions": 236,
+    "n_pairs": 49291,
+    "auc": 0.5962746131683013,
+    "cohens_d": 0.3037280072588676,
+    "approx_retrieved_in_gold_rate": 0.5805084745762712,
+    "top1_in_gold_rate": 0.3516949152542373
+  }
+}

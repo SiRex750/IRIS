@@ -1,0 +1,11 @@
+{
+  "siglip2_base_patch16_224": {
+    "n_questions_common": 236,
+    "n_boot": 1000,
+    "point_delta_auc": 0.005532920023383681,
+    "bootstrap_mean_delta": 0.005354343735221013,
+    "ci95_lo": -0.026020295197212013,
+    "ci95_hi": 0.037941077982201525,
+    "excludes_zero": false
+  }
+}

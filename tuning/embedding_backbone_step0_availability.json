@@ -1,0 +1,23 @@
+{
+  "control_clip_vit_b32": {
+    "available": true,
+    "model_id": "openai/CLIP ViT-B/32 (openai/CLIP@d05afc4)",
+    "weight_sha256_16": "40d365715913c9da",
+    "note": "production backbone, control"
+  },
+  "siglip2_base_patch16_224": {
+    "available": true,
+    "model_id": "google/siglip2-base-patch16-224",
+    "revision": "75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
+    "model_class": "SiglipModel",
+    "processor_class": "SiglipProcessor"
+  },
+  "siglip2_so400m_patch14_384": {
+    "available": false,
+    "reason": "vision weights + config present (4.3GB, revision e8e487298228002f3d8a82e0cd5c8ea9c567f57f) but text-tower tokenizer vocab file (spiece.model) is absent from the local HF cache -- AutoProcessor.from_pretrained fails with TypeError in tokenization_siglip.py's get_spm_processor (self.vocab_file is None). Not re-attempted / not downloaded."
+  },
+  "open_clip_or_eva_clip": {
+    "available": false,
+    "reason": "`open_clip` package not installed (ModuleNotFoundError) and no OpenCLIP/EVA-CLIP checkpoint files found on disk outside the HF hub cache (searched for *.pt/*.bin/*open_clip* under $HOME). Not installed / not downloaded per Step 0 instructions."
+  }
+}
