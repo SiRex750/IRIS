@@ -288,3 +288,16 @@ FINDING 3 — geometry_6d UNTESTED (not a null). Two independent wiring bugs, bo
 STANDING RULE (silent-fallback pattern, 4th instance — eval_grounding_arms ppr_score spans; CLIP
 zero-vector anchor fallback; teammate's Method C scene_id -> Method A (94.38%); geometry_6d never
 entered): any path with a fallback branch must assert its fallback rate == 0 and fail loudly.
+
+## 2026-07-22 — P-NOW-A held-out grounding
+
+Split declared at 50dc236 BEFORE measurement. VAL 59 videos / 406 Qs; TEST 27 videos / 120 Qs.
+top_k is FLAT on VAL (peak_in_gold 0.3227/0.3276/0.3251/0.3251 across 8/12/16/24); width is a TRADE
+(narrowing 2.2->0.75 at top_k=8 gives mIoP +0.014, mIoU -0.074 — no width improves both).
+Pre-registered selection (top_k=12, half_width=2.2) is NOISE vs top_k=8 default: mIoP +0.0068
+[-0.0132,+0.0264]. Reported as such, not as a real tuning win.
+HELD-OUT TEST (300d857, one run, frozen config): peak_in_gold 0.3667 [0.2871,0.4454] | mIoP 0.3349
+[0.2486,0.4235] | IoP@0.5 0.3500 [0.2627,0.4435] | mIoU 0.1855 [0.1402,0.2283] |
+IoU@0.5 0.1333 [0.0847,0.1803]. TEST came in above VAL; CIs overlap heavily so val and test are
+CONSISTENT, not test-is-better. Likely driver: TEST has fewer multi-interval (structurally
+uncapturable) questions than VAL (6.7% vs 11.3%).
