@@ -1,0 +1,3848 @@
+{
+  "seed": 42,
+  "target_n": 200,
+  "n_selected": 200,
+  "source_manifest": "external_data/qvhighlights/manifests/external_dev.jsonl",
+  "bucket_counts": {
+    "dur=long|qlen=long_query|win=few_windows|qcount=multi_query_video": 1,
+    "dur=long|qlen=long_query|win=few_windows|qcount=single_query_video": 16,
+    "dur=long|qlen=long_query|win=many_windows|qcount=single_query_video": 5,
+    "dur=long|qlen=long_query|win=single_window|qcount=multi_query_video": 2,
+    "dur=long|qlen=long_query|win=single_window|qcount=single_query_video": 54,
+    "dur=long|qlen=short_query|win=few_windows|qcount=multi_query_video": 1,
+    "dur=long|qlen=short_query|win=few_windows|qcount=single_query_video": 31,
+    "dur=long|qlen=short_query|win=many_windows|qcount=multi_query_video": 1,
+    "dur=long|qlen=short_query|win=many_windows|qcount=single_query_video": 12,
+    "dur=long|qlen=short_query|win=single_window|qcount=multi_query_video": 1,
+    "dur=long|qlen=short_query|win=single_window|qcount=single_query_video": 65,
+    "dur=medium|qlen=long_query|win=few_windows|qcount=single_query_video": 1,
+    "dur=medium|qlen=long_query|win=single_window|qcount=single_query_video": 1,
+    "dur=medium|qlen=short_query|win=few_windows|qcount=multi_query_video": 1,
+    "dur=medium|qlen=short_query|win=few_windows|qcount=single_query_video": 1,
+    "dur=medium|qlen=short_query|win=many_windows|qcount=single_query_video": 1,
+    "dur=medium|qlen=short_query|win=single_window|qcount=single_query_video": 1,
+    "dur=short|qlen=long_query|win=few_windows|qcount=single_query_video": 1,
+    "dur=short|qlen=long_query|win=single_window|qcount=single_query_video": 1,
+    "dur=short|qlen=short_query|win=few_windows|qcount=single_query_video": 1,
+    "dur=short|qlen=short_query|win=many_windows|qcount=single_query_video": 1,
+    "dur=short|qlen=short_query|win=single_window|qcount=single_query_video": 1
+  },
+  "download_attempted": false,
+  "download_blocker": "QVHighlights raw videos are officially distributed only as a single 133.8 GiB archive with no documented per-video download endpoint; individual acquisition was not attempted (see tuning/qvhighlights_encoder_screening_v1/pilot_storage_report.md).",
+  "records": [
+    {
+      "video_id": "-4Mlqc7PbZY_510.0_660.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        8859
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/-4Mlqc7PbZY_510.0_660.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "-_s0sXOfS3w_510.0_660.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        8312
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/-_s0sXOfS3w_510.0_660.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "-gNwItPwMhM_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        3796
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/-gNwItPwMhM_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "00DH3yn5C30_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        4837
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/00DH3yn5C30_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "00DH3yn5C30_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        395
+      ],
+      "relevant_window_count_per_query": [
+        2
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=long|qlen=short_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/00DH3yn5C30_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "0U3-7Ey3siA_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        5758
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/0U3-7Ey3siA_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "0Yf4z13YlrY_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 134,
+      "query_ids": [
+        9862
+      ],
+      "relevant_window_count_per_query": [
+        6
+      ],
+      "relevant_window_count_total": 6,
+      "selection_bucket": "dur=short|qlen=short_query|win=many_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/0Yf4z13YlrY_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "0_eIFN2FDoU_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        3608
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/0_eIFN2FDoU_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "0rES0DQHGis_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        4314
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/0rES0DQHGis_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "0zDV_cVzPiI_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        6590
+      ],
+      "relevant_window_count_per_query": [
+        2
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=long|qlen=long_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/0zDV_cVzPiI_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "109g6BhejP0_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 126,
+      "query_ids": [
+        6288
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=short|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/109g6BhejP0_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "109g6BhejP0_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        3307
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/109g6BhejP0_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "2BzoQ31IPhk_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        8061
+      ],
+      "relevant_window_count_per_query": [
+        6
+      ],
+      "relevant_window_count_total": 6,
+      "selection_bucket": "dur=long|qlen=short_query|win=many_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/2BzoQ31IPhk_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "2X46BBkcCeY_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        8239
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/2X46BBkcCeY_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "2X46BBkcCeY_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        4474
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/2X46BBkcCeY_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "39AFfSOXl-8_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        9332
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/39AFfSOXl-8_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "5BGa1HJslJA_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        10143
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/5BGa1HJslJA_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "5oucQKLn88A_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        5775
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/5oucQKLn88A_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "5wDSfYr9bgU_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        10229
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/5wDSfYr9bgU_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "63qdAAxHSwU_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        9670
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/63qdAAxHSwU_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "6Mzo1y19iTU_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        7924
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/6Mzo1y19iTU_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "6SdLxtywo4s_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        8121
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/6SdLxtywo4s_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "6gmGISTKDPw_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        1685
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/6gmGISTKDPw_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "71Fa81Wr-dE_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        2834
+      ],
+      "relevant_window_count_per_query": [
+        2
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=long|qlen=short_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/71Fa81Wr-dE_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "7QNJyAIprhg_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        9479
+      ],
+      "relevant_window_count_per_query": [
+        7
+      ],
+      "relevant_window_count_total": 7,
+      "selection_bucket": "dur=long|qlen=short_query|win=many_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/7QNJyAIprhg_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "7QNJyAIprhg_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        9485
+      ],
+      "relevant_window_count_per_query": [
+        5
+      ],
+      "relevant_window_count_total": 5,
+      "selection_bucket": "dur=long|qlen=short_query|win=many_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/7QNJyAIprhg_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "8s9fLWEi4So_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        1377
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/8s9fLWEi4So_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "8v4IP_PI8AE_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        2267
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/8v4IP_PI8AE_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "8v4IP_PI8AE_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        3279
+      ],
+      "relevant_window_count_per_query": [
+        2
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=long|qlen=long_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/8v4IP_PI8AE_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "9A_pVLuhN4Q_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 140,
+      "query_ids": [
+        10006
+      ],
+      "relevant_window_count_per_query": [
+        3
+      ],
+      "relevant_window_count_total": 3,
+      "selection_bucket": "dur=medium|qlen=short_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/9A_pVLuhN4Q_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "9kF-Rw5PrDY_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        5468
+      ],
+      "relevant_window_count_per_query": [
+        2
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=long|qlen=short_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/9kF-Rw5PrDY_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "A0JmK8Dwv3Q_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        4041
+      ],
+      "relevant_window_count_per_query": [
+        2
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=long|qlen=long_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/A0JmK8Dwv3Q_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "A5PIgmXGIdI_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        1395
+      ],
+      "relevant_window_count_per_query": [
+        10
+      ],
+      "relevant_window_count_total": 10,
+      "selection_bucket": "dur=long|qlen=short_query|win=many_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/A5PIgmXGIdI_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "A5PIgmXGIdI_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        3602
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/A5PIgmXGIdI_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "A6U90Hon6bE_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        10176
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/A6U90Hon6bE_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "AD0qNZy48_s_660.0_810.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        6917
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/AD0qNZy48_s_660.0_810.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "B1RpWUrs06U_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        4917
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/B1RpWUrs06U_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "B1RpWUrs06U_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        6057
+      ],
+      "relevant_window_count_per_query": [
+        2
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=long|qlen=long_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/B1RpWUrs06U_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "CXTWqVz5rhY_660.0_810.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        8878
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/CXTWqVz5rhY_660.0_810.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "CkWOpyrAXdw_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        456
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/CkWOpyrAXdw_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "DHHHHFojz3E_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        5778
+      ],
+      "relevant_window_count_per_query": [
+        2
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=long|qlen=short_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/DHHHHFojz3E_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "DHHHHFojz3E_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        7787
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/DHHHHFojz3E_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "DLSkojSiAPs_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        6193,
+        8147
+      ],
+      "relevant_window_count_per_query": [
+        1,
+        1
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=multi_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/DLSkojSiAPs_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "DTInxNfWXVc_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        9899
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/DTInxNfWXVc_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "DTInxNfWXVc_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        9692
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/DTInxNfWXVc_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "DTh3uCDtres_510.0_660.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        9056
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/DTh3uCDtres_510.0_660.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "DTrwYYi25Dc_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        1999
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/DTrwYYi25Dc_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "DTrwYYi25Dc_660.0_810.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        8987
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/DTrwYYi25Dc_660.0_810.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "DU3E7tTt0_s_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        8173
+      ],
+      "relevant_window_count_per_query": [
+        2
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=long|qlen=short_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/DU3E7tTt0_s_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "DtLI1xR051U_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        6431
+      ],
+      "relevant_window_count_per_query": [
+        3
+      ],
+      "relevant_window_count_total": 3,
+      "selection_bucket": "dur=long|qlen=short_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/DtLI1xR051U_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "E6yFTWlChmE_510.0_660.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        7295
+      ],
+      "relevant_window_count_per_query": [
+        6
+      ],
+      "relevant_window_count_total": 6,
+      "selection_bucket": "dur=long|qlen=short_query|win=many_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/E6yFTWlChmE_510.0_660.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "E6yFTWlChmE_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        41
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/E6yFTWlChmE_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "E9drfsoiGb4_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        245
+      ],
+      "relevant_window_count_per_query": [
+        2
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=long|qlen=short_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/E9drfsoiGb4_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "EE0NcEec_mo_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        6418
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/EE0NcEec_mo_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "EUTccoeKVZg_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        424
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/EUTccoeKVZg_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "Ehpo8gXg27I_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        1360
+      ],
+      "relevant_window_count_per_query": [
+        2
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=long|qlen=short_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/Ehpo8gXg27I_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "FL0Cos34RjU_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        4275
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/FL0Cos34RjU_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "FXULtwAVFqQ_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        6411
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/FXULtwAVFqQ_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "FXULtwAVFqQ_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        5614
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/FXULtwAVFqQ_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "GAUdBAL0K5A_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        3403
+      ],
+      "relevant_window_count_per_query": [
+        3
+      ],
+      "relevant_window_count_total": 3,
+      "selection_bucket": "dur=long|qlen=short_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/GAUdBAL0K5A_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "GizQlpAvD8s_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        10200
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/GizQlpAvD8s_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "H15bUc-1LJo_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        2800,
+        4425
+      ],
+      "relevant_window_count_per_query": [
+        1,
+        1
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=multi_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/H15bUc-1LJo_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "HL60CCu_R44_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        4240
+      ],
+      "relevant_window_count_per_query": [
+        2
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=long|qlen=short_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/HL60CCu_R44_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "HpO-sV7TSSk_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        6316
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/HpO-sV7TSSk_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "Iu7nF2VLF3c_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        3070
+      ],
+      "relevant_window_count_per_query": [
+        4
+      ],
+      "relevant_window_count_total": 4,
+      "selection_bucket": "dur=long|qlen=short_query|win=many_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/Iu7nF2VLF3c_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "Iu7nF2VLF3c_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        1960
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/Iu7nF2VLF3c_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "Jz1Cszaqck0_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        4854
+      ],
+      "relevant_window_count_per_query": [
+        3
+      ],
+      "relevant_window_count_total": 3,
+      "selection_bucket": "dur=long|qlen=short_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/Jz1Cszaqck0_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "K3lDAtwYt_4_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        3513
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/K3lDAtwYt_4_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "KJ2il8oTpKY_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        4673
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/KJ2il8oTpKY_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "KRHEqswrh9I_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        4973
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/KRHEqswrh9I_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "L8IkH3DPsVo_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        2257
+      ],
+      "relevant_window_count_per_query": [
+        8
+      ],
+      "relevant_window_count_total": 8,
+      "selection_bucket": "dur=long|qlen=long_query|win=many_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/L8IkH3DPsVo_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "L8IkH3DPsVo_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        689
+      ],
+      "relevant_window_count_per_query": [
+        2
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=long|qlen=long_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/L8IkH3DPsVo_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "L9cUEhaXnK4_510.0_660.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        6978
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/L9cUEhaXnK4_510.0_660.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "L9cUEhaXnK4_660.0_810.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        7404
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/L9cUEhaXnK4_660.0_810.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "L_RuElxOqKI_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        510
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/L_RuElxOqKI_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "Lc4D95BLgXI_660.0_810.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        8314
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/Lc4D95BLgXI_660.0_810.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "LcKnx7I97yk_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 144,
+      "query_ids": [
+        3397
+      ],
+      "relevant_window_count_per_query": [
+        5
+      ],
+      "relevant_window_count_total": 5,
+      "selection_bucket": "dur=medium|qlen=short_query|win=many_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/LcKnx7I97yk_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "M7mePz5cXDk_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        5723
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/M7mePz5cXDk_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "MNmYbLZ9Z_U_660.0_810.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        8565
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/MNmYbLZ9Z_U_660.0_810.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "Mi7P9r1R6RA_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        9597
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/Mi7P9r1R6RA_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "MmGtg0qgceA_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        4758
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/MmGtg0qgceA_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "N1fXNtRIHJM_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        3532
+      ],
+      "relevant_window_count_per_query": [
+        3
+      ],
+      "relevant_window_count_total": 3,
+      "selection_bucket": "dur=long|qlen=short_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/N1fXNtRIHJM_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "N5g7D9Qk7WI_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        3769
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/N5g7D9Qk7WI_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "N7frLe-nQog_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        6445
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/N7frLe-nQog_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "N7frLe-nQog_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        2274
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/N7frLe-nQog_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "N8dPpthy7z4_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        9690
+      ],
+      "relevant_window_count_per_query": [
+        3
+      ],
+      "relevant_window_count_total": 3,
+      "selection_bucket": "dur=long|qlen=short_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/N8dPpthy7z4_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "Nhelnhenn1w_510.0_660.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        7291
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/Nhelnhenn1w_510.0_660.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "O3C0weLq0Tg_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        1183
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/O3C0weLq0Tg_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "OIbtyKaPsCI_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        435
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/OIbtyKaPsCI_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "OtMUZzca89Q_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        5781
+      ],
+      "relevant_window_count_per_query": [
+        2
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=long|qlen=short_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/OtMUZzca89Q_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "P1iT-STRbYo_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        6574
+      ],
+      "relevant_window_count_per_query": [
+        2
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=long|qlen=long_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/P1iT-STRbYo_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "Piw-9dOC8YQ_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        3663
+      ],
+      "relevant_window_count_per_query": [
+        7
+      ],
+      "relevant_window_count_total": 7,
+      "selection_bucket": "dur=long|qlen=short_query|win=many_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/Piw-9dOC8YQ_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "Piw-9dOC8YQ_660.0_810.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        8646
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/Piw-9dOC8YQ_660.0_810.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "QN-ft-c0WZQ_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        9849
+      ],
+      "relevant_window_count_per_query": [
+        2
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=long|qlen=long_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/QN-ft-c0WZQ_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "RH9FHjHgiJI_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        6511
+      ],
+      "relevant_window_count_per_query": [
+        5
+      ],
+      "relevant_window_count_total": 5,
+      "selection_bucket": "dur=long|qlen=long_query|win=many_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/RH9FHjHgiJI_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "R_ZGwbK0aXE_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        5826
+      ],
+      "relevant_window_count_per_query": [
+        2
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=long|qlen=short_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/R_ZGwbK0aXE_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "SwIB-QlxNCo_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        965
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/SwIB-QlxNCo_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "SwIB-QlxNCo_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        6778
+      ],
+      "relevant_window_count_per_query": [
+        2
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=long|qlen=long_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/SwIB-QlxNCo_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "T60_zAvnAsU_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        4691
+      ],
+      "relevant_window_count_per_query": [
+        2
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=long|qlen=long_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/T60_zAvnAsU_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "T9ptpjvuIP8_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        571,
+        1952
+      ],
+      "relevant_window_count_per_query": [
+        2,
+        2
+      ],
+      "relevant_window_count_total": 4,
+      "selection_bucket": "dur=long|qlen=short_query|win=few_windows|qcount=multi_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/T9ptpjvuIP8_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "T9ptpjvuIP8_660.0_810.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        7432
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/T9ptpjvuIP8_660.0_810.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "TQ0nr6gTX6w_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        522
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/TQ0nr6gTX6w_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "TQ0nr6gTX6w_660.0_810.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        7000
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/TQ0nr6gTX6w_660.0_810.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "U4tUPpmv1qo_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        1045
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/U4tUPpmv1qo_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "U4tUPpmv1qo_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        8099
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/U4tUPpmv1qo_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "UCCqLmaF6n0_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        938
+      ],
+      "relevant_window_count_per_query": [
+        2
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=long|qlen=short_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/UCCqLmaF6n0_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "UFWQKrcbhjI_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        6863
+      ],
+      "relevant_window_count_per_query": [
+        2
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=long|qlen=long_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/UFWQKrcbhjI_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "UFWQKrcbhjI_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        6598
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/UFWQKrcbhjI_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "UQHx-1rF89U_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        2104
+      ],
+      "relevant_window_count_per_query": [
+        2
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=long|qlen=long_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/UQHx-1rF89U_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "UvgDldse9KU_510.0_660.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        8949
+      ],
+      "relevant_window_count_per_query": [
+        5
+      ],
+      "relevant_window_count_total": 5,
+      "selection_bucket": "dur=long|qlen=long_query|win=many_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/UvgDldse9KU_510.0_660.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "VKKH07K1zbI_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        1195
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/VKKH07K1zbI_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "VRoXu96WlbM_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        5198
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/VRoXu96WlbM_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "W4FSEuEgG-E_510.0_660.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        7028
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/W4FSEuEgG-E_510.0_660.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "WBkLObX2Fdo_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        7768
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/WBkLObX2Fdo_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "WBkLObX2Fdo_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        3042
+      ],
+      "relevant_window_count_per_query": [
+        3
+      ],
+      "relevant_window_count_total": 3,
+      "selection_bucket": "dur=long|qlen=long_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/WBkLObX2Fdo_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "WINZiMUH7Lk_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        1389,
+        2214
+      ],
+      "relevant_window_count_per_query": [
+        4,
+        21
+      ],
+      "relevant_window_count_total": 25,
+      "selection_bucket": "dur=long|qlen=short_query|win=many_windows|qcount=multi_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/WINZiMUH7Lk_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "X0aUpT_eyTU_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        1901
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/X0aUpT_eyTU_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "X3B-d-QsWXY_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        1052
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/X3B-d-QsWXY_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "X6g8OD7TdcY_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        7836
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/X6g8OD7TdcY_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "XjkiAOp0BMY_510.0_660.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        8632
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/XjkiAOp0BMY_510.0_660.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "XjkiAOp0BMY_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        6234
+      ],
+      "relevant_window_count_per_query": [
+        2
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=long|qlen=long_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/XjkiAOp0BMY_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "XjkiAOp0BMY_660.0_810.0",
+      "source_split": "external_dev",
+      "duration": 144,
+      "query_ids": [
+        8609
+      ],
+      "relevant_window_count_per_query": [
+        2
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=medium|qlen=long_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/XjkiAOp0BMY_660.0_810.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "Y2GVVC_cD_E_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 140,
+      "query_ids": [
+        2429,
+        3325
+      ],
+      "relevant_window_count_per_query": [
+        2,
+        2
+      ],
+      "relevant_window_count_total": 4,
+      "selection_bucket": "dur=medium|qlen=short_query|win=few_windows|qcount=multi_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/Y2GVVC_cD_E_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "YIUaJzjNPuo_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        3525
+      ],
+      "relevant_window_count_per_query": [
+        3
+      ],
+      "relevant_window_count_total": 3,
+      "selection_bucket": "dur=long|qlen=short_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/YIUaJzjNPuo_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "YcHW8Yj5HBc_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        6148,
+        8072
+      ],
+      "relevant_window_count_per_query": [
+        1,
+        1
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=multi_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/YcHW8Yj5HBc_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "YpqH79OnK5M_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 130,
+      "query_ids": [
+        9229
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=short|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/YpqH79OnK5M_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "Z2hmY5JrQmo_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        5518
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/Z2hmY5JrQmo_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "Z4hMlOIhjJ4_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 144,
+      "query_ids": [
+        2741
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=medium|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/Z4hMlOIhjJ4_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "Z4hMlOIhjJ4_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        2587
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/Z4hMlOIhjJ4_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "Z8MR9i08l6g_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        5392
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/Z8MR9i08l6g_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "_0u5I0OJP6U_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        10056
+      ],
+      "relevant_window_count_per_query": [
+        2
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=long|qlen=short_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/_0u5I0OJP6U_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "_9vleIcuQd0_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        5748
+      ],
+      "relevant_window_count_per_query": [
+        2
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=long|qlen=long_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/_9vleIcuQd0_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "_RiI6qVZ1Hk_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        7981
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/_RiI6qVZ1Hk_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "_t21xx94wZw_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        1155
+      ],
+      "relevant_window_count_per_query": [
+        4
+      ],
+      "relevant_window_count_total": 4,
+      "selection_bucket": "dur=long|qlen=short_query|win=many_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/_t21xx94wZw_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "_ufoIeYZYjw_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        7940
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/_ufoIeYZYjw_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "a6NmGMEsCWM_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        6226
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/a6NmGMEsCWM_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "aXgE_cVxJi0_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        1849
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/aXgE_cVxJi0_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "abRmll8VM9k_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        5194
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/abRmll8VM9k_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "autOFSurWi4_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        9212
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/autOFSurWi4_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "bTqMo5klaCE_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        2879
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/bTqMo5klaCE_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "c2iz3qqVRbg_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        1950
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/c2iz3qqVRbg_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "c8j3h7fuYsY_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 120,
+      "query_ids": [
+        9510
+      ],
+      "relevant_window_count_per_query": [
+        2
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=short|qlen=long_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/c8j3h7fuYsY_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "cJ8kzdeoevg_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        3001
+      ],
+      "relevant_window_count_per_query": [
+        4
+      ],
+      "relevant_window_count_total": 4,
+      "selection_bucket": "dur=long|qlen=short_query|win=many_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/cJ8kzdeoevg_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "dsmZngVgytA_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        4637
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/dsmZngVgytA_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "dsmZngVgytA_510.0_660.0",
+      "source_split": "external_dev",
+      "duration": 144,
+      "query_ids": [
+        8984
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=medium|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/dsmZngVgytA_510.0_660.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "eeeYIo6nxcA_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        411
+      ],
+      "relevant_window_count_per_query": [
+        3
+      ],
+      "relevant_window_count_total": 3,
+      "selection_bucket": "dur=long|qlen=short_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/eeeYIo6nxcA_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "eeeYIo6nxcA_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        3747
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/eeeYIo6nxcA_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "eeeYIo6nxcA_510.0_660.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        8824
+      ],
+      "relevant_window_count_per_query": [
+        5
+      ],
+      "relevant_window_count_total": 5,
+      "selection_bucket": "dur=long|qlen=long_query|win=many_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/eeeYIo6nxcA_510.0_660.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "ez8kypBrMVE_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        584
+      ],
+      "relevant_window_count_per_query": [
+        3
+      ],
+      "relevant_window_count_total": 3,
+      "selection_bucket": "dur=long|qlen=short_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/ez8kypBrMVE_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "fOU0-2bBRnU_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        993
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/fOU0-2bBRnU_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "gpDpN44mky0_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        840
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/gpDpN44mky0_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "h6QKDqomIPk_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        1566
+      ],
+      "relevant_window_count_per_query": [
+        2
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=long|qlen=long_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/h6QKDqomIPk_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "hWr2e0vQaLA_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        5671
+      ],
+      "relevant_window_count_per_query": [
+        3
+      ],
+      "relevant_window_count_total": 3,
+      "selection_bucket": "dur=long|qlen=short_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/hWr2e0vQaLA_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "hWr2e0vQaLA_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        6308
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/hWr2e0vQaLA_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "h_73QmnwHaQ_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        2390
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/h_73QmnwHaQ_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "iB1iaveR00c_660.0_810.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        7539
+      ],
+      "relevant_window_count_per_query": [
+        3
+      ],
+      "relevant_window_count_total": 3,
+      "selection_bucket": "dur=long|qlen=short_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/iB1iaveR00c_660.0_810.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "idvZpkYWOMQ_660.0_810.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        7389
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/idvZpkYWOMQ_660.0_810.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "ioWAoEVYaP0_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        932
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/ioWAoEVYaP0_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "iuMlh75-tzs_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        237
+      ],
+      "relevant_window_count_per_query": [
+        2
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=long|qlen=short_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/iuMlh75-tzs_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "j0wGIBt61n0_660.0_810.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        8861
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/j0wGIBt61n0_660.0_810.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "jdQ_zQJD0I4_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        2616
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/jdQ_zQJD0I4_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "jdQ_zQJD0I4_660.0_810.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        8747
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/jdQ_zQJD0I4_660.0_810.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "jyHSYDfqPnU_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        949
+      ],
+      "relevant_window_count_per_query": [
+        2
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=long|qlen=short_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/jyHSYDfqPnU_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "k4cmv7wjjt0_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        5976
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/k4cmv7wjjt0_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "kv3NheAKyb0_510.0_660.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        7065
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/kv3NheAKyb0_510.0_660.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "lEmQV__Hauc_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        4098
+      ],
+      "relevant_window_count_per_query": [
+        10
+      ],
+      "relevant_window_count_total": 10,
+      "selection_bucket": "dur=long|qlen=long_query|win=many_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/lEmQV__Hauc_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "lwNho_1tKrc_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        2820,
+        4468
+      ],
+      "relevant_window_count_per_query": [
+        3,
+        2
+      ],
+      "relevant_window_count_total": 5,
+      "selection_bucket": "dur=long|qlen=long_query|win=few_windows|qcount=multi_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/lwNho_1tKrc_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "m0cZFcXa5sc_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        5070
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/m0cZFcXa5sc_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "mEqAtcljxHc_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 124,
+      "query_ids": [
+        10242
+      ],
+      "relevant_window_count_per_query": [
+        3
+      ],
+      "relevant_window_count_total": 3,
+      "selection_bucket": "dur=short|qlen=short_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/mEqAtcljxHc_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "m_-A8xoc1Oo_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        507
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/m_-A8xoc1Oo_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "m_-A8xoc1Oo_660.0_810.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        7174
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/m_-A8xoc1Oo_660.0_810.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "msAkt_9q6H0_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        1678
+      ],
+      "relevant_window_count_per_query": [
+        3
+      ],
+      "relevant_window_count_total": 3,
+      "selection_bucket": "dur=long|qlen=short_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/msAkt_9q6H0_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "nY42UppPhhg_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        3359
+      ],
+      "relevant_window_count_per_query": [
+        3
+      ],
+      "relevant_window_count_total": 3,
+      "selection_bucket": "dur=long|qlen=long_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/nY42UppPhhg_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "nkgTGB5C7zk_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        3056
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/nkgTGB5C7zk_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "pA6Z-qYhSNg_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        9760
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/pA6Z-qYhSNg_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "pmGyw055pQg_510.0_660.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        8627
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/pmGyw055pQg_510.0_660.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "q4WEUoz2wHc_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        5764
+      ],
+      "relevant_window_count_per_query": [
+        4
+      ],
+      "relevant_window_count_total": 4,
+      "selection_bucket": "dur=long|qlen=short_query|win=many_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/q4WEUoz2wHc_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "qaDShOiRe-0_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        101
+      ],
+      "relevant_window_count_per_query": [
+        2
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=long|qlen=short_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/qaDShOiRe-0_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "qaDShOiRe-0_660.0_810.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        8386
+      ],
+      "relevant_window_count_per_query": [
+        2
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=long|qlen=short_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/qaDShOiRe-0_660.0_810.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "r7A-cfBq2Xw_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        2343
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/r7A-cfBq2Xw_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "sa-O_S2jzCw_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        6824
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/sa-O_S2jzCw_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "slQPJSfZ_4o_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        1158
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/slQPJSfZ_4o_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "tb6Br2F4KQM_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        3731
+      ],
+      "relevant_window_count_per_query": [
+        5
+      ],
+      "relevant_window_count_total": 5,
+      "selection_bucket": "dur=long|qlen=short_query|win=many_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/tb6Br2F4KQM_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "u4GsXRzTqf8_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        2546
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/u4GsXRzTqf8_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "uoVRb7a58GU_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        2433
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/uoVRb7a58GU_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "vNkDq7WcfxE_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        3748
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/vNkDq7WcfxE_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "wFPaHOAoGzI_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        1783
+      ],
+      "relevant_window_count_per_query": [
+        9
+      ],
+      "relevant_window_count_total": 9,
+      "selection_bucket": "dur=long|qlen=short_query|win=many_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/wFPaHOAoGzI_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "wFPaHOAoGzI_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        5330
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/wFPaHOAoGzI_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "wk2CeU_DcBo_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        4393
+      ],
+      "relevant_window_count_per_query": [
+        2
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=long|qlen=short_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/wk2CeU_DcBo_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "wk2CeU_DcBo_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        934
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/wk2CeU_DcBo_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "x1m7B8s1sQ0_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        9770
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/x1m7B8s1sQ0_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "xQ5SY0ZDXZs_510.0_660.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        8396
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/xQ5SY0ZDXZs_510.0_660.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "xUeRLu1o0v4_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        228
+      ],
+      "relevant_window_count_per_query": [
+        3
+      ],
+      "relevant_window_count_total": 3,
+      "selection_bucket": "dur=long|qlen=short_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/xUeRLu1o0v4_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "xXWKd1b3SHM_210.0_360.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        854
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/xXWKd1b3SHM_210.0_360.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "xb-GHGr3s6k_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        5406
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=long_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/xb-GHGr3s6k_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "xtaVwcSitCo_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        5488
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/xtaVwcSitCo_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "yDu6jiOdj80_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        10220
+      ],
+      "relevant_window_count_per_query": [
+        2
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=long|qlen=short_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/yDu6jiOdj80_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "yeCaAL4uM-U_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        2323
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/yeCaAL4uM-U_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "zVwsEVwS8Kw_60.0_210.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        3389
+      ],
+      "relevant_window_count_per_query": [
+        2
+      ],
+      "relevant_window_count_total": 2,
+      "selection_bucket": "dur=long|qlen=short_query|win=few_windows|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/zVwsEVwS8Kw_60.0_210.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    },
+    {
+      "video_id": "zY6XnLhTp7g_360.0_510.0",
+      "source_split": "external_dev",
+      "duration": 150,
+      "query_ids": [
+        1875
+      ],
+      "relevant_window_count_per_query": [
+        1
+      ],
+      "relevant_window_count_total": 1,
+      "selection_bucket": "dur=long|qlen=short_query|win=single_window|qcount=single_query_video",
+      "download_status": "not_attempted",
+      "local_path": "/home/ccbd/IRIS-1/external_data/qvhighlights/videos/zY6XnLhTp7g_360.0_510.0.mp4",
+      "file_size_bytes": null,
+      "sha256": null,
+      "decoding_validation_status": "not_attempted",
+      "video_available": false
+    }
+  ]
+}
