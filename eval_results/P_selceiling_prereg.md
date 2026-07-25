@@ -20,21 +20,41 @@ peak_source=clip_in_ppr_top8. index_cache/ LOAD ONLY — never regenerate.
 ## Signal (existing captions only — NO re-ingest, NO new captions)
 For each recoverable-set question, take the query-blind captions already in
 the loaded index for the top_k=8 pool frames. Score each caption against the
-QUESTION text with a fixed, declared-in-advance text-similarity function
-(specify exactly which — e.g. the same CLIP text encoder already loaded,
-cosine over caption-text vs question-text; or a stated lexical baseline).
-Pick the top-scoring frame. Record whether it is in gold.
+QUESTION text under TWO fixed, declared-in-advance arms, both run over the
+same top_k=8 pool captions vs the question text:
+
+ARM 1 — LEXICAL (this is the GATE arm). Token-overlap score: lowercase both
+question and caption, split on non-alphanumeric characters, drop tokens in
+a fixed declared stopword list — {"a","an","the","is","are","was","were",
+"be","been","being","of","to","in","on","at","for","with","and","or","but",
+"this","that","it","as","by","from"} — then
+  score = |question_tokens ∩ caption_tokens| / |question_tokens|.
+No learned model, no shared machinery with CLIP.
+
+ARM 2 — CLIP-TEXT (CONTEXT only, NOT the gate). The already-loaded CLIP text
+encoder, cosine similarity over the caption-text embedding vs the
+question-text embedding.
+
+For each arm, pick the top-scoring frame; ties within an arm are broken by
+the frame's existing CLIP-in-pool rank (lower rank wins) — record the tie
+rate for each arm. Record whether each arm's picked frame is in gold.
 
 ## Reads (all video-clustered bootstrap, 1000 resamples, seed recorded)
 - recoverable_set size (n and fraction of all questions)
-- recovered_fraction = P(caption-top frame in gold | recoverable set), with CI
-- for context, the same measure over the WHOLE pool, not just recoverable set
+- recovered_fraction = P(caption-top frame in gold | recoverable set), with CI,
+  reported SEPARATELY for ARM 1 (lexical) and ARM 2 (CLIP-text)
+- agreement rate: fraction of recoverable-set questions where ARM 1 and ARM 2
+  pick the same frame
+- for context, the same per-arm measure over the WHOLE pool, not just
+  recoverable set
 - caption availability: fraction of pool frames that actually have a caption
   in the index (assert and report — if captions are sparse this ceiling is
   understated; a zero-caption frame must be counted, not silently skipped)
 
 ## Pre-registered gate (declared BEFORE running)
-On recovered_fraction over the recoverable set, read on the CI-lower:
+The gate is read off ARM 1 (LEXICAL) ONLY. ARM 2 (CLIP-text) is reported
+alongside for context; its result does NOT move the gate.
+On ARM 1's recovered_fraction over the recoverable set, read on the CI-lower:
   <= 0.10  -> a caption signal recovers too little; in-pool caption reranking
              is NOT worth a fresh-split experiment. Selection stays a stated
              ceiling in the paper, not a lever.
@@ -55,7 +75,7 @@ BURNED, and a selection rule tuned on val cannot be validated held-out here.
    the one declared here.
 3. VAL only, n=406, recoverable subset smaller. Test half burned.
 4. Conditional on ranking_mode="ppr" throughout, never compared vs legacy.
-5. If the same CLIP text encoder is used to score captions, note the shared-
-   encoder confound: it partially re-uses the signal that built the pool. A
-   lexical or different-model baseline alongside it would separate that — state
-   whether one is included.
+5. HANDLED: the gate is read off the lexical arm (ARM 1), which shares no
+   machinery with the CLIP signal that built the pool. The CLIP-text arm
+   (ARM 2) is reported for context only and does not move the gate, so the
+   shared-encoder confound does not affect the registered decision.
