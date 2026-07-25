@@ -24,6 +24,7 @@ directly comparable to every prior family's numbers.
 """
 from __future__ import annotations
 
+import argparse
 import csv
 import hashlib
 import json
@@ -45,6 +46,7 @@ import iris.aria as aria  # noqa: E402
 import iris.query as iris_query  # noqa: E402
 from iris.iris_config import IRISConfig  # noqa: E402
 from iris.query_reformulation import parse_mc_answer, format_mc_label  # noqa: E402
+from iris.retrieval_entry import retrieve_for_question  # noqa: E402
 from eval.metrics import predicted_span_from_frames_peak  # noqa: E402
 
 from part3_tune import (  # noqa: E402
@@ -66,12 +68,30 @@ INDEX_CACHE_DIR = TUNING_DIR / "index_cache_val_confirm_e2e"
 PER_QUESTION_CSV = TUNING_DIR / "val_confirm_e2e_per_question.csv"
 REPORT_PATH = TUNING_DIR / "val_confirm_e2e_report.md"
 
+
+def output_paths_for_mode(query_mode: str, traversal_mode: str) -> tuple[Path, Path]:
+    """The frozen baseline run (query_mode="none") keeps its historical
+    filenames; every reformulation arm writes to its own suffixed pair so a
+    non-baseline run can never silently overwrite the recorded held-out
+    baseline artifacts."""
+    if query_mode == "none" and traversal_mode == "none":
+        return PER_QUESTION_CSV, REPORT_PATH
+    suffix = f"_{query_mode}_{traversal_mode}"
+    return (
+        TUNING_DIR / f"val_confirm_e2e_per_question{suffix}.csv",
+        TUNING_DIR / f"val_confirm_e2e_report{suffix}.md",
+    )
+
+
 PER_Q_FIELDNAMES = [
     "video", "qid", "type", "question",
     "pred_answer_idx", "pred_answer_label", "gold_answer_idx", "gold_answer_label",
     "acc_qa", "pred_span_start", "pred_span_end", "gold_spans", "iop", "iou",
     "acc_gqa_unverified", "used_clip_anchor", "raw_answer_nonempty",
     "retrieval_span_ms", "caption_answer_ms",
+    # Query-reformulation telemetry (blank/none for the frozen baseline arm).
+    "query_mode", "traversal_mode", "relation", "relation_source",
+    "fallback_reason", "num_ppr_calls", "context_frame_count",
 ]
 
 
@@ -97,10 +117,18 @@ REASON: <one short sentence grounded in the frame evidence>
 """
 
 
-def make_e2e_config(frozen: dict) -> IRISConfig:
+def make_e2e_config(frozen: dict, args: argparse.Namespace | None = None) -> IRISConfig:
     """Same construction as part3_tune.py's make_config, but explicit
     about every field the task spec calls out (not silently relying on
-    IRISConfig() defaults for anything the task named)."""
+    IRISConfig() defaults for anything the task named).
+
+    Query reformulation is opt-in and explicit: with no --query-mode the
+    config is byte-identical to the pre-existing frozen baseline
+    (query_reformulation_mode="none", temporal_traversal_mode="none"), which
+    routes through retrieve_for_question's "none" branch -- the same
+    _call_embed_query + _build_retrieved pair this script called directly
+    before the flag existed.
+    """
     cfg = IRISConfig()
     cfg.cerberus_mode = "none"
     cfg.ranking_mode = frozen.get("ranking_mode", "ppr")
@@ -110,6 +138,17 @@ def make_e2e_config(frozen: dict) -> IRISConfig:
                 "peak_distance", "peak_prominence", "packet_size_weight", "motion_weight",
                 "luma_entropy_weight", "persistence_threshold", "max_prominence"):
         setattr(cfg, key, frozen[key])
+
+    if args is not None:
+        cfg.query_reformulation_mode = args.query_mode
+        cfg.temporal_traversal_mode = args.temporal_traversal_mode
+        cfg.temporal_context_seconds = args.temporal_context_seconds
+        cfg.temporal_scene_hops = args.temporal_scene_hops
+        cfg.max_context_frames = args.max_context_frames
+        cfg.multi_query_combine = args.multi_query_combine
+        cfg.max_retrieval_queries = (
+            min(args.max_queries, 3) if args.query_mode == "structured_v2" else args.max_queries
+        )
     return cfg
 
 
@@ -200,7 +239,43 @@ def smoke_test_backend(cfg: IRISConfig) -> str:
     return raw
 
 
-def main() -> None:
+def build_arg_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument(
+        "--query-mode", dest="query_mode", default="none",
+        choices=["none", "legacy", "structured_v2"],
+        help="Retrieval query mode, routed through "
+             "iris.retrieval_entry.retrieve_for_question. 'none' (default) is "
+             "the frozen verbatim-question baseline.",
+    )
+    p.add_argument(
+        "--temporal-traversal-mode", dest="temporal_traversal_mode", default="none",
+        choices=["none", "legacy_symmetric", "directional"],
+        help="Temporal context expansion mode (default: none).",
+    )
+    p.add_argument("--temporal-context-seconds", dest="temporal_context_seconds", type=float, default=4.0)
+    p.add_argument("--temporal-scene-hops", dest="temporal_scene_hops", type=int, default=1)
+    p.add_argument("--max-context-frames", dest="max_context_frames", type=int, default=8)
+    p.add_argument("--multi-query-combine", dest="multi_query_combine", default="weighted_max",
+                   choices=["weighted_max", "logsumexp"])
+    p.add_argument("--max-queries", dest="max_queries", type=int, default=3,
+                   help="Retrieval query budget (hard-capped to 3 under structured_v2).")
+    return p
+
+
+def main(argv: list[str] | None = None) -> None:
+    args = build_arg_parser().parse_args(argv)
+    per_question_csv, _report_path = output_paths_for_mode(
+        args.query_mode, args.temporal_traversal_mode
+    )
+    if per_question_csv.exists():
+        raise SystemExit(
+            f"[setup] {per_question_csv} already exists -- refusing to overwrite a "
+            "recorded held-out artifact. Move or delete it first if this rerun is intended."
+        )
+    print(f"[setup] query_mode={args.query_mode} "
+          f"temporal_traversal_mode={args.temporal_traversal_mode} -> {per_question_csv.name}", flush=True)
+
     state = load_frozen_state()
     frozen = state["frozen"]
     print(f"[setup] frozen hyperparameters read live from tuning/frozen_state.json: {frozen}", flush=True)
@@ -218,7 +293,7 @@ def main() -> None:
                           "this run must not reuse any prior cache. Aborting.")
     INDEX_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
-    cfg = make_e2e_config(frozen)
+    cfg = make_e2e_config(frozen, args)
     print(f"[setup] config: cerberus_mode={cfg.cerberus_mode} ranking_mode={cfg.ranking_mode} "
           f"codec_conf_source={cfg.codec_conf_source} codec_conf_pictype_norm={cfg.codec_conf_pictype_norm} "
           f"answerer_backend={cfg.answerer_backend} answerer_endpoint={cfg.answerer_endpoint} "
@@ -249,7 +324,7 @@ def main() -> None:
     correct_gqa = 0
     iops, ious = [], []
 
-    csv_f = open(PER_QUESTION_CSV, "w", newline="")
+    csv_f = open(per_question_csv, "w", newline="")
     csv_w = csv.DictWriter(csv_f, fieldnames=PER_Q_FIELDNAMES)
     csv_w.writeheader()
 
@@ -264,8 +339,16 @@ def main() -> None:
 
         t0 = time.perf_counter()
         try:
+            retrieved_frames, plan, telemetry = retrieve_for_question(
+                q["question"], index, cfg,
+                type_code=q.get("type"), family=q.get("family"),
+            )
+            # Span construction (frozen Method D) is deliberately anchored on
+            # the VERBATIM question embedding in every query mode. Method D is
+            # a frozen span parameter, not part of the variable under test, so
+            # letting the anchoring embedding change with query_mode would vary
+            # two things at once and make an mIoP delta unattributable.
             query_embedding, _ = iris_query._call_embed_query(q["question"], cfg)
-            retrieved_frames, _ = iris_query._retrieve_with_l1(index, query_embedding, cfg)
             pred_span, used_clip_anchor = predicted_span_from_frames_peak(
                 retrieved_frames, query_embedding, half_width_s=half_width_s,
             )
@@ -314,6 +397,13 @@ def main() -> None:
             "acc_gqa_unverified": acc_gqa, "used_clip_anchor": used_clip_anchor,
             "raw_answer_nonempty": bool(raw_answer and raw_answer.strip()),
             "retrieval_span_ms": round(t_retrieval_span, 2), "caption_answer_ms": round(t_caption_answer, 2),
+            "query_mode": cfg.query_reformulation_mode,
+            "traversal_mode": cfg.temporal_traversal_mode,
+            "relation": getattr(plan, "relation", None),
+            "relation_source": getattr(plan, "relation_source", None),
+            "fallback_reason": getattr(plan, "fallback_reason", None),
+            "num_ppr_calls": telemetry.get("num_ppr_calls"),
+            "context_frame_count": len(retrieved_frames),
         })
         csv_w.writerow(rows_out[-1])
         csv_f.flush()

@@ -1,0 +1,48 @@
+{
+  "n_questions": 2685,
+  "relation_source": {
+    "type_code": 2341,
+    "conflict": 344
+  },
+  "relation": {
+    "CAUSE": 1172,
+    "MANNER": 392,
+    "AFTER": 704,
+    "DURING": 380,
+    "BEFORE": 37
+  },
+  "fallback_reason": {
+    "<none>": 2041,
+    "no_clause_pattern_matched": 644
+  },
+  "n_position_prior": 440,
+  "n_occurrence_selector": 12,
+  "embedding_count_histogram": {
+    "1": 1272,
+    "2": 1387,
+    "3": 26
+  },
+  "over_embedding_budget": 0,
+  "per_type_fallback": {
+    "CW": {
+      "<none>": 848,
+      "no_clause_pattern_matched": 324
+    },
+    "CH": {
+      "<none>": 337,
+      "no_clause_pattern_matched": 55
+    },
+    "TN": {
+      "<none>": 638,
+      "no_clause_pattern_matched": 66
+    },
+    "TC": {
+      "<none>": 197,
+      "no_clause_pattern_matched": 183
+    },
+    "TP": {
+      "<none>": 21,
+      "no_clause_pattern_matched": 16
+    }
+  }
+}
