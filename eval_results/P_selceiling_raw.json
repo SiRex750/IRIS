@@ -1,0 +1,8179 @@
+{
+  "provenance": {
+    "span_mode": "ppr_peak",
+    "span_half_width": 2.2,
+    "span_peak_source": "clip_in_ppr_top8",
+    "git_commit": "a5d1cdd68565e5545dea91ab4fcde36e6a354437",
+    "git_dirty": true,
+    "config_hash": "abbcf1b1bdaf84c8fda9b281f4700c968cfbb2295537fbb3a128c4767cf2f1b0",
+    "timestamp_utc": "2026-07-25T09:29:19.338925+00:00",
+    "n_questions": 406,
+    "n_videos": 59,
+    "top_k": 8,
+    "num_boot": 1000,
+    "seed": 20260710
+  },
+  "recoverable_set": {
+    "n": 136,
+    "fraction_of_all": 0.33497536945812806
+  },
+  "caption_availability": {
+    "n_pool_frames": 3248,
+    "n_with_caption": 1544,
+    "fraction": 0.4753694581280788,
+    "n_skipped": 0
+  },
+  "bootstrap": {
+    "arm1_lexical_recoverable_set": {
+      "mean": 0.20846031242733795,
+      "ci_lo": 0.13604812295288488,
+      "ci_hi": 0.2782686335403727
+    },
+    "arm2_clip_text_recoverable_set": {
+      "mean": 0.2357880039632036,
+      "ci_lo": 0.16311232063334985,
+      "ci_hi": 0.31481846019247595
+    },
+    "arm1_lexical_whole_pool": {
+      "mean": 0.2793440818942258,
+      "ci_lo": 0.22660098522167488,
+      "ci_hi": 0.3357169509594882
+    },
+    "arm2_clip_text_whole_pool": {
+      "mean": 0.28330998447557193,
+      "ci_lo": 0.22303835266500968,
+      "ci_hi": 0.34500444162436544
+    }
+  },
+  "tie_rate": {
+    "arm1_lexical": 0.6544117647058824,
+    "arm2_clip_text": 0.10294117647058823
+  },
+  "agreement_rate": 0.3161764705882353,
+  "gate": {
+    "ci_lower_arm1": 0.13604812295288488,
+    "branch": "INCONCLUSIVE"
+  },
+  "per_question": [
+    {
+      "video": "4882821564",
+      "qid": "1",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 2643,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 2643,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "3462517143",
+      "qid": "2",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 501,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 59,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3943634344",
+      "qid": "4",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 618,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 618,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "5116088152",
+      "qid": "1",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 555,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 546,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3943634344",
+      "qid": "8",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 582,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 618,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "4263096481",
+      "qid": "0",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 507,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 66,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3066064005",
+      "qid": "1",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 669,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 310,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "11871253306",
+      "qid": "4",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 171,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 163,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2793806282",
+      "qid": "12",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 381,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1887,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2435633172",
+      "qid": "5",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 1066,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1748,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "7164729910",
+      "qid": "7",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 9,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 9,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "5803861992",
+      "qid": "0",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 2063,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1302,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3972259774",
+      "qid": "0",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 309,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 309,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "6078524411",
+      "qid": "7",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 1769,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1769,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "7164729910",
+      "qid": "8",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 407,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 391,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5875535585",
+      "qid": "9",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 2052,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 2052,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "4882821564",
+      "qid": "4",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 2526,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 2610,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3763643225",
+      "qid": "7",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 369,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 5
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 710,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "10607095936",
+      "qid": "6",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 747,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 747,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "5433090067",
+      "qid": "5",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 384,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 569,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5504913999",
+      "qid": "6",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 1302,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 804,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3046900922",
+      "qid": "2",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 33,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 510,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": false
+    },
+    {
+      "video": "3846475848",
+      "qid": "2",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 723,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 270,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5840177726",
+      "qid": "1",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 92,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 285,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2442307875",
+      "qid": "2",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 195,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 327,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "4263096481",
+      "qid": "4",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 119,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 66,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5433090067",
+      "qid": "2",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 569,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 569,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "3972259774",
+      "qid": "6",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 831,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 245,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": false
+    },
+    {
+      "video": "2920952624",
+      "qid": "4",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 741,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 741,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "8177965766",
+      "qid": "1",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 12,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 5
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 5,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2552130183",
+      "qid": "10",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 128,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1238,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5116088152",
+      "qid": "4",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 546,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 5
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 534,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3452354871",
+      "qid": "1",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 60,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 114,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2679328607",
+      "qid": "2",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 230,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 606,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "8177965766",
+      "qid": "0",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 5,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 5,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "4164771889",
+      "qid": "3",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 174,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 418,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2679328607",
+      "qid": "11",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 330,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 330,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "2925298951",
+      "qid": "9",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 173,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 173,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "4164771889",
+      "qid": "1",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 186,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 418,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "6297019062",
+      "qid": "3",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 1356,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1405,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2925298951",
+      "qid": "1",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 46,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 173,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "4968805923",
+      "qid": "5",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 30,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 30,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "3763643225",
+      "qid": "8",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 999,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 126,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": false
+    },
+    {
+      "video": "2920952624",
+      "qid": "7",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 741,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 741,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "8177965766",
+      "qid": "3",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 12,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 5,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5875535585",
+      "qid": "0",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 1157,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1157,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "4164771889",
+      "qid": "7",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 174,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 418,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2442307875",
+      "qid": "6",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 309,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 327,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5875535585",
+      "qid": "6",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 2058,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1270,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5133787349",
+      "qid": "1",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 359,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 225,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2401167740",
+      "qid": "7",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 351,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 353,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2885091387",
+      "qid": "6",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 989,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1023,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": false
+    },
+    {
+      "video": "8604794910",
+      "qid": "2",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 369,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 369,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "4444192938",
+      "qid": "3",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 177,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 189,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "4263096481",
+      "qid": "7",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 507,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 66,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5433090067",
+      "qid": "6",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 144,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 252,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": false
+    },
+    {
+      "video": "5133787349",
+      "qid": "7",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 285,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 225,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2442307875",
+      "qid": "3",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 327,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 327,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "8990144134",
+      "qid": "4",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 122,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 116,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "6879924118",
+      "qid": "2",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 105,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 96,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "4103088549",
+      "qid": "6",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 228,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 186,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2435633172",
+      "qid": "4",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 1066,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1748,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2984974097",
+      "qid": "7",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 756,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 756,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "2679328607",
+      "qid": "7",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 330,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 330,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "8990144134",
+      "qid": "2",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 44,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 116,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "7164729910",
+      "qid": "3",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 407,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 391,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "8177965766",
+      "qid": "6",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 5,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 5,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "3462517143",
+      "qid": "1",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 540,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 51,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2920952624",
+      "qid": "3",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 203,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 741,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5429688959",
+      "qid": "2",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 849,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 8
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 348,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "4444192938",
+      "qid": "1",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 129,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 189,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5433090067",
+      "qid": "3",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 569,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 569,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "6879924118",
+      "qid": "4",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 237,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 96,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2669452260",
+      "qid": "0",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 159,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 188,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2442307875",
+      "qid": "7",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 414,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 414,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "8552680285",
+      "qid": "2",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 208,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 103,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "4968805923",
+      "qid": "3",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 60,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 30,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3375218204",
+      "qid": "2",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 1903,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1640,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": false
+    },
+    {
+      "video": "3972259774",
+      "qid": "3",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 717,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 309,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "4164771889",
+      "qid": "5",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 174,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 418,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2547885226",
+      "qid": "0",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 180,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 180,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "2987766537",
+      "qid": "7",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 158,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 5
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 54,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "4761953886",
+      "qid": "2",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 96,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 411,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "6713120511",
+      "qid": "4",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 1443,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 831,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": false
+    },
+    {
+      "video": "2821788355",
+      "qid": "4",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 409,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 5
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 572,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5803861992",
+      "qid": "3",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 1922,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1302,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "7164729910",
+      "qid": "0",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 407,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 9,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3340340268",
+      "qid": "2",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 369,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 639,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2984974097",
+      "qid": "8",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 713,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 713,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "4882821564",
+      "qid": "3",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 540,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 2610,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3508407941",
+      "qid": "2",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 197,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 197,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "3846475848",
+      "qid": "6",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 723,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 270,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3375218204",
+      "qid": "7",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 1903,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1841,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": false
+    },
+    {
+      "video": "3046900922",
+      "qid": "3",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 86,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 15,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "6297019062",
+      "qid": "0",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 798,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1405,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "4968805923",
+      "qid": "1",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 60,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 30,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5504913999",
+      "qid": "5",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 804,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 804,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "11871253306",
+      "qid": "0",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 171,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 163,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3066064005",
+      "qid": "0",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 273,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 5
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 273,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "2885091387",
+      "qid": "9",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 440,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 8
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 440,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": true
+    },
+    {
+      "video": "5504913999",
+      "qid": "7",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 804,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 804,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "3943634344",
+      "qid": "5",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 618,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 618,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "2679328607",
+      "qid": "8",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 330,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 330,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "3340340268",
+      "qid": "4",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 546,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 639,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3375218204",
+      "qid": "6",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 2220,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 2026,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5803861992",
+      "qid": "2",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 1302,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1302,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "5907839036",
+      "qid": "4",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 987,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1070,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5116088152",
+      "qid": "3",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 546,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 546,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "2987766537",
+      "qid": "0",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 158,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 98,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "8552680285",
+      "qid": "1",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 208,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 103,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "8604794910",
+      "qid": "9",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 387,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 159,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5875535585",
+      "qid": "8",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 2058,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1285,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": false
+    },
+    {
+      "video": "2401167740",
+      "qid": "4",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 351,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 353,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5116088152",
+      "qid": "7",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 546,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 546,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "2401167740",
+      "qid": "0",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 351,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 353,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2679328607",
+      "qid": "3",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 330,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 5
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 330,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "2925298951",
+      "qid": "4",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 122,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 173,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2442307875",
+      "qid": "0",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 195,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 327,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "4761953886",
+      "qid": "4",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 411,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 5
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 411,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "3046900922",
+      "qid": "8",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 86,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 5
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 15,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2821788355",
+      "qid": "5",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 409,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 409,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "6297019062",
+      "qid": "8",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 1413,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1405,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5907839036",
+      "qid": "1",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 987,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1070,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2821788355",
+      "qid": "7",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 413,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 5
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 409,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2552130183",
+      "qid": "9",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 128,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1238,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5840177726",
+      "qid": "0",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 285,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 285,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "5840177726",
+      "qid": "5",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 92,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 285,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3046900922",
+      "qid": "9",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 33,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 33,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": true
+    },
+    {
+      "video": "3046900922",
+      "qid": "6",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 33,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 373,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": false
+    },
+    {
+      "video": "3943634344",
+      "qid": "2",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 582,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 618,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3452354871",
+      "qid": "4",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 60,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 60,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "3046900922",
+      "qid": "4",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 33,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 191,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": false
+    },
+    {
+      "video": "3846475848",
+      "qid": "9",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 270,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 270,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "2920952624",
+      "qid": "9",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 696,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 741,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "11871253306",
+      "qid": "3",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 744,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 644,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": false
+    },
+    {
+      "video": "3375218204",
+      "qid": "1",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 1640,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1640,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": true
+    },
+    {
+      "video": "4444192938",
+      "qid": "9",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 57,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 189,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "6078524411",
+      "qid": "6",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 1769,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1769,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "3340340268",
+      "qid": "6",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 546,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 546,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "2547885226",
+      "qid": "5",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 387,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 374,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5875535585",
+      "qid": "7",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 2058,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 2052,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "4263096481",
+      "qid": "9",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 507,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 66,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5133787349",
+      "qid": "6",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 285,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 225,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2885091387",
+      "qid": "2",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 989,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 599,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": false
+    },
+    {
+      "video": "2920952624",
+      "qid": "1",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 741,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 741,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "3763643225",
+      "qid": "2",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 876,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 5
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 873,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "6078524411",
+      "qid": "8",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 1071,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1071,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": true
+    },
+    {
+      "video": "4882821564",
+      "qid": "6",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 540,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 2610,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "6188449000",
+      "qid": "4",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 987,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 5,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3066064005",
+      "qid": "2",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 273,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 273,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "2793806282",
+      "qid": "2",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 381,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1887,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "4761953886",
+      "qid": "3",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 96,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 411,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "7164729910",
+      "qid": "1",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 407,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 391,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2567843468",
+      "qid": "6",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 84,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 5
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 270,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "8604794910",
+      "qid": "6",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 357,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 264,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2716277960",
+      "qid": "3",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 400,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 274,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "6297019062",
+      "qid": "4",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 177,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1405,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2547885226",
+      "qid": "4",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 387,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 374,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3508459605",
+      "qid": "0",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 2396,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 2486,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3066064005",
+      "qid": "7",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 273,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 273,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "5907839036",
+      "qid": "3",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 2550,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1070,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "7164729910",
+      "qid": "2",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 407,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 391,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5907839036",
+      "qid": "8",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 987,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1070,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "4103088549",
+      "qid": "5",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 126,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 186,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2793806282",
+      "qid": "5",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 1822,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1887,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3846475848",
+      "qid": "4",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 1406,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 270,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "7001078933",
+      "qid": "7",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 532,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 468,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5429688959",
+      "qid": "3",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 597,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 348,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2567843468",
+      "qid": "11",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 84,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 174,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3066064005",
+      "qid": "5",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 273,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 273,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "2552130183",
+      "qid": "4",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 128,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1238,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5504913999",
+      "qid": "1",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 1252,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 804,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5840177726",
+      "qid": "4",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 92,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 285,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "8990144134",
+      "qid": "0",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 122,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 5
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 116,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3508459605",
+      "qid": "6",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 2280,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 2280,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "6713120511",
+      "qid": "3",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 1443,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1449,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": false
+    },
+    {
+      "video": "3340340268",
+      "qid": "5",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 533,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 639,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3462517143",
+      "qid": "5",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 540,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 51,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5116088152",
+      "qid": "0",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 684,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 945,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": false
+    },
+    {
+      "video": "3066064005",
+      "qid": "6",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 570,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 8
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 243,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2984974097",
+      "qid": "2",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 724,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 756,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3340340268",
+      "qid": "7",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 533,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 546,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3508407941",
+      "qid": "3",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 453,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 5
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 197,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "7001078933",
+      "qid": "5",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 532,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 468,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2793806282",
+      "qid": "11",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 1887,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1887,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "11871253306",
+      "qid": "2",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 417,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 417,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": true
+    },
+    {
+      "video": "3972259774",
+      "qid": "2",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 717,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 5
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 309,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "4164771889",
+      "qid": "2",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 174,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 418,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2495861393",
+      "qid": "3",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 68,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 38,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "8990144134",
+      "qid": "5",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 122,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 116,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2679328607",
+      "qid": "14",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 330,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 330,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "11871253306",
+      "qid": "10",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 163,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 163,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "11871253306",
+      "qid": "1",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 1038,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1038,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": true
+    },
+    {
+      "video": "10607095936",
+      "qid": "9",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 745,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 743,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2669452260",
+      "qid": "5",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 188,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 188,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "2793806282",
+      "qid": "9",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 1822,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1887,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3508407941",
+      "qid": "0",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 453,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 5
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 197,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2547885226",
+      "qid": "1",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 374,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 374,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "4164771889",
+      "qid": "0",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 174,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 174,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "7001078933",
+      "qid": "2",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 532,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 468,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5907839036",
+      "qid": "0",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 1070,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1070,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "4164771889",
+      "qid": "6",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 174,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 418,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3046900922",
+      "qid": "1",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 86,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 15,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "7164729910",
+      "qid": "5",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 407,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 391,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5840177726",
+      "qid": "2",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 239,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 285,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3218498932",
+      "qid": "6",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 240,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 240,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "8177965766",
+      "qid": "5",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 12,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 5,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "8604794910",
+      "qid": "1",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 159,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 264,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2401167740",
+      "qid": "6",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 351,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 353,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "6297019062",
+      "qid": "7",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 177,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1405,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "4103088549",
+      "qid": "0",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 126,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 5
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 186,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3375218204",
+      "qid": "5",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 2220,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 2026,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5116088152",
+      "qid": "8",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 555,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 5
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 534,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "6078524411",
+      "qid": "2",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 711,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 8
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 711,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": true
+    },
+    {
+      "video": "2716277960",
+      "qid": "5",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 274,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 274,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "3452354871",
+      "qid": "9",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 60,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 60,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "5803861992",
+      "qid": "6",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 1922,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1302,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3972259774",
+      "qid": "7",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 732,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 103,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": false
+    },
+    {
+      "video": "8604794910",
+      "qid": "3",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 387,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 264,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2435633172",
+      "qid": "2",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 1066,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1748,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "4968805923",
+      "qid": "2",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 60,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 30,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2716277960",
+      "qid": "1",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 274,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 274,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "2435633172",
+      "qid": "0",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 1066,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1748,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2925298951",
+      "qid": "7",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 173,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 319,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5803861992",
+      "qid": "9",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 1922,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1302,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "4882821564",
+      "qid": "8",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 2643,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 2643,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "3452354871",
+      "qid": "3",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 180,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 60,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3763643225",
+      "qid": "6",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 873,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 873,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "3508459605",
+      "qid": "11",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 2280,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 2280,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "2435633172",
+      "qid": "1",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 1066,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1748,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "4164771889",
+      "qid": "8",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 186,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 418,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3943634344",
+      "qid": "10",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 582,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 618,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3452354871",
+      "qid": "0",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 60,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 60,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "5116088152",
+      "qid": "2",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 546,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 546,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "5803861992",
+      "qid": "7",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 1922,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1302,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2925298951",
+      "qid": "8",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 199,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 173,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3846475848",
+      "qid": "3",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 270,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 5
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 270,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "2821788355",
+      "qid": "8",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 716,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 409,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5429688959",
+      "qid": "4",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 1107,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 8
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 348,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2495861393",
+      "qid": "2",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 946,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 354,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2925298951",
+      "qid": "2",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 173,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 319,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3218498932",
+      "qid": "7",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 240,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 796,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2821788355",
+      "qid": "10",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 409,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 409,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "6713120511",
+      "qid": "1",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 1443,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1449,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": false
+    },
+    {
+      "video": "2885091387",
+      "qid": "8",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 996,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 5
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 826,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": false
+    },
+    {
+      "video": "2984974097",
+      "qid": "1",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 724,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 756,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3452354871",
+      "qid": "2",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 60,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 60,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "3972259774",
+      "qid": "1",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 831,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 831,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": true
+    },
+    {
+      "video": "4968805923",
+      "qid": "7",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 66,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 30,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "11871253306",
+      "qid": "6",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 744,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 417,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": false
+    },
+    {
+      "video": "6078524411",
+      "qid": "5",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 96,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 8
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 96,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": true
+    },
+    {
+      "video": "2435633172",
+      "qid": "3",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 1066,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1748,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5875535585",
+      "qid": "4",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 1782,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 2052,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "4263096481",
+      "qid": "5",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 119,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 66,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "6713120511",
+      "qid": "0",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 1612,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1612,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "6713120511",
+      "qid": "6",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 1443,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 749,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": false
+    },
+    {
+      "video": "7001078933",
+      "qid": "1",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 54,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 468,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "6188449000",
+      "qid": "5",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 987,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 5,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "10607095936",
+      "qid": "10",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 753,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 747,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2495861393",
+      "qid": "1",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 68,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 38,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2401167740",
+      "qid": "2",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 351,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 353,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3972259774",
+      "qid": "5",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 257,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 257,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": true
+    },
+    {
+      "video": "3943634344",
+      "qid": "0",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 618,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 618,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "3508459605",
+      "qid": "1",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 2155,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 2280,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3508459605",
+      "qid": "5",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 2280,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 2280,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "6078524411",
+      "qid": "3",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 1769,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1769,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "3508459605",
+      "qid": "12",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 2303,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 2573,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "6078524411",
+      "qid": "1",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 1614,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1769,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2679328607",
+      "qid": "4",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 226,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 330,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "6879924118",
+      "qid": "1",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 237,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 411,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2920952624",
+      "qid": "8",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 203,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 741,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5133787349",
+      "qid": "4",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 359,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 359,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "5433090067",
+      "qid": "1",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 144,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 387,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": false
+    },
+    {
+      "video": "10607095936",
+      "qid": "5",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 745,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 743,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "4444192938",
+      "qid": "5",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 551,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 551,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": true
+    },
+    {
+      "video": "6297019062",
+      "qid": "1",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 746,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1405,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3508459605",
+      "qid": "4",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 2396,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 2486,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "4968805923",
+      "qid": "4",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 60,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 30,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5875535585",
+      "qid": "5",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 2052,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 2052,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "4103088549",
+      "qid": "1",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 126,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 186,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "4968805923",
+      "qid": "8",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 30,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 30,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "2495861393",
+      "qid": "10",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 354,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 354,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "5116088152",
+      "qid": "6",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 555,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 555,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "3452354871",
+      "qid": "6",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 269,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 269,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": true
+    },
+    {
+      "video": "5803861992",
+      "qid": "1",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 1922,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1302,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3375218204",
+      "qid": "3",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 2027,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 2027,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "2793806282",
+      "qid": "4",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 1793,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1887,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2821788355",
+      "qid": "6",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 378,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 409,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5429688959",
+      "qid": "1",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 597,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 348,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5133787349",
+      "qid": "3",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 285,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 225,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3340340268",
+      "qid": "1",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 839,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 639,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2716277960",
+      "qid": "8",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 381,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 274,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3508459605",
+      "qid": "9",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 2573,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 2486,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3508459605",
+      "qid": "10",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 2280,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 2280,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "5504913999",
+      "qid": "8",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 1252,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 804,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3508459605",
+      "qid": "2",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 2280,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 2280,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "3846475848",
+      "qid": "7",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 1406,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 270,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3218498932",
+      "qid": "0",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 323,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 8
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 796,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2552130183",
+      "qid": "3",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 128,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1238,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5504913999",
+      "qid": "3",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 1252,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 804,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2925298951",
+      "qid": "3",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 137,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 319,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3846475848",
+      "qid": "1",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 723,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 270,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "10607095936",
+      "qid": "7",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 743,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 743,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "2401167740",
+      "qid": "3",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 351,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 353,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "6188449000",
+      "qid": "7",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 176,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 5,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "4882821564",
+      "qid": "5",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 540,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 2610,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "6188449000",
+      "qid": "6",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 5,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 5,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "11871253306",
+      "qid": "7",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 171,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 163,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2547885226",
+      "qid": "8",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 109,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 109,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "4164771889",
+      "qid": "4",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 230,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 174,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3846475848",
+      "qid": "5",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 1406,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 270,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2885091387",
+      "qid": "5",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 639,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 639,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": true
+    },
+    {
+      "video": "2716277960",
+      "qid": "2",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 351,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 274,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2495861393",
+      "qid": "7",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 946,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 946,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "5116088152",
+      "qid": "9",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 546,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 546,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "4444192938",
+      "qid": "2",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 264,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 264,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "2547885226",
+      "qid": "2",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 109,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 180,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5133787349",
+      "qid": "2",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 285,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 285,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": true
+    },
+    {
+      "video": "11871253306",
+      "qid": "9",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 279,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 279,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": true
+    },
+    {
+      "video": "4444192938",
+      "qid": "0",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 129,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 189,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "7001078933",
+      "qid": "3",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 532,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 468,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3340340268",
+      "qid": "3",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 546,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 546,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "5907839036",
+      "qid": "5",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 1008,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1070,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "6188449000",
+      "qid": "2",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 894,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 894,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": true
+    },
+    {
+      "video": "7001078933",
+      "qid": "8",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 532,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 468,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "6188449000",
+      "qid": "0",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 5,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 5,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "2885091387",
+      "qid": "4",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 978,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1025,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": false
+    },
+    {
+      "video": "3218498932",
+      "qid": "1",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 293,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 796,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3375218204",
+      "qid": "11",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 2220,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 2027,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "4968805923",
+      "qid": "6",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 30,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 30,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "2442307875",
+      "qid": "5",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 309,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 327,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3340340268",
+      "qid": "0",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 546,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 639,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5433090067",
+      "qid": "4",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 144,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 144,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": true
+    },
+    {
+      "video": "3508459605",
+      "qid": "3",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 2280,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 2280,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "3218498932",
+      "qid": "2",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 293,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 796,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "8990144134",
+      "qid": "6",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 44,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 116,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "8604794910",
+      "qid": "0",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 204,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 264,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5504913999",
+      "qid": "4",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 1252,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 804,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2920952624",
+      "qid": "2",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 198,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 741,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "4103088549",
+      "qid": "3",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 192,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 249,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2920952624",
+      "qid": "6",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 741,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 741,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "3452354871",
+      "qid": "5",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 270,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 270,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": true
+    },
+    {
+      "video": "5133787349",
+      "qid": "5",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 285,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 225,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "6297019062",
+      "qid": "6",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 1405,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1405,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "3066064005",
+      "qid": "8",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 273,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 273,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "3943634344",
+      "qid": "3",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 618,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 618,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "3046900922",
+      "qid": "7",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 33,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 480,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": false
+    },
+    {
+      "video": "3943634344",
+      "qid": "7",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 618,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 5
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 618,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "2495861393",
+      "qid": "8",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 354,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 354,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "2567843468",
+      "qid": "10",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 84,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 192,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "6713120511",
+      "qid": "2",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 423,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 396,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "4444192938",
+      "qid": "6",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 189,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 189,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "2669452260",
+      "qid": "4",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 176,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 188,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3375218204",
+      "qid": "9",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 2027,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 2027,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "3218498932",
+      "qid": "4",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 240,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 240,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "2552130183",
+      "qid": "2",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 128,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1238,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5907839036",
+      "qid": "2",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 987,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1488,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2716277960",
+      "qid": "4",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 274,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 274,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "2552130183",
+      "qid": "5",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 128,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1238,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "4103088549",
+      "qid": "2",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 126,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 186,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3508407941",
+      "qid": "1",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 240,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 197,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3462517143",
+      "qid": "4",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 59,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 59,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "3218498932",
+      "qid": "5",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 240,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 796,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2552130183",
+      "qid": "8",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 128,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1238,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "7164729910",
+      "qid": "4",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 407,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 391,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "10607095936",
+      "qid": "4",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 258,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 258,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": true
+    },
+    {
+      "video": "2495861393",
+      "qid": "9",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 946,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 946,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "3375218204",
+      "qid": "8",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 2220,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 2027,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5875535585",
+      "qid": "1",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 1782,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1427,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": false
+    },
+    {
+      "video": "2547885226",
+      "qid": "3",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 109,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 109,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "4444192938",
+      "qid": "4",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 264,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 264,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "3763643225",
+      "qid": "1",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 999,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 873,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "7001078933",
+      "qid": "0",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 532,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 468,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "6078524411",
+      "qid": "0",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 1614,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 5
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1769,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "10607095936",
+      "qid": "8",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 747,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 747,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "2552130183",
+      "qid": "0",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 1761,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1238,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3046900922",
+      "qid": "0",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 33,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 33,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": true
+    },
+    {
+      "video": "3972259774",
+      "qid": "4",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 717,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 103,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": false
+    },
+    {
+      "video": "8990144134",
+      "qid": "1",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 122,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 116,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2793806282",
+      "qid": "3",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 381,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1887,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3462517143",
+      "qid": "3",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 325,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 294,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2793806282",
+      "qid": "8",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 1843,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1887,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "4103088549",
+      "qid": "4",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 228,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 186,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "8552680285",
+      "qid": "4",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 7,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 103,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3375218204",
+      "qid": "10",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 2220,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 2027,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "3943634344",
+      "qid": "1",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 618,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 618,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "5429688959",
+      "qid": "0",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 597,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 8
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 348,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2567843468",
+      "qid": "2",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 270,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 270,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "3846475848",
+      "qid": "8",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 270,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 270,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "8552680285",
+      "qid": "3",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 7,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 103,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2552130183",
+      "qid": "1",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 1761,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1238,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5429688959",
+      "qid": "5",
+      "pool_coverage": 1,
+      "peak_in_gold": 1,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 1137,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 348,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2567843468",
+      "qid": "9",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 84,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 5
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 270,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "4882821564",
+      "qid": "2",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 411,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 2610,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "6188449000",
+      "qid": "3",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 987,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 987,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "5907839036",
+      "qid": "6",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 972,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1488,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "2567843468",
+      "qid": "8",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 84,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 192,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "6713120511",
+      "qid": "5",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 1443,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 749,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": false
+    },
+    {
+      "video": "8990144134",
+      "qid": "3",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 44,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 276,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5133787349",
+      "qid": "8",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 200,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 3
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 225,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5875535585",
+      "qid": "3",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 1782,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 2052,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "5433090067",
+      "qid": "0",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 144,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 2
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 569,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "11871253306",
+      "qid": "5",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 744,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1363,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 8
+      },
+      "agree": false
+    },
+    {
+      "video": "3846475848",
+      "qid": "0",
+      "pool_coverage": 1,
+      "peak_in_gold": 0,
+      "recoverable": true,
+      "arm1_lexical": {
+        "picked_frame_idx": 270,
+        "picked_in_gold": 1,
+        "tied": true,
+        "tie_n": 5
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 270,
+        "picked_in_gold": 1,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": true
+    },
+    {
+      "video": "4882821564",
+      "qid": "0",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 2669,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 4
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 2610,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    },
+    {
+      "video": "6078524411",
+      "qid": "4",
+      "pool_coverage": 0,
+      "peak_in_gold": 0,
+      "recoverable": false,
+      "arm1_lexical": {
+        "picked_frame_idx": 1766,
+        "picked_in_gold": 0,
+        "tied": true,
+        "tie_n": 5
+      },
+      "arm2_clip_text": {
+        "picked_frame_idx": 1769,
+        "picked_in_gold": 0,
+        "tied": false,
+        "tie_n": 1
+      },
+      "agree": false
+    }
+  ]
+}
