@@ -320,6 +320,8 @@ def _build_retrieved(index: IRISIndex, query_embedding: np.ndarray, config: Any,
     frame_map = {fr.frame_idx: fr for fr in index.frames}
     graph = index._graph
 
+    from iris.frame_serialization import frame_record_to_dict, node_to_dict
+
     retrieved: list[dict] = []
     ranking_mode = getattr(config, "ranking_mode", "legacy")
     if graph is not None:
@@ -344,29 +346,7 @@ def _build_retrieved(index: IRISIndex, query_embedding: np.ndarray, config: Any,
     if retrieved_nodes:
         for node in retrieved_nodes:
             fr = frame_map.get(node.frame_idx)
-            retrieved.append({
-                "frame_idx": node.frame_idx,
-                "timestamp": node.timestamp,
-                "luma_diff_energy": node.luma_diff_energy,
-                "action_score": node.action_score,
-                "persistence_value": node.persistence_value,
-                "is_peak": getattr(fr, "is_peak", False),
-                "clip_embedding": getattr(fr, "clip_embedding", None),
-                "luma_entropy": getattr(fr, "luma_entropy", 0.0),
-                "caption": getattr(fr, "caption", None),
-                "pagerank_score": node.pagerank_score,
-                "last_retrieval_score": getattr(node, "last_retrieval_score", 0.0),
-                "retrieval_contributions": getattr(node, "retrieval_contributions", {}),
-                "tier": getattr(node, "tier", None),
-                "scene_id": getattr(fr, "scene_id", None),
-                "pict_type": getattr(fr, "pict_type", "?"),
-                "codec_conf": getattr(node, "codec_conf", 0.5),
-                "divergence": getattr(fr, "divergence", 0.0),
-                "curl": getattr(fr, "curl", 0.0),
-                "jacobian_frobenius": getattr(fr, "jacobian_frobenius", 0.0),
-                "hessian_max_eigenvalue": getattr(fr, "hessian_max_eigenvalue", 0.0),
-                "motion_entropy": getattr(fr, "motion_entropy", 0.0),
-            })
+            retrieved.append(node_to_dict(node, fr))
 
     if not retrieved:
         sorted_frames = sorted(
@@ -375,29 +355,11 @@ def _build_retrieved(index: IRISIndex, query_embedding: np.ndarray, config: Any,
             reverse=True,
         )
         for fr in sorted_frames[:l2_retrieve_top_k]:
-            retrieved.append({
-                "frame_idx": fr.frame_idx,
-                "timestamp": fr.timestamp,
-                "luma_diff_energy": fr.luma_diff_energy,
-                "action_score": fr.action_score,
-                "persistence_value": fr.persistence_value,
-                "is_peak": fr.is_peak,
-                "clip_embedding": fr.clip_embedding,
-                "luma_entropy": fr.luma_entropy,
-                "caption": fr.caption,
-                "pagerank_score": 0.0,
-                "last_retrieval_score": 0.0,
-                "retrieval_contributions": {},
-                "tier": "L1_PEAK" if fr.is_peak else "L3_CANDIDATE",
-                "scene_id": None,
-                "pict_type": getattr(fr, "pict_type", "?"),
-                "codec_conf": getattr(fr, "codec_conf", 0.5),
-                "divergence": getattr(fr, "divergence", 0.0),
-                "curl": getattr(fr, "curl", 0.0),
-                "jacobian_frobenius": getattr(fr, "jacobian_frobenius", 0.0),
-                "hessian_max_eigenvalue": getattr(fr, "hessian_max_eigenvalue", 0.0),
-                "motion_entropy": getattr(fr, "motion_entropy", 0.0),
-            })
+            retrieved.append(frame_record_to_dict(fr))
+
+    from iris.frame_serialization import assign_retrieval_rank
+    assign_retrieval_rank(retrieved)
+
     if trace is not None:
         trace.update({
             "branch": "flat_" + ranking_mode,
@@ -895,6 +857,142 @@ def _call_embed_query(question: str, config: Any) -> tuple[np.ndarray, dict]:
         emb, tele = res
         return emb, tele if isinstance(tele, dict) else {}
     return res, {}
+
+
+# ── Batch text embedding + version-safe cache (Structured Query V2) ────────
+#
+# Bounded in-process LRU keyed by (normalized_text, clip_revision, device) so
+# an embedding computed under one CLIP revision/device is never handed back
+# for another. Module-level (not per-index) because it only holds small
+# [embed_dim] float32 vectors and is deterministic given the key -- clearing
+# it never changes correctness, only whether a hit is recorded.
+from collections import OrderedDict as _OrderedDict
+
+_QUERY_EMBED_CACHE: "_OrderedDict[tuple[str, str, str], np.ndarray]" = _OrderedDict()
+_DEFAULT_QUERY_EMBED_CACHE_SIZE = 512
+
+
+def _query_embed_cache_key(text: str, config: Any, device: str) -> tuple[str, str, str]:
+    clip_revision = getattr(config, "clip_revision", "ViT-B/32")
+    return (_clean_query_text_for_cache(text), str(clip_revision), str(device))
+
+
+def _clean_query_text_for_cache(text: str) -> str:
+    return " ".join(text.strip().lower().split())
+
+
+def clear_query_embedding_cache() -> None:
+    """Test/ops hook: drop all cached query embeddings."""
+    _QUERY_EMBED_CACHE.clear()
+
+
+def query_embedding_cache_size() -> int:
+    return len(_QUERY_EMBED_CACHE)
+
+
+def _embed_queries(texts: list[str], config: Any) -> tuple[np.ndarray, dict]:
+    """Batch CLIP text embedding for structured multi-query retrieval.
+
+    One tokenize+encode_text call covers every cache-miss text (bounded by
+    at most 3 texts per question per the V2 embedding budget). Returns an
+    L2-normalized float32 [num_queries, embed_dim] matrix plus per-query and
+    aggregate telemetry (cache hits/misses, batch count).
+
+    This generalizes _embed_query's body to N texts rather than looping
+    _embed_query N times -- for len(texts) == 1 it performs the identical
+    tokenize/encode/normalize sequence as _embed_query, so single-query
+    behavior is unchanged (see test_batch_embed_matches_single_query_embed).
+    """
+    import clip
+    import torch
+    from iris._clip import get_clip_model
+
+    max_cache_size = getattr(config, "query_embedding_cache_size", _DEFAULT_QUERY_EMBED_CACHE_SIZE)
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    telemetry: dict[str, Any] = {
+        "embedding_backend": f"torch-{device}",
+        "num_queries": len(texts),
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "num_clip_batches": 0,
+        "fallback_reason": "none",
+        "effective_method": "direct",
+        "per_query": [],
+    }
+
+    embed_dim = getattr(config, "l2_embed_dim", 512)
+    if not texts:
+        return np.zeros((0, embed_dim), dtype=np.float32), telemetry
+
+    model, _ = get_clip_model(config)
+    if model is None:
+        telemetry["fallback_reason"] = "CLIP model not loaded"
+        raise ValueError("CLIP model could not be loaded; cannot embed queries.")
+
+    resolved: list[np.ndarray | None] = [None] * len(texts)
+    miss_indices: list[int] = []
+
+    for i, text in enumerate(texts):
+        key = _query_embed_cache_key(text, config, device)
+        if key in _QUERY_EMBED_CACHE:
+            _QUERY_EMBED_CACHE.move_to_end(key)
+            resolved[i] = _QUERY_EMBED_CACHE[key]
+            telemetry["cache_hits"] += 1
+        else:
+            miss_indices.append(i)
+            telemetry["cache_misses"] += 1
+
+    if miss_indices:
+        miss_texts = [texts[i] for i in miss_indices]
+        try:
+            text_input = clip.tokenize(miss_texts).to(device)
+            with torch.no_grad():
+                qf = model.encode_text(text_input)
+        except Exception as gpu_err:
+            if device == "cuda":
+                telemetry["fallback_reason"] = f"CUDA failed ({gpu_err}); falling back to CPU"
+                telemetry["effective_method"] = "fallback"
+                device = "cpu"
+                telemetry["embedding_backend"] = "torch-cpu"
+                text_input = clip.tokenize(miss_texts).to(device)
+                model = model.to(device)
+                with torch.no_grad():
+                    qf = model.encode_text(text_input)
+            else:
+                raise ValueError(f"Failed to encode query text batch: {gpu_err}") from gpu_err
+
+        qf = qf / qf.norm(dim=-1, keepdim=True)
+        batch = qf.cpu().numpy().astype(np.float32)
+        telemetry["num_clip_batches"] += 1
+
+        for local_i, global_i in enumerate(miss_indices):
+            emb = np.ascontiguousarray(batch[local_i])
+            norm_val = float(np.linalg.norm(emb))
+            if norm_val < 1e-6:
+                raise ValueError(
+                    f"Generated query embedding has near-zero norm for text: {texts[global_i]!r}"
+                )
+            resolved[global_i] = emb
+            key = _query_embed_cache_key(texts[global_i], config, device)
+            _QUERY_EMBED_CACHE[key] = emb
+            _QUERY_EMBED_CACHE.move_to_end(key)
+            while len(_QUERY_EMBED_CACHE) > max_cache_size:
+                _QUERY_EMBED_CACHE.popitem(last=False)
+
+    matrix = np.stack(resolved).astype(np.float32)
+    miss_set = set(miss_indices)
+    for i, text in enumerate(texts):
+        telemetry["per_query"].append({
+            "text": text,
+            "norm": float(np.linalg.norm(matrix[i])),
+            "cache_hit": i not in miss_set,
+        })
+    return matrix, telemetry
+
+
+def _call_embed_queries(texts: list[str], config: Any) -> tuple[np.ndarray, dict]:
+    return _embed_queries(texts, config)
 
 
 def _claim_text(claim: Any) -> str:

@@ -144,7 +144,7 @@ def score_arm(
         gold_letter = LETTERS[gold_idx]
         family = row["family"]
 
-        emb = iris_query._embed_query(q, config)
+        emb, _tele = iris_query._call_embed_query(q, config)
         retrieved = iris_query._build_retrieved(index, emb, config)
 
         # Build caption context from retrieved frames

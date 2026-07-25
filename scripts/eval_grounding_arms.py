@@ -122,7 +122,7 @@ def main() -> None:
     flat_idxs = load_indexes(grounded_rows, FLAT_CACHE)
     ssparse_idxs = load_indexes(grounded_rows, SSPARSE_CACHE)
 
-    from iris.query import _embed_query, _build_retrieved
+    from iris.query import _call_embed_query, _build_retrieved
 
     # duration lookup for the uniform floor
     duration_by_vid = {vid: float(gsub[vid].get("duration", 0)) for vid in {r["video"] for r in grounded_rows}}
@@ -152,7 +152,7 @@ def main() -> None:
             if index is None:
                 continue
             gold_spans = gsub[vid]["location"][qid]
-            emb = _embed_query(row["question"], cfg)
+            emb, _tele = _call_embed_query(row["question"], cfg)
             retrieved = _build_retrieved(index, emb, cfg)
             ts = [f["timestamp"] for f in retrieved]
             fiw_val = frames_in_window(ts, gold_spans)

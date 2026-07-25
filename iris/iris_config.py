@@ -159,6 +159,26 @@ class IRISConfig:
     l1_visual_query_weight: float = 0.70
     l1_motion_query_weight: float = 0.30
 
+    # ── Structured Query Reformulation V2 ──────────────────────────────────
+    # "none" = raw verbatim question (frozen baseline, default -- unchanged
+    # behavior for every existing caller). "legacy" = the pre-V2
+    # reformulate_query()/fuse_ranked_results()/expand_temporal_neighbors()
+    # path. "structured_v2" = QueryPlanV2 + multi-query scoring + directional
+    # traversal (iris.retrieval_entry.retrieve_for_question). Never enabled
+    # implicitly -- an evaluator must opt in explicitly.
+    query_reformulation_mode: str = "none"  # "none" | "legacy" | "structured_v2"
+    max_retrieval_queries: int = 3  # hard cap: at most 3 CLIP text embeddings per question in structured_v2
+    multi_query_combine: str = "weighted_max"  # "weighted_max" | "logsumexp"
+    temporal_traversal_mode: str = "none"  # "none" | "legacy_symmetric" | "directional"
+    temporal_context_seconds: float = 4.0  # max time window (seconds) directional traversal pulls from an anchor
+    temporal_scene_hops: int = 1  # how many adjacent scenes directional traversal may cross
+    max_context_frames: int = 8  # edge-device caption-context budget
+    query_embedding_cache_size: int = 512  # bounded LRU entries for _embed_queries' text-embedding cache
+    action_aliases_enabled: bool = True  # small conservative visual-action alias map (section 9)
+    typo_normalization_enabled: bool = True  # conservative spelling/grammar normalization (section 8)
+    query_trace_enabled: bool = False  # collect full QueryPlanV2 + retrieval telemetry (never changes retrieval behavior)
+    legacy_rrf_k: int = 60  # exposed for val_tune ablation of legacy fuse_ranked_results' RRF constant
+
     # ── L2 Tiered Index (Contribution 4) ─────────────────────────────
     # Embedding dimensionality (must match VLM encoder output).
     l2_embed_dim:       int   = 512
@@ -279,6 +299,23 @@ class IRISConfig:
                "l1_visual_query_weight must be non-negative")
         _check(self.l1_motion_query_weight >= 0.0,
                "l1_motion_query_weight must be non-negative")
+
+        _check(self.query_reformulation_mode in {"none", "legacy", "structured_v2"},
+               f"Invalid query_reformulation_mode '{self.query_reformulation_mode}'")
+        _check(self.max_retrieval_queries > 0, "max_retrieval_queries must be positive")
+        if self.query_reformulation_mode == "structured_v2":
+            _check(self.max_retrieval_queries <= 3,
+                   "max_retrieval_queries must be <= 3 in structured_v2 (embedding budget); "
+                   "legacy mode is not bound by this cap")
+        _check(self.multi_query_combine in {"weighted_max", "logsumexp"},
+               f"Invalid multi_query_combine '{self.multi_query_combine}'")
+        _check(self.temporal_traversal_mode in {"none", "legacy_symmetric", "directional"},
+               f"Invalid temporal_traversal_mode '{self.temporal_traversal_mode}'")
+        _check(self.temporal_context_seconds >= 0.0, "temporal_context_seconds must be non-negative")
+        _check(self.temporal_scene_hops >= 0, "temporal_scene_hops must be non-negative")
+        _check(self.max_context_frames > 0, "max_context_frames must be positive")
+        _check(self.query_embedding_cache_size > 0, "query_embedding_cache_size must be positive")
+        _check(self.legacy_rrf_k >= 0, "legacy_rrf_k must be non-negative")
 
         _check(self.l2_embed_dim > 0, "l2_embed_dim must be positive")
         _check(self.l2_hnsw_m > 0, "l2_hnsw_m must be positive")

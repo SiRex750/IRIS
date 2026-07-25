@@ -36,6 +36,60 @@ def _cosine_batch(query: np.ndarray, matrix: np.ndarray) -> np.ndarray:
     return sims
 
 
+def _multi_query_scores(
+    query_embeddings: np.ndarray,
+    query_weights: "np.ndarray | list[float] | None",
+    matrix: np.ndarray,
+    combine: str = "weighted_max",
+) -> np.ndarray:
+    """Deterministic multi-query combination of N rows in `matrix` against Q
+    query embeddings -- NEVER averages the query vectors themselves (that
+    would erase specialized anchor-variant meaning); combines per-row
+    SIMILARITY SCORES instead (section 11).
+
+    "weighted_max" (default): per row, max_j(query_weight[j] * cosine_j).
+    "logsumexp": smoother alternative, gated behind multi_query_combine.
+
+    For Q == 1 and weight == 1.0 this is bit-identical to
+    _cosine_batch(query_embeddings[0], matrix) -- no ReLU clamp or other
+    transform is applied here, matching _cosine_batch's raw-cosine contract,
+    so single-query callers see no behavior change.
+    """
+    qs = np.asarray(query_embeddings, dtype=np.float32)
+    if qs.ndim == 1:
+        qs = qs[None, :]
+    weights = (
+        np.ones(len(qs), dtype=np.float32)
+        if query_weights is None
+        else np.asarray(query_weights, dtype=np.float32)
+    )
+    if len(weights) != len(qs):
+        raise ValueError(
+            f"_multi_query_scores: query_weights length {len(weights)} != query_embeddings rows {len(qs)}"
+        )
+
+    per_query = np.stack([weights[j] * _cosine_batch(qs[j], matrix) for j in range(len(qs))], axis=0)  # [Q, N]
+
+    if combine == "logsumexp":
+        mx = per_query.max(axis=0)
+        out = mx + np.log(np.sum(np.exp(per_query - mx), axis=0)) - np.log(len(qs))
+    else:  # "weighted_max" (default)
+        out = per_query.max(axis=0)
+    return out.astype(np.float32)
+
+
+def _score_pool(
+    query_embedding: np.ndarray | None,
+    query_embeddings: np.ndarray | None,
+    query_weights: "np.ndarray | list[float] | None",
+    matrix: np.ndarray,
+    combine: str = "weighted_max",
+) -> np.ndarray:
+    if query_embeddings is not None and len(query_embeddings) > 0:
+        return _multi_query_scores(query_embeddings, query_weights, matrix, combine)
+    return _cosine_batch(query_embedding, matrix)
+
+
 class SceneScorer(ABC):
     """The ANN seam: rank scenes by centroid similarity to a query embedding.
 
@@ -63,21 +117,9 @@ class LinearScanScorer(SceneScorer):
 
 def _frame_to_dict(fr: Any, sim: float) -> dict:
     """2c-i shape: dict built straight from a FrameRecord + its max-sim score."""
-    return {
-        "frame_idx": fr.frame_idx,
-        "timestamp": fr.timestamp,
-        "luma_diff_energy": fr.luma_diff_energy,
-        "action_score": fr.action_score,
-        "persistence_value": fr.persistence_value,
-        "is_peak": fr.is_peak,
-        "clip_embedding": fr.clip_embedding,
-        "luma_entropy": fr.luma_entropy,
-        "caption": fr.caption,
-        "pagerank_score": 0.0,
-        "last_retrieval_score": sim,
-        "retrieval_contributions": {},
-        "scene_id": getattr(fr, "scene_id", None),
-    }
+    from iris.frame_serialization import frame_record_to_dict
+
+    return frame_record_to_dict(fr, last_retrieval_score=sim, pagerank_score=0.0)
 
 
 # 2c-iii: measurement-only accumulator for scene_diag=True runs. Cleared by
@@ -121,22 +163,10 @@ def _node_to_dict(node: Any, frame_map: dict) -> dict:
     it never matches the real valley-boundary scene_id this dict's caller
     (eval.metrics.predicted_span_from_frames_scene) looks up in
     index.scene_spans."""
+    from iris.frame_serialization import node_to_dict as _node_to_dict_canonical
+
     fr = frame_map.get(node.frame_idx)
-    return {
-        "frame_idx": node.frame_idx,
-        "timestamp": node.timestamp,
-        "luma_diff_energy": node.luma_diff_energy,
-        "action_score": node.action_score,
-        "persistence_value": node.persistence_value,
-        "is_peak": getattr(fr, "is_peak", False),
-        "clip_embedding": getattr(fr, "clip_embedding", None),
-        "luma_entropy": getattr(fr, "luma_entropy", 0.0),
-        "caption": getattr(fr, "caption", None),
-        "pagerank_score": node.pagerank_score,
-        "last_retrieval_score": getattr(node, "last_retrieval_score", 0.0),
-        "retrieval_contributions": getattr(node, "retrieval_contributions", {}),
-        "scene_id": getattr(fr, "scene_id", None),
-    }
+    return _node_to_dict_canonical(node, fr)
 
 
 def retrieve_scene_sparse(
@@ -145,6 +175,10 @@ def retrieve_scene_sparse(
     config: Any,
     scorer: SceneScorer | None = None,
     trace: dict | None = None,
+    *,
+    query_embeddings: "np.ndarray | None" = None,
+    query_weights: "np.ndarray | list[float] | None" = None,
+    multi_query_combine: str = "weighted_max",
 ) -> list[dict]:
     """Coarse-prune to a scene shortlist via centroid similarity (2c-i), then
     gate on the max-sim margin between the best scene and the runner-up scene:
@@ -165,10 +199,28 @@ def retrieve_scene_sparse(
     returned, or any decision made by this function. None (default) costs
     nothing extra beyond the `is not None` checks already guarding it.
     """
+    use_multi = query_embeddings is not None and len(query_embeddings) > 0
+
     # SCENE-002: Reject invalid query embeddings (all-zero or near-zero norm) before shortlist creation.
-    q_norm = np.linalg.norm(query_embedding)
-    if q_norm < 1e-8:
-        raise ValueError("Invalid query embedding (all-zero or near-zero norm).")
+    if use_multi:
+        row_norms = np.linalg.norm(np.atleast_2d(np.asarray(query_embeddings, dtype=np.float32)), axis=1)
+        if bool(np.all(row_norms < 1e-8)):
+            raise ValueError("Invalid query embeddings (all rows zero or near-zero norm).")
+        # Anchor embedding for the centroid SceneScorer interface (single-vector) and
+        # for the graph_override PPR call's single-query fallback path -- the highest-
+        # weighted row, so the coarse shortlist still leans toward the primary anchor
+        # prompt rather than an arbitrary row.
+        _weights_for_anchor = (
+            np.ones(len(np.atleast_2d(query_embeddings)), dtype=np.float32)
+            if query_weights is None
+            else np.asarray(query_weights, dtype=np.float32)
+        )
+        anchor_query_embedding = np.asarray(query_embeddings, dtype=np.float32)[int(np.argmax(_weights_for_anchor))]
+    else:
+        q_norm = np.linalg.norm(query_embedding)
+        if q_norm < 1e-8:
+            raise ValueError("Invalid query embedding (all-zero or near-zero norm).")
+        anchor_query_embedding = query_embedding
 
     centroids = getattr(index, "_scene_centroids", None)
     if not centroids:
@@ -185,7 +237,7 @@ def retrieve_scene_sparse(
     shortlist_width = getattr(config, "scene_shortlist_width", 0) or max(4, math.ceil(math.sqrt(num_scenes)))
     shortlist_width = min(shortlist_width, num_scenes)
 
-    scene_ranking = scorer.score(query_embedding, centroids)
+    scene_ranking = scorer.score(anchor_query_embedding, centroids)
     shortlisted_scene_ids = {sid for sid, _ in scene_ranking[:shortlist_width]}
 
     survivors = [
@@ -225,7 +277,7 @@ def retrieve_scene_sparse(
         return []
 
     pool_matrix = np.stack([np.asarray(fr.clip_embedding, dtype=np.float32) for fr in survivors])
-    sims = _cosine_batch(query_embedding, pool_matrix)
+    sims = _score_pool(query_embedding, query_embeddings, query_weights, pool_matrix, multi_query_combine)
 
     # SCENE-001: Adaptive fallback for recall safety.
     # If the maximum similarity in the shortlisted pool is below 0.20,
@@ -238,7 +290,7 @@ def retrieve_scene_sparse(
         ]
         if survivors:
             pool_matrix = np.stack([np.asarray(fr.clip_embedding, dtype=np.float32) for fr in survivors])
-            sims = _cosine_batch(query_embedding, pool_matrix)
+            sims = _score_pool(query_embedding, query_embeddings, query_weights, pool_matrix, multi_query_combine)
 
     order = sorted(range(len(survivors)), key=lambda i: (-float(sims[i]), survivors[i].frame_idx))
     exact_top = [_frame_to_dict(survivors[i], float(sims[i])) for i in order[:l2_retrieve_top_k]]
@@ -295,7 +347,8 @@ def retrieve_scene_sparse(
                 "retrieved_timestamps": [f["timestamp"] for f in exact_top],
                 "retrieved_scores": [f["last_retrieval_score"] for f in exact_top],
             })
-        return exact_top
+        from iris.frame_serialization import assign_retrieval_rank
+        return assign_retrieval_rank(exact_top)
 
     # ── DESCEND ──────────────────────────────────────────────────────────
     window = getattr(config, "scene_neighbor_window", 30)
@@ -313,7 +366,7 @@ def retrieve_scene_sparse(
     # Per-scene anchor (highest sim-to-query frame in that scene, within the
     # pool) -- needed for crossscene_mode="rep_only" ("linked only via reps").
     pool_matrix_full = np.stack([np.asarray(fr.clip_embedding, dtype=np.float32) for fr in pool_frames])
-    pool_sims_full = _cosine_batch(query_embedding, pool_matrix_full)
+    pool_sims_full = _score_pool(query_embedding, query_embeddings, query_weights, pool_matrix_full, multi_query_combine)
     scene_anchor_frame: dict[int, int] = {}
     best_sim_per_scene: dict[int, float] = {}
     for fr, sim in zip(pool_frames, pool_sims_full.tolist()):
@@ -348,6 +401,9 @@ def retrieve_scene_sparse(
         damping=damping,
         lambda_=lambda_,
         graph_override=sub_graph,
+        query_embeddings=query_embeddings,
+        query_weights=query_weights,
+        multi_query_combine=multi_query_combine,
     )
 
     frame_map = {fr.frame_idx: fr for fr in pool_frames}
@@ -391,4 +447,5 @@ def retrieve_scene_sparse(
             "retrieved_scores": [f["last_retrieval_score"] for f in result],
         })
 
-    return result
+    from iris.frame_serialization import assign_retrieval_rank
+    return assign_retrieval_rank(result)

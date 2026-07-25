@@ -399,3 +399,526 @@ _STOPWORDS = {
     "why",
     "with",
 }
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Structured Query Reformulation V2
+#
+# Everything below is additive and does not change any function above this
+# banner.  reformulate_query/fuse_ranked_results/expand_temporal_neighbors
+# remain the "legacy" reformulator, selectable via
+# IRISConfig.query_reformulation_mode="legacy" and still covered by the
+# original tests.  V2 is a structured, type-code-aware planner selected via
+# query_reformulation_mode="structured_v2" (see iris.retrieval_entry).
+#
+# Known problems in the legacy reformulator this section fixes:
+#   - every C/T question got the same handful of canned prompts regardless of
+#     which relation (before/after/during/cause/manner) actually applied;
+#   - "while"/"when"/"as" were never detected, so ~61/269 temporal questions
+#     silently got no relation at all;
+#   - the eight-token stopword-filtered phrase truncated long visual
+#     descriptions and deleted words that carry real visual meaning
+#     (on/to/from/with, phrasal verbs, spatial prepositions);
+#   - "middle video action"/"beginning video action"/"end video action"/
+#     "sequence of actions"/"person action context" are vague CLIP prompts,
+#     not retrieval operations -- beginning/middle/end must be a numeric
+#     prior over timestamps, not text handed to CLIP;
+#   - "first time X"/"last time X" were folded into the same bucket as literal
+#     beginning/end-of-video, which they are not;
+#   - temporal neighbor expansion was symmetric and measured in indexed-frame
+#     positions, never in seconds or direction-aware.
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+class Relation:
+    """Validated relation vocabulary for QueryPlanV2.  Plain string constants
+    (not enum.Enum) so relation values serialize trivially into telemetry/
+    JSON traces without a custom encoder."""
+
+    BEFORE = "BEFORE"
+    AFTER = "AFTER"
+    DURING = "DURING"
+    CAUSE = "CAUSE"
+    MANNER = "MANNER"
+    CURRENT = "CURRENT"
+    SEQUENCE = "SEQUENCE"
+    NONE = "NONE"
+
+    ALL = (BEFORE, AFTER, DURING, CAUSE, MANNER, CURRENT, SEQUENCE, NONE)
+
+
+@dataclass(frozen=True)
+class QueryPlanV2:
+    """Structured, inspectable retrieval plan produced by build_query_plan_v2.
+
+    Backward compatible by addition: this is a separate dataclass from the
+    legacy boolean QueryPlan, not a replacement of it, so any code holding a
+    QueryPlan keeps working unchanged.
+    """
+
+    original_query: str
+    normalized_query: str
+    type_code: str | None = None
+    family: str | None = None
+    relation: str = Relation.NONE
+    relation_source: str = "fallback"  # "type_code" | "lexical" | "fallback" | "conflict"
+    temporal_direction: int | str = 0  # -1, 0, +1, or "bidirectional"
+    anchor_queries: tuple[str, ...] = ()
+    target_query: str | None = None
+    position_prior: tuple[float, float] | None = None  # (lo, hi) as a fraction of video duration
+    occurrence_selector: str | None = None  # "first" | "last" | None
+    parser_confidence: float = 0.0
+    needs_temporal_traversal: bool = False
+    fallback_reason: str | None = None
+    corrections_applied: tuple[str, ...] = ()
+    aliases_applied: tuple[str, ...] = ()
+    notes: tuple[str, ...] = ()
+    query_roles: tuple[str, ...] = ()  # parallel to anchor_queries (+ "target" if target_query is set)
+    query_weights: tuple[float, ...] = ()  # parallel to query_roles
+
+
+TYPE_CODE_RELATION: dict[str, str] = {
+    "TN": Relation.AFTER,
+    "TP": Relation.BEFORE,
+    "TC": Relation.DURING,
+    "CW": Relation.CAUSE,
+    "CH": Relation.MANNER,
+}
+
+RELATION_DIRECTION: dict[str, int | str] = {
+    Relation.AFTER: 1,
+    Relation.BEFORE: -1,
+    Relation.DURING: 0,
+    Relation.CAUSE: -1,     # favor preceding context, effect frame not excluded
+    Relation.MANNER: 0,     # event-local context
+    Relation.CURRENT: 0,
+    Relation.SEQUENCE: 1,
+    Relation.NONE: 0,
+}
+
+# Longest phrases first so "just before"/"immediately after" win over the
+# bare "before"/"after" they contain.
+_TEMPORAL_PHRASE_PATTERNS: tuple[tuple[str, str], ...] = (
+    (r"\bimmediately after\b", Relation.AFTER),
+    (r"\bjust before\b", Relation.BEFORE),
+    (r"\bprior to\b", Relation.BEFORE),
+    (r"\bearlier than\b", Relation.BEFORE),
+    (r"\bat the same time\b", Relation.DURING),
+    (r"\bsimultaneously\b", Relation.DURING),
+    (r"\buntil\b", Relation.BEFORE),
+    (r"\bbefore\b", Relation.BEFORE),
+    (r"\bafter\b", Relation.AFTER),
+    (r"\bfollowing\b", Relation.AFTER),
+    (r"\bonce\b", Relation.AFTER),
+    (r"\blater\b", Relation.AFTER),
+    (r"\bnext\b", Relation.AFTER),
+    (r"\bsubsequently\b", Relation.AFTER),
+    (r"\bduring\b", Relation.DURING),
+    (r"\bwhile\b", Relation.DURING),
+    (r"\bwhen\b", Relation.DURING),
+    (r"\bas\b", Relation.DURING),
+    (r"\bthen\b", Relation.SEQUENCE),
+)
+
+# Explicit video-position phrases ONLY -- bare words like "start"/"end"/
+# "first"/"last" are deliberately NOT matched here (see docstring below).
+_POSITION_PHRASE_PATTERNS: tuple[tuple[str, tuple[float, float]], ...] = (
+    (r"\bat the beginning of the video\b", (0.0, 0.15)),
+    (r"\bat the start of the video\b", (0.0, 0.15)),
+    (r"\bin the beginning of the video\b", (0.0, 0.15)),
+    (r"\bin the first part\b", (0.0, 0.15)),
+    (r"\bin the middle of the video\b", (0.4, 0.6)),
+    (r"\bnear the end\b", (0.8, 1.0)),
+    (r"\bat the end of the video\b", (0.85, 1.0)),
+    (r"\bin the end of the video\b", (0.85, 1.0)),
+    (r"\bin the last part\b", (0.85, 1.0)),
+)
+
+_OCCURRENCE_PATTERNS: tuple[tuple[str, str], ...] = (
+    (r"\bthe first time\b", "first"),
+    (r"\bthe last time\b", "last"),
+)
+
+_QUESTION_SCAFFOLD_PATTERNS: tuple[str, ...] = (
+    r"\bwhat does\b",
+    r"\bwhat did\b",
+    r"\bwhy did\b",
+    r"\bwhy does\b",
+    r"\bhow did\b",
+    r"\bhow does\b",
+    r"\bwho is\b",
+    r"\bwho are\b",
+    r"\bwhere did\b",
+    r"\bwhen did\b",
+    r"\bin the video\b",
+    r"\bin this video\b",
+)
+
+_CONNECTOR_RELATION: dict[str, str] = {
+    "before": Relation.BEFORE,
+    "after": Relation.AFTER,
+    "while": Relation.DURING,
+    "when": Relation.DURING,
+    "as": Relation.DURING,
+    "during": Relation.DURING,
+}
+
+# Conservative, training-derived typo/grammar corrections. Every application
+# is recorded in QueryPlanV2.corrections_applied -- never applied silently.
+# Deliberately small: object names, colors, and identities are never touched.
+TYPO_MAP: dict[str, str] = {
+    "wipping": "wiping",
+    "shaked": "shook",
+    "runs pass": "runs past",
+}
+
+# Small, conservative, optional visual-action alias map (section 9). Applying
+# an alias never removes the original phrase -- it only adds one alternate
+# prompt (see _apply_action_alias). Empty/short by design; grow only via
+# retrieval ablation on train/val_tune, never on val_confirm.
+ACTION_ALIASES: dict[str, str] = {
+    "pick up": "lift",
+    "picks up": "lifts",
+    "picking up": "lifting",
+    "put down": "place",
+    "puts down": "places",
+    "putting down": "placing",
+    "walk away": "leave",
+    "walks away": "leaves",
+    "walking away": "leaving",
+    "turn around": "turn body",
+    "turns around": "turns body",
+    "turning around": "turning body",
+}
+
+# Multi-word phrases that must never be split apart by clause-aware
+# normalization -- phrasal verbs, spatial relations, source/destination
+# relations, interaction words. Longest-first is not required here since
+# these are only used for containment checks, not regex alternation order.
+_PRESERVED_PHRASES: tuple[str, ...] = (
+    "pick up", "put down", "put on", "take off", "sit down", "stand up",
+    "turn around", "walk away", "get up", "get off", "get on",
+)
+
+
+def _normalize_unicode_punctuation(text: str) -> str:
+    replacements = {
+        "‘": "'", "’": "'", "“": '"', "”": '"',
+        "–": "-", "—": "-",
+    }
+    for src, dst in replacements.items():
+        text = text.replace(src, dst)
+    return text
+
+
+def _fix_separated_possessive(text: str) -> str:
+    """'baby s mouth' -> "baby's mouth" -- only for a lone ' s ' token that is
+    not itself a real word (as/is/us/gas/bus/...), so this never touches
+    ordinary text."""
+    _SAFE_SHORT_WORDS = {"as", "is", "us", "gas", "bus", "yes", "his"}
+
+    def _repl(m: re.Match) -> str:
+        word = m.group(1)
+        if word.lower() in _SAFE_SHORT_WORDS:
+            return m.group(0)
+        return f"{word}'s"
+
+    return re.sub(r"\b(\w+) s\b", _repl, text)
+
+
+def normalize_query_text(question: str) -> tuple[str, list[str]]:
+    """Conservative, deterministic normalization (section 8).
+
+    Returns (normalized_text, corrections_applied). Every correction is
+    recorded; nothing here touches object names, colors, or identities.
+    """
+    corrections: list[str] = []
+    text = _normalize_unicode_punctuation(question)
+    text = _clean_spaces(text)
+
+    deduped = re.sub(r"\b(\w+)( \1\b)+", r"\1", text, flags=re.IGNORECASE)
+    if deduped != text:
+        corrections.append("duplicate_determiner_removed")
+        text = deduped
+
+    fixed_possessive = _fix_separated_possessive(text)
+    if fixed_possessive != text:
+        corrections.append("separated_possessive_fixed")
+        text = fixed_possessive
+
+    lower = text.lower()
+    for typo, fix in TYPO_MAP.items():
+        pattern = rf"\b{re.escape(typo)}\b"
+        if re.search(pattern, lower):
+            text = re.sub(pattern, fix, text, flags=re.IGNORECASE)
+            corrections.append(f"typo:{typo}->{fix}")
+            lower = text.lower()
+
+    return _clean_spaces(text), corrections
+
+
+def _all_temporal_relations(lower_text: str) -> list[str]:
+    """All distinct relations whose phrase appears in the text, in the
+    priority order they would be selected -- used both to pick the primary
+    lexical relation and to detect/report multi-relation-group conflicts."""
+    found: list[str] = []
+    for pattern, relation in _TEMPORAL_PHRASE_PATTERNS:
+        if re.search(pattern, lower_text) and relation not in found:
+            found.append(relation)
+    return found
+
+
+def _detect_position_prior(lower_text: str) -> tuple[tuple[float, float] | None, str | None]:
+    """Explicit beginning/middle/end video-position phrases ONLY.
+
+    Deliberately does NOT match bare "start"/"end"/"first"/"last" -- e.g.
+    "the bird starts shaking", "the children start to jump", and "end up"
+    must not be treated as a beginning/end-of-video prior; those are ordinary
+    verbs, not a video-position claim. "The first/last time X" is handled
+    separately by _detect_occurrence_selector, not here.
+    """
+    for pattern, prior in _POSITION_PHRASE_PATTERNS:
+        if re.search(pattern, lower_text):
+            return prior, f"position_prior:{pattern}"
+    return None, None
+
+
+def _detect_occurrence_selector(lower_text: str) -> str | None:
+    for pattern, selector in _OCCURRENCE_PATTERNS:
+        if re.search(pattern, lower_text):
+            return selector
+    return None
+
+
+def _strip_question_scaffolding(text: str) -> str:
+    for pattern in _QUESTION_SCAFFOLD_PATTERNS:
+        text = re.sub(pattern, "", text)
+    return _clean_spaces(text.strip(" ?."))
+
+
+_CLAUSE_PATTERN = re.compile(
+    r"^(?:what does|what did|why did|why does|how did|how does)\s+"
+    r"(?:the |a |an )?(?P<subject>[a-z][a-z0-9' ]*?)\s+do\b\s*"
+    r"(?P<connector>before|after|while|when|as|during)\s+"
+    r"(?P<clause>.+)$"
+)
+
+
+def _extract_anchor_target(lower_text: str) -> dict[str, Any]:
+    """Deterministic clause extraction (section 5). Never invents an
+    unobserved answer action, cause, or object -- every string returned here
+    is built only from tokens already present in the question.
+    """
+    stripped = lower_text.strip(" ?.")
+
+    match = _CLAUSE_PATTERN.match(stripped)
+    if match:
+        subject = _clean_spaces(match.group("subject"))
+        connector = match.group("connector")
+        clause = _clean_spaces(match.group("clause").strip(" ?."))
+        relation = _CONNECTOR_RELATION[connector]
+
+        if relation == Relation.DURING and clause and not clause.startswith(subject):
+            # "while the lady sings" -- clause carries its own subject.
+            anchor_event = clause
+            target_entity = _clean_spaces(f"{subject} near {clause}")
+        else:
+            # "before wiping the baby's mouth" -- same subject as the anchor.
+            anchor_event = _clean_spaces(f"{subject} {clause}")
+            target_entity = subject
+
+        return {
+            "anchor_event": anchor_event,
+            "target_entity": target_entity,
+            "relation": relation,
+            "confidence": 0.85,
+            "fallback_reason": None,
+        }
+
+    if re.match(r"^why (did|does)\b", stripped):
+        anchor_event = _strip_question_scaffolding(stripped)
+        return {
+            "anchor_event": anchor_event,
+            "target_entity": None,
+            "relation": Relation.CAUSE,
+            "confidence": 0.7,
+            "fallback_reason": None,
+        }
+
+    if re.match(r"^how (did|does)\b", stripped):
+        anchor_event = _strip_question_scaffolding(stripped)
+        return {
+            "anchor_event": anchor_event,
+            "target_entity": None,
+            "relation": Relation.MANNER,
+            "confidence": 0.7,
+            "fallback_reason": None,
+        }
+
+    anchor_event = _strip_question_scaffolding(stripped)
+    return {
+        "anchor_event": anchor_event or stripped,
+        "target_entity": None,
+        "relation": Relation.NONE,
+        "confidence": 0.3,
+        "fallback_reason": "no_clause_pattern_matched",
+    }
+
+
+def _apply_action_alias(phrase: str, enabled: bool) -> tuple[str | None, list[str]]:
+    if not enabled or not phrase:
+        return None, []
+    for original, alias in ACTION_ALIASES.items():
+        if original in phrase:
+            return phrase.replace(original, alias, 1), [f"{original}->{alias}"]
+    return None, []
+
+
+def _to_clip_prompt(phrase: str | None) -> str | None:
+    if not phrase:
+        return None
+    phrase = _clean_spaces(phrase.strip(" ?."))
+    if not phrase:
+        return None
+    return f"a video frame showing {phrase}"
+
+
+def build_query_plan_v2(
+    question: str,
+    *,
+    type_code: str | None = None,
+    family: str | None = None,
+    config: Any = None,
+) -> QueryPlanV2:
+    """Build a structured retrieval plan (section 3/4/5).
+
+    Type code (NExT-QA TN/TP/TC/CW/CH) is the primary source of the temporal
+    operator when available (section 4). Lexical cues refine/add position or
+    occurrence information and are recorded even when the type code wins, so
+    a type/lexical conflict is never silently discarded (relation_source
+    becomes "conflict" and the conflict is logged in notes).
+    """
+    action_aliases_enabled = getattr(config, "action_aliases_enabled", True)
+    typo_normalization_enabled = getattr(config, "typo_normalization_enabled", True)
+
+    original = question.strip()
+    if typo_normalization_enabled:
+        normalized, corrections = normalize_query_text(original)
+    else:
+        normalized, corrections = _clean_spaces(_normalize_unicode_punctuation(original)), []
+
+    lower = normalized.lower()
+    notes: list[str] = []
+
+    lexical_relations = _all_temporal_relations(lower)
+    lexical_relation = lexical_relations[0] if lexical_relations else None
+    type_relation = TYPE_CODE_RELATION.get((type_code or "").upper())
+
+    if type_relation is not None:
+        relation = type_relation
+        relation_source = "type_code"
+        if lexical_relation is not None and lexical_relation != type_relation:
+            relation_source = "conflict"
+            notes.append(
+                f"type_lexical_conflict:type_code={type_code}:{type_relation},"
+                f"lexical={lexical_relation}"
+            )
+    elif lexical_relation is not None:
+        relation = lexical_relation
+        relation_source = "lexical"
+    else:
+        relation = Relation.NONE
+        relation_source = "fallback"
+
+    if len(lexical_relations) > 1:
+        notes.append(f"multiple_lexical_relations:{lexical_relations}")
+
+    anchor_info = _extract_anchor_target(lower)
+
+    if relation == Relation.NONE and anchor_info["relation"] != Relation.NONE:
+        relation = anchor_info["relation"]
+        relation_source = "lexical" if relation_source == "fallback" else relation_source
+
+    direction = RELATION_DIRECTION.get(relation, 0)
+
+    position_prior, position_note = _detect_position_prior(lower)
+    if position_note:
+        notes.append(position_note)
+    occurrence = _detect_occurrence_selector(lower)
+
+    target_query = _to_clip_prompt(anchor_info.get("target_entity"))
+    total_budget = 3
+    anchor_budget = total_budget - (1 if target_query else 0)
+
+    anchor_primary = _to_clip_prompt(anchor_info["anchor_event"])
+    anchor_queries: list[str] = [anchor_primary] if anchor_primary else []
+    roles: list[str] = ["anchor_primary"] if anchor_primary else []
+    weights: list[float] = [1.0] if anchor_primary else []
+
+    aliases_applied: list[str] = []
+    if len(anchor_queries) < anchor_budget:
+        alias_phrase, aliases_applied = _apply_action_alias(
+            anchor_info["anchor_event"], action_aliases_enabled
+        )
+        alias_prompt = _to_clip_prompt(alias_phrase)
+        if alias_prompt and alias_prompt not in anchor_queries:
+            anchor_queries.append(alias_prompt)
+            roles.append("anchor_alternate")
+            weights.append(0.6)
+
+    fallback_reason = anchor_info["fallback_reason"]
+    if anchor_info["confidence"] < 0.5 and len(anchor_queries) < anchor_budget:
+        original_as_prompt = _clean_spaces(normalized.strip(" ?."))
+        if original_as_prompt and original_as_prompt not in anchor_queries:
+            anchor_queries.append(original_as_prompt)
+            roles.append("fallback_original")
+            weights.append(0.4)
+
+    if not anchor_queries:
+        # Nothing parsed at all -- always safe to fall back to the raw
+        # question rather than embedding nothing.
+        anchor_queries = [_clean_spaces(normalized.strip(" ?."))]
+        roles = ["fallback_original"]
+        weights = [1.0]
+        fallback_reason = fallback_reason or "empty_parse"
+
+    anchor_queries = anchor_queries[:anchor_budget] if anchor_budget > 0 else anchor_queries[:1]
+    roles = roles[: len(anchor_queries)]
+    weights = weights[: len(anchor_queries)]
+
+    if target_query:
+        roles = roles + ["target"]
+        weights = weights + [0.5]
+
+    needs_traversal = relation != Relation.NONE
+
+    return QueryPlanV2(
+        original_query=original,
+        normalized_query=normalized,
+        type_code=type_code,
+        family=family,
+        relation=relation,
+        relation_source=relation_source,
+        temporal_direction=direction,
+        anchor_queries=tuple(anchor_queries),
+        target_query=target_query,
+        position_prior=position_prior,
+        occurrence_selector=occurrence,
+        parser_confidence=anchor_info["confidence"],
+        needs_temporal_traversal=needs_traversal,
+        fallback_reason=fallback_reason,
+        corrections_applied=tuple(corrections),
+        aliases_applied=tuple(aliases_applied),
+        notes=tuple(notes),
+        query_roles=tuple(roles),
+        query_weights=tuple(weights),
+    )
+
+
+def all_embedding_texts(plan: QueryPlanV2) -> tuple[str, ...]:
+    """All distinct prompt strings a caller must embed for this plan, in
+    query_roles order -- guaranteed len <= 3 (implementation constraint)."""
+    texts = list(plan.anchor_queries)
+    if plan.target_query and plan.target_query not in texts:
+        texts.append(plan.target_query)
+    return tuple(texts[:3])

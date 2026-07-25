@@ -1181,6 +1181,10 @@ class L2Asphodel:
         lambda_: float = 0.5,
         *,
         graph_override: "nx.Graph | None" = None,
+        query_embeddings: "np.ndarray | None" = None,
+        query_weights: "np.ndarray | list[float] | None" = None,
+        query_roles: "list[str] | None" = None,
+        multi_query_combine: str = "weighted_max",
     ) -> list[AsphodelNode]:
         """
         Codec-discounted Personalized PageRank retrieval (6.2b mechanism).
@@ -1198,6 +1202,7 @@ class L2Asphodel:
 
         Args:
             query_embedding: CLIP query embedding, or None for codec-only seed.
+                             Ignored when query_embeddings is provided.
             top_k:           Number of top nodes to return.
             damping:         PageRank damping factor α ∈ (0, 1).
             lambda_:         Blend weight for semantic rank vs codec rank ∈ [0, 1].
@@ -1209,6 +1214,31 @@ class L2Asphodel:
                              attribute.  When None (the default), the method is
                              fully backward-compatible with its pre-patch
                              behaviour.
+            query_embeddings: Optional [Q, D] matrix of Structured Query V2
+                             prompt embeddings (anchor/alternate/target). When
+                             provided, sem_sim per node is a deterministic
+                             combination across all Q rows instead of a single
+                             cosine -- NEVER an average of the query vectors
+                             themselves (that would erase specialized anchor
+                             meaning); see multi_query_combine. Still exactly
+                             ONE PPR solve either way -- multi-query only
+                             changes how the seed's semantic term is computed.
+                             When Q == 1, this reduces to the identical single-
+                             query cosine-similarity path (bit-for-bit, modulo
+                             float rounding), so single-query callers passing
+                             query_embeddings=[emb] instead of query_embedding
+                             see no behavior change.
+            query_weights:   Per-query weight, parallel to query_embeddings'
+                             rows. Defaults to all-ones when omitted.
+            query_roles:     Optional per-query role label (e.g.
+                             "anchor_primary"/"target"), parallel to
+                             query_embeddings' rows, recorded in
+                             retrieval_contributions telemetry only.
+            multi_query_combine: "weighted_max" (default) takes, per node, the
+                             highest weight*cosine across queries -- this is
+                             what preserves a specialized anchor variant's
+                             signal instead of diluting it. "logsumexp" is a
+                             smoother alternative gated behind this option.
 
         Returns:
             List of up to top_k AsphodelNode objects ranked by PPR score,
@@ -1238,28 +1268,79 @@ class L2Asphodel:
                         f"must carry an AsphodelNode as 'node_data'."
                     )
 
-        # SCENE-002: Reject zero-norm query embedding before computing sem_rank
-        if query_embedding is not None:
-            q_norm = float(np.linalg.norm(query_embedding))
-            if q_norm < 1e-8:
-                # Degenerate query — PPR would just be unguided PageRank.
-                # Return empty list; callers fall back to action-score sort.
+        use_multi = query_embeddings is not None and len(query_embeddings) > 0
+
+        if use_multi:
+            qs = np.asarray(query_embeddings, dtype=np.float32)
+            if qs.ndim == 1:
+                qs = qs[None, :]
+            row_norms = np.linalg.norm(qs, axis=1)
+            if query_weights is None:
+                weights = np.ones(len(qs), dtype=np.float32)
+            else:
+                weights = np.asarray(query_weights, dtype=np.float32)
+                if len(weights) != len(qs):
+                    raise ValueError(
+                        f"retrieve_ppr: query_weights length {len(weights)} != "
+                        f"query_embeddings rows {len(qs)}"
+                    )
+            roles = list(query_roles) if query_roles is not None else [f"query_{i}" for i in range(len(qs))]
+
+            # SCENE-002 (multi-query form): degenerate only if EVERY row is zero-norm.
+            if bool(np.all(row_norms < 1e-8)):
                 return []
+        else:
+            # SCENE-002: Reject zero-norm query embedding before computing sem_rank
+            if query_embedding is not None:
+                q_norm = float(np.linalg.norm(query_embedding))
+                if q_norm < 1e-8:
+                    # Degenerate query — PPR would just be unguided PageRank.
+                    # Return empty list; callers fall back to action-score sort.
+                    return []
 
         n = len(node_ids)
         teleport_fallback = False
 
         # Semantic similarity (ReLU-clamped cosine)
         raw_sem: dict = {}
+        winning_query: dict = {}
         for nid in node_ids:
             node = g.nodes[nid]["node_data"]
-            sem = 0.0
-            if query_embedding is not None and node.embedding is not None:
-                norm_node = np.linalg.norm(node.embedding)
-                norm_query = np.linalg.norm(query_embedding)
-                if norm_node > 0.0 and norm_query > 0.0:
-                    sem = float(np.dot(node.embedding, query_embedding) / (norm_node * norm_query))
-            raw_sem[nid] = max(0.0, sem)
+            if use_multi:
+                per_query: list[tuple[float, float, float, str | None]] = []  # (combined, sim, weight, role)
+                if node.embedding is not None:
+                    norm_node = float(np.linalg.norm(node.embedding))
+                    if norm_node > 0.0:
+                        for j in range(len(qs)):
+                            if row_norms[j] < 1e-8:
+                                continue
+                            sim = float(np.dot(node.embedding, qs[j]) / (norm_node * float(row_norms[j])))
+                            sim = max(0.0, sim)
+                            combined = float(weights[j]) * sim
+                            per_query.append((combined, sim, float(weights[j]), roles[j]))
+
+                if not per_query:
+                    raw_sem[nid] = 0.0
+                    winning_query[nid] = {"role": None, "raw_similarity": 0.0, "weight": 0.0}
+                else:
+                    best = max(per_query, key=lambda t: t[0])
+                    if multi_query_combine == "logsumexp":
+                        combined_values = np.array([p[0] for p in per_query], dtype=np.float64)
+                        raw_sem[nid] = float(
+                            np.log(np.sum(np.exp(combined_values - combined_values.max()))) + combined_values.max()
+                            - np.log(len(combined_values))
+                        )
+                    else:  # "weighted_max" (default)
+                        raw_sem[nid] = best[0]
+                    winning_query[nid] = {"role": best[3], "raw_similarity": best[1], "weight": best[2]}
+            else:
+                sem = 0.0
+                if query_embedding is not None and node.embedding is not None:
+                    norm_node = np.linalg.norm(node.embedding)
+                    norm_query = np.linalg.norm(query_embedding)
+                    if norm_node > 0.0 and norm_query > 0.0:
+                        sem = float(np.dot(node.embedding, query_embedding) / (norm_node * norm_query))
+                raw_sem[nid] = max(0.0, sem)
 
         # Rank-percentile of semantic similarities
         sem_rank = _rank_pct(raw_sem)
@@ -1296,7 +1377,7 @@ class L2Asphodel:
         for nid, score in pr.items():
             node = g.nodes[nid]["node_data"]
             node.last_retrieval_score = score
-            node.retrieval_contributions = {
+            contributions = {
                 "sem_rank":        sem_rank[nid],
                 "codec_rank":      codec_rank[nid],
                 "seed":            seed[nid],
@@ -1306,6 +1387,17 @@ class L2Asphodel:
                 "tier":            node.tier,
                 "scene_id":        node.scene_id,
             }
+            if use_multi:
+                win = winning_query[nid]
+                contributions.update({
+                    "multi_query": True,
+                    "multi_query_combine": multi_query_combine,
+                    "winning_query_role": win["role"],
+                    "winning_query_raw_similarity": win["raw_similarity"],
+                    "winning_query_weight": win["weight"],
+                    "num_queries": int(len(qs)),
+                })
+            node.retrieval_contributions = contributions
 
         # Stable tie-break by node ID so repeated calls with identical inputs
         # always produce the same ordering (SCENE-003 determinism requirement).

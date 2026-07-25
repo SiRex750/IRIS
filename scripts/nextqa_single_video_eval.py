@@ -3,8 +3,21 @@
 Key fixes vs the scratch all-video evaluator:
   * retrieval uses question text only, never answer options;
   * MC parsing accepts only an explicit "ANSWER: <A-E>" marker;
-  * optional deterministic query reformulation is retrieval-only;
-  * optional temporal neighbor expansion adds before/after context for C/T.
+  * retrieval goes through iris.retrieval_entry.retrieve_for_question, the
+    single canonical entry point shared with eval/grounding_scorer.py and
+    iris.query.query() -- no more per-script reformulation glue;
+  * --query-mode selects none/legacy/structured_v2 explicitly; the frozen
+    raw-question baseline (--query-mode none) is never silently overridden;
+  * --top-k defaults to 4 and --max-context-frames to 8, matching the frozen
+    val_confirm configuration (tuning/frozen_state.json), not the old debug
+    defaults of 8/24.
+
+Previously this evaluator called `iris_query_module._embed_query(query_text,
+config)` and used the result directly as an ndarray, but _embed_query returns
+(embedding, telemetry) -- passing the raw tuple into _build_retrieved would
+have broken any run that actually exercised this path. Fixed by routing
+through retrieve_for_question, which always uses the tuple-safe
+_call_embed_query/_call_embed_queries wrappers.
 
 The answer model is unchanged and still flows through iris.aria.generate().
 """
@@ -21,13 +34,8 @@ from typing import Any
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO))
 
-from iris.query_reformulation import (
-    expand_temporal_neighbors,
-    format_mc_label,
-    fuse_ranked_results,
-    parse_mc_answer,
-    reformulate_query,
-)
+from iris.query_reformulation import format_mc_label, parse_mc_answer
+from iris.retrieval_entry import retrieve_for_question
 
 DATA_DIR = REPO / "eval" / "data" / "nextqa"
 DEFAULT_SPLIT = DATA_DIR / "dev_100.jsonl"
@@ -89,46 +97,23 @@ def retrieve_frames_for_question(
     row: dict[str, Any],
     index: Any,
     config: Any,
-    iris_query_module: Any,
-    use_reformulation: bool,
-    max_queries: int,
-    use_temporal_expansion: bool,
-    temporal_radius: int,
-    max_context_frames: int,
-) -> tuple[list[dict[str, Any]], list[str], bool]:
-    if use_reformulation:
-        plan = reformulate_query(
-            row["question"],
-            family=row.get("family"),
-            max_queries=max_queries,
-        )
-        query_texts = list(plan.retrieval_queries)
-        needs_temporal = plan.needs_temporal_expansion
-    else:
-        query_texts = [row["question"]]
-        needs_temporal = row.get("family") in {"C", "T"}
+) -> tuple[list[dict[str, Any]], Any, dict[str, Any]]:
+    """Thin wrapper over the canonical retrieval entry point.
 
-    ranked_lists: list[list[dict[str, Any]]] = []
-    for query_text in query_texts:
-        query_embedding = iris_query_module._embed_query(query_text, config)
-        ranked_lists.append(iris_query_module._build_retrieved(index, query_embedding, config))
-
-    retrieved = fuse_ranked_results(
-        ranked_lists,
-        top_k=getattr(config, "l2_retrieve_top_k", 8),
+    NExT-QA's `type` column (TN/TP/TC/CW/CH/...) is passed through as
+    type_code so structured_v2 gets the type-code-primary relation (section
+    4); `family` (C/T/D) is passed through for the legacy reformulator's
+    family-gated temporal expansion. Both are None-safe for rows without
+    them.
+    """
+    frames, plan, telemetry = retrieve_for_question(
+        row["question"],
+        index,
+        config,
+        type_code=row.get("type"),
+        family=row.get("family"),
     )
-
-    temporal_applied = False
-    if use_temporal_expansion and needs_temporal:
-        retrieved = expand_temporal_neighbors(
-            index,
-            retrieved,
-            radius=temporal_radius,
-            max_frames=max_context_frames,
-        )
-        temporal_applied = True
-
-    return retrieved, query_texts, temporal_applied
+    return frames, plan, telemetry
 
 
 def evaluate_one_video(args: argparse.Namespace) -> int:
@@ -161,6 +146,9 @@ def evaluate_one_video(args: argparse.Namespace) -> int:
     import iris.query as iris_query
     from iris.iris_config import IRISConfig
 
+    query_mode, traversal_mode = _resolve_query_and_traversal_mode(args)
+    max_retrieval_queries = min(args.max_queries, 3) if query_mode == "structured_v2" else args.max_queries
+
     config = IRISConfig(
         ranking_mode=args.ranking_mode,
         codec_conf_source="packet_size",
@@ -168,6 +156,12 @@ def evaluate_one_video(args: argparse.Namespace) -> int:
         ppr_lambda=args.ppr_lambda,
         ppr_damping=args.ppr_damping,
         l2_retrieve_top_k=args.top_k,
+        query_reformulation_mode=query_mode,
+        max_retrieval_queries=max_retrieval_queries,
+        temporal_traversal_mode=traversal_mode,
+        temporal_context_seconds=args.temporal_context_seconds,
+        temporal_scene_hops=args.temporal_scene_hops,
+        max_context_frames=args.max_context_frames,
     )
 
     index = iris_ingest.load_index(npz_path)
@@ -189,23 +183,30 @@ def evaluate_one_video(args: argparse.Namespace) -> int:
     print(f"indexed_frames={len(index.frames)}")
     print(f"model_backend=iris.aria default")
     print(f"top_k={args.top_k}")
-    print(f"query_reformulation={not args.no_reformulation}")
-    print(f"temporal_expansion={not args.no_temporal_expansion} radius={args.temporal_radius}")
+    print(f"query_mode={query_mode}")
+    print(f"temporal_traversal_mode={traversal_mode}")
     print()
 
     try:
         for row_num, row in enumerate(rows, 1):
             q_start = time.time()
-            retrieved_frames, query_texts, temporal_applied = retrieve_frames_for_question(
+            retrieved_frames, plan, retrieval_telemetry = retrieve_frames_for_question(
                 row=row,
                 index=index,
                 config=config,
-                iris_query_module=iris_query,
-                use_reformulation=not args.no_reformulation,
-                max_queries=args.max_queries,
-                use_temporal_expansion=not args.no_temporal_expansion,
-                temporal_radius=args.temporal_radius,
-                max_context_frames=args.max_context_frames,
+            )
+            query_texts = (
+                list(getattr(plan, "retrieval_queries", None) or getattr(plan, "anchor_queries", None) or [])
+                if plan is not None
+                else [row["question"]]
+            )
+            temporal_applied = bool(
+                retrieval_telemetry.get("legacy_temporal_expansion_applied")
+                or (
+                    retrieval_telemetry.get("mode") == "structured_v2"
+                    and traversal_mode == "directional"
+                    and getattr(plan, "needs_temporal_traversal", False)
+                )
             )
 
             decoded_for_captions = iris_query._ensure_captions(index, retrieved_frames)
@@ -239,9 +240,13 @@ def evaluate_one_video(args: argparse.Namespace) -> int:
                 "pred_label": format_mc_label(pred),
                 "correct": ok,
                 "parse_ok": pred is not None,
+                "query_mode": query_mode,
                 "retrieval_queries": query_texts,
                 "retrieved_frame_idxs": [f["frame_idx"] for f in retrieved_frames],
                 "temporal_expansion_applied": temporal_applied,
+                "plan_relation": getattr(plan, "relation", None),
+                "plan_relation_source": getattr(plan, "relation_source", None),
+                "retrieval_telemetry": retrieval_telemetry,
                 "decoded_for_captions": decoded_for_captions,
                 "raw_answer": raw_answer,
                 "elapsed_sec": elapsed,
@@ -293,16 +298,58 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--cache-dir", default=str(DEFAULT_CACHE_DIR), help="Index cache directory.")
     parser.add_argument("--limit", type=int, help="Optional number of rows from that video.")
     parser.add_argument("--output-jsonl", help="Optional detailed result log path.")
-    parser.add_argument("--top-k", type=int, default=8, help="Retrieved seed frames before temporal expansion.")
+    parser.add_argument("--top-k", type=int, default=4,
+                        help="Retrieved anchor frames (frozen val_confirm K=4; was 8).")
     parser.add_argument("--ranking-mode", default="ppr", choices=["ppr", "legacy"], help="L2 retrieval mode.")
     parser.add_argument("--ppr-lambda", type=float, default=0.5)
     parser.add_argument("--ppr-damping", type=float, default=0.5)
-    parser.add_argument("--max-queries", type=int, default=5, help="Max reformulated retrieval queries.")
-    parser.add_argument("--no-reformulation", action="store_true", help="Use only the raw question for retrieval.")
-    parser.add_argument("--no-temporal-expansion", action="store_true", help="Disable C/T neighbor expansion.")
-    parser.add_argument("--temporal-radius", type=int, default=2, help="Indexed-frame neighbor radius.")
-    parser.add_argument("--max-context-frames", type=int, default=24, help="Cap frames captioned/inserted into context.")
+    parser.add_argument(
+        "--query-mode", dest="query_mode", default="none",
+        choices=["none", "legacy", "structured_v2"],
+        help="Retrieval query mode via iris.retrieval_entry.retrieve_for_question. "
+             "'none' (default) is the frozen raw-question baseline -- never enabled "
+             "implicitly. 'legacy' is the pre-V2 reformulator (experimental baseline). "
+             "'structured_v2' is the type-code-aware structured planner.",
+    )
+    parser.add_argument("--max-queries", type=int, default=5,
+                        help="Max retrieval query variants (legacy mode); structured_v2 is hard-capped at 3.")
+    parser.add_argument(
+        "--temporal-traversal-mode", dest="temporal_traversal_mode", default=None,
+        choices=["none", "legacy_symmetric", "directional"],
+        help="Temporal context expansion. Defaults to 'none' for --query-mode none, "
+             "'legacy_symmetric' for legacy, 'directional' for structured_v2.",
+    )
+    parser.add_argument("--temporal-context-seconds", type=float, default=4.0,
+                        help="Directional traversal time window in seconds (structured_v2).")
+    parser.add_argument("--temporal-scene-hops", type=int, default=1,
+                        help="Directional traversal max adjacent-scene hops (structured_v2).")
+    parser.add_argument("--max-context-frames", type=int, default=8,
+                        help="Cap frames captioned/inserted into context (edge default; was 24).")
+    # Deprecated aliases kept for existing callers -- map onto --query-mode/--temporal-traversal-mode.
+    parser.add_argument("--no-reformulation", action="store_true",
+                        help="Deprecated alias for --query-mode none.")
+    parser.add_argument("--no-temporal-expansion", action="store_true",
+                        help="Deprecated alias forcing --temporal-traversal-mode none.")
+    parser.add_argument("--temporal-radius", type=int, default=2,
+                        help="Deprecated, currently inert: legacy_symmetric traversal now always uses "
+                             "expand_temporal_neighbors(radius=2) inside iris.retrieval_entry. Kept only "
+                             "so old invocations of this script do not fail on an unknown flag.")
     return parser
+
+
+def _resolve_query_and_traversal_mode(args: argparse.Namespace) -> tuple[str, str]:
+    """Apply the deprecated --no-reformulation/--no-temporal-expansion aliases
+    on top of --query-mode/--temporal-traversal-mode, then fill in each mode's
+    natural traversal default when --temporal-traversal-mode was not given."""
+    query_mode = "none" if args.no_reformulation else args.query_mode
+
+    traversal_mode = args.temporal_traversal_mode
+    if traversal_mode is None:
+        traversal_mode = {"none": "none", "legacy": "legacy_symmetric", "structured_v2": "directional"}[query_mode]
+    if args.no_temporal_expansion:
+        traversal_mode = "none"
+
+    return query_mode, traversal_mode
 
 
 def main() -> int:

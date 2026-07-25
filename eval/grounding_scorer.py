@@ -119,7 +119,7 @@ def score_grounding_arm(
         "per_question": {(video_str, qid_str): fiw_val, …},
     }
     """
-    from iris.query import _embed_query, _build_retrieved
+    from iris.query import _call_embed_query, _build_retrieved
 
     top_k = getattr(cfg, "l2_retrieve_top_k", 8)
 
@@ -147,7 +147,7 @@ def score_grounding_arm(
             duration = float(gsub[vid].get("duration", 0))
             ts = uniform_ts(duration, top_k)
         else:
-            emb       = _embed_query(row["question"], cfg)
+            emb, _tele = _call_embed_query(row["question"], cfg)
             retrieved = _build_retrieved(index, emb, cfg)
             ts        = [f["timestamp"] for f in retrieved]
 
