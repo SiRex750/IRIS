@@ -32,3 +32,12 @@ CCBD.zip
 
 # Transient scratch cache (HF file listing), regenerable, not a deliverable.
 .cache_primary_mirror_listing.json
+
+# QVHighlights external dataset: keep manifests/docs, never commit large data.
+external_data/qvhighlights/videos/
+external_data/qvhighlights/archives/
+external_data/qvhighlights/features/
+external_data/qvhighlights/annotations/
+*.part
+!external_data/qvhighlights/logs/
+!external_data/qvhighlights/logs/setup_output.txt

@@ -1,0 +1,10 @@
+[annotations] fetching train split: https://raw.githubusercontent.com/jayleicn/moment_detr/b7e553ac3b0c898ee6b85e03ee507c064eab89ca/data/highlight_train_release.jsonl
+  [ok] downloaded 3956580 bytes -> highlight_train_release.jsonl.part
+[annotations] fetching val split: https://raw.githubusercontent.com/jayleicn/moment_detr/b7e553ac3b0c898ee6b85e03ee507c064eab89ca/data/highlight_val_release.jsonl
+  [ok] downloaded 821101 bytes -> highlight_val_release.jsonl.part
+  [ok] downloaded 20848 bytes -> LICENSE.part
+[validate] wrote validation summary -> external_data/qvhighlights/manifests/qvhighlights_validation.json
+[manifest] wrote 7218 rows -> external_data/qvhighlights/manifests/external_train.jsonl
+[manifest] wrote 1550 rows -> external_data/qvhighlights/manifests/external_dev.jsonl
+[manifest] 8768 videos not locally available -> external_data/qvhighlights/manifests/missing_videos_report.json
+[done] QVHighlights annotation acquisition + validation complete.

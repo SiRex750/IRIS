@@ -1,0 +1,33 @@
+QVHighlights dataset acquisition -- exact commands run (2026-07-25)
+====================================================================
+
+# 1. Verify official source is reachable and confirm current commit/README
+curl -s "https://api.github.com/repos/jayleicn/moment_detr/commits/main"
+curl -s "https://raw.githubusercontent.com/jayleicn/moment_detr/main/data/README.md"
+curl -s "https://raw.githubusercontent.com/jayleicn/moment_detr/main/README.md"
+curl -s "https://api.github.com/repos/jayleicn/moment_detr/contents/data?ref=main"
+curl -s "https://raw.githubusercontent.com/jayleicn/moment_detr/main/data/LICENSE"
+
+# 2. Check remote video archive size without downloading it
+curl -sI "https://nlp.cs.unc.edu/data/jielei/qvh/qvhilights_videos.tar.gz"
+# -> Content-Length: 143734787897 (133.8 GiB)
+
+# 3. Check local disk space
+df -h .
+# -> 30G available; insufficient for the 133.8 GiB video archive.
+#    Video download and extraction NOT performed. Annotations-only proceeded.
+
+# 4. Download + validate train/val annotations (idempotent, resumable)
+python3 scripts/setup_qvhighlights.py --annotations-only --data-root external_data/qvhighlights
+
+# 5. Re-run to confirm idempotency (no re-download, same output)
+python3 scripts/setup_qvhighlights.py --annotations-only --data-root external_data/qvhighlights
+
+# 6. Verify-only pass (recompute validation/manifests without touching downloads)
+python3 scripts/setup_qvhighlights.py --verify-only --data-root external_data/qvhighlights
+
+# 7. Run the new focused tests
+python3 -m pytest tests/test_qvhighlights_setup.py -q
+
+# 8. Run the full existing test suite to confirm no regressions
+python3 -m pytest tests/ -q

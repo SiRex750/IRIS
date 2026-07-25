@@ -1,0 +1,75 @@
+{
+  "source_repository": "https://github.com/jayleicn/moment_detr",
+  "source_commit": "b7e553ac3b0c898ee6b85e03ee507c064eab89ca",
+  "source_urls": {
+    "train": "https://raw.githubusercontent.com/jayleicn/moment_detr/b7e553ac3b0c898ee6b85e03ee507c064eab89ca/data/highlight_train_release.jsonl",
+    "val": "https://raw.githubusercontent.com/jayleicn/moment_detr/b7e553ac3b0c898ee6b85e03ee507c064eab89ca/data/highlight_val_release.jsonl",
+    "license": "https://raw.githubusercontent.com/jayleicn/moment_detr/b7e553ac3b0c898ee6b85e03ee507c064eab89ca/data/LICENSE",
+    "videos": "https://nlp.cs.unc.edu/data/jielei/qvh/qvhilights_videos.tar.gz"
+  },
+  "licence": "CC BY-NC-SA 4.0 (Attribution-NonCommercial-ShareAlike 4.0 International)",
+  "access_date": "2026-07-25",
+  "n_train_queries": 7218,
+  "n_val_queries": 1550,
+  "n_unique_train_videos": 7100,
+  "n_unique_val_videos": 1519,
+  "train_val_video_overlap": 0,
+  "invalid_row_counts": {
+    "train": {},
+    "val": {}
+  },
+  "duration_stats": {
+    "train": {
+      "count": 7218,
+      "min": 120.0,
+      "max": 150.0,
+      "mean": 149.54835134386258,
+      "median": 150.0
+    },
+    "val": {
+      "count": 1550,
+      "min": 120.0,
+      "max": 150.0,
+      "mean": 149.6167741935484,
+      "median": 150.0
+    }
+  },
+  "window_width_stats": {
+    "train": {
+      "count": 12803,
+      "min": 2.0,
+      "max": 150.0,
+      "mean": 25.083652268999455,
+      "median": 16.0
+    },
+    "val": {
+      "count": 2803,
+      "min": 2.0,
+      "max": 150.0,
+      "mean": 23.224402425972173,
+      "median": 16.0
+    }
+  },
+  "annotation_hashes": {
+    "train": {
+      "path": "highlight_train_release.jsonl",
+      "size_bytes": 3956580,
+      "sha256": "fd28404187468f57cf99242be2963127dc9b4aef26c7de3cb9469569801f2625"
+    },
+    "val": {
+      "path": "highlight_val_release.jsonl",
+      "size_bytes": 821101,
+      "sha256": "f668a1eaea156ec5315e14718999cea043a8cf948d3cafbd8e8d655318c3cd02"
+    }
+  },
+  "video_archive": {
+    "present": false,
+    "size_bytes": null,
+    "sha256": null
+  },
+  "n_videos_downloaded": 0,
+  "n_videos_missing": null,
+  "n_videos_corrupt": "not measured -- run --download-videos then video validation to populate this field",
+  "test_split_used": false,
+  "validation_timestamp": "2026-07-25T18:00:38Z"
+}
