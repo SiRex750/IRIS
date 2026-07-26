@@ -1,0 +1,1072 @@
+{
+  "n_correct": 345,
+  "n_total": 639,
+  "target_correct": 349,
+  "target_total": 639,
+  "pass": false,
+  "flips": [
+    {
+      "video": "9873067604",
+      "qid": "4",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "2",
+      "new_pred": 0,
+      "new_raw_answer": "ANSWER: A\nREASON: The caption mentions the boy's visible face and the car's side panel with a sound system, suggesting he is looking through the window."
+    },
+    {
+      "video": "7508439506",
+      "qid": "1",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "0",
+      "new_pred": 3,
+      "new_raw_answer": "ANSWER: D\nREASON: The caption describes the baby being supported by a hand, indicating the boy placed his hands on the baby to provide support."
+    },
+    {
+      "video": "7499763064",
+      "qid": "5",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "2",
+      "new_pred": 4,
+      "new_raw_answer": "ANSWER: E\nREASON: The caption mentions the man is wearing a harness and carrying a backpack, indicating he is likely adjusting his own harness for safety."
+    },
+    {
+      "video": "4087654898",
+      "qid": "0",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "0",
+      "new_pred": 1,
+      "new_raw_answer": "ANSWER: B\nREASON: The caption mentions the child in a floral dress is carrying a pink watering can, indicating they used a straw to fill it."
+    },
+    {
+      "video": "3471421544",
+      "qid": "4",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "1",
+      "new_pred": 0,
+      "new_raw_answer": "ANSWER: A\nREASON: The captions describe the baby as seated in a colorful jumper with toys attached, indicating the baby is jumping."
+    },
+    {
+      "video": "4087654898",
+      "qid": "7",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "4",
+      "new_pred": 2,
+      "new_raw_answer": "ANSWER: C\nREASON: The caption in frame 261 shows the girl holding a red watering can, indicating she reaches for something after filling it."
+    },
+    {
+      "video": "4483447009",
+      "qid": "3",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "0",
+      "new_pred": 2,
+      "new_raw_answer": "ANSWER: C\nREASON: After pecking at the start, the duck moves towards the fence in the later frames."
+    },
+    {
+      "video": "11565498775",
+      "qid": "2",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "2",
+      "new_pred": 1,
+      "new_raw_answer": "ANSWER: B\nREASON: The caption in Frame 1085 shows the child observing a man handling wood logs in a container, suggesting the child is looking up to see how the man is moving the rod."
+    },
+    {
+      "video": "2835125654",
+      "qid": "2",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "4",
+      "new_pred": 1,
+      "new_raw_answer": "ANSWER: B\nREASON: Frames in the second half show elephants standing in a natural setting with a red post and greenery, indicating they are simply present and possibly looking around."
+    },
+    {
+      "video": "9735768590",
+      "qid": "5",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "2",
+      "new_pred": 3,
+      "new_raw_answer": "ANSWER: D\nREASON: The woman's head turns to the left after tucking her tongue, indicating she looks to her left."
+    },
+    {
+      "video": "11565498775",
+      "qid": "8",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "2",
+      "new_pred": 1,
+      "new_raw_answer": "ANSWER: B\nREASON: The caption in frame 410 shows the child holding a pipe, which is the only action described after the child moves closer to the man."
+    },
+    {
+      "video": "3402648543",
+      "qid": "9",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "2",
+      "new_pred": 1,
+      "new_raw_answer": "ANSWER: B\nREASON: The caption shows a small black dog standing on its hind legs while another black dog is lying down, indicating the small dog is stationary and not moving after the big dog runs away."
+    },
+    {
+      "video": "8254300526",
+      "qid": "3",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "1",
+      "new_pred": 3,
+      "new_raw_answer": "ANSWER: D\nREASON: The caption mentions the baby reaching for a toy, indicating the adult moved his finger up the air to point to the toy."
+    },
+    {
+      "video": "6163877860",
+      "qid": "8",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "2",
+      "new_pred": 3,
+      "new_raw_answer": "ANSWER: D\nREASON: The caption in Frame 90 shows the baby holding a blue object in their hand, which matches the description of the socks disappearing from the baby's hands."
+    },
+    {
+      "video": "4179163342",
+      "qid": "11",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "2",
+      "new_pred": 0,
+      "new_raw_answer": "ANSWER: A\nREASON: The dog stayed near the girl after she hugged it, indicating they continued interacting."
+    },
+    {
+      "video": "5008618500",
+      "qid": "2",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "0",
+      "new_pred": 4,
+      "new_raw_answer": "ANSWER: E\nREASON: The caption describes the girl in pink clothing \"sitting nearby observing the scene,\" which implies she bends down to get a closer look at the baby."
+    },
+    {
+      "video": "6159637889",
+      "qid": "5",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "4",
+      "new_pred": 3,
+      "new_raw_answer": "ANSWER: D\nREASON: The baby is shown smiling or laughing in the later frames, indicating the person is holding the baby up."
+    },
+    {
+      "video": "8177965766",
+      "qid": "6",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "1",
+      "new_pred": 0,
+      "new_raw_answer": "ANSWER: A\nREASON: The caption in Frame 2 shows the man holding a microphone near his face, indicating he is actively involved in the performance."
+    },
+    {
+      "video": "3355698421",
+      "qid": "2",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "3",
+      "new_pred": 0,
+      "new_raw_answer": "ANSWER: A\nREASON: The caption in Frame 414 describes a person in a plaid shirt using a phone, suggesting he was looking at or interacting with the woman in black."
+    },
+    {
+      "video": "3562017845",
+      "qid": "2",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "1",
+      "new_pred": 0,
+      "new_raw_answer": "ANSWER: A\nREASON: The caption mentions long red legs, suggesting the bird might be checking for a predator in its environment."
+    },
+    {
+      "video": "9873067604",
+      "qid": "5",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "3",
+      "new_pred": 2,
+      "new_raw_answer": "ANSWER: C\nREASON: The child stopped interacting with the camera and looked away after first looking at it."
+    },
+    {
+      "video": "4123211145",
+      "qid": "9",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "1",
+      "new_pred": 4,
+      "new_raw_answer": "ANSWER: E\nREASON: After the girl in yellow picked up the towel, the girl in orange threw it."
+    },
+    {
+      "video": "5889898795",
+      "qid": "4",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "3",
+      "new_pred": 0,
+      "new_raw_answer": "ANSWER: A\nREASON: The frame shows the second man holding zipline ropes, indicating he is holding the string as he ziplines."
+    },
+    {
+      "video": "5702201498",
+      "qid": "1",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "0",
+      "new_pred": 2,
+      "new_raw_answer": "ANSWER: C  \nREASON: The person is seen holding a large dark pillow and the couch scene persists, indicating he was focused on the pillow before opening his eyes."
+    },
+    {
+      "video": "7651639778",
+      "qid": "1",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "1",
+      "new_pred": 2,
+      "new_raw_answer": "ANSWER: C  \nREASON: The man in the brown jacket is shown pointing at the steel pipe, indicating he is preparing for rock climbing."
+    },
+    {
+      "video": "5352022985",
+      "qid": "2",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "4",
+      "new_pred": 1,
+      "new_raw_answer": "ANSWER: B\nREASON: The frames show the dog moving around in the snowy area after the woman (in a white coat) is seen walking."
+    },
+    {
+      "video": "4179163342",
+      "qid": "5",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "4",
+      "new_pred": 2,
+      "new_raw_answer": "ANSWER: C\nREASON: The caption mentions children are present in the kitchen and exhibit different expressions and actions, indicating they are enjoying themselves."
+    },
+    {
+      "video": "4279106208",
+      "qid": "0",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "2",
+      "new_pred": 0,
+      "new_raw_answer": "ANSWER: A\nREASON: The caption shows the woman holding the baby while they are on the slide."
+    },
+    {
+      "video": "5586394125",
+      "qid": "9",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "4",
+      "new_pred": 0,
+      "new_raw_answer": "ANSWER: A\nREASON: The caption mentions \"red bucket\" which is the only container with a red color, and the dog with a red leash is standing near it."
+    },
+    {
+      "video": "5047408177",
+      "qid": "5",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "2",
+      "new_pred": 4,
+      "new_raw_answer": "ANSWER: E\nREASON: The frames show a woman holding a colorful striped garment over her head and hanging fabrics on a drying rack, indicating she was hanging clothes."
+    },
+    {
+      "video": "8547321641",
+      "qid": "8",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "3",
+      "new_pred": 2,
+      "new_raw_answer": "ANSWER: C\nREASON: After walking up to the camera, the child continues walking toward the sea."
+    },
+    {
+      "video": "5047408177",
+      "qid": "2",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "3",
+      "new_pred": 2,
+      "new_raw_answer": "ANSWER: C\nREASON: The caption mentions \"an older individual holding the same fabric\" and \"a red garment hanging or displayed,\" suggesting the woman is holding a shirt that could be given away or distributed."
+    },
+    {
+      "video": "6542914065",
+      "qid": "1",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "2",
+      "new_pred": 0,
+      "new_raw_answer": "ANSWER: A\nREASON: The caption mentions \"People playing in a grassy field\" with a person in grey patting a ball, indicating he signaled for others to move by interacting with the ball."
+    },
+    {
+      "video": "5840177726",
+      "qid": "0",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "3",
+      "new_pred": 4,
+      "new_raw_answer": "ANSWER: E\nREASON: The caption in Frame 351 mentions \"people in the forest with backpacks\" and \"dirt trail or slope in the background,\" indicating they were cycling up the slope."
+    },
+    {
+      "video": "11670386946",
+      "qid": "4",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "0",
+      "new_pred": 2,
+      "new_raw_answer": "ANSWER: C\nREASON: The caption in frame 770 shows the man holding a paper, indicating he looks at it after smiling."
+    },
+    {
+      "video": "3452354871",
+      "qid": "4",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "1",
+      "new_pred": 3,
+      "new_raw_answer": "ANSWER: D\nREASON: The bird is positioned near the shoe, suggesting the man moved the shoe slightly to get the bird off."
+    },
+    {
+      "video": "14012319794",
+      "qid": "0",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "0",
+      "new_pred": 3,
+      "new_raw_answer": "ANSWER: D\nREASON: The child is holding a red object (likely a flag) and the room is cluttered with toys and items, suggesting she might be trying to prevent her flag from being taken away."
+    },
+    {
+      "video": "6163877860",
+      "qid": "6",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "4",
+      "new_pred": 2,
+      "new_raw_answer": "ANSWER: C\nREASON: The caption mentions the baby's arms are raised and legs are extended, suggesting the baby was likely without socks because it was hot inside."
+    },
+    {
+      "video": "5586394125",
+      "qid": "5",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "0",
+      "new_pred": 1,
+      "new_raw_answer": "ANSWER: B\nREASON: The caption for the first frame (8.7s) shows the lady in blue standing near the dogs while the lady in white is patting the dog."
+    },
+    {
+      "video": "4822859674",
+      "qid": "1",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "2",
+      "new_pred": 4,
+      "new_raw_answer": "ANSWER: E\nREASON: The baby is in the foreground with blurred features, suggesting it is seeking attention or food from the woman."
+    },
+    {
+      "video": "5323654756",
+      "qid": "9",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "1",
+      "new_pred": 3,
+      "new_raw_answer": "ANSWER: D\nREASON: The boy in blue is standing at the corner of the room where a girl in pink is also present, suggesting he might be watching her."
+    },
+    {
+      "video": "7888256388",
+      "qid": "1",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "4",
+      "new_pred": 0,
+      "new_raw_answer": "ANSWER: A\nREASON: After the lady removed her hands, the dog continued to interact with her (a \"wait\" action) as seen in the next frame."
+    },
+    {
+      "video": "5586394125",
+      "qid": "8",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "2",
+      "new_pred": 1,
+      "new_raw_answer": "ANSWER: B\nREASON: The dog with the white leash is shown bending down near the grassy ground, indicating it is sniffing the ball."
+    },
+    {
+      "video": "10727696143",
+      "qid": "1",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "3",
+      "new_pred": 0,
+      "new_raw_answer": "ANSWER: A\nREASON: The caption mentions a child standing near a door, suggesting he might be preparing to knock on it."
+    },
+    {
+      "video": "3066064005",
+      "qid": "7",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "3",
+      "new_pred": 4,
+      "new_raw_answer": "ANSWER: E\nREASON: The frames show the woman in red smiling and interacting with the table, while the woman in black points, suggesting she points again."
+    },
+    {
+      "video": "5603283408",
+      "qid": "0",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "2",
+      "new_pred": 4,
+      "new_raw_answer": "ANSWER: E\nREASON: The caption mentions the child is bending down on a concrete path, which suggests she was looking at her feet to see what she stepped on."
+    },
+    {
+      "video": "5603283408",
+      "qid": "2",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "4",
+      "new_pred": 2,
+      "new_raw_answer": "ANSWER: C\nREASON: The girl turns around at the start and then begins to squat as she walks along the pathway."
+    },
+    {
+      "video": "3562017845",
+      "qid": "0",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "0",
+      "new_pred": 2,
+      "new_raw_answer": "ANSWER: C\nREASON: The frames show birds standing near water and mud, with grass visible around the muddy area, indicating they looked around after stepping into the water."
+    },
+    {
+      "video": "9213637099",
+      "qid": "4",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "3",
+      "new_pred": 4,
+      "new_raw_answer": "ANSWER: E\nREASON: The caption mentions \"Background figures suggest other people are walking or activity is ongoing,\" indicating the men at the back are likely present for a meeting or gathering."
+    },
+    {
+      "video": "3066064005",
+      "qid": "5",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "1",
+      "new_pred": 2,
+      "new_raw_answer": "ANSWER: C\nREASON: The caption in Frame 141 shows the woman in black holding a utensil, which suggests she is signaling for the lady in red to sit by pointing her finger."
+    },
+    {
+      "video": "2810112808",
+      "qid": "6",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "0",
+      "new_pred": 4,
+      "new_raw_answer": "ANSWER: E\nREASON: The caption in Frame 2439 mentions \"some papers and other items are placed near the person in red,\" suggesting the man in red is reaching for papers or cards, likely to draw them."
+    },
+    {
+      "video": "4757890069",
+      "qid": "1",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "0",
+      "new_pred": 2,
+      "new_raw_answer": "ANSWER: C\nREASON: The frame shows red and white barrier tape in the middle of the road, indicating construction activity."
+    },
+    {
+      "video": "8990144134",
+      "qid": "0",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "1",
+      "new_pred": 0,
+      "new_raw_answer": "ANSWER: A\nREASON: The cat is shown lying on a surface with a small bird perched nearby, indicating they are close together."
+    },
+    {
+      "video": "7651639778",
+      "qid": "6",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "3",
+      "new_pred": 1,
+      "new_raw_answer": "ANSWER: B  \nREASON: The caption in frame\u202f1691 mentions a \"black jacket\" being held or adjusted by one individual, which is consistent with the man in the brown jacket holding the man in the blue jacket\u2019s shoe."
+    },
+    {
+      "video": "4658396458",
+      "qid": "2",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "3",
+      "new_pred": 4,
+      "new_raw_answer": "ANSWER: E\nREASON: The caption shows the baby reaching her hands out after looking at the toy basket, indicating she was excited to play with the toys."
+    },
+    {
+      "video": "9208803675",
+      "qid": "0",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "4",
+      "new_pred": 1,
+      "new_raw_answer": "ANSWER: B\nREASON: The caption mentions people performing acrobatic trapeze acts with assistance, suggesting the man helped the lady onto the swing."
+    },
+    {
+      "video": "7508439506",
+      "qid": "9",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "3",
+      "new_pred": 2,
+      "new_raw_answer": "ANSWER: C\nREASON: The caption describes the baby crying on a green surface with a blanket, and a child interacting with the baby, indicating the baby reacted by crying when the boy put his hands on the baby's stomach."
+    },
+    {
+      "video": "3502722122",
+      "qid": "3",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "4",
+      "new_pred": 2,
+      "new_raw_answer": "ANSWER: C\nREASON: The caption in the last frame describes the baby leaning sideways while holding a book."
+    },
+    {
+      "video": "5889898795",
+      "qid": "2",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "1",
+      "new_pred": 0,
+      "new_raw_answer": "ANSWER: A\nREASON: The caption in Frame 102 mentions \"Another individual, partially visible, appears to be wearing safety gear,\" suggesting the woman in white is there to provide support or safety for the zipline activity."
+    },
+    {
+      "video": "4822859674",
+      "qid": "0",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "0",
+      "new_pred": 2,
+      "new_raw_answer": "ANSWER: C\nREASON: The caption in Frame 36 shows the man holding the toddler, with the toddler's hands raised, indicating the man was supporting the baby by carrying it on his shoulder."
+    },
+    {
+      "video": "4626535366",
+      "qid": "9",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "0",
+      "new_pred": 1,
+      "new_raw_answer": "ANSWER: B\nREASON: The frame shows a boy next to the boy with a watch, and he is pointing to the blue bucket."
+    },
+    {
+      "video": "3562017845",
+      "qid": "1",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "2",
+      "new_pred": 3,
+      "new_raw_answer": "ANSWER: D\nREASON: The caption describes birds standing near water and mud, indicating they were likely using the water to clean themselves."
+    },
+    {
+      "video": "8547321641",
+      "qid": "0",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "4",
+      "new_pred": 3,
+      "new_raw_answer": "ANSWER: D\n\nREASON: The adult is holding the child's hand, which shows he is keeping the baby steady and safe near the water's edge."
+    },
+    {
+      "video": "2716277960",
+      "qid": "1",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "3",
+      "new_pred": 2,
+      "new_raw_answer": "ANSWER: C\nREASON: The caption mentions \"bicycles being handled by the individuals\" and the presence of a log bridge, indicating they need to push their bicycles to navigate the log."
+    },
+    {
+      "video": "11565498775",
+      "qid": "4",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "0",
+      "new_pred": 3,
+      "new_raw_answer": "ANSWER: D\nREASON: The man adjusts his hand to position it correctly for handling the rocks."
+    },
+    {
+      "video": "4136617240",
+      "qid": "6",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "3",
+      "new_pred": 1,
+      "new_raw_answer": "ANSWER: B\nREASON: The caption in frame 60 shows the child pulling a leash, which is the first action after the girl turns around."
+    },
+    {
+      "video": "11276567104",
+      "qid": "6",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "2",
+      "new_pred": 4,
+      "new_raw_answer": "ANSWER: E\nREASON: The woman in white is seen walking past the woman in the coat, suggesting she moves away or the scene ends with both sitting down."
+    },
+    {
+      "video": "6617533993",
+      "qid": "9",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "3",
+      "new_pred": 0,
+      "new_raw_answer": "ANSWER: A\nREASON: The caption in Frame 561 mentions toys are scattered on the floor, suggesting the boy moved to the back to play with a toy."
+    },
+    {
+      "video": "6096998186",
+      "qid": "2",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "2",
+      "new_pred": 4,
+      "new_raw_answer": "ANSWER: E\nREASON: The frame shows the blonde woman holding or adjusting items after opening her present, indicating she held them up."
+    },
+    {
+      "video": "7330294814",
+      "qid": "6",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "3",
+      "new_pred": 1,
+      "new_raw_answer": "ANSWER: B\nREASON: The caption in frame 77 shows an elderly woman in a robe sitting on a couch, holding colorful objects, after walking a few steps."
+    },
+    {
+      "video": "2482028659",
+      "qid": "7",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "2",
+      "new_pred": 3,
+      "new_raw_answer": "ANSWER: D\nREASON: The caption in multiple frames shows a man holding a piece of paper by his hand while standing at a microphone, indicating the paper is likely used as a prop."
+    },
+    {
+      "video": "3939145327",
+      "qid": "8",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "1",
+      "new_pred": 3,
+      "new_raw_answer": "ANSWER: D  \nREASON: The caption in Frame 310 shows the child standing on the tricycle, indicating she put her legs down to stand there."
+    },
+    {
+      "video": "5863411262",
+      "qid": "4",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "4",
+      "new_pred": 0,
+      "new_raw_answer": "ANSWER: A\nREASON: The caption in frame 609 shows a person in a striped shirt crossing his arms and looking forward after the man in white shirt walks away."
+    },
+    {
+      "video": "5352022985",
+      "qid": "5",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "0",
+      "new_pred": 3,
+      "new_raw_answer": "ANSWER: D\nREASON: The dog is seen jumping in the snow in several frames."
+    },
+    {
+      "video": "4658396458",
+      "qid": "6",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "4",
+      "new_pred": 0,
+      "new_raw_answer": "ANSWER: A\nREASON: The caption mentions \"playful toys around the child's head and hands\" in Frame 1467, indicating the toys were likely bumped or jumped on by the baby."
+    },
+    {
+      "video": "5352022985",
+      "qid": "4",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "0",
+      "new_pred": 2,
+      "new_raw_answer": "ANSWER: C\nREASON: In the first frame, the dog is present in the snowy area alongside the person walking, indicating it follows the adult."
+    },
+    {
+      "video": "2716277960",
+      "qid": "8",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "0",
+      "new_pred": 1,
+      "new_raw_answer": "ANSWER: B\nREASON: The caption mentions \"People on a bridge over water\" with bicycles being ridden, indicating the two men are cycling."
+    },
+    {
+      "video": "3489439407",
+      "qid": "4",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "1",
+      "new_pred": 0,
+      "new_raw_answer": "ANSWER: A\nREASON: The caption in Frame 369 mentions \"various objects like papers and electronic devices\" on the table, and the persistence score is highest for that frame, indicating the most likely items the woman might be holding."
+    },
+    {
+      "video": "9873067604",
+      "qid": "7",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "1",
+      "new_pred": 2,
+      "new_raw_answer": "ANSWER: C\nREASON: The caption mentions the woman interacting with the children and the children having engaged expressions, suggesting a turn toward the head and a smile."
+    },
+    {
+      "video": "3502722122",
+      "qid": "5",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "2",
+      "new_pred": 1,
+      "new_raw_answer": "ANSWER: B\nREASON: The caption describes the child holding the book, indicating they interact with it by reaching out to touch it."
+    },
+    {
+      "video": "5658916668",
+      "qid": "3",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "3",
+      "new_pred": 2,
+      "new_raw_answer": "ANSWER: C\nREASON: The caption in the final frame shows a person sitting in the snow and a partially visible red object, indicating the man likely tripped by another person."
+    },
+    {
+      "video": "5586394125",
+      "qid": "6",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "1",
+      "new_pred": 3,
+      "new_raw_answer": "ANSWER: D\nREASON: The caption in Frame 180 shows a person in a white top and blue shorts feeding water containers to the dog."
+    },
+    {
+      "video": "4483447009",
+      "qid": "4",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "0",
+      "new_pred": 3,
+      "new_raw_answer": "ANSWER: D\nREASON: The duck approaches the fence and then moves away from it."
+    },
+    {
+      "video": "2810112808",
+      "qid": "0",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "1",
+      "new_pred": 3,
+      "new_raw_answer": "ANSWER: D\nREASON: The man in red is sitting back, looking at the cards as the woman in black is drawing them."
+    },
+    {
+      "video": "3939145327",
+      "qid": "3",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "1",
+      "new_pred": 2,
+      "new_raw_answer": "ANSWER: C\nREASON: The caption in Frame 1107 shows the child on the tricycle with a teddy bear, wearing a light blue shirt and pink pants, and the tricycle has red and white ropes, indicating the child stopped riding."
+    },
+    {
+      "video": "3502722122",
+      "qid": "1",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "4",
+      "new_pred": 1,
+      "new_raw_answer": "ANSWER: B\nREASON: The frames show the child holding a green book but do not indicate any action taken with the green back page."
+    },
+    {
+      "video": "9873067604",
+      "qid": "6",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "1",
+      "new_pred": 3,
+      "new_raw_answer": "ANSWER: D\nREASON: The frames show children sitting in a car with visible faces and interactions, but there is no evidence of a person touching a girl's head."
+    },
+    {
+      "video": "2716277960",
+      "qid": "2",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "4",
+      "new_pred": 2,
+      "new_raw_answer": "ANSWER: C\nREASON: The caption mentions \"Bicycles being ridden by individuals\" in the forest, indicating the two men are biking."
+    },
+    {
+      "video": "4136617240",
+      "qid": "3",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "2",
+      "new_pred": 0,
+      "new_raw_answer": "ANSWER: A\nREASON: The caption describes the cat as \"resting on a chair\" in multiple frames."
+    },
+    {
+      "video": "2885091387",
+      "qid": "4",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "3",
+      "new_pred": 1,
+      "new_raw_answer": "ANSWER: B\nREASON: The caption in frame 1052 describes the man in blue as \"relaxed himself\" while the vehicle navigates the muddy trail."
+    },
+    {
+      "video": "6018514357",
+      "qid": "8",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "0",
+      "new_pred": 1,
+      "new_raw_answer": "ANSWER: B\nREASON: The caption mentions the child sliding down the slide and a man standing nearby, suggesting the baby turned around to look at the man."
+    },
+    {
+      "video": "3249402410",
+      "qid": "8",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "4",
+      "new_pred": 3,
+      "new_raw_answer": "ANSWER: D\nREASON: The caption mentions \"large metal bowls containing shredded cheese\" which suggests she added cheese after spreading the sauce."
+    },
+    {
+      "video": "3175315183",
+      "qid": "3",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "0",
+      "new_pred": 4,
+      "new_raw_answer": "ANSWER: E\nREASON: The caption mentions the baby is lying on a colorful play mat with animal designs and toys hanging above, suggesting the baby is resting or sleeping in a safe, stable position."
+    },
+    {
+      "video": "2920952624",
+      "qid": "2",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "1",
+      "new_pred": 2,
+      "new_raw_answer": "ANSWER: C\nREASON: The frame shows the shorter woman holding a yellow bowl and a large spoon, indicating she stirs her dish with a spoon."
+    },
+    {
+      "video": "2920952624",
+      "qid": "6",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "2",
+      "new_pred": 1,
+      "new_raw_answer": "ANSWER: B\nREASON: The caption in Frame 198 shows stools and appliances in the background, indicating the shorter woman likely steps up on a stool to reach the frying pan."
+    },
+    {
+      "video": "14012319794",
+      "qid": "5",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "4",
+      "new_pred": 3,
+      "new_raw_answer": "ANSWER: D\nREASON: The frames show the girl walking away from the tent after she got the flag."
+    },
+    {
+      "video": "9735768590",
+      "qid": "7",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "1",
+      "new_pred": 0,
+      "new_raw_answer": "ANSWER: A\nREASON: The caption in Frame 50 shows the baby being held by a person with dark hair, indicating the woman is using her hand (likely with her tongue tucked in) to get the baby's attention."
+    },
+    {
+      "video": "6136926089",
+      "qid": "6",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "4",
+      "new_pred": 0,
+      "new_raw_answer": "ANSWER: A\nREASON: The child is climbing the stairs, so once they reach the top, they would move backwards."
+    },
+    {
+      "video": "6136926089",
+      "qid": "3",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "1",
+      "new_pred": 0,
+      "new_raw_answer": "ANSWER: A\nREASON: The caption in Frame 625 describes a child on a yellow slide, indicating the child is interacting with the slide by being on it."
+    },
+    {
+      "video": "11276567104",
+      "qid": "1",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "4",
+      "new_pred": 1,
+      "new_raw_answer": "ANSWER: B\nREASON: The priest patting the woman in white likely did it to prevent her from falling when she stood up."
+    },
+    {
+      "video": "6163877860",
+      "qid": "5",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "4",
+      "new_pred": 2,
+      "new_raw_answer": "ANSWER: C\nREASON: The caption in Frame 657 shows the baby \"playing on a gray sofa\" and Frame 795 mentions the baby is \"on a gray sofa\" with no other furniture present, indicating the baby was bouncing up and down on the sofa."
+    },
+    {
+      "video": "8563398032",
+      "qid": "1",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "3",
+      "new_pred": 1,
+      "new_raw_answer": "ANSWER: B\nREASON: The caption mentions papers and cups on the table, suggesting the man with the plain black shirt moved his hands in front of him to show the object."
+    },
+    {
+      "video": "6793786769",
+      "qid": "4",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "2",
+      "new_pred": 1,
+      "new_raw_answer": "ANSWER: B\nREASON: The child turns toward the cameraman when the person approaches."
+    },
+    {
+      "video": "8547321641",
+      "qid": "1",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "4",
+      "new_pred": 2,
+      "new_raw_answer": "ANSWER: C\nREASON: The adult stands in the sand with bare feet, directly in front of the child, indicating they are focused on the baby's well-being."
+    },
+    {
+      "video": "11276567104",
+      "qid": "4",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "2",
+      "new_pred": 0,
+      "new_raw_answer": "ANSWER: A\nREASON: The caption describes the woman with blonde hair facing the priest, suggesting she listens to him."
+    },
+    {
+      "video": "4626535366",
+      "qid": "0",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "3",
+      "new_pred": 4,
+      "new_raw_answer": "ANSWER: E\nREASON: The boy is pointing to another boy, likely indicating something on the ground, suggesting he is pointing to trash."
+    },
+    {
+      "video": "7691172922",
+      "qid": "4",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "4",
+      "new_pred": 2,
+      "new_raw_answer": "ANSWER: C\nREASON: The frames show the dog standing with its tongue out, indicating a friendly, possibly playful response to the lady."
+    },
+    {
+      "video": "3489439407",
+      "qid": "3",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "2",
+      "new_pred": 1,
+      "new_raw_answer": "ANSWER: B\nREASON: The caption mentions the person is talking on a phone while wearing headphones, indicating they likely use headphones to hear the person on the other end of the call."
+    },
+    {
+      "video": "6160414832",
+      "qid": "0",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "3",
+      "new_pred": 4,
+      "new_raw_answer": "ANSWER: E\nREASON: The caption mentions children are present and engaged in the activity, suggesting they may have asked each other how to determine the number to play."
+    },
+    {
+      "video": "4123211145",
+      "qid": "6",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "3",
+      "new_pred": 4,
+      "new_raw_answer": "ANSWER: E\nREASON: The frame shows the girl adjusting her shirt in the middle of the video."
+    },
+    {
+      "video": "3562017845",
+      "qid": "4",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "3",
+      "new_pred": 0,
+      "new_raw_answer": "ANSWER: A\nREASON: The bird at the back is standing on muddy ground, indicating it settled down."
+    },
+    {
+      "video": "4126010904",
+      "qid": "6",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "1",
+      "new_pred": 0,
+      "new_raw_answer": "ANSWER: A\nREASON: After the tall man lifts his face from the TV, he begins talking to the other person in the frame."
+    },
+    {
+      "video": "10109097475",
+      "qid": "5",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "2",
+      "new_pred": 4,
+      "new_raw_answer": "ANSWER: E\nREASON: The man in red looks at the plane from a distance and then moves away from it."
+    },
+    {
+      "video": "6096998186",
+      "qid": "3",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "3",
+      "new_pred": 0,
+      "new_raw_answer": "ANSWER: A\nREASON: The caption describes the blonde woman holding small toys, which are likely the souvenirs she is interacting with."
+    },
+    {
+      "video": "4179163342",
+      "qid": "8",
+      "recorded_acc_qa": true,
+      "new_acc_qa": false,
+      "recorded_pred": "4",
+      "new_pred": 0,
+      "new_raw_answer": "ANSWER: A\nREASON: The caption mentions children raising hands and standing nearby, suggesting the man's lips are moving as part of a performance or interaction with the children."
+    },
+    {
+      "video": "14012319794",
+      "qid": "2",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "1",
+      "new_pred": 4,
+      "new_raw_answer": "ANSWER: E\nREASON: The girl is holding a bottle of liquid (syrup) and is wearing a pink jacket and pants, suggesting she might be preparing to drink or consume something."
+    },
+    {
+      "video": "4087013668",
+      "qid": "3",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "2",
+      "new_pred": 3,
+      "new_raw_answer": "ANSWER: D\nREASON: The child is shown interacting with the bowl of orange peels in multiple frames, with the highest scoring frame (180) depicting the child playing with the peels and the orange tool lying on the paper."
+    },
+    {
+      "video": "7888256388",
+      "qid": "6",
+      "recorded_acc_qa": false,
+      "new_acc_qa": true,
+      "recorded_pred": "4",
+      "new_pred": 2,
+      "new_raw_answer": "ANSWER: C\nREASON: The caption in frame 300 shows the dog walking on the tiled floor while a child in a pink shirt and yellow shoes stands nearby, indicating the dog was likely being patted by the child."
+    }
+  ],
+  "n_flips": 118
+}

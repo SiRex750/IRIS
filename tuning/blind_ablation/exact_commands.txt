@@ -1,0 +1,33 @@
+# Exact commands run for the blind-ablation diagnostic (val_confirm split).
+
+# 1. Start the answerer backend (llama-server), same model/config as the recorded run.
+/usr/local/lib/ollama/llama-server -m /home/ccbd/models/granite4-micro/granite-4.0-micro-Q4_K_M.gguf \
+  --host 127.0.0.1 --port 8091 --alias granite4:micro -ngl 999 -c 8192
+
+# 2. Preflight checks (model hash, cache_prompt, git state, index cache) -- see environment.json.
+
+# 3. Run the ablation harness (idempotent / resumable via tuning/blind_ablation/arm_A_checkpoint.jsonl
+#    and tuning/blind_ablation/arm_BCD_checkpoint.jsonl -- rerunning this command skips already-scored
+#    questions rather than redoing them).
+python3 scripts/blind_ablation_eval.py
+
+# Run history (this diagnostic required 3 launches due to interruptions unrelated to the
+# pipeline itself: an intentional stop, then a killed process caused by a systemd session
+# ending without lingering enabled -- fixed with `loginctl enable-linger ccbd` after diagnosis):
+#   launch 1: killed intentionally at ~500/639 through arm A (no checkpoint existed yet at that
+#             point in development -- this progress was NOT recoverable, script was patched to
+#             checkpoint incrementally afterward)
+#   launch 2: reached 141/639 checkpointed, then killed by systemd user-session cleanup
+#             (Linger=no) when a login session ended
+#   launch 3: resumed from the 141/639 checkpoint, ran to completion of arm A (639/639),
+#             reproduction gate FAILED (345/639 vs recorded 349/639), script stopped per
+#             task instructions -- arms B/C/D were never run.
+
+# Result artifacts:
+#   tuning/blind_ablation/arm_A_full_per_question.csv
+#   tuning/blind_ablation/arm_A_checkpoint.jsonl
+#   tuning/blind_ablation/captions_dump.json
+#   tuning/blind_ablation/reproduction_gate_FAILED.json
+#   tuning/blind_ablation/environment.json
+#   tuning/blind_ablation/protected_hashes_before.txt
+#   tuning/blind_ablation/protected_hashes_after.txt

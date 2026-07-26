@@ -1,0 +1,59 @@
+{
+  "git": {
+    "head_sha": "f158566575410f8a22b68d7c1cbd3960a3c2a7cc",
+    "branch_at_run_start": "feat/qvhighlights-dataset-setup",
+    "tree_clean_at_run_start": true,
+    "unrelated_preexisting_modified_file": "external_data/qvhighlights/manifests/external_train.jsonl (present before this task started, not touched by it)"
+  },
+  "model": {
+    "alias": "granite4:micro",
+    "gguf_path": "/home/ccbd/models/granite4-micro/granite-4.0-micro-Q4_K_M.gguf",
+    "sha256": "97c417dcc0534b0737c74016fb2af083cb17c3b51eaac621192d23961b7024eb",
+    "expected_sha256": "97c417dcc0534b0737c74016fb2af083cb17c3b51eaac621192d23961b7024eb",
+    "sha256_match": true,
+    "quantization": "Q4_K_M",
+    "n_params": 3402836480
+  },
+  "server": {
+    "process": "llama-server",
+    "cmdline": "/usr/local/lib/ollama/llama-server -m /home/ccbd/models/granite4-micro/granite-4.0-micro-Q4_K_M.gguf --host 127.0.0.1 --port 8091 --alias granite4:micro -ngl 999 -c 8192",
+    "endpoint": "http://127.0.0.1:8091/v1",
+    "cache_prompt_false_confirmed": true,
+    "cache_prompt_check_method": "sent identical prompt twice, confirmed timings.cache_n == 0 and usage.prompt_tokens_details.cached_tokens == 0 on both calls"
+  },
+  "captioner": {
+    "backend": "minicpm",
+    "model": "minicpm-v4.6",
+    "endpoint": "http://localhost:11434 (ollama)"
+  },
+  "index_cache": {
+    "dir": "tuning/index_cache_val_confirm_e2e",
+    "config_hash": "4edae64ed40256e3",
+    "n_npz_files_confirmed": 112,
+    "n_fresh_ingests_this_run": 0,
+    "n_cache_hits_this_run": 112
+  },
+  "python": "3.13.12",
+  "packages": {
+    "numpy": "1.26.4",
+    "scipy": "1.15.3",
+    "pandas": "2.3.3",
+    "requests": "2.32.5",
+    "openai": "2.45.0",
+    "av": "15.1.0"
+  },
+  "protected_files_hash_check": {
+    "method": "sha256sum of all 6 protected files, before task start and after all runs completed",
+    "result": "byte-identical before and after (see protected_hashes_before.txt / protected_hashes_after.txt)"
+  },
+  "reproduction_gate": {
+    "result": "FAILED",
+    "recorded": "349/639 = 0.5462",
+    "observed": "345/639 = 0.5399",
+    "n_flipped_questions": 118,
+    "correct_to_wrong": 61,
+    "wrong_to_correct": 57,
+    "arms_B_C_D_run": false,
+    "reason_not_run": "task instructions require stopping immediately on a failed reproduction gate rather than proceeding"
+  }
+}
