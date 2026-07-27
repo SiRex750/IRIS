@@ -1,0 +1,62 @@
+{
+  "generated_utc": "2026-07-27T00:00:00Z",
+  "box": {
+    "hostname": "worker-1",
+    "uname_a": "Linux worker-1 6.8.0-134-generic #134~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Tue Jun 30 14:05:04 UTC x86_64 x86_64 x86_64 GNU/Linux",
+    "repo_path": "/home/ccbd/IRIS-1"
+  },
+  "supersedes": {
+    "file": "tuning/prerun_fixes/A2_binary_inventory.json",
+    "reason": "That inventory ran on a Windows checkout and found zero llama-server binaries, which was uninformative since the recorded val_confirm_e2e run executed on Linux. This re-run happens on Linux."
+  },
+  "search_command": "find / -iname 'llama-server*' -type f 2>/dev/null",
+  "hits": [
+    {
+      "path": "/home/ccbd/.claude/jobs/de60ff71/tmp/build/llama.cpp/build/bin/llama-server",
+      "sha256": "250d2eb35a6ddfa1df060599f8bc3169944ef60a77429b2cc395e062859e0a06",
+      "version_output": "version: 1 (1a064ab)\nbuilt with GNU 12.3.0 for Linux x86_64",
+      "mtime": "2026-07-24 11:06:37 +0530",
+      "file_type": "ELF 64-bit LSB pie executable, x86-64, dynamically linked, not stripped",
+      "stability_warning": "This binary lives inside another background job's ($CLAUDE_JOB_DIR)/tmp scratch directory (job id de60ff71, not this task's job), which is cleaned up when that job is deleted. It is NOT a stable location to pin for the official run."
+    },
+    {
+      "path": "/home/ccbd/.claude/jobs/de60ff71/tmp/build/llama.cpp/examples/llama-eval/llama-server-simulator.py",
+      "note": "Matches the search glob ('llama-server*') but is a Python simulator script, not a real llama-server binary. Excluded from the binary inventory below."
+    },
+    {
+      "path": "/usr/local/lib/ollama/llama-server",
+      "sha256": "234b05b2138264f8fb263c3205e85f4c290e8afe5067e280a4f6f90cdac5696b",
+      "version_output": "version: 1 (b4d6c7d8f)\nbuilt with GNU 13.3.1 for Linux x86_64",
+      "mtime": "2026-07-23 05:43:43 +0530",
+      "file_type": "ELF 64-bit LSB executable, x86-64, dynamically linked, stripped",
+      "note": "This is Ollama's bundled runner -- the binary used by the recorded blind-ablation run per tuning/blind_ablation/environment.json (cmdline: /usr/local/lib/ollama/llama-server -m ... --alias granite4:micro ...). It is at a stable, system-owned path."
+    }
+  ],
+  "b10099_1a064ab_source_build_check": {
+    "source_checkout_found": "/home/ccbd/.claude/jobs/de60ff71/tmp/build/llama.cpp",
+    "git_rev_parse_HEAD": "1a064ab0921238c1daa397d6f4a900ef33884de2",
+    "1a064ab_is_ancestor_of_HEAD": true,
+    "git_describe_tags": "b10099",
+    "cmake_cache_flags": {
+      "GGML_CUDA": "ON",
+      "CMAKE_CUDA_ARCHITECTURES": "89",
+      "CMAKE_CUDA_COMPILER": "/usr/local/cuda-12.6/bin/nvcc",
+      "CUDAToolkit_version": "12.6.20"
+    },
+    "verdict": "This checkout's HEAD is exactly commit 1a064ab, tagged b10099, built with GGML_CUDA=ON targeting sm_89 via CUDA 12.6 -- an exact match to the recorded val_confirm_e2e run's binary spec (tuning/val_confirm_e2e_report.md lines 25-27). It IS present on this box today. However it lives at the ephemeral job-scratch path noted above, not a stable location. The original build used by the recorded run is gone (no path to it was ever recorded in that run's artifacts) -- this is a separately-built copy matching the same source spec, found today, not the original binary."
+  },
+  "ollama_vs_source_build_comparison": {
+    "ollama_sha256": "234b05b2138264f8fb263c3205e85f4c290e8afe5067e280a4f6f90cdac5696b",
+    "source_build_sha256": "250d2eb35a6ddfa1df060599f8bc3169944ef60a77429b2cc395e062859e0a06",
+    "identical": false,
+    "ollama_version_tag": "b4d6c7d8f",
+    "source_build_version_tag": "1a064ab",
+    "verdict": "Different builds, different llama.cpp versions/commits, different compilers (GCC 13.3.1 vs 12.3.0). Ollama's bundled runner is NOT the b10099/1a064ab build and must not be substituted for it -- val_confirm_e2e_report.md explicitly chose the from-source build over Ollama's backend because Ollama's LlamaBackend silently drops the cache_prompt=false parameter required for the seed-based determinism fix."
+  },
+  "pin_recommendation": {
+    "binary_to_pin": "the from-source build at commit 1a064ab / tag b10099 (GGML_CUDA=ON, sm_89, CUDA 12.6) -- matching tuning/val_confirm_e2e_report.md's recorded spec, NOT /usr/local/lib/ollama/llama-server",
+    "reference_sha256_found_today": "250d2eb35a6ddfa1df060599f8bc3169944ef60a77429b2cc395e062859e0a06",
+    "action_required_before_official_run": "The binary matching this hash currently exists only at an ephemeral job-scratch path (/home/ccbd/.claude/jobs/de60ff71/tmp/...) that will be deleted when that job is cleaned up. It must be copied to a stable, repo-external path (e.g. /usr/local/bin/llama-server-b10099 or similar) and that stable path's SHA-256 re-verified against 250d2eb3...06 before the official run starts. This was NOT done as part of this verification-only task -- copying/installing a binary is a filesystem write beyond 'verification', and pinning to a location that will vanish would be worse than not pinning at all.",
+    "status": "NOT YET PINNED -- open item, see final_report_gpubox.md section 6."
+  }
+}

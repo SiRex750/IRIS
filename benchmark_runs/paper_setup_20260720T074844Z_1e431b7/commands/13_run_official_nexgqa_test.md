@@ -36,3 +36,20 @@ the same uncertainty one level down, so this was left as an open item rather tha
 silently "fixed." The correct fix is to run split_guard population on the box (or
 from the artifact store) that actually holds the hash-verified 990-video test
 files, then re-run the command above.
+
+## Correction (2026-07-27, D1/D2/A2 re-run on worker-1)
+
+This box (`worker-1`, `/home/ccbd/IRIS-1`) does hold the hash-verified real
+dataset -- `eval/data/nextqa/test.csv` and `gsub_test.json` both match
+`dataset_manifest.json`'s recorded `files_written` hashes (see
+`tuning/prerun_fixes/D1_dataset_verification_gpubox.json`). Per that
+verification, `official_test.video_ids`/`question_ids` in this directory's
+`split_manifest.json` were populated mechanically from `gsub_test.json`'s
+990 gold-bearing videos / 5553 questions (id format `{video_id}::{qkey}`).
+`guard_official_test_command("official_test")` was re-executed and now
+returns with no exception (previously: `SystemExit(3)`). See
+`tuning/prerun_fixes/D2_split_guard_status_gpubox.md` for the exact commands
+and before/after output.
+
+**This populates the partition only -- it does not authorise or constitute
+running the official test split.** The command above remains NOT EXECUTED.

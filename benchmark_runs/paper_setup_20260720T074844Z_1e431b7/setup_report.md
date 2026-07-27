@@ -161,6 +161,27 @@ this *checkout* has not been correctly synced to it. Do not read this report as
 from wherever `dataset_manifest.json`'s `files_written` hashes actually live
 before the official run can proceed here."
 
+## Correction (2026-07-27, D1/D2/A2 re-run on worker-1)
+
+The re-sync called for above has happened, on a different box than the one that
+wrote the correction directly above this one. On `worker-1`
+(`/home/ccbd/IRIS-1`), `eval/data/nextqa/{test.csv,gsub_test.json,val.csv,
+gsub_val.json}` all match `dataset_manifest.json`'s `files_written` hashes,
+`gsub_val.json` and `gsub_test.json` are distinct (not byte-identical), all 990
+test `.mp4` files and 562/567 val `.mp4` files are present, and
+`tuning/index_cache_val_confirm_e2e/` holds all 112 expected `.npz` files under
+config-hash `4edae64ed40256e3`. Full detail:
+`tuning/prerun_fixes/D1_dataset_verification_gpubox.json`.
+
+`split_guard.py`'s `official_test` partition in this directory's
+`split_manifest.json` was mechanically populated from the verified
+`gsub_test.json` (990 videos / 5553 questions) and
+`guard_official_test_command("official_test")` now passes (previously
+`SystemExit(3)`). See `tuning/prerun_fixes/D2_split_guard_status_gpubox.md`.
+**The official test split has still not been run** -- this only removes the
+split_guard blocker; see `tuning/prerun_fixes/final_report_gpubox.md` for
+overall GO/NO-GO and the A2 binary pin needed before the run itself.
+
 ## Exact next command to run the first smoke test
 
 Once the above blockers are resolved (at minimum: official dataset acquired and verified per

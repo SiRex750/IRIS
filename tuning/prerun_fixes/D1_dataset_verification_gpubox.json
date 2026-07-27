@@ -1,0 +1,97 @@
+{
+  "generated_utc": "2026-07-27T00:00:00Z",
+  "box": {
+    "hostname": "worker-1",
+    "uname_a": "Linux worker-1 6.8.0-134-generic #134~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Tue Jun 30 14:05:04 UTC x86_64 x86_64 x86_64 GNU/Linux",
+    "repo_path": "/home/ccbd/IRIS-1"
+  },
+  "supersedes": {
+    "file": "tuning/prerun_fixes/D1_dataset_verification.json",
+    "reason": "That artifact ran on a Windows checkout (C:\\Users\\swara\\IRIS) that did not hold the real dataset or the index cache -- val.csv/gsub_val.json were mismatched/stale, test.csv was entirely absent, gsub_val.json and gsub_test.json were byte-identical, and only 91/990 test mp4s were present. It also contained a counting bug: it reported gsub_val_json_questions=2997 and gsub_test_json_questions=2997 by counting len(gsub[video]) (i.e. the 3 dict keys duration/location/fps per video entry), not len(gsub[video]['location']) (actual per-video question count). This artifact re-runs D1 on the correct box using the corrected counting logic."
+  },
+  "verdict": "GO -- this box holds the real dataset. All hashes, counts, and cross-checks match dataset_manifest.json.",
+  "step1_sha256_and_manifest_comparison": {
+    "eval/data/nextqa/val.csv": {
+      "local_sha256": "ee0ef210ae341bec53fdeb723ae54958307ed2e49988d2d3763d3c22abf4201a",
+      "official_source_file_sha256": "4f99f7c11470c22017cf4fecdc91a6bb350b1c51e84a6005fb45d36ee50895d4",
+      "files_written_sha256": "ee0ef210ae341bec53fdeb723ae54958307ed2e49988d2d3763d3c22abf4201a",
+      "match_official_source": false,
+      "match_files_written": true,
+      "note": "Expected mismatch vs official_source: files_written records the post-schema-fix file (video_id->video rename, answer text->index resolution per dataset_manifest.schema_fixes_applied), not the raw downloaded file. files_written match is the relevant check and it passes."
+    },
+    "eval/data/nextqa/test.csv": {
+      "local_sha256": "a8d67c5a648c9da8fb4f6fa9939ad1e31fb43f9a92fdab48ec38a1cd622e23db",
+      "official_source_file_sha256": "62c5637f12b96bb09fb099ae5c86495f96da08926a94700f1863c65ac5ca8b90",
+      "files_written_sha256": "a8d67c5a648c9da8fb4f6fa9939ad1e31fb43f9a92fdab48ec38a1cd622e23db",
+      "match_official_source": false,
+      "match_files_written": true,
+      "note": "Same schema-fix explanation as val.csv."
+    },
+    "eval/data/nextqa/gsub_val.json": {
+      "local_sha256": "527f402851836224aa03c9d4b0016b858a678d21596a2348eb2bdb774c74970a",
+      "official_source_file_sha256": "4feb23e53102cb2d4779e857ff8f9fd9b552fc38435621406b2ed9b0bf76204b",
+      "files_written_sha256": "527f402851836224aa03c9d4b0016b858a678d21596a2348eb2bdb774c74970a",
+      "match_official_source": false,
+      "match_files_written": true,
+      "note": "gsub files are JSON annotations, not CSVs -- no schema fix was applied to them per dataset_manifest.schema_fixes_applied, but the official_source hash mismatch is still recorded as-is from dataset_manifest.json; files_written is the correct comparator for what this pipeline consumes and it matches."
+    },
+    "eval/data/nextqa/gsub_test.json": {
+      "local_sha256": "0c16c31699238a0f2b8ace45aeed7f193149ce2f011d6ed4f1ef7170ef5d41e9",
+      "official_source_file_sha256": "0c16c31699238a0f2b8ace45aeed7f193149ce2f011d6ed4f1ef7170ef5d41e9",
+      "files_written_sha256": "0c16c31699238a0f2b8ace45aeed7f193149ce2f011d6ed4f1ef7170ef5d41e9",
+      "match_official_source": true,
+      "match_files_written": true
+    }
+  },
+  "step2_gsub_val_not_equal_gsub_test": {
+    "gsub_val_sha256": "527f402851836224aa03c9d4b0016b858a678d21596a2348eb2bdb774c74970a",
+    "gsub_test_sha256": "0c16c31699238a0f2b8ace45aeed7f193149ce2f011d6ed4f1ef7170ef5d41e9",
+    "byte_identical": false,
+    "assertion_result": "PASS"
+  },
+  "step3_corrected_counts": {
+    "counting_method": "n_video_entries = len(gsub); n_videos_w_gold = sum(1 for v in gsub.values() if v.get('location')); n_questions = sum(len(v['location']) for v in gsub.values() if v.get('location'))",
+    "val": {
+      "n_video_entries": 570,
+      "n_videos_with_gold": 567,
+      "n_questions": 3358,
+      "expected_from_dataset_manifest": {"actual_videos_with_gold": 567, "actual_questions_with_gold": 3358},
+      "match": true
+    },
+    "test": {
+      "n_video_entries": 999,
+      "n_videos_with_gold": 990,
+      "n_questions": 5553,
+      "expected_from_dataset_manifest": {"actual_videos_with_gold": 990, "actual_questions_with_gold": 5553},
+      "match": true,
+      "note": "999 video entries with 990 non-empty 'location' -- this is the expected shape per task instructions, not a defect."
+    }
+  },
+  "step4_csv_stats": {
+    "val.csv": {"rows": 3358, "unique_videos": 567},
+    "test.csv": {"rows": 5553, "unique_videos": 990},
+    "note": "CSV row counts match gsub question counts exactly and CSV unique-video counts match gsub with-gold video counts exactly, for both splits."
+  },
+  "step5_split_manifest_overlap": {
+    "split_manifest_tune_videos": 454,
+    "split_manifest_confirm_videos": 113,
+    "split_manifest_tune_plus_confirm": 567,
+    "val_gsub_video_entries": 570,
+    "overlap_count": 567,
+    "verdict": "Full overlap (567/567) between split_manifest's tune+confirm video set and the val gsub file's video entries. The val files are conclusively the val split."
+  },
+  "step6_direct_val_test_intersection": {
+    "method": "set(gsub_val.keys()) & set(gsub_test.keys()), computed directly, not read from any manifest",
+    "gsub_val_video_ids": 570,
+    "gsub_test_video_ids": 999,
+    "intersection_count": 0,
+    "manifest_recorded_val_test_video_overlap": 0,
+    "match": true
+  },
+  "step7_mp4_inventory": {
+    "mp4_directory": "eval/data/nextqa/NExTVideo_flat",
+    "total_mp4_files_flat_dir": 1552,
+    "test": {"mp4_present": 990, "expected": 990, "match": true},
+    "val": {"mp4_present": 562, "expected_per_manifest_videos_successfully_downloaded": 562, "match": true}
+  }
+}
