@@ -1,0 +1,74 @@
+{
+  "answerer_provenance": {
+    "endpoint": "http://127.0.0.1:8091/v1",
+    "listening_port": 8091,
+    "pid": 65212,
+    "cmdline": "/home/ccbd/.local/iris/bin/llama-server-b10099 -m /home/ccbd/.ollama/models/blobs/sha256-97c417dcc0534b0737c74016fb2af083cb17c3b51eaac621192d23961b7024eb --host 127.0.0.1 --port 8091 --alias granite4:micro -ngl 999 -c 8192 --parallel 1",
+    "binary_path": "/home/ccbd/.local/iris/bin/llama-server-b10099",
+    "binary_sha256": "250d2eb35a6ddfa1df060599f8bc3169944ef60a77429b2cc395e062859e0a06",
+    "binary_version_output": "version: 1 (1a064ab)\nbuilt with GNU 12.3.0 for Linux x86_64",
+    "gguf_path": null,
+    "gguf_sha256": null,
+    "gguf_sha256_matches_expected": null,
+    "models_endpoint_response": {
+      "models": [
+        {
+          "name": "granite4:micro",
+          "model": "granite4:micro",
+          "modified_at": "",
+          "size": "",
+          "digest": "",
+          "type": "model",
+          "description": "",
+          "tags": [
+            ""
+          ],
+          "capabilities": [
+            "completion"
+          ],
+          "parameters": "",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "",
+            "families": [
+              ""
+            ],
+            "parameter_size": "",
+            "quantization_level": ""
+          }
+        }
+      ],
+      "object": "list",
+      "data": [
+        {
+          "id": "granite4:micro",
+          "aliases": [
+            "granite4:micro"
+          ],
+          "tags": [],
+          "object": "model",
+          "created": 1785159574,
+          "owned_by": "llamacpp",
+          "meta": {
+            "vocab_type": 2,
+            "n_vocab": 100352,
+            "n_ctx": 8192,
+            "n_ctx_train": 131072,
+            "n_embd": 2560,
+            "n_params": 3402836480,
+            "size": 2095933440,
+            "ftype": "Q4_K - Medium"
+          }
+        }
+      ]
+    },
+    "sampler_params_sent": {
+      "temperature": 0.0,
+      "top_k": 1,
+      "top_p": 1.0,
+      "seed": 42,
+      "cache_prompt": false
+    }
+  }
+}

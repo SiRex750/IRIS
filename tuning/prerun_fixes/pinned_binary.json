@@ -1,0 +1,39 @@
+{
+  "generated_utc": "2026-07-27T13:22:13Z",
+  "box": "worker-1 (/home/ccbd/IRIS-1)",
+  "source_path": "/home/ccbd/.claude/jobs/de60ff71/tmp/build/llama.cpp/build/bin/llama-server",
+  "source_sha256": "250d2eb35a6ddfa1df060599f8bc3169944ef60a77429b2cc395e062859e0a06",
+  "source_status_at_copy_time": "still present, hash re-verified immediately before copy and matched the recorded A2 hash exactly",
+  "destination_path": "/home/ccbd/.local/iris/bin/llama-server-b10099",
+  "destination_sha256": "250d2eb35a6ddfa1df060599f8bc3169944ef60a77429b2cc395e062859e0a06",
+  "hashes_match": true,
+  "destination_note": "/opt/iris/bin was not writable by this user (uid 1001, no passwordless sudo) -- used /home/ccbd/.local/iris/bin instead. This is still a stable, job-independent path outside the repo and outside any $CLAUDE_JOB_DIR scratch tree; it is not touched by job cleanup.",
+  "version_output_from_destination": "version: 1 (1a064ab)\nbuilt with GNU 12.3.0 for Linux x86_64",
+  "git_provenance": {
+    "commit": "1a064ab0921238c1daa397d6f4a900ef33884de2",
+    "tag": "b10099",
+    "build_flags": "GGML_CUDA=ON, CMAKE_CUDA_ARCHITECTURES=89, CUDA 12.6.20 toolkit"
+  },
+  "ldd_dependencies": {
+    "resolved_from_job_scratch_before_copy": [
+      "libllama-server-impl.so",
+      "libllama-common.so.0",
+      "libmtmd.so.0",
+      "libllama.so.0",
+      "libggml.so.0",
+      "libggml-base.so.0",
+      "libggml-cpu.so.0",
+      "libggml-cuda.so.0"
+    ],
+    "action_taken": "Copied all *.so* files from the source build's bin/ directory (including unversioned and fully-versioned symlink targets, e.g. libggml-base.so, libggml-base.so.0, libggml-base.so.0.17.0) into the destination directory alongside the binary.",
+    "resolved_from_stable_system_paths_no_copy_needed": [
+      "libstdc++.so.6, libgcc_s.so.1, libc.so.6, libm.so.6, libgomp.so.1, libdl.so.2, libpthread.so.0, librt.so.1 (system libc/libstdc++)",
+      "libcudart.so.12, libcublas.so.12, libcublasLt.so.12 (/usr/local/cuda, system CUDA toolkit install)",
+      "libcuda.so.1 (/lib/x86_64-linux-gnu, NVIDIA driver)"
+    ],
+    "runtime_requirement": "LD_LIBRARY_PATH must include /home/ccbd/.local/iris/bin when launching the pinned binary, since it has no rpath back to the destination directory. Verified: `ldd` against the destination binary with LD_LIBRARY_PATH=/home/ccbd/.local/iris/bin set resolves every previously-job-scratch-linked library to the destination directory; without it, ldd would still show the now-copied libs pointing at the (soon to be deleted) job scratch path since the binary's rpath/runpath was baked in at build time relative to the original build dir -- LD_LIBRARY_PATH is required to override that at launch."
+  },
+  "destination_binary_runs_standalone": true,
+  "verification_command": "LD_LIBRARY_PATH=/home/ccbd/.local/iris/bin /home/ccbd/.local/iris/bin/llama-server-b10099 --version",
+  "verification_output": "version: 1 (1a064ab)\nbuilt with GNU 12.3.0 for Linux x86_64"
+}

@@ -1,0 +1,90 @@
+# Step 1 -- rescue and pin the binary
+
+SRC=/home/ccbd/.claude/jobs/de60ff71/tmp/build/llama.cpp/build/bin/llama-server
+DEST=/home/ccbd/.local/iris/bin/llama-server-b10099   # /opt/iris/bin not writable (uid 1001, no passwordless sudo)
+
+sha256sum "$SRC"   # 250d2eb35a6ddfa1df060599f8bc3169944ef60a77429b2cc395e062859e0a06
+
+mkdir -p /home/ccbd/.local/iris/bin
+cp "$SRC" "$DEST"
+chmod +x "$DEST"
+sha256sum "$DEST"  # 250d2eb35a6ddfa1df060599f8bc3169944ef60a77429b2cc395e062859e0a06 (matches)
+
+ldd "$DEST"        # 8 libs resolve from the doomed job-scratch dir
+cp /home/ccbd/.claude/jobs/de60ff71/tmp/build/llama.cpp/build/bin/*.so* /home/ccbd/.local/iris/bin/
+
+LD_LIBRARY_PATH=/home/ccbd/.local/iris/bin ldd "$DEST"          # now all resolve to destination dir
+LD_LIBRARY_PATH=/home/ccbd/.local/iris/bin "$DEST" --version    # version: 1 (1a064ab) ...
+
+readelf -d "$DEST" | grep RUNPATH   # confirms baked RUNPATH points at job scratch; LD_LIBRARY_PATH overrides it
+
+# Step 1.5 -- clear the stale port-8091 occupant (leftover from the already-
+# committed blind-ablation run, cmdline matched tuning/blind_ablation/environment.json
+# exactly, idle since 2026-07-26 15:16; not the pinned binary, not live work)
+
+kill -TERM 1749577   # stale /usr/local/lib/ollama/llama-server, PID from a prior session
+
+# Step 2 -- serve the pinned binary
+
+GGUF=/home/ccbd/.ollama/models/blobs/sha256-97c417dcc0534b0737c74016fb2af083cb17c3b51eaac621192d23961b7024eb
+LD_LIBRARY_PATH=/home/ccbd/.local/iris/bin nohup /home/ccbd/.local/iris/bin/llama-server-b10099 \
+  -m "$GGUF" \
+  --host 127.0.0.1 --port 8091 --alias granite4:micro \
+  -ngl 999 -c 8192 --parallel 1 \
+  > llama_server_pinned.log 2>&1 &
+
+curl -s http://127.0.0.1:8091/v1/models
+# smoke-test cache_prompt=false honored:
+curl -s -X POST http://127.0.0.1:8091/v1/chat/completions -H "Content-Type: application/json" \
+  -d '{"model":"granite4:micro","messages":[{"role":"user","content":"Say OK."}],"temperature":0.0,"top_p":1.0,"seed":42,"cache_prompt":false,"top_k":1}'
+# -> "timings":{"cache_n":0,...}, "usage":{"prompt_tokens_details":{"cached_tokens":0}}
+
+# Step 3 -- run the determinism gate (via a path-redirecting launcher, no
+# edits to the tracked scripts/val_confirm_e2e_eval.py; see
+# run_determinism_gate.py below for the exact monkeypatches applied)
+
+python3 run_determinism_gate.py
+# equivalent to:
+#   python scripts/val_confirm_e2e_eval.py \
+#     --caption-load tuning/blind_ablation/captions_dump.json \
+#     --repeat 3
+# with TUNING_DIR/PER_QUESTION_CSV/REPORT_PATH/INDEX_CACHE_DIR redirected into
+# tuning/determinism_gate/ (a dedicated fresh cache dir per the script's own
+# design), and aria.generate wrapped to log every raw answer string in call
+# order to raw_answers_log.jsonl (pure instrumentation, no logic change).
+
+# --- run_determinism_gate.py ---
+import json, sys
+from pathlib import Path
+REPO = Path("/home/ccbd/IRIS-1")
+sys.path.insert(0, str(REPO)); sys.path.insert(0, str(REPO / "scripts"))
+import val_confirm_e2e_eval as m
+OUT = REPO / "tuning" / "determinism_gate"; OUT.mkdir(parents=True, exist_ok=True)
+m.TUNING_DIR = OUT
+m.PER_QUESTION_CSV = OUT / "arm_per_question.csv"
+m.REPORT_PATH = OUT / "report.md"
+m.INDEX_CACHE_DIR = OUT / "index_cache"
+raw_log_f = open(OUT / "raw_answers_log.jsonl", "w")
+orig_generate = m.aria.generate
+def logged_generate(*args, **kwargs):
+    raw = orig_generate(*args, **kwargs)
+    raw_log_f.write(json.dumps({"raw": raw}) + "\n"); raw_log_f.flush()
+    return raw
+m.aria.generate = logged_generate
+sys.argv = ["val_confirm_e2e_eval.py", "--caption-load", str(REPO / "tuning/blind_ablation/captions_dump.json"), "--repeat", "3"]
+m.main()
+raw_log_f.close()
+# --- end run_determinism_gate.py ---
+
+# Post-run: renamed arm_per_question_repeat{1,2,3}.csv -> arm_pass{1,2,3}_per_question.csv,
+# val_confirm_e2e_repeat_summary.json -> repeat_summary.json,
+# val_confirm_e2e_environment.json -> environment.json
+# (pure filesystem renames, no data changes)
+
+# Step 4 -- byte-identity analysis (analyze_determinism.py)
+# Loads raw_answers_log.jsonl (1918 lines = 1 smoke-test call + 3x639 answer
+# calls), splits into 3 passes of 639 in call order (single-threaded,
+# sequential -- records list order is identical across repeats), and the 3
+# per-question CSVs (whose row order is independently confirmed identical to
+# each other via video/qid), then compares raw strings and parsed indices.
+python3 analyze_determinism.py

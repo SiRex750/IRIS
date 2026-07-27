@@ -1,0 +1,19 @@
+{
+  "n_scored": 639,
+  "pairwise_identical_raw_strings": {
+    "1v2": 639,
+    "1v3": 639,
+    "2v3": 639,
+    "all3": 639
+  },
+  "parsed_answer_flip_count": 0,
+  "acc_qa_per_pass": [
+    0.539906103286385,
+    0.539906103286385,
+    0.539906103286385
+  ],
+  "acc_qa_mean": 0.539906103286385,
+  "acc_qa_min": 0.539906103286385,
+  "acc_qa_max": 0.539906103286385,
+  "mismatch_indices": []
+}
