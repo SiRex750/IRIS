@@ -171,10 +171,13 @@ def save_frozen_state(state: dict) -> None:
 SPAN_METHOD_D_HALF_WIDTH_S = load_frozen_state()["frozen"].get("span_method_half_width_s", 2.2)
 
 
-def default_predicted_span(retrieved_frames: list[dict], query_embedding=None) -> tuple[float, float]:
+def default_predicted_span(
+    retrieved_frames: list[dict], query_embedding=None, duration_s: float | None = None,
+) -> tuple[float, float]:
     span, _used_clip_anchor = predicted_span_from_frames_peak(
         retrieved_frames, query_embedding,
         half_width_s=SPAN_METHOD_D_HALF_WIDTH_S,
+        duration_s=duration_s,
     )
     return span
 
@@ -285,7 +288,7 @@ def evaluate_config(cfg: IRISConfig, questions: list[dict], index_paths: dict[st
         dt_ms = (time.perf_counter() - t0) * 1000
         retrieval_ms.append(dt_ms)
 
-        pred_span = default_predicted_span(retrieved_frames, query_embedding)
+        pred_span = default_predicted_span(retrieved_frames, query_embedding, duration_s=q.get("duration"))
         iou, iop = best_over_gold_spans(q["gold_spans"], pred_span)
         ious.append(iou)
         iops.append(iop)

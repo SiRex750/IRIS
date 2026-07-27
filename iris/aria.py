@@ -456,7 +456,7 @@ class LlamaBackend(LLMBackend):
             # preamble to consume the budget (see task 2's qwen3.5-2b finding).
             import requests
             native_base = self.endpoint[:-3] if self.endpoint.endswith("/v1") else self.endpoint
-            options: dict = {"temperature": 0.0}
+            options: dict = {"temperature": 0.0, "top_k": 1, "top_p": 1.0}
             if seed is not None:
                 options["seed"] = seed
             if max_tokens is not None:
@@ -493,11 +493,13 @@ class LlamaBackend(LLMBackend):
             # is what actually enforces the contract either way.
             try:
                 kwargs = dict(model=model_name, messages=messages, temperature=0.0,
-                              response_format=response_format)
+                              top_p=1.0, response_format=response_format)
                 if seed is not None:
                     kwargs["seed"] = seed
+                extra_body = {"top_k": 1}
                 if keep_alive is not None:
-                    kwargs["extra_body"] = {"keep_alive": keep_alive}
+                    extra_body["keep_alive"] = keep_alive
+                kwargs["extra_body"] = extra_body
                 if max_tokens is not None:
                     kwargs["max_tokens"] = max_tokens
                 response = self.client.chat.completions.create(**kwargs)
@@ -508,11 +510,13 @@ class LlamaBackend(LLMBackend):
                 return response.choices[0].message.content
             except Exception:
                 pass
-        kwargs = dict(model=model_name, messages=messages, temperature=0.0)
+        kwargs = dict(model=model_name, messages=messages, temperature=0.0, top_p=1.0)
         if seed is not None:
             kwargs["seed"] = seed
+        extra_body = {"top_k": 1}
         if keep_alive is not None:
-            kwargs["extra_body"] = {"keep_alive": keep_alive}
+            extra_body["keep_alive"] = keep_alive
+        kwargs["extra_body"] = extra_body
         if max_tokens is not None:
             kwargs["max_tokens"] = max_tokens
         response = self.client.chat.completions.create(**kwargs)
@@ -593,8 +597,9 @@ class LlamaServerBackend(LLMBackend):
             "model": model_name,
             "messages": messages,
             "temperature": 0.0,
+            "top_p": 1.0,
             "timeout": self.timeout,
-            "extra_body": {"cache_prompt": False}
+            "extra_body": {"cache_prompt": False, "top_k": 1}
         }
         if seed is not None:
             kwargs["seed"] = seed
@@ -622,6 +627,8 @@ class LlamaServerBackend(LLMBackend):
                     "model": model_name,
                     "messages": messages,
                     "temperature": 0,
+                    "top_k": 1,
+                    "top_p": 1.0,
                     "seed": seed if seed is not None else 42,
                     "cache_prompt": False,
                     "max_tokens": max_tokens if max_tokens is not None else 1024,
@@ -664,6 +671,8 @@ class LlamaServerBackend(LLMBackend):
             payload = {
                 "prompt": formatted_prompt,
                 "temperature": 0.0,
+                "top_k": 1,
+                "top_p": 1.0,
                 "seed": seed if seed is not None else 42,
                 "cache_prompt": False,
             }

@@ -125,7 +125,8 @@ def test_llama_server_backend_outgoing_request():
     kwargs = mock_completions.create.call_args[1]
     
     assert kwargs["temperature"] == 0.0
-    assert kwargs["extra_body"] == {"cache_prompt": False}
+    assert kwargs["top_p"] == 1.0
+    assert kwargs["extra_body"] == {"cache_prompt": False, "top_k": 1}
     assert kwargs["model"] == "granite4:micro"
     assert kwargs["timeout"] == 600.0
     assert kwargs["response_format"] == {
@@ -255,7 +256,7 @@ def test_llama_backend_forwards_keep_alive_default_chat_path():
     backend.generate(prompt="q", context="c", seed=42, keep_alive=0)
 
     kwargs = mock_client.chat.completions.create.call_args[1]
-    assert kwargs["extra_body"] == {"keep_alive": 0}
+    assert kwargs["extra_body"] == {"top_k": 1, "keep_alive": 0}
 
 
 def test_llama_backend_forwards_keep_alive_native_schema_path():

@@ -49,6 +49,10 @@ from iris.query_reformulation import parse_mc_answer, format_mc_label  # noqa: E
 from iris.retrieval_entry import retrieve_for_question  # noqa: E402
 from eval.metrics import predicted_span_from_frames_peak  # noqa: E402
 
+from answerer_provenance import capture_answerer_provenance  # noqa: E402
+from caption_dump_io import (  # noqa: E402
+    apply_caption_load, load_caption_dump, record_caption_dump, write_caption_dump,
+)
 from part3_tune import (  # noqa: E402
     INGEST_RELEVANT_KEYS, load_frozen_state, TUNING_DIR,
 )
@@ -260,6 +264,28 @@ def build_arg_parser() -> argparse.ArgumentParser:
                    choices=["weighted_max", "logsumexp"])
     p.add_argument("--max-queries", dest="max_queries", type=int, default=3,
                    help="Retrieval query budget (hard-capped to 3 under structured_v2).")
+    p.add_argument(
+        "--caption-dump", dest="caption_dump", default=None,
+        help="Write every generated caption to this path as "
+             "{video: {qid: {frame_idx: caption}}} (same schema as "
+             "tuning/blind_ablation/captions_dump.json). Opt-in; omitting "
+             "this flag leaves behaviour unchanged.",
+    )
+    p.add_argument(
+        "--caption-load", dest="caption_load", default=None,
+        help="Load captions from a dump written by --caption-dump and skip "
+             "captioning entirely. Errors loudly on any (video, qid, "
+             "frame_idx) miss rather than silently captioning it live. "
+             "Opt-in; omitting this flag leaves behaviour unchanged.",
+    )
+    p.add_argument(
+        "--repeat", dest="repeat", type=int, default=1,
+        help="Run the answer stage this many times over identical retrieval "
+             "and (with --caption-load) identical captions, reporting "
+             "mean/min/max/flip-count Acc@QA and Acc@GQA instead of a single "
+             "point estimate. Default 1 preserves current single-run "
+             "behaviour exactly.",
+    )
     return p
 
 
@@ -303,6 +329,26 @@ def main(argv: list[str] | None = None) -> None:
     smoke_raw = smoke_test_backend(cfg)
     print(f"[setup] smoke test OK, backend reachable. Raw response: {smoke_raw[:200]!r}", flush=True)
 
+    from urllib.parse import urlparse
+    parsed_endpoint = urlparse(cfg.answerer_endpoint)
+    provenance = capture_answerer_provenance(
+        endpoint=cfg.answerer_endpoint,
+        port=parsed_endpoint.port or 8091,
+        gguf_path=None,
+        gguf_expected_sha256=None,
+        sampler_params={
+            "temperature": 0.0, "top_k": 1, "top_p": 1.0,
+            "seed": cfg.answerer_seed, "cache_prompt": False,
+        },
+    )
+    env_suffix = (
+        "" if (args.query_mode == "none" and args.temporal_traversal_mode == "none")
+        else f"_{args.query_mode}_{args.temporal_traversal_mode}"
+    )
+    env_path = TUNING_DIR / f"val_confirm_e2e_environment{env_suffix}.json"
+    env_path.write_text(json.dumps({"answerer_provenance": provenance}, indent=2))
+    print(f"[setup] wrote answerer provenance to {env_path}", flush=True)
+
     half_width_s = float(frozen["span_method_half_width_s"])
     assert frozen["span_method"] == "D", f"expected span_method=D, got {frozen['span_method']!r}"
 
@@ -315,18 +361,20 @@ def main(argv: list[str] | None = None) -> None:
     print(f"[ingest] fresh_ingests={n_fresh} cache_hits={n_hits} "
           f"({'ALL FRESH -- OK' if n_hits == 0 else 'WARNING: cache hits found in a supposedly-fresh dir'})", flush=True)
 
-    index_cache: dict = {}
-    rows_out = []
-    retrieval_ms_list, caption_answer_ms_list = [], []
-    n_scored = 0
-    n_answer_nonempty_sample = 0
-    correct_qa = 0
-    correct_gqa = 0
-    iops, ious = [], []
+    if args.repeat > 1 and not args.caption_load:
+        raise SystemExit(
+            "[setup] --repeat > 1 requires --caption-load so the caption stage is "
+            "frozen and only the answerer varies across repeats -- otherwise a "
+            "flip could come from either the captioner or the answerer and "
+            "would be unattributable."
+        )
+    caption_load_dump = load_caption_dump(args.caption_load) if args.caption_load else None
+    caption_dump_accumulator: dict = {} if args.caption_dump else None
 
-    csv_f = open(per_question_csv, "w", newline="")
-    csv_w = csv.DictWriter(csv_f, fieldnames=PER_Q_FIELDNAMES)
-    csv_w.writeheader()
+    index_cache: dict = {}
+    retrieval_ms_list = []
+    n_answer_nonempty_sample = 0
+    records: list[dict] = []  # one entry per successfully-retrieved-and-captioned question
 
     t_run_start = time.perf_counter()
     for i, q in enumerate(questions, 1):
@@ -351,6 +399,7 @@ def main(argv: list[str] | None = None) -> None:
             query_embedding, _ = iris_query._call_embed_query(q["question"], cfg)
             pred_span, used_clip_anchor = predicted_span_from_frames_peak(
                 retrieved_frames, query_embedding, half_width_s=half_width_s,
+                duration_s=q["duration"],
             )
         except Exception as exc:  # noqa: BLE001
             print(f"[FAIL retrieval] video={vid} qid={q['qid']}: {type(exc).__name__}: {exc}", flush=True)
@@ -359,71 +408,110 @@ def main(argv: list[str] | None = None) -> None:
         retrieval_ms_list.append(t_retrieval_span)
 
         t1 = time.perf_counter()
-        try:
-            decoded_for_captions = iris_query._ensure_captions(index, retrieved_frames, cfg)
-        except TypeError:
-            decoded_for_captions = iris_query._ensure_captions(index, retrieved_frames)
+        if caption_load_dump is not None:
+            apply_caption_load(index, retrieved_frames, vid, q["qid"], caption_load_dump)
+        else:
+            try:
+                iris_query._ensure_captions(index, retrieved_frames, cfg)
+            except TypeError:
+                iris_query._ensure_captions(index, retrieved_frames)
+        if caption_dump_accumulator is not None:
+            record_caption_dump(retrieved_frames, vid, q["qid"], caption_dump_accumulator)
         cache_obj = iris_query.wrapper_init_l1_cache(cfg)
         iris_query.wrapper_populate_cache(cache_obj, retrieved_frames)
         context_text = cache_obj.as_context_text()
-
-        prompt = build_mc_prompt(q)
-        raw_answer = aria.generate(prompt=prompt, context=context_text, config=cfg)
-        pred_idx = parse_mc_answer(raw_answer)
-        t_caption_answer = (time.perf_counter() - t1) * 1000
-        caption_answer_ms_list.append(t_caption_answer)
+        t_caption_ms = (time.perf_counter() - t1) * 1000
 
         gold_idx = q["gold_answer_idx"]
-        acc_qa = nextgqa_metrics.acc_qa(pred_idx, gold_idx)
         gold_tuples = [(g[0], g[1]) for g in q["gold_spans"]]
         iop = nextgqa_metrics.iop(pred_span[0], pred_span[1], gold_tuples)
         iou = nextgqa_metrics.iou(pred_span[0], pred_span[1], gold_tuples)
-        acc_gqa = bool(acc_qa and iop >= 0.5)
 
-        n_scored += 1
-        correct_qa += int(acc_qa)
-        correct_gqa += int(acc_gqa)
-        iops.append(iop)
-        ious.append(iou)
-        if raw_answer and raw_answer.strip():
-            n_answer_nonempty_sample += 1
-
-        rows_out.append({
+        records.append({
             "video": vid, "qid": q["qid"], "type": q.get("type"), "question": q["question"],
-            "pred_answer_idx": pred_idx, "pred_answer_label": format_mc_label(pred_idx),
-            "gold_answer_idx": gold_idx, "gold_answer_label": format_mc_label(gold_idx),
-            "acc_qa": acc_qa, "pred_span_start": round(pred_span[0], 3), "pred_span_end": round(pred_span[1], 3),
-            "gold_spans": json.dumps(q["gold_spans"]), "iop": round(iop, 5), "iou": round(iou, 5),
-            "acc_gqa_unverified": acc_gqa, "used_clip_anchor": used_clip_anchor,
-            "raw_answer_nonempty": bool(raw_answer and raw_answer.strip()),
-            "retrieval_span_ms": round(t_retrieval_span, 2), "caption_answer_ms": round(t_caption_answer, 2),
-            "query_mode": cfg.query_reformulation_mode,
-            "traversal_mode": cfg.temporal_traversal_mode,
-            "relation": getattr(plan, "relation", None),
-            "relation_source": getattr(plan, "relation_source", None),
+            "choices": q["choices"],
+            "gold_answer_idx": gold_idx, "gold_spans": q["gold_spans"],
+            "pred_span": pred_span, "used_clip_anchor": used_clip_anchor,
+            "iop": iop, "iou": iou, "context_text": context_text,
+            "retrieval_span_ms": t_retrieval_span, "caption_ms": t_caption_ms,
+            "query_mode": cfg.query_reformulation_mode, "traversal_mode": cfg.temporal_traversal_mode,
+            "relation": getattr(plan, "relation", None), "relation_source": getattr(plan, "relation_source", None),
             "fallback_reason": getattr(plan, "fallback_reason", None),
-            "num_ppr_calls": telemetry.get("num_ppr_calls"),
-            "context_frame_count": len(retrieved_frames),
+            "num_ppr_calls": telemetry.get("num_ppr_calls"), "context_frame_count": len(retrieved_frames),
         })
-        csv_w.writerow(rows_out[-1])
-        csv_f.flush()
 
         if i % 25 == 0 or i == len(questions):
-            print(f"[{i}/{len(questions)}] scored={n_scored} Acc@QA_so_far={correct_qa/n_scored:.4f} "
-                  f"Acc@GQA_so_far={correct_gqa/n_scored:.4f} mIoP_so_far={sum(iops)/len(iops):.4f}", flush=True)
+            print(f"[{i}/{len(questions)}] retrieval+captioning complete for {len(records)} questions so far", flush=True)
 
-    csv_f.close()
+    if caption_dump_accumulator is not None:
+        write_caption_dump(args.caption_dump, caption_dump_accumulator)
+        print(f"[setup] wrote caption dump to {args.caption_dump}", flush=True)
+
+    def _answer_and_score_one(rec: dict) -> dict:
+        prompt = build_mc_prompt(rec)
+        t_ans = time.perf_counter()
+        raw_answer = aria.generate(prompt=prompt, context=rec["context_text"], config=cfg)
+        answer_ms = (time.perf_counter() - t_ans) * 1000
+        pred_idx = parse_mc_answer(raw_answer)
+        acc_qa = nextgqa_metrics.acc_qa(pred_idx, rec["gold_answer_idx"])
+        acc_gqa = bool(acc_qa and rec["iop"] >= 0.5)
+        return {
+            "video": rec["video"], "qid": rec["qid"], "type": rec["type"], "question": rec["question"],
+            "pred_answer_idx": pred_idx, "pred_answer_label": format_mc_label(pred_idx),
+            "gold_answer_idx": rec["gold_answer_idx"], "gold_answer_label": format_mc_label(rec["gold_answer_idx"]),
+            "acc_qa": acc_qa, "pred_span_start": round(rec["pred_span"][0], 3), "pred_span_end": round(rec["pred_span"][1], 3),
+            "gold_spans": json.dumps(rec["gold_spans"]), "iop": round(rec["iop"], 5), "iou": round(rec["iou"], 5),
+            "acc_gqa_unverified": acc_gqa, "used_clip_anchor": rec["used_clip_anchor"],
+            "raw_answer_nonempty": bool(raw_answer and raw_answer.strip()),
+            "retrieval_span_ms": round(rec["retrieval_span_ms"], 2),
+            "caption_answer_ms": round(rec["caption_ms"] + answer_ms, 2),
+            "query_mode": rec["query_mode"], "traversal_mode": rec["traversal_mode"],
+            "relation": rec["relation"], "relation_source": rec["relation_source"],
+            "fallback_reason": rec["fallback_reason"], "num_ppr_calls": rec["num_ppr_calls"],
+            "context_frame_count": rec["context_frame_count"],
+            "_answer_ms": answer_ms, "_raw_answer_nonempty": bool(raw_answer and raw_answer.strip()),
+        }
+
+    def _write_pass_csv(path: Path, rows: list[dict]) -> None:
+        with open(path, "w", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=PER_Q_FIELDNAMES)
+            w.writeheader()
+            for row in rows:
+                w.writerow({k: row[k] for k in PER_Q_FIELDNAMES})
+
+    n_repeats = max(args.repeat, 1)
+    all_passes: list[list[dict]] = []
+    for rep in range(n_repeats):
+        pass_rows = [_answer_and_score_one(rec) for rec in records]
+        all_passes.append(pass_rows)
+        n_scored = len(pass_rows)
+        correct_qa = sum(r["acc_qa"] for r in pass_rows)
+        correct_gqa = sum(r["acc_gqa_unverified"] for r in pass_rows)
+        n_answer_nonempty_sample += sum(1 for r in pass_rows if r["_raw_answer_nonempty"])
+        print(f"[repeat {rep + 1}/{n_repeats}] scored={n_scored} "
+              f"Acc@QA={correct_qa / n_scored if n_scored else 0.0:.4f} "
+              f"Acc@GQA={correct_gqa / n_scored if n_scored else 0.0:.4f}", flush=True)
+        pass_csv_path = per_question_csv if n_repeats == 1 else (
+            per_question_csv.with_name(per_question_csv.stem + f"_repeat{rep + 1}" + per_question_csv.suffix)
+        )
+        _write_pass_csv(pass_csv_path, pass_rows)
+
     total_wall_s = time.perf_counter() - t_run_start
 
-    n = n_scored
+    n = len(records)
+    iops = [r["iop"] for r in records]
+    ious = [r["iou"] for r in records]
+    caption_answer_ms_list = [row["caption_answer_ms"] for row in all_passes[0]] if all_passes else []
+
+    # Grounding metrics are deterministic (retrieval + span construction do
+    # not vary across repeats) -- reported once, not once per repeat.
     metrics = {
         "n_scored": n,
+        "n_repeats": n_repeats,
         "n_nominal_videos": 113,
         "n_usable_videos": len(video_ids),
         "n_fresh_ingests": n_fresh,
         "n_cache_hits": n_hits,
-        "Acc@QA": correct_qa / n if n else 0.0,
-        "Acc@GQA_unverified": correct_gqa / n if n else 0.0,
         "mIoP": sum(iops) / n if n else 0.0,
         "mIoU": sum(ious) / n if n else 0.0,
         "IoP@0.3": sum(1 for x in iops if x >= 0.3) / n if n else 0.0,
@@ -435,7 +523,51 @@ def main(argv: list[str] | None = None) -> None:
         "median_caption_answer_ms": statistics.median(caption_answer_ms_list) if caption_answer_ms_list else 0.0,
         "p95_caption_answer_ms": (statistics.quantiles(caption_answer_ms_list, n=20)[18] if len(caption_answer_ms_list) >= 20 else max(caption_answer_ms_list, default=0.0)),
         "total_wall_s": total_wall_s,
+        "minicpm_truncation_stats": aria.get_minicpm_truncation_stats(),
     }
+
+    if n_repeats == 1:
+        pass_rows = all_passes[0] if all_passes else []
+        correct_qa = sum(r["acc_qa"] for r in pass_rows)
+        correct_gqa = sum(r["acc_gqa_unverified"] for r in pass_rows)
+        metrics["Acc@QA"] = correct_qa / n if n else 0.0
+        metrics["Acc@GQA_unverified"] = correct_gqa / n if n else 0.0
+    else:
+        acc_qa_per_rep = [sum(r["acc_qa"] for r in p) / n if n else 0.0 for p in all_passes]
+        acc_gqa_per_rep = [sum(r["acc_gqa_unverified"] for r in p) / n if n else 0.0 for p in all_passes]
+
+        def _flip_count(key: str) -> int:
+            flips = 0
+            for qidx in range(n):
+                values = {all_passes[rep][qidx][key] for rep in range(n_repeats)}
+                if len(values) > 1:
+                    flips += 1
+            return flips
+
+        repeat_summary = {
+            "n_repeats": n_repeats,
+            "Acc@QA": {
+                "mean": statistics.mean(acc_qa_per_rep), "min": min(acc_qa_per_rep), "max": max(acc_qa_per_rep),
+                "per_repeat": acc_qa_per_rep, "n_flipped_questions": _flip_count("acc_qa"),
+            },
+            "Acc@GQA_unverified": {
+                "mean": statistics.mean(acc_gqa_per_rep), "min": min(acc_gqa_per_rep), "max": max(acc_gqa_per_rep),
+                "per_repeat": acc_gqa_per_rep, "n_flipped_questions": _flip_count("acc_gqa_unverified"),
+            },
+            "grounding_metrics_reported_once": {
+                "mIoP": metrics["mIoP"], "mIoU": metrics["mIoU"],
+                "IoP@0.5": metrics["IoP@0.5"], "IoU@0.5": metrics["IoU@0.5"],
+            },
+        }
+        env_suffix_for_summary = (
+            "" if (args.query_mode == "none" and args.temporal_traversal_mode == "none")
+            else f"_{args.query_mode}_{args.temporal_traversal_mode}"
+        )
+        summary_path = TUNING_DIR / f"val_confirm_e2e_repeat_summary{env_suffix_for_summary}.json"
+        summary_path.write_text(json.dumps(repeat_summary, indent=2))
+        print(f"[repeat] wrote variance summary to {summary_path}", flush=True)
+        metrics["repeat_summary"] = repeat_summary
+
     print("VAL_CONFIRM_E2E_METRICS_JSON=" + json.dumps(metrics), flush=True)
     print("VAL_CONFIRM_E2E_COMPLETE", flush=True)
 

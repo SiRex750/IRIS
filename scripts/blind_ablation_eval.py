@@ -293,6 +293,7 @@ def main() -> None:
         query_embedding, _ = iris_query._call_embed_query(q["question"], cfg)
         pred_span, used_clip_anchor = predicted_span_from_frames_peak(
             retrieved_frames, query_embedding, half_width_s=half_width_s,
+            duration_s=q["duration"],
         )
         # question-blind captioning -- exactly reproduces the recorded run,
         # no question= / choices= kwargs.

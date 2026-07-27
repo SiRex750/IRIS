@@ -313,8 +313,11 @@ class L1ElysiumCache:
         Includes numeric pipeline metrics so ARIA can reference them in prose.
         Uses _frame_to_display_text(), not the NLI-only variant.
         """
+        ordered_frames = sorted(
+            self._frames.values(), key=lambda f: (f.timestamp_sec, f.frame_idx),
+        )
         frame_blocks = []
-        for frame in self._frames.values():
+        for frame in ordered_frames:
             frame_blocks.append(self._frame_to_display_text(frame))
         return "\n\n---\n\n".join(frame_blocks)
 

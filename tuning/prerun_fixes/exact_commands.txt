@@ -1,0 +1,77 @@
+# IRIS pre-run fix pack -- exact commands run, this task (CPU-only box)
+
+## Environment verification (D1)
+python3 -c "sha256 all 4 nextqa files, compare to dataset_manifest.json, recompute counts/overlaps"
+  -> see tuning/prerun_fixes/D1_dataset_verification.json for the full script output and results
+
+find eval/data/nextqa/NExTVideo_flat -iname "*.mp4" | wc -l
+
+## Split guard (D2)
+cd benchmark_runs/paper_setup_20260720T074844Z_1e431b7/scripts
+python3 -c "
+import split_guard
+try:
+    split_guard.guard_official_test_command('official_test')
+    print('PASSED - no exception')
+except SystemExit as e:
+    print('SystemExit code:', e.code)
+"
+# Output: REJECTED: official_test partition is unpopulated (0 videos) ... SystemExit code: 3
+
+## A2 binary inventory
+timeout 90 find / -iname 'llama-server*' -type f 2>/dev/null
+find <repo>/llama.cpp -maxdepth 2 -iname "build*"
+find / -maxdepth 3 -iname "*llama.cpp*" -o -iname "*ollama*" 2>/dev/null
+cd <repo>/llama.cpp && git log --oneline -1 && git describe --tags && git cat-file -t 1a064ab
+# Result: zero llama-server binaries found; b10099/1a064ab build does not exist on this box
+# or in this llama.cpp checkout's history at all.
+
+## Protected-file hashing (before/after)
+python3 hash_protected.py > tuning/prerun_fixes/protected_hashes_before.txt   # run before any edits
+python3 hash_protected.py > tuning/prerun_fixes/protected_hashes_after.txt    # run after all edits
+diff tuning/prerun_fixes/protected_hashes_before.txt tuning/prerun_fixes/protected_hashes_after.txt
+# Result: IDENTICAL
+
+## Tests (all new + touched)
+cd <repo>
+./.venv/Scripts/python.exe -m pytest \
+  tests/test_s1_duration_s_call_sites.py \
+  tests/test_x1_chronological_context.py \
+  tests/test_a1_greedy_decoding.py \
+  tests/test_aria.py \
+  tests/test_a2_answerer_provenance.py \
+  tests/test_c0_h2_caption_replay_and_repeat.py \
+  tests/test_c2_truncation_stats_wiring.py \
+  -q
+# Result: all passing (see final_report.md for the full count)
+
+./.venv/Scripts/python.exe -m pytest tests/ -q
+# Result: 510 passed, 5 skipped, 1 xfailed, 5 failed
+# (5 failures are pre-existing, in tests/test_qvhighlights_setup.py, unrelated to this
+# task -- Windows tmp-path resolution issue in scripts/setup_qvhighlights.py's
+# data-root escape guard; not touched by any of the 9 items in scope.)
+
+## C2 caption audit (offline, no captioner run)
+./.venv/Scripts/python.exe c2_audit.py   # reads tuning/blind_ablation/captions_dump.json only
+# -> tuning/prerun_fixes/C2_caption_audit.md + C2_caption_stats.json
+
+--------------------------------------------------------------------------
+## Required on the GPU box before the official run (NOT run here -- see
+## tuning/prerun_fixes/D_deferred_gpu_gate.md for full context)
+
+# Serving command template (binary path/hash must be captured via
+# scripts/answerer_provenance.py and checked in before trusting a run against it):
+<pinned-llama-server-binary> \
+  -m <gguf-path> \
+  --host 127.0.0.1 --port 8091 \
+  --alias granite4:micro \
+  -ngl 999 -c 8192 \
+  --parallel 1 \
+  # no continuous-batching flag -- do not add --cont-batching or equivalent
+
+# Determinism gate (twice, same frozen captions):
+python3 scripts/val_confirm_e2e_eval.py \
+  --caption-load tuning/blind_ablation/captions_dump.json \
+  --repeat 2
+# Pass condition: tuning/prerun_fixes... repeat summary reports n_flipped_questions == 0
+# for both Acc@QA and Acc@GQA, out of 639/639.

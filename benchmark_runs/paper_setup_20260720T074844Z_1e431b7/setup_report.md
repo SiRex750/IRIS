@@ -132,6 +132,35 @@ before any citation. Local primary-source PDFs matched for MUPA and ReMoRa in `C
 (dry-run/synthetic checks all pass), but the dataset, peak/span code, two of the eight
 layer-factorial cells' prerequisite code, and latency instrumentation are open work.
 
+---
+
+## Correction (2026-07-27, prerun-fix pack D2)
+
+This report's dataset-readiness claims ("no independent official test-split
+annotation in this repo", gate #3 "FAIL at official scale") are **stale as blanket
+statements**. The root `dataset_manifest.json`, generated 2026-07-21 (the day
+after this report), records the official NExT-GQA test split as fully acquired:
+990/990 videos downloaded, 5553/5553 rows structurally valid,
+`val_test_video_overlap: 0`. The peak/span code gap noted in gate #7 has also since
+been addressed elsewhere in the repo (`predicted_span_from_frames_peak`, Method D,
+frozen per `tuning/frozen_state.json`) — this report predates that work.
+
+What remains genuinely true, verified fresh on 2026-07-27 as part of the
+prerun-fix pack: **this specific checkout's local `eval/data/nextqa/` directory
+does not reflect the 2026-07-21 acquisition.** `gsub_val.json` and `gsub_test.json`
+here are still byte-identical to each other (same finding as this report's gate
+#3), `eval/data/nextqa/test.csv` is entirely absent, and only 91 of the 990
+expected test-split `.mp4` files are present locally. Full hash-by-hash detail:
+`tuning/prerun_fixes/D1_dataset_verification.json`. `split_guard.py`, re-executed
+today, still rejects the official-test command for the same structural reason
+this report describes (see `tuning/prerun_fixes/D2_split_guard_status.md`).
+
+Net effect: the *pipeline* produced a real, verified test split on 2026-07-21;
+this *checkout* has not been correctly synced to it. Do not read this report as
+"test split unavailable, full stop" — read it as "this box needs to be re-synced
+from wherever `dataset_manifest.json`'s `files_written` hashes actually live
+before the official run can proceed here."
+
 ## Exact next command to run the first smoke test
 
 Once the above blockers are resolved (at minimum: official dataset acquired and verified per

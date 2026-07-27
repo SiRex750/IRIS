@@ -1,0 +1,37 @@
+{
+  "generated_utc": "2026-07-27T00:00:00Z",
+  "box": "Windows checkout, C:\\Users\\swara\\IRIS (this is NOT the Linux GPU box the recorded val_confirm_e2e headline run and the failed reproduction attempt executed on)",
+  "search_commands_run": [
+    "timeout 90 find / -iname 'llama-server*' -type f 2>/dev/null",
+    "find <repo>/llama.cpp -maxdepth 2 -iname 'build*'",
+    "find / -maxdepth 3 -iname '*llama.cpp*' -o -iname '*ollama*' 2>/dev/null",
+    "cd <repo>/llama.cpp && git log --oneline -1; git describe --tags; git cat-file -t 1a064ab"
+  ],
+  "results": {
+    "llama_server_binary_hits": [],
+    "llama_server_binary_count": 0,
+    "note": "The full-filesystem find for 'llama-server*' returned zero hits. Only a Python simulator was found at llama.cpp/examples/llama-eval/llama-server-simulator.py, which is not a real llama-server binary.",
+    "llama_cpp_source_checkout": {
+      "path": "<repo>/llama.cpp",
+      "present": true,
+      "is_compiled": false,
+      "build_dir_present": false,
+      "current_head": "b9985-1-g91c631b21 (91c631b21, 'chat : fix reasoning leak with force-opened bare <think> templates (#24674)')",
+      "recorded_run_commit_1a064ab_present_in_history": false,
+      "verdict": "This is a much newer llama.cpp source checkout than the one used for the recorded run. It has never been compiled on this box (no build/ or bin/ directory, no .exe files anywhere under it). Commit 1a064ab (the recorded run's exact build) does not exist in this checkout's git history at all."
+    },
+    "ollama_traces_found": [
+      "/tmp/ollama_temp_icon_0674500e82a6b1460e1dfbc39baf5f54",
+      "/tmp/ollama_temp_icon_a31919c34aab32214e9350fa576d084f"
+    ],
+    "ollama_traces_note": "These are leftover desktop-app icon temp files, not evidence of a running or installed llama-server/ollama-server binary reachable from this checkout."
+  },
+  "does_b10099_build_still_exist": false,
+  "finding": "The from-source llama.cpp build (tag b10099, commit 1a064ab, CUDA 12.6, sm_89) that produced the recorded val_confirm_e2e headline numbers does NOT exist on this box, and this box is not even the box it would have existed on -- that build was compiled on a remote Linux GPU box for CUDA/sm_89, which this Windows checkout cannot run in any case. This is itself a finding, per the task's explicit instruction: the recorded run's exact environment is confirmed gone from this checkout, and per-binary-instance provenance (scripts/answerer_provenance.py, added in this fix pack) is the only way future runs will avoid repeating this gap. The GPU box that actually holds (or once held) the b10099 build was not reachable/searched as part of this CPU-only, single-box task.",
+  "environment_json_provenance_helper": {
+    "added_this_task": true,
+    "location": "scripts/answerer_provenance.py",
+    "wired_into": "scripts/val_confirm_e2e_eval.py::main() -- writes tuning/val_confirm_e2e_environment<suffix>.json right after the answerer smoke test succeeds, capturing: listening-port PID (best-effort via `ss`), full serving cmdline (from /proc/<pid>/cmdline where available), server binary SHA-256 + --version output, GGUF path/hash (when supplied), GET /v1/models response, and the exact sampler params sent (temperature/top_k/top_p/seed/cache_prompt).",
+    "tests": "tests/test_a2_answerer_provenance.py (8 unit tests, all passing) -- covers hash computation, /proc-unavailable graceful degradation, missing-binary handling, and full record assembly including a GGUF-hash-mismatch case."
+  }
+}

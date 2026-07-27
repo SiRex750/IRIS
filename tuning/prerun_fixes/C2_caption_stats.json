@@ -1,0 +1,38 @@
+{
+  "source_file": "tuning/blind_ablation/captions_dump.json",
+  "source_file_sha256": "f4f4d3505e0fae1241f30b0f6539ada99c9d9718f4667b64befbf5f2b1ad328e",
+  "generated_utc": "2026-07-27T00:00:00Z",
+  "total_captions": 2556,
+  "empty_or_whitespace_only": {"count": 0, "pct": 0.0},
+  "contains_caption_failed_token": {"count": 0, "pct": 0.0},
+  "length_distribution_chars": {
+    "min": 80, "p25": 199.0, "median": 238.0, "p75": 281.0, "p95": 361.0, "max": 569
+  },
+  "length_distribution_tokens_approx_chars_over_4": {
+    "min": 20.0, "p25": 49.75, "median": 59.5, "p75": 70.25, "p95": 90.25, "max": 142.25
+  },
+  "truncation_risk_near_num_predict_ceiling": {
+    "num_predict_first_attempt": 400,
+    "num_predict_retry": 700,
+    "captions_within_50_tokens_below_400": 0,
+    "captions_within_50_tokens_below_700": 0,
+    "captions_at_or_above_400_tokens": 0,
+    "max_observed_tokens_approx": 142.25,
+    "verdict": "Zero captions in this dump approach either ceiling (max observed ~142 tokens vs a 400-token first-attempt budget). No truncation-risk signal in this population."
+  },
+  "cache_reuse_across_qids": {
+    "distinct_video_frame_pairs": 1665,
+    "pairs_appearing_under_multiple_qids": 535,
+    "identical_caption_text_across_all_qids_sharing_pair": 534,
+    "different_caption_text_across_qids_sharing_pair": 1,
+    "outlier_example": {
+      "video": "8254300526", "frame_idx": "869",
+      "note": "qid 3 and qid 8 got byte-identical captions; qid 7 got a differently-worded (same-content) caption for the exact same frame. Single outlier out of 535 -- 99.8% cache-consistency, not a systemic issue. Most likely a re-caption on a cache miss/race rather than the per-video cache itself misbehaving."
+    },
+    "verdict": "The per-video caption cache is behaving as designed: 534/535 (99.8%) of frames revisited by a later question in the same video reused the exact same caption text rather than re-captioning. Re-captioning per-question (for question-aware captions) would cost re-running the captioner on all 1665 distinct (video, frame_idx) pairs currently captioned once each -- i.e. up to 2556 calls if every question needed its own caption, roughly 1.5x today's 1665 real captioning calls."
+  },
+  "qualitative_sample_seed_42_n_10": [
+    "Nearly all sampled captions are generic itemized scene descriptions (objects/people/setting), NOT question-aware -- consistent with the captioner running question-blind (per the module docstring in scripts/blind_ablation_eval.py: 'question-blind captioning -- exactly reproduces the recorded run'). None of the 10 sampled captions reference the multiple-choice options or the specific temporal relation asked about; they read as what a generic dense-caption model would produce for any viewer, not what's relevant to a specific gold answer.",
+    "This is a known, deliberate property of this run's captioning path (focus_hint is optional and appears not to have been active in this dump), not a bug in the caption model itself -- but it is directly relevant to why Acc@GQA's gap decomposition (see tuning/family2-tuning-state memory) finds P(correct | grounded)=61.1% vs P(correct | NOT grounded)=51.7%: generic captions likely under-deliver the specific visual detail a temporal/causal question needs even when the retrieval span IS correct."
+  ]
+}

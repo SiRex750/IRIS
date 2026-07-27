@@ -1,0 +1,96 @@
+{
+  "generated_utc": "2026-07-27T00:00:00Z",
+  "verdict": "STOP -- data is unusable on this box. gsub_val.json and gsub_test.json are byte-identical.",
+  "step1_sha256_local_files": {
+    "eval/data/nextqa/val.csv": "c1b93f52ee47b3a2b277b4dcccaa020901410aa841920121e8a8a3774e787c49",
+    "eval/data/nextqa/test.csv": "MISSING -- file does not exist on this box",
+    "eval/data/nextqa/gsub_val.json": "0c16c31699238a0f2b8ace45aeed7f193149ce2f011d6ed4f1ef7170ef5d41e9",
+    "eval/data/nextqa/gsub_test.json": "0c16c31699238a0f2b8ace45aeed7f193149ce2f011d6ed4f1ef7170ef5d41e9"
+  },
+  "step2_comparison_vs_dataset_manifest": {
+    "val.csv": {
+      "local_sha256": "c1b93f52ee47b3a2b277b4dcccaa020901410aa841920121e8a8a3774e787c49",
+      "official_source_file_sha256": "4f99f7c11470c22017cf4fecdc91a6bb350b1c51e84a6005fb45d36ee50895d4",
+      "files_written_sha256": "ee0ef210ae341bec53fdeb723ae54958307ed2e49988d2d3763d3c22abf4201a",
+      "match_official_source": false,
+      "match_files_written": false,
+      "verdict": "MISMATCH -- local val.csv matches neither recorded hash. It is not the file the pipeline produced on 2026-07-21."
+    },
+    "test.csv": {
+      "local_sha256": null,
+      "official_source_file_sha256": "62c5637f12b96bb09fb099ae5c86495f96da08926a94700f1863c65ac5ca8b90",
+      "files_written_sha256": "a8d67c5a648c9da8fb4f6fa9939ad1e31fb43f9a92fdab48ec38a1cd622e23db",
+      "match_official_source": false,
+      "match_files_written": false,
+      "verdict": "MISSING -- file absent from this checkout entirely, cannot be compared"
+    },
+    "gsub_val.json": {
+      "local_sha256": "0c16c31699238a0f2b8ace45aeed7f193149ce2f011d6ed4f1ef7170ef5d41e9",
+      "official_source_file_sha256": "4feb23e53102cb2d4779e857ff8f9fd9b552fc38435621406b2ed9b0bf76204b",
+      "files_written_sha256": "527f402851836224aa03c9d4b0016b858a678d21596a2348eb2bdb774c74970a",
+      "match_official_source": false,
+      "match_files_written": false,
+      "verdict": "MISMATCH -- local gsub_val.json does not match either recorded val hash. It instead byte-matches the recorded gsub_test.json hash (0c16c316...) -- see step3."
+    },
+    "gsub_test.json": {
+      "local_sha256": "0c16c31699238a0f2b8ace45aeed7f193149ce2f011d6ed4f1ef7170ef5d41e9",
+      "official_source_file_sha256": "0c16c31699238a0f2b8ace45aeed7f193149ce2f011d6ed4f1ef7170ef5d41e9",
+      "files_written_sha256": "0c16c31699238a0f2b8ace45aeed7f193149ce2f011d6ed4f1ef7170ef5d41e9",
+      "match_official_source": true,
+      "match_files_written": true,
+      "verdict": "MATCH -- local gsub_test.json is the genuine, correctly-written test annotation file."
+    }
+  },
+  "step3_gsub_val_equals_gsub_test": {
+    "gsub_val_sha256": "0c16c31699238a0f2b8ace45aeed7f193149ce2f011d6ed4f1ef7170ef5d41e9",
+    "gsub_test_sha256": "0c16c31699238a0f2b8ace45aeed7f193149ce2f011d6ed4f1ef7170ef5d41e9",
+    "byte_identical": true,
+    "assertion_required_by_task": "gsub_val.json != gsub_test.json",
+    "assertion_result": "FAILED",
+    "action_per_instructions": "STOPPING data-usability assertion here per task instructions ('stop and report -- the data is unusable'). Continuing with the rest of the fix pack per top-level instruction to report blockers and proceed with everything else."
+  },
+  "step4_counts": {
+    "val_recomputed_from_local_files": {
+      "note": "local val.csv/gsub_val.json are NOT the real val split (see step2/step3) -- these are recomputed from whatever is actually on disk, for diagnostic purposes only, not as a substitute go/no-go signal",
+      "val_csv_rows": 8564,
+      "val_csv_unique_videos": 1000,
+      "gsub_val_json_videos": 999,
+      "gsub_val_json_questions": 2997
+    },
+    "test_recomputed_from_local_files": {
+      "test_csv_rows": null,
+      "test_csv_unique_videos": null,
+      "gsub_test_json_videos": 999,
+      "gsub_test_json_questions": 2997,
+      "note": "test.csv missing entirely; gsub_test.json video/question counts recomputed directly"
+    },
+    "expected_from_dataset_manifest": {
+      "val": {"videos": 567, "questions": 3358},
+      "test": {"videos": 990, "questions": 5553}
+    },
+    "verdict": "Neither local file's counts (999 videos / 2997 questions) match dataset_manifest's expected val (567/3358) or test (990/5553) counts. The local gsub_val.json/gsub_test.json pair is some other/older NExT-GQA snapshot, not the pipeline-written files recorded in dataset_manifest.json, and is definitely not usable as either split."
+  },
+  "step5_split_manifest_overlap": {
+    "split_manifest_tune_videos": 454,
+    "split_manifest_confirm_videos": 113,
+    "split_manifest_combined": 567,
+    "overlap_with_local_val_csv_videos": 0,
+    "overlap_with_local_gsub_val_videos": 0,
+    "verdict": "ZERO overlap. Per the task's own criterion ('Zero overlap means the val files are not val'), the local val files are conclusively not val."
+  },
+  "step6_direct_video_id_intersection_recomputed": {
+    "method": "set(gsub_val.json.keys()) & set(gsub_test.json.keys()), computed directly from the local files, not read from any manifest",
+    "gsub_val_video_ids_count": 999,
+    "gsub_test_video_ids_count": 999,
+    "intersection_count": 999,
+    "manifest_recorded_val_test_video_overlap": 0,
+    "verdict": "MISMATCH vs manifest. Manifest claims val_test_video_overlap=0; direct recomputation on this box's actual files gives 999 (full overlap, because the two files are byte-identical). The manifest's recorded value describes the real dataset the pipeline built on 2026-07-21 -- it does not describe what is physically present on this checkout today."
+  },
+  "step7_mp4_inventory": {
+    "expected_test_videos": 990,
+    "actual_mp4_files_present": 91,
+    "verdict": "FAIL -- only 91 of the expected 990 test-split .mp4 files are present on this box. This box also lacks tuning/index_cache_val_confirm_e2e/ entirely (confirmed via directory search before this analysis began)."
+  },
+  "environment_scope_note": "The task specifies this check 'must execute on the box that holds eval/data/nextqa/ and tuning/index_cache_val_confirm_e2e/'. This box (Windows checkout at C:\\Users\\swara\\IRIS) has the former but NOT the latter -- tuning/index_cache_val_confirm_e2e/ does not exist anywhere in this checkout (only smoke_nextgqa_subset/index_cache/ was found, which is an unrelated smoke-test cache). This confirms a pre-existing landmine: this local checkout is a staging/dev copy, not the box that holds the real official-run data. The recorded val_confirm_e2e run executed on a separate remote Linux GPU box.",
+  "go_no_go": "NO-GO on this box. The eval/data/nextqa/ files present here are not the real val/test pair (val.csv fails hash check and is 1000-video/8564-row content of unknown provenance; gsub_val.json is byte-identical to gsub_test.json; test.csv is absent; only 91/990 test mp4s are present; and the required tuning/index_cache_val_confirm_e2e/ cache does not exist at all). D1 as specified is a go/no-go gate for the official run, and the answer from this box is NO-GO. This does not necessarily mean the official run itself is blocked -- dataset_manifest.json and split_manifest.json (which ARE protected, tracked, and hash-verified as unmodified by this task) record that the real 990-video/5553-question test split and 567-video val split were built correctly on 2026-07-21 by whatever process wrote files_written. The gate failure here is specific to this checkout's local eval/data/nextqa/ directory, which is gitignored (data/ in .gitignore) and was evidently never correctly re-staged after that build. The official run must execute on -- or this checkout must be re-synced from -- the box/artifact store that actually holds the files matching the files_written hashes in dataset_manifest.json."
+}

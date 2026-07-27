@@ -180,6 +180,7 @@ def run_arm(arm: str, questions: list[dict], index_paths: dict[str, str],
             query_embedding = None
         pred_span, used_clip_anchor = predicted_span_from_frames_peak(
             frames, query_embedding, half_width_s=half_width_s,
+            duration_s=q["duration"],
         )
 
         gold_tuples = [(float(g[0]), float(g[1])) for g in q["gold_spans"]]
