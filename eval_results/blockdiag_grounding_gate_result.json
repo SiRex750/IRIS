@@ -1,0 +1,26 @@
+{
+  "outcome": "GATE_PASS",
+  "part_a_frozen_flat_cell": {
+    "n": 406,
+    "n_videos": 59,
+    "peak_in_gold_rate": 0.3226600985221675,
+    "matches_frozen_0_3227_exactly": true
+  },
+  "part_b_scene_sparse_equivalence": {
+    "n_questions": 526,
+    "n_videos": 86,
+    "peak_in_gold_rate_fully_connected": 0.31749049429657794,
+    "peak_in_gold_rate_block_diagonal": 0.31749049429657794,
+    "mIoP_fully_connected": 0.31402667038753285,
+    "mIoP_block_diagonal": 0.31402667038753285,
+    "n_mismatches": 0,
+    "mismatches_sample": [],
+    "bit_identical": true
+  },
+  "flat_cache_untouched": true,
+  "ssparse_cache_untouched": true,
+  "flat_cache_sha256_before": "f9c3ac8daa78942407ccf8dd7d815f09ddb663abc9837e3ad76c796b8225c81b",
+  "flat_cache_sha256_after": "f9c3ac8daa78942407ccf8dd7d815f09ddb663abc9837e3ad76c796b8225c81b",
+  "ssparse_cache_sha256_before": "b72ddccaf60c20a63190588b63679995cb313d30f2fda4ad45335bd3409bffaa",
+  "ssparse_cache_sha256_after": "b72ddccaf60c20a63190588b63679995cb313d30f2fda4ad45335bd3409bffaa"
+}

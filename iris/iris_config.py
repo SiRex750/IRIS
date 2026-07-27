@@ -51,7 +51,7 @@ class IRISConfig:
     scene_crossscene_threshold_pctile: float = 75.0  # only used when scene_crossscene_mode="threshold"
 
     # ── Graph edge weights configuration ──
-    graph_edge_mode: str = "hierarchical_sparse"  # "hierarchical_sparse" or "fully_connected"
+    graph_edge_mode: str = "hierarchical_sparse"  # "hierarchical_sparse" | "fully_connected" | "block_diagonal"
     graph_temporal_window: int = 1  # connect each indexed frame to this many temporal neighbors
     graph_semantic_top_k: int = 4  # salient/salient semantic cross-root neighbors
     graph_motion_top_k: int = 2  # nearest action/motion neighbors per node
@@ -197,7 +197,7 @@ class IRISConfig:
                f"Invalid scene_crossscene_mode '{self.scene_crossscene_mode}'")
         _check(0.0 <= self.scene_crossscene_threshold_pctile <= 100.0,
                "scene_crossscene_threshold_pctile must be in [0, 100]")
-        _check(self.graph_edge_mode in {"hierarchical_sparse", "fully_connected"},
+        _check(self.graph_edge_mode in {"hierarchical_sparse", "fully_connected", "block_diagonal"},
                f"Invalid graph_edge_mode '{self.graph_edge_mode}'")
         _check(self.graph_temporal_window >= 0,
                "graph_temporal_window must be non-negative")

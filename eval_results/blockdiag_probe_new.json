@@ -1,0 +1,10 @@
+{
+  "mode": "new",
+  "graph_edge_mode": "block_diagonal",
+  "n_survivors": 4892,
+  "build_wall_sec": 0.31595373153686523,
+  "node_count": 4892,
+  "edge_count": 23571,
+  "peak_rss_bytes": 949567488,
+  "peak_rss_gb": 0.949567488
+}

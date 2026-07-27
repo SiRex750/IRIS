@@ -196,7 +196,31 @@ class L2Asphodel:
         min_score = min(scores)
         max_score_range = max_score - min_score
 
-        if self.graph_edge_mode == "fully_connected":
+        if self.graph_edge_mode == "block_diagonal":
+            # Same weight formula as "fully_connected" (alpha*semantic + beta*motion),
+            # using the identical globally-computed max_score_range above, but never
+            # materializes the N(N-1)/2 dense intermediate: only intra-scene pairs are
+            # ever visited. Requires node_groups (scene_sparse); each pair is visited
+            # exactly once, so no cross-group prune pass is needed afterward.
+            if node_groups is None:
+                raise ValueError(
+                    "graph_edge_mode='block_diagonal' requires node_groups "
+                    "(scene_sparse scene partition); got None."
+                )
+            id_to_pos = {nid: i for i, nid in enumerate(sorted_ids)}
+            for group in node_groups:
+                # Preserve the existing global (timestamp, frame_idx) sort order
+                # within each scene, rather than re-sorting the group itself —
+                # keeps edge-insertion order identical to what a filtered pass
+                # over sorted_ids would produce.
+                scene_ids_sorted = sorted(group, key=lambda nid: id_to_pos[nid])
+                n_i = len(scene_ids_sorted)
+                for i in range(n_i):
+                    for j in range(i + 1, n_i):
+                        self._add_weighted_edge(
+                            scene_ids_sorted[i], scene_ids_sorted[j], "fully_connected", max_score_range
+                        )
+        elif self.graph_edge_mode == "fully_connected":
             for i in range(num_nodes):
                 for j in range(i + 1, num_nodes):
                     self._add_weighted_edge(sorted_ids[i], sorted_ids[j], "fully_connected", max_score_range)
@@ -206,7 +230,7 @@ class L2Asphodel:
             self._add_salient_semantic_edges(sorted_ids, max_score_range)
             self._add_motion_neighbor_edges(sorted_ids, max_score_range)
 
-        if node_groups is not None:
+        if node_groups is not None and self.graph_edge_mode != "block_diagonal":
             node_to_group = {}
             for gid, group in enumerate(node_groups):
                 for nid in group:

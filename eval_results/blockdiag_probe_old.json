@@ -1,0 +1,10 @@
+{
+  "mode": "old",
+  "graph_edge_mode": "fully_connected",
+  "n_survivors": 4892,
+  "build_wall_sec": 69.47229480743408,
+  "node_count": 4892,
+  "edge_count": 23571,
+  "peak_rss_bytes": 6360109056,
+  "peak_rss_gb": 6.360109056
+}
