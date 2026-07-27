@@ -1,0 +1,175 @@
+{
+  "split": "official_test",
+  "git_head": "a92945332743d2454753723496ada781bab40b70",
+  "frozen": {
+    "retrieval_strategy": "hybrid",
+    "ppr_lambda": 0.5,
+    "ppr_damping": 0.5,
+    "l2_retrieve_top_k": 4,
+    "span_method": "D",
+    "span_method_half_width_s": 2.2,
+    "peak_distance": 5,
+    "peak_prominence": 0.05,
+    "packet_size_weight": 0.8,
+    "motion_weight": 0.1,
+    "luma_entropy_weight": 0.1,
+    "persistence_threshold": 0.4,
+    "max_prominence": 0.5
+  },
+  "answerer_provenance": {
+    "endpoint": "http://127.0.0.1:8091/v1",
+    "listening_port": 8091,
+    "pid": 1272415,
+    "cmdline": "/home/ccbd/.local/iris/bin/llama-server-b10099 -m /home/ccbd/.ollama/models/blobs/sha256-97c417dcc0534b0737c74016fb2af083cb17c3b51eaac621192d23961b7024eb -ngl 999 -c 8192 --parallel 1 --host 127.0.0.1 --port 8091 --alias granite4:micro",
+    "binary_path": "/home/ccbd/.local/iris/bin/llama-server-b10099",
+    "binary_sha256": "250d2eb35a6ddfa1df060599f8bc3169944ef60a77429b2cc395e062859e0a06",
+    "binary_version_output": "version: 1 (1a064ab)\nbuilt with GNU 12.3.0 for Linux x86_64",
+    "gguf_path": null,
+    "gguf_sha256": null,
+    "gguf_sha256_matches_expected": null,
+    "models_endpoint_response": {
+      "models": [
+        {
+          "name": "granite4:micro",
+          "model": "granite4:micro",
+          "modified_at": "",
+          "size": "",
+          "digest": "",
+          "type": "model",
+          "description": "",
+          "tags": [
+            ""
+          ],
+          "capabilities": [
+            "completion"
+          ],
+          "parameters": "",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "",
+            "families": [
+              ""
+            ],
+            "parameter_size": "",
+            "quantization_level": ""
+          }
+        }
+      ],
+      "object": "list",
+      "data": [
+        {
+          "id": "granite4:micro",
+          "aliases": [
+            "granite4:micro"
+          ],
+          "tags": [],
+          "object": "model",
+          "created": 1785169427,
+          "owned_by": "llamacpp",
+          "meta": {
+            "vocab_type": 2,
+            "n_vocab": 100352,
+            "n_ctx": 8192,
+            "n_ctx_train": 131072,
+            "n_embd": 2560,
+            "n_params": 3402836480,
+            "size": 2095933440,
+            "ftype": "Q4_K - Medium"
+          }
+        }
+      ]
+    },
+    "sampler_params_sent": {
+      "temperature": 0.0,
+      "top_k": 1,
+      "top_p": 1.0,
+      "seed": 42,
+      "cache_prompt": false
+    }
+  },
+  "models_endpoint_response": {
+    "models": [
+      {
+        "name": "granite4:micro",
+        "model": "granite4:micro",
+        "modified_at": "",
+        "size": "",
+        "digest": "",
+        "type": "model",
+        "description": "",
+        "tags": [
+          ""
+        ],
+        "capabilities": [
+          "completion"
+        ],
+        "parameters": "",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "",
+          "families": [
+            ""
+          ],
+          "parameter_size": "",
+          "quantization_level": ""
+        }
+      }
+    ],
+    "object": "list",
+    "data": [
+      {
+        "id": "granite4:micro",
+        "aliases": [
+          "granite4:micro"
+        ],
+        "tags": [],
+        "object": "model",
+        "created": 1785169426,
+        "owned_by": "llamacpp",
+        "meta": {
+          "vocab_type": 2,
+          "n_vocab": 100352,
+          "n_ctx": 8192,
+          "n_ctx_train": 131072,
+          "n_embd": 2560,
+          "n_params": 3402836480,
+          "size": 2095933440,
+          "ftype": "Q4_K - Medium"
+        }
+      }
+    ]
+  },
+  "sampler_wire_check": {
+    "url": "http://127.0.0.1:8091/v1/chat/completions",
+    "sampler_on_wire": {
+      "temperature": 0.0,
+      "top_k": 1,
+      "top_p": 1.0,
+      "seed": 42,
+      "cache_prompt": false
+    },
+    "smoke_response": "ANSWER: B\nREASON: The sky on a clear day is typically blue.",
+    "captured_body_keys": [
+      "cache_prompt",
+      "messages",
+      "model",
+      "seed",
+      "temperature",
+      "top_k",
+      "top_p"
+    ]
+  },
+  "split_guard": {
+    "manifest_read": "/home/ccbd/IRIS-1/benchmark_runs/paper_setup_20260720T074844Z_1e431b7/split_manifest.json",
+    "guard_official_test_command": "returned cleanly",
+    "tuning_ids_checked": 567,
+    "leaked_ids": []
+  },
+  "index_cache_dir": "/home/ccbd/IRIS-1/tuning/index_cache_official_test",
+  "limit_videos": 10,
+  "resume": true,
+  "n_questions": 67,
+  "n_videos": 10
+}

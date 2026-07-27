@@ -1,0 +1,173 @@
+video,qid,type,question,pred_answer_idx,pred_answer_label,gold_answer_idx,gold_answer_label,acc_qa,pred_span_start,pred_span_end,gold_spans,iop,iou,acc_gqa_unverified,used_clip_anchor,raw_answer_nonempty,retrieval_span_ms,caption_answer_ms,query_mode,traversal_mode,relation,relation_source,fallback_reason,num_ppr_calls,context_frame_count
+10495085476,3,CW,why did the adult squat down and opened his arm at the end of the video,0,A,0,A,True,0.0,2.901,"[[22.5, 30.7]]",0.0,0.0,False,True,True,2826.98,2342.19,none,none,,,,1,4
+10728284944,0,CW,why is the girl doing some hand actions,0,A,3,D,False,66.969,71.369,"[[0.0, 73.1]]",1.0,0.06019,False,True,True,7.15,2631.35,none,none,,,,1,4
+10734790773,6,TN,what does the toddler in red bib do after the toddler in grey opens her mouth wide in the middle,0,A,0,A,True,33.169,37.569,"[[11.8, 16.1]]",0.0,0.0,False,True,True,8.03,2282.84,none,none,,,,1,4
+10495085476,6,CW,why did the boy opened his arm as he ran towards the man at the end of the video,0,A,0,A,True,11.514,15.914,"[[22.5, 30.7]]",0.0,0.0,False,True,True,7.38,1799.21,none,none,,,,1,4
+10128261054,9,CW,why did the man on the left turn his face back and walk away,2,C,4,E,False,15.117,19.0,"[[15.2, 19.0]]",0.9787,0.9787,False,True,True,7.46,2573.59,none,none,,,,1,4
+10149430394,6,CH,how did the lady in purple ride relative to the boy's position,1,B,2,C,False,13.816,18.216,"[[15.0, 22.6]]",0.73091,0.36612,False,True,True,7.31,2472.28,none,none,,,,1,4
+10305881544,3,CW,why was the baby looking at the left while pushing the pram at first,1,B,0,A,False,0.3,4.7,"[[3.0, 9.6]]",0.38636,0.1828,False,True,True,7.7,2867.32,none,none,,,,1,4
+10467727335,3,CH,how did the man show affection towards the girl,2,C,2,C,True,5.274,9.674,"[[4.5, 12.3]]",1.0,0.5641,True,True,True,7.37,2449.51,none,none,,,,1,4
+10483027904,9,TC,how did the baby get the toy at the end of the video,4,E,4,E,True,11.814,16.214,"[[24.2, 27.7]]",0.0,0.0,False,True,True,7.29,2333.64,none,none,,,,1,4
+10128261054,4,TN,what does the fencer on the left do after he lunged forward to attack the fencer on the right at the end,2,C,1,B,False,8.678,13.078,"[[15.2, 19]]",0.0,0.0,False,True,True,7.02,1362.04,none,none,,,,1,4
+10128261054,8,TN,what does the man in black do after walking out to the side,0,A,0,A,True,0.0,3.401,"[[6.0, 17.7]]",0.0,0.0,False,True,True,7.37,773.83,none,none,,,,1,4
+10128261054,1,TN,what does the fencer on the right do after he was hit by the fencer on the left at the end,2,C,1,B,False,12.882,17.282,"[[15.1, 18.8]]",0.49585,0.36865,False,True,True,7.24,697.58,none,none,,,,1,4
+10682218035,3,TN,what does the brown dog do after looking at the ground for a while at the start,2,C,0,A,False,0.0,3.268,"[[9.7, 11.3]]",0.0,0.0,False,True,True,7.23,2571.71,none,none,,,,1,4
+10483027904,2,CW,why did the boy in blue pass the lady the colourful toy when he reached forward,2,C,2,C,True,11.814,16.214,"[[24.2, 27.7]]",0.0,0.0,False,True,True,7.34,662.06,none,none,,,,1,4
+10488004303,8,TN,what does the boy do after playing with the green toy for a while in the middle,2,C,4,E,False,0.0,2.2,"[[38.8, 43.8]]",0.0,0.0,False,True,True,7.71,3383.73,none,none,,,,1,4
+10495085476,4,TN,what happened to the child after the adult let go of him at the beginning of the video,4,E,4,E,True,0.0,2.901,"[[10.5, 13.9]]",0.0,0.0,False,True,True,7.29,679.7,none,none,,,,1,4
+10483027904,0,CW,why is the baby in pink staring at the colourful toy in front of her,1,B,1,B,True,23.326,27.726,"[[0.0, 14.2]]",0.0,0.0,False,True,True,7.73,1243.84,none,none,,,,1,4
+10495085476,0,TC,what is the adult doing to the child at the start of the video,0,A,3,D,False,0.0,3.234,"[[0.0, 10.0]]",1.0,0.32344,False,True,True,7.03,1587.12,none,none,,,,1,4
+10309844035,11,TC,what does the man in blue do when the man on the ladder starts moving the phone up,4,E,2,C,False,6.55,10.95,"[[14.5, 31.6]]",0.0,0.0,False,True,True,8.08,2493.59,none,none,,,,1,4
+10305881544,5,TC,what did the baby do when he walked past a hole,1,B,1,B,True,0.0,2.95,"[[18.8, 20.9]]",0.0,0.0,False,True,True,7.18,1640.04,none,none,,,,1,4
+10316970886,2,CW,why is the lady adjusting the baby s blanket,0,A,4,E,False,17.194,21.594,"[[3.5, 19.8]]",0.59218,0.144,False,True,True,7.59,2357.8,none,none,,,,1,4
+10174992863,2,CW,why did the girls hold each other s hands,2,C,2,C,True,9.745,13.0,"[[9.9, 13]]",0.95246,0.95246,True,True,True,6.4,2133.85,none,none,,,,1,4
+10728284944,3,CW,why is the girl talking while doing some hand actions,1,B,2,C,False,66.969,71.369,"[[0.0, 73.1]]",1.0,0.06019,False,True,True,7.62,635.4,none,none,,,,1,4
+10488004303,7,TN,what does the boy do after turning his head back at the start,4,E,2,C,False,65.88,70.28,"[[9.7, 16.2]]",0.0,0.0,False,True,True,12.15,2772.09,none,none,,,,1,4
+10278239024,0,TC,what did the baby on the floor do when he first reached the sofa in the middle,1,B,4,E,False,34.37,38.77,"[[21.8, 25.5]]",0.0,0.0,False,True,True,7.24,2200.5,none,none,,,,1,4
+10278239024,2,CW,why is the baby drawn to the design of the cover of foot of the sofa,2,C,4,E,False,31.634,36.034,"[[21.8, 25.5]]",0.0,0.0,False,True,True,7.27,2156.1,none,none,,,,1,4
+10174992863,6,TC,what does the girl with ponytail do to her hair at the start,3,D,3,D,True,9.812,13.0,"[[1.1, 3.4]]",0.0,0.0,False,True,True,7.42,1489.96,none,none,,,,1,4
+10209170426,4,TN,what did the man do after the boy took the toy from him,3,D,1,B,False,0.0,3.134,"[[11.6, 14.6]]",0.0,0.0,False,True,True,7.06,2852.69,none,none,,,,1,4
+10128261054,3,TC,what does the man in black at the side do while the fencers were playing,4,E,1,B,False,12.882,17.282,"[[5.9, 17.7]]",1.0,0.37288,False,True,True,7.88,169.4,none,none,,,,1,4
+10309844035,7,TN,how does the man on the ladder feel after finishing taking the photo,3,D,3,D,True,23.633,28.033,"[[36.2, 40.0]]",0.0,0.0,False,True,True,7.58,1348.07,none,none,,,,1,4
+10376859826,1,CW,why is the lady in black lifting up all the presents from the box,1,B,4,E,False,43.137,47.537,"[[0.0, 41.8]]",0.0,0.0,False,True,True,7.13,2568.67,none,none,,,,1,4
+10728284944,7,CH,how does the girl use body language to demonstrate what she is saying,0,A,0,A,True,38.407,42.807,"[[0.0, 73.1]]",1.0,0.06019,True,True,True,8.32,2392.14,none,none,,,,1,4
+10747331063,4,CW,why does the boy wear a glove on one of his hands,2,C,2,C,True,6.842,11.242,"[[4.9, 7.5]]",0.14946,0.10369,False,True,True,7.07,2555.75,none,none,,,,1,4
+10495085476,7,CH,how did the man spun the boy at the beginning of the video,1,B,3,D,False,11.414,15.814,"[[0.0, 10.0]]",0.0,0.0,False,True,True,7.7,1199.49,none,none,,,,1,4
+10652030225,4,CW,why did the man in black shake the hands of the man with the rod,1,B,4,E,False,27.93,32.33,"[[65.5, 66]]",0.0,0.0,False,True,True,7.79,2754.63,none,none,,,,1,4
+10309844035,5,TC,how does the men appear while taking the photo,3,D,3,D,True,15.383,19.783,"[[7.5, 35.0]]",1.0,0.16,True,True,True,7.87,2027.22,none,none,,,,1,4
+10734790773,5,CH,how does the toddler in red bib stir the food in the cup at the start,0,A,0,A,True,5.341,9.741,"[[3.6, 7.3]]",0.44526,0.31903,False,True,True,7.73,2071.67,none,none,,,,1,4
+10483027904,5,TN,what did the boy do after he played with the toy,3,D,0,A,False,1.804,6.204,"[[24.2, 27.7]]",0.0,0.0,False,True,True,7.65,2369.47,none,none,,,,1,4
+10495085476,9,TN,what did the boy do after he fell down,4,E,1,B,False,9.478,13.878,"[[18.7, 30.7]]",0.0,0.0,False,True,True,7.94,696.38,none,none,,,,1,4
+10747331063,0,CW,why does the boy walk forward after he throws the ball,0,A,0,A,True,0.0,3.435,"[[0.0, 3.6], [18.7, 22]]",1.0,0.95405,True,True,True,7.2,1225.8,none,none,,,,1,4
+10728284944,6,CH,how did the girl show affection to the boy,1,B,0,A,False,76.545,80.945,"[[75.5, 78.2]]",0.37604,0.30385,False,True,True,20.56,3279.55,none,none,,,,1,4
+10734790773,7,CW,why does the toddler in red bib reach out his tongue at the end,1,B,0,A,False,34.403,38.0,"[[33.3, 36.1]]",0.47174,0.36101,False,True,True,7.94,1231.37,none,none,,,,1,4
+10640925015,5,TN,what did the boy in white do after he turned back to face the camera at the beginning of the video,2,C,4,E,False,1.304,5.704,"[[6.3, 12.7]]",0.0,0.0,False,True,True,7.54,2446.72,none,none,,,,1,4
+10305881544,2,CW,why did the lady hold the pram in middle of the video again,1,B,1,B,True,0.383,4.783,"[[19.6, 23.1]]",0.0,0.0,False,True,True,7.53,2611.43,none,none,,,,1,4
+10734790773,2,CW,why did the toddler in red bib putting his hand inside the cup,1,B,3,D,False,5.341,9.741,"[[7.0, 12.1]]",0.62293,0.40551,False,True,True,8.17,1598.39,none,none,,,,1,4
+10467727335,9,TN,what did the girl do after she stood up to get her toy in the middle of the video,1,B,0,A,False,9.078,13.478,"[[16.1, 45]]",0.0,0.0,False,True,True,2820.32,2731.56,none,none,,,,1,4
+10316970886,7,TN,what does the man do after the baby is properly wrapped,4,E,4,E,True,11.48,15.88,"[[22.3, 27.4]]",0.0,0.0,False,True,True,7.52,2451.89,none,none,,,,1,4
+10747331063,6,TN,what does the boy in front do after throwing the ball at the start of the video,0,A,0,A,True,2.038,6.438,"[[0.0, 7.5]]",1.0,0.58667,True,True,True,6.96,2094.78,none,none,,,,1,4
+10278239024,3,CW,why did the boy in green bend down on the sofa,4,E,4,E,True,35.838,40.238,"[[24.5, 27.9]]",0.0,0.0,False,True,True,7.38,2481.38,none,none,,,,1,4
+10495085476,1,CW,why was the boy on the floor in the middle of the video,0,A,4,E,False,11.414,15.814,"[[10.5, 13.9]]",0.56509,0.46793,False,True,True,7.37,1943.38,none,none,,,,1,4
+10734790773,4,CW,why did the red and blue toddler turn to each other in the middle of eating their meals,0,A,0,A,True,30.232,34.632,"[[11.9, 12.6], [17.8, 20.5]]",0.0,0.0,False,True,True,7.21,2058.92,none,none,,,,1,4
+10316970886,3,CW,why is the man rocking with the baby towards the end,0,A,0,A,True,11.355,15.755,"[[22.3, 27.4]]",0.0,0.0,False,True,True,7.66,1715.17,none,none,,,,1,4
+10488004303,0,CW,why are there green and yellow mats on the floor,1,B,3,D,False,84.36,88.76,"[[0.0, 91.8]]",1.0,0.04793,False,True,True,7.73,3191.75,none,none,,,,1,4
+10278239024,6,CH,how did the baby end up facing the sofa,1,B,2,C,False,34.27,38.67,"[[15.8, 21.0]]",0.0,0.0,False,True,True,7.24,1193.72,none,none,,,,1,4
+10488004303,5,CW,why did the boy start to flip the book when he picked up the book,2,C,2,C,True,74.52,78.92,"[[46.5, 84.1]]",1.0,0.11702,True,True,True,7.79,2859.98,none,none,,,,1,4
+10305881544,4,TC,how did the baby react as he was pushing the pram,2,C,4,E,False,25.342,28.0,"[[11.3, 12.5]]",0.0,0.0,False,True,True,6.89,2615.95,none,none,,,,1,4
+10376859826,0,CW,why is the lady in black doing with the boxes in her hand,2,C,2,C,True,12.523,16.923,"[[0.0, 17.4]]",1.0,0.25287,True,True,True,7.53,2713.27,none,none,,,,1,4
+10734790773,1,CH,how does the toddler in red bib move his hands,4,E,4,E,True,5.341,9.741,"[[3.6, 7.3], [20.5, 24.4]]",0.44526,0.31903,False,True,True,10.44,1121.59,none,none,,,,1,4
+10173643695,7,TP,what was the boy in red and blue doing right before he let go off the pole,4,E,4,E,True,12.0,16.4,"[[18.1, 22.3]]",0.0,0.0,False,True,True,7.2,2502.49,none,none,,,,1,4
+10640925015,2,CW,why is the boy in white shirt looking down in the middle,0,A,1,B,False,0.0,4.169,"[[6.3, 12.7]]",0.0,0.0,False,True,True,7.22,2297.82,none,none,,,,1,4
+10437686463,9,CW,why did the girl in pink smile after her speech,4,E,0,A,False,18.24,22.64,"[[19.1, 22.0]]",0.65909,0.65909,False,True,True,6.67,2864.0,none,none,,,,1,4
+10483027904,3,CW,why was there a lady walking behind the hallway stop with her cup on her hand,1,B,3,D,False,16.886,21.286,"[[17.1, 20.5]]",0.77273,0.77273,False,True,True,7.41,2621.89,none,none,,,,1,4
+10652030225,8,TN,what does the man with the rod do after finishing the session with the man in black,4,E,2,C,False,41.444,45.844,"[[64.8, 65.7]]",0.0,0.0,False,True,True,8.06,2548.09,none,none,,,,1,4
+10173643695,9,TN,what does the boy in red and black shorts do after climbing on the table,2,C,4,E,False,11.6,16.0,"[[13.7, 20.5]]",0.52273,0.25843,False,True,True,6.9,2107.23,none,none,,,,1,4
+10747331063,8,TN,what does the boy in front do after catching the ball and squat down at the end of the video,1,B,1,B,True,2.038,6.438,"[[18.3, 20.5]]",0.0,0.0,False,True,True,7.84,763.92,none,none,,,,1,4
+10309844035,10,CW,why does the man on ladder move the phone up throughout the video,3,D,3,D,True,6.55,10.95,"[[8.1, 34.6]]",0.64773,0.1016,True,True,True,7.75,2552.22,none,none,,,,1,4
+10400848434,9,TN,what does the red jacket boy do after approaching the girl,0,A,0,A,True,1.804,6.204,"[[3.3, 6.0]]",0.61364,0.61364,True,True,True,7.28,2502.5,none,none,,,,1,4
+10305881544,1,CW,why was the lady in white pants holding the pram at the start,2,C,2,C,True,25.342,28.0,"[[1.1, 3.0]]",0.0,0.0,False,True,True,7.28,750.38,none,none,,,,1,4
+10467727335,6,CW,why did the girl stand up after the man hugged her at the start of the video,2,C,2,C,True,1.804,6.204,"[[12.6, 18.2]]",0.0,0.0,False,True,True,8.68,2545.47,none,none,,,,1,4
+10488004303,6,TN,what does the boy do after dropping the grey mat at the start,1,B,3,D,False,65.88,70.28,"[[4.5, 10.1]]",0.0,0.0,False,True,True,8.92,2837.62,none,none,,,,1,4
+10437686463,5,TC,what did the taller girl do when the shorter girl fell onto the sofa,4,E,4,E,True,0.6,5.0,"[[20.0, 23]]",0.0,0.0,False,True,True,7.48,3017.94,none,none,,,,1,4
+10173643695,6,CW,why was the boy in red and black shorts running in the middle,4,E,2,C,False,12.0,16.4,"[[9.9, 19.2]]",1.0,0.47312,False,True,True,7.61,814.29,none,none,,,,1,4
+10495085476,12,TN,what did the man do after the boy ran to hug him,3,D,3,D,True,0.0,2.901,"[[26.6, 30.7]]",0.0,0.0,False,True,True,8.95,2072.06,none,none,,,,1,4
+10437686463,10,TP,what did the girl in pink do before she bowed at the end of the video,3,D,1,B,False,1.72,6.12,"[[20.0, 23]]",0.0,0.0,False,True,True,7.45,1451.44,none,none,,,,1,4
+10109006686,3,CW,why is there an orange barrier out of which people can stand,2,C,4,E,False,4.874,9.274,"[[0.5, 12.6]]",1.0,0.36364,False,True,True,7.61,2606.38,none,none,,,,1,4
+10174992863,5,CH,how do the girls exchange greetings after talking,4,E,4,E,True,10.479,13.0,"[[9.2, 13]]",1.0,0.66333,True,True,True,7.73,2551.74,none,none,,,,1,4
+10467727335,0,CW,why is the man in blue touching the girl in pink s waist when she came around,1,B,3,D,False,0.0,3.501,"[[2.7, 8.1]]",0.22886,0.09893,False,True,True,6.25,2588.65,none,none,,,,1,4
+10400848434,0,CW,why did the red jacket boy touch the pink shirt girl when he look at the ostrich,2,C,4,E,False,1.804,6.204,"[[3.3, 6.0]]",0.61364,0.61364,False,True,True,7.15,1504.86,none,none,,,,1,4
+10173643695,1,CH,how did the boy in blue pants get up onto the table,1,B,1,B,True,3.8,8.2,"[[0.2, 7.4]]",0.81818,0.45,True,True,True,7.12,2940.98,none,none,,,,1,4
+10488004303,4,CW,why did the boy drop the blue shirt after waving it for a while,1,B,0,A,False,11.16,15.56,"[[16.2, 25.4]]",0.0,0.0,False,True,True,7.84,3763.75,none,none,,,,1,4
+10652030225,6,TC,how did the man in black react when being hit hard near the middle of the video,0,A,0,A,True,23.826,28.226,"[[20.5, 21.6]]",0.0,0.0,False,True,True,8.05,2263.38,none,none,,,,1,4
+10173643695,5,TC,what does the boy in red and black shorts do as the boy in blue shorts was hanging on the pole,2,C,4,E,False,11.6,16.0,"[[11.9, 19.1]]",0.93182,0.54667,False,True,True,7.57,182.16,none,none,,,,1,4
+10278239024,1,TC,what does the boy in green do when he got off the sofa,4,E,4,E,True,28.898,33.298,"[[31.0, 32.6]]",0.36364,0.36364,False,True,True,7.95,1905.3,none,none,,,,1,4
+10400848434,1,CW,why did the blue shirt woman hold onto the pink shirt girl at all time,3,D,0,A,False,7.51,11.91,"[[0.0, 12.5]]",1.0,0.352,False,True,True,8.29,2752.96,none,none,,,,1,4
+10437686463,2,TN,what did the short girl do after the taller girl bow down,4,E,4,E,True,1.32,5.72,"[[0.5, 3.7]]",0.54091,0.45594,True,True,True,7.34,136.68,none,none,,,,1,4
+10488004303,2,CW,why are there so many books behind the baby boy,2,C,4,E,False,49.32,53.72,"[[0.0, 47.0]]",0.0,0.0,False,True,True,8.02,2464.17,none,none,,,,1,4
+10128261054,6,TN,what does the fencer on the right do after he tried to move forward towards the fencer on the left in the middle,1,B,2,C,False,8.678,13.078,"[[6.2, 15.3]]",1.0,0.48352,False,True,True,7.54,2391.13,none,none,,,,1,4
+10843059584,6,CW,why is the lady looking around,0,A,0,A,True,41.177,45.577,"[[3.6, 17.1], [17.7, 21.2], [37.8, 40.1], [43.0, 48.1], [49.7, 54.6], [59.1, 63.8], [72.1, 77.9], [81.4, 83.8]]",0.58561,0.37217,True,True,True,26.98,2693.57,none,none,,,,1,4
+10437686463,12,TN,what did the girls do immediately after they bowed at the start of the video,2,C,2,C,True,1.16,5.56,"[[4.9, 9.8]]",0.15,0.07639,False,True,True,7.98,763.99,none,none,,,,1,4
+10174992863,7,CW,why did the girl with ponytail lift her hand to her head at the start,3,D,3,D,True,0.0,4.002,"[[1.1, 3.4]]",0.57474,0.57474,True,True,True,7.45,1189.25,none,none,,,,1,4
+10109006686,6,CW,why is there an orange thing at the end of the video,1,B,2,C,False,4.874,9.274,"[[29.1, 34.8]]",0.0,0.0,False,True,True,7.75,1357.35,none,none,,,,1,4
+10747331063,2,CW,why does the boy look behind him before throwing the ball,1,B,1,B,True,2.038,6.438,"[[14.7, 16.9]]",0.0,0.0,False,True,True,8.1,691.41,none,none,,,,1,4
+10437686463,11,CW,why did the girls bend their back at the start of the video,4,E,1,B,False,0.0,4.2,"[[0.0, 5.4]]",1.0,0.77778,False,True,True,7.28,1417.18,none,none,,,,1,4
+10734790773,0,TC,how did the toddlers feel during the meal,4,E,4,E,True,30.232,34.632,"[[11.9, 25.6], [29.5, 37.6]]",1.0,0.54321,True,True,True,8.11,753.67,none,none,,,,1,4
+10640925015,0,CW,why is the boy wearing white shirt looking down the sand pile at the beginning of the video,0,A,0,A,True,5.508,9.908,"[[0.0, 2.6]]",0.0,0.0,False,True,True,11.77,2597.73,none,none,,,,1,4
+10173643695,8,CW,why did the boy in red and black shorts climb on the table too,1,B,0,A,False,12.0,16.4,"[[9.8, 22.2]]",1.0,0.35484,False,True,True,7.15,771.54,none,none,,,,1,4
+10316970886,5,CH,how does the woman make the blanket tighter at the beginning,3,D,4,E,False,14.9,19.3,"[[3.5, 19.8]]",1.0,0.26994,False,True,True,7.24,1943.6,none,none,,,,1,4
+10278239024,5,CH,how does the baby moving his right hand,0,A,0,A,True,0.0,3.368,"[[3.1, 9.1]]",0.07953,0.02943,False,True,True,7.36,3394.43,none,none,,,,1,4
+10437686463,7,TN,what did the girl in white do after she finished talking,0,A,0,A,True,20.4,23.0,"[[20.0, 23]]",1.0,0.86667,True,True,True,7.9,162.44,none,none,,,,1,4
+10728284944,9,TN,what does the girl do after the boy appeared in front of her,2,C,2,C,True,38.374,42.774,"[[75.5, 78.2]]",0.0,0.0,False,True,True,7.48,2578.28,none,none,,,,1,4
+10728284944,4,CW,why did the boy run in front of the girl while the boy is doing some hand actions and talking,3,D,0,A,False,27.963,32.363,"[[73.1, 81.0]]",0.0,0.0,False,True,True,7.97,2504.94,none,none,,,,1,4
+10483027904,8,CW,why did the boy share the toy,3,D,1,B,False,1.804,6.204,"[[24.2, 27.7]]",0.0,0.0,False,True,True,7.32,2352.72,none,none,,,,1,4
+10174992863,1,CW,why did the girl on the left reach out her hand towards the girl on the right,4,E,4,E,True,10.479,13.0,"[[9.9, 13]]",1.0,0.81311,True,True,True,7.51,731.86,none,none,,,,1,4
+10128261054,2,CW,why does the man on the left jump back in the middle of the video,1,B,1,B,True,11.881,16.281,"[[8.9, 15.1]]",0.73165,0.43617,True,True,True,7.51,2561.84,none,none,,,,1,4
+10109006686,2,CW,why are there people standing so far away from the plane,1,B,2,C,False,0.0,3.401,"[[0.5, 12.6]]",0.85299,0.23025,False,True,True,7.68,1910.78,none,none,,,,1,4
+10305881544,6,TC,what did another baby in black pram do when they passed by the lady in white and the baby,4,E,4,E,True,1.8,6.2,"[[26.7, 28.0]]",0.0,0.0,False,True,True,9.0,2205.18,none,none,,,,1,4
+10652030225,10,CH,how does the man with the rod increase the intensity of the activity at the beginning,1,B,0,A,False,31.6,36.0,"[[0.0, 21.6]]",0.0,0.0,False,True,True,7.97,2419.83,none,none,,,,1,4
+10400848434,5,CW,why did one of the ostrich touch its beak against another ostrich when the other ostrich bob its head into bucket,2,C,2,C,True,5.708,10.108,"[[2.8, 3.9]]",0.0,0.0,False,True,True,8.85,2767.57,none,none,,,,1,4
+10109006686,0,CW,why are there three people standing beside the red net fence,2,C,2,C,True,0.0,2.2,"[[0.5, 12.6]]",0.77273,0.13492,True,True,True,7.35,1565.67,none,none,,,,1,4
+10400848434,3,CW,why is the little girl hold a bucket,3,D,3,D,True,9.278,13.0,"[[0.0, 11.9]]",0.70445,0.20168,True,True,True,7.73,1392.11,none,none,,,,1,4
+10437686463,6,TN,what did the taller girl do after she looked at the shorter girl on the sofa,3,D,4,E,False,20.4,23.0,"[[22.3, 23]]",0.26923,0.26923,False,True,True,8.09,183.35,none,none,,,,1,4
+10682218035,5,TN,what does the person do after lifting the lid up in the middle,3,D,3,D,True,12.081,16.481,"[[14.9, 17.8]]",0.35931,0.27644,False,True,True,8.53,2551.0,none,none,,,,1,4
+10400848434,10,TC,how does the girl react as the ostriches poke for food,1,B,1,B,True,9.378,13.0,"[[8.0, 12.5]]",0.86195,0.62435,True,True,True,8.01,1419.15,none,none,,,,1,4
+10355341433,5,TN,what does the taller boy do after tapping on the shoulder of the smaller boy at the beginning,0,A,2,C,False,16.552,20.952,"[[0.2, 2.5]]",0.0,0.0,False,True,True,8.27,2437.17,none,none,,,,1,4
+10467727335,5,TN,what did the girl do after the man hugged her at the start of the video,3,D,1,B,False,8.844,13.244,"[[12.6, 16.6]]",0.14645,0.08309,False,True,True,8.49,765.73,none,none,,,,1,4
+10640925015,3,CH,how did the boy in white get down from the castle,1,B,4,E,False,9.345,13.745,"[[6.3, 12.7]]",0.76253,0.45066,False,True,True,14.92,2170.87,none,none,,,,1,4
+10209170426,1,CH,how did the boy learn how to play with the toy,1,B,1,B,True,0.0,3.134,"[[1.4, 7.4]]",0.55332,0.23436,True,True,True,7.81,2964.23,none,none,,,,1,4
+10640925015,4,CH,how did the boy in white supported himself as he stood at the ledge watching other people,4,E,1,B,False,0.0,3.568,"[[0.0, 2.6]]",0.72869,0.72869,False,True,True,8.01,191.18,none,none,,,,1,4
+10483027904,6,TN,what did the baby do after the boy passed the toy to it,0,A,0,A,True,11.814,16.214,"[[24.2, 27.7]]",0.0,0.0,False,True,True,8.37,2298.94,none,none,,,,1,4
+10209170426,3,CH,how did the boy help to keep the toy,1,B,1,B,True,0.0,3.134,"[[11.2, 16]]",0.0,0.0,False,True,True,7.42,184.83,none,none,,,,1,4
+10488004303,10,TN,what does the boy do after putting down the black book at the end,4,E,2,C,False,74.52,78.92,"[[84.9, 99.8]]",0.0,0.0,False,True,True,8.06,2030.3,none,none,,,,1,4
+10437686463,1,TP,what did the girls do before they started talking,2,C,2,C,True,0.0,4.2,"[[0.0, 5.4]]",1.0,0.77778,True,True,True,7.59,128.52,none,none,,,,1,4
+10488004303,9,TN,what does the boy do after picking up the black book in the middle,2,C,2,C,True,74.52,78.92,"[[46.5, 84.1]]",1.0,0.11702,True,True,True,7.86,790.43,none,none,,,,1,4
+10309844035,9,CH,how does the man on the ladder stay stable on it,0,A,0,A,True,16.133,20.533,"[[10.6, 37.9]]",1.0,0.16117,True,True,True,7.49,1892.4,none,none,,,,1,4
+10400848434,8,TC,what happens to the girl when the ostriches poke so hard into the bucket,1,B,1,B,True,9.278,13.0,"[[0.0, 11.9]]",0.70445,0.20168,True,True,True,7.8,705.52,none,none,,,,1,4
+10309844035,4,TN,what does the man on the ladder do after checking out the other man s phone,1,B,3,D,False,6.55,10.95,"[[8.1, 34.6]]",0.64773,0.1016,False,True,True,7.95,1602.3,none,none,,,,1,4
+10173643695,0,CH,how did the boy in blue pants get onto the hanging pole,1,B,3,D,False,7.7,12.1,"[[6.0, 11.8]]",0.93182,0.67213,False,True,True,7.56,821.68,none,none,,,,1,4
+10209170426,2,CW,why did the boy take the toy from the man after putting his own toy down,3,D,2,C,False,12.748,16.0,"[[11.2, 16]]",1.0,0.67744,False,True,True,7.48,812.8,none,none,,,,1,4
+10109006686,4,CW,why are the people looking at the sky,0,A,0,A,True,0.0,2.2,"[[0.5, 12.6]]",0.77273,0.13492,True,True,True,6.42,1311.03,none,none,,,,1,4
+10173643695,3,CW,why was the boy in red and blue in the pile of foam at the end,2,C,2,C,True,12.0,16.4,"[[19.0, 30.0]]",0.0,0.0,False,True,True,7.95,782.02,none,none,,,,1,4
+10400848434,2,CW,why did the ostriches bob their heads into the white bucket,3,D,3,D,True,3.239,7.639,"[[0.0, 11.9]]",1.0,0.36975,True,True,True,7.49,744.11,none,none,,,,1,4
+10682218035,4,TN,what does the person do after approaching the left pot in the middle,2,C,2,C,True,12.515,16.915,"[[13.7, 16.1]]",0.54545,0.54545,True,True,True,8.07,1106.5,none,none,,,,1,4
+10149430394,4,CW,why does the boy ride on a different path from the lady in purple in the beginning,2,C,0,A,False,13.816,18.216,"[[0.2, 8.6]]",0.0,0.0,False,True,True,8.14,2520.09,none,none,,,,1,4
+10747331063,7,CH,how does the boy in front catch the incoming ball in the middle of the video,0,A,0,A,True,0.0,3.902,"[[4.9, 7.5]]",0.0,0.0,False,True,True,7.48,1260.67,none,none,,,,1,4
+10316970886,6,TN,how does the cameraman react after seeing the baby s leg tucks out,0,A,0,A,True,14.108,18.508,"[[13.5, 19.9]]",1.0,0.6875,True,True,True,7.18,1739.42,none,none,,,,1,4
+10467727335,4,TC,how did the girl react when the man was hugging her at the start of the video,1,B,1,B,True,8.844,13.244,"[[4.5, 12.3]]",0.78537,0.39518,True,True,True,13.7,147.89,none,none,,,,1,4
+10728284944,8,TC,how does the girl feel while talking and demonstrating in front of the camera,2,C,1,B,False,39.041,43.441,"[[0.0, 73.1]]",1.0,0.06019,False,True,True,8.95,3409.82,none,none,,,,1,4
+10640925015,8,TC,what did the girl do when the boy in white was going the down slope,3,D,0,A,False,0.0,3.568,"[[8.0, 10.4]]",0.0,0.0,False,True,True,17.37,791.81,none,none,,,,1,4
+10652030225,3,CW,why did the man in black stretch,3,D,2,C,False,42.244,46.644,"[[22.0, 25.1]]",0.0,0.0,False,True,True,8.37,1561.09,none,none,,,,1,4
+10682218035,0,CW,why do the two dogs look up at the end of the video,0,A,0,A,True,2.004,6.404,"[[29.2, 32.9]]",0.0,0.0,False,True,True,8.52,2759.07,none,none,,,,1,4
+10728284944,2,CW,why did the girl have painted nail polish on her nails,4,E,4,E,True,38.374,42.774,"[[12.9, 17.9]]",0.0,0.0,False,True,True,7.89,2180.83,none,none,,,,1,4
+10316970886,4,CH,how does the woman show affection towards the baby at the end,3,D,2,C,False,11.647,16.047,"[[27.8, 30.6]]",0.0,0.0,False,True,True,7.27,1831.27,none,none,,,,1,4
+10174992863,8,CH,how does the girl in ponytail tidy her hair at the start,4,E,4,E,True,10.479,13.0,"[[1.1, 3.4]]",0.0,0.0,False,True,True,7.76,149.86,none,none,,,,1,4
+10682218035,2,CW,why is there a spatula placed next to the boiling pan seen near the end of the video,2,C,2,C,True,12.214,16.614,"[[18.1, 29.4]]",0.0,0.0,False,True,True,6.89,1193.79,none,none,,,,1,4
+10316970886,8,TC,how does the baby react while the woman adjusts the blanket,2,C,4,E,False,14.025,18.425,"[[7.6, 19.4]]",1.0,0.37288,False,True,True,8.43,170.73,none,none,,,,1,4
+10309844035,3,CW,why are they holding up the phones,2,C,2,C,True,6.55,10.95,"[[0.0, 38.7]]",1.0,0.1137,True,True,True,7.85,1414.65,none,none,,,,1,4
+10728284944,5,CW,why did the girl hug the boy from behind,2,C,2,C,True,78.014,81.0,"[[75.5, 78.2]]",0.06243,0.0339,False,True,True,9.02,1759.12,none,none,,,,1,4
+10355341433,2,TN,how does the taller boy react after seeing the man,1,B,1,B,True,18.854,23.254,"[[20.9, 27]]",0.53509,0.28904,True,True,True,7.56,1840.31,none,none,,,,1,4
+10209170426,0,CW,why did the boy mimick the man,2,C,2,C,True,12.682,16.0,"[[1.4, 7.4]]",0.0,0.0,False,True,True,7.52,178.88,none,none,,,,1,4
+10747331063,3,CW,why does the boy change the direction he throws the ball,0,A,0,A,True,2.038,6.438,"[[17.5, 20.0]]",0.0,0.0,False,True,True,8.35,1316.71,none,none,,,,1,4
+10495085476,8,TN,what did the man do after he kneeled down at the end of the video,4,E,1,B,False,9.679,14.079,"[[22.5, 30.7]]",0.0,0.0,False,True,True,7.56,1292.52,none,none,,,,1,4
+10437686463,4,TC,what did the shorter girl do as she bowed down,1,B,1,B,True,1.16,5.56,"[[2.1, 4.4]]",0.52273,0.52273,True,True,True,7.76,166.11,none,none,,,,1,4
+10278239024,8,CW,why did the baby look up in front of the sofa,2,C,0,A,False,37.84,41.0,"[[28.6, 32.1]]",0.0,0.0,False,True,True,7.95,763.68,none,none,,,,1,4
+10173643695,2,CH,how did the boy in blue pants get up onto the table,3,D,3,D,True,3.8,8.2,"[[0.3, 11.8]]",1.0,0.38261,True,True,True,7.53,204.22,none,none,,,,1,4
+10309844035,0,CW,why is there a ladder present in the room,1,B,2,C,False,5.133,9.533,"[[18.1, 27.2]]",0.0,0.0,False,True,True,7.83,1823.73,none,none,,,,1,4
+10376859826,7,TP,what does the lady do after picking up the small dress before putting it down,1,B,0,A,False,24.869,29.269,"[[19.0, 26.9], [34.1, 35.9], [39.7, 41.6]]",0.46165,0.19781,False,True,True,8.77,2980.21,none,none,,,,1,4
+10376859826,8,TN,what does the lady do after folding the small bodysuits at the end,3,D,3,D,True,24.869,29.269,"[[44.9, 46.9]]",0.0,0.0,False,True,True,9.3,1420.91,none,none,,,,1,4
+10495085476,2,TN,what did the adult do after he spun the child,0,A,0,A,True,0.0,2.901,"[[7.9, 10.5]]",0.0,0.0,False,True,True,8.05,1503.94,none,none,,,,1,4
+10173643695,4,TN,what does the boy in red and blue do after getting on the table,4,E,4,E,True,11.6,16.0,"[[4.5, 11.8]]",0.04545,0.01739,False,True,True,8.1,221.57,none,none,,,,1,4
+10355341433,4,TN,what does the man do after noticing the boys,1,B,2,C,False,18.654,23.054,"[[22.1, 23.8]]",0.21686,0.18543,False,True,True,7.73,1929.76,none,none,,,,1,4
+10149430394,5,CW,why does the lady in purple try to slow down,2,C,0,A,False,0.0,3.201,"[[11.7, 22.5]]",0.0,0.0,False,True,True,9.92,2654.5,none,none,,,,1,4
+10495085476,10,CW,why did the boy ran towards the man at the end of the video,2,C,3,D,False,19.322,23.722,"[[22.5, 30.7]]",0.27762,0.10735,False,True,True,7.52,626.24,none,none,,,,1,4
+10209170426,5,TN,what did the boy do after he turned away from the man,4,E,4,E,True,13.816,16.0,"[[14.2, 16]]",0.82418,0.82418,True,True,True,7.89,2497.71,none,none,,,,1,4
+10640925015,6,CW,why did the boy looked on the ground as he walked down the slope,3,D,1,B,False,0.0,3.568,"[[6.3, 12.7]]",0.0,0.0,False,True,True,7.96,168.28,none,none,,,,1,4
+10488004303,1,CW,why is the baby holding on to two shirts and swinging it around,3,D,0,A,False,12.24,16.64,"[[0.0, 16.4]]",0.94545,0.25,False,True,True,8.72,3426.78,none,none,,,,1,4
+10149430394,3,CW,why does the boy avoid the grass patch at the end,1,B,4,E,False,18.754,23.0,"[[15.2, 22.5]]",0.88223,0.48022,False,True,True,8.79,2742.02,none,none,,,,1,4
+10376859826,3,TN,what does the lady do after picking up each present,4,E,4,E,True,41.218,45.618,"[[4.0, 6.8], [9.2, 13.0], [14.4, 16.0], [19.0, 26.9], [34.1, 35.9], [39.7, 41.6]]",0.08672,0.06447,False,True,True,7.84,2027.43,none,none,,,,1,4
+10747331063,1,CW,why does the boy shuffle his feet when he walks to the mud,2,C,2,C,True,15.317,19.717,"[[10.8, 13.1]]",0.0,0.0,False,True,True,8.14,2367.58,none,none,,,,1,4
+10652030225,2,CW,why did the man in black gesture to the man with the rod,0,A,1,B,False,38.04,42.44,"[[20.6, 26.0]]",0.0,0.0,False,True,True,8.37,2990.38,none,none,,,,1,4
+10843059584,7,CW,why is the lady looking down at her notes,3,D,0,A,False,0.0,3.635,"[[0.0, 4.0], [17.1, 17.7], [21.2, 37.7], [40.1, 44.2], [48.1, 49.7], [54.6, 59.1], [63.8, 72.1], [77.9, 81.4]]",1.0,0.90869,False,True,True,16.16,2637.47,none,none,,,,1,4
+10437686463,8,TC,what are the girls postures as they speak,4,E,3,D,False,18.6,23.0,"[[4.9, 20.7]]",0.47727,0.11602,False,True,True,8.3,872.19,none,none,,,,1,4
+10309844035,2,CW,why is the man wearing a blue jacket standing on the ladder,3,D,3,D,True,23.633,28.033,"[[18.1, 27.2]]",0.81061,0.35906,True,True,True,7.88,708.12,none,none,,,,1,4

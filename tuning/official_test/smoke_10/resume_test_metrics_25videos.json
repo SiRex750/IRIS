@@ -1,0 +1,30 @@
+{
+  "split": "official_test",
+  "n_scored": 172,
+  "n_repeats": 1,
+  "n_nominal_videos": 990,
+  "n_usable_videos": 25,
+  "n_resume_skipped": 45,
+  "n_fresh_ingests": 0,
+  "n_cache_hits": 25,
+  "mIoP": 0.38717575581395347,
+  "mIoU": 0.20103279069767443,
+  "IoP@0.3": 0.47093023255813954,
+  "IoP@0.5": 0.4127906976744186,
+  "IoU@0.3": 0.3081395348837209,
+  "IoU@0.5": 0.1511627906976744,
+  "median_retrieval_span_ms": 7.810463022906333,
+  "p95_retrieval_span_ms": 12.929748382885009,
+  "median_caption_answer_ms": 1985.4099999999999,
+  "p95_caption_answer_ms": 3000.0260000000003,
+  "total_wall_s": 230.21655392099638,
+  "minicpm_truncation_stats": {
+    "total_calls": 321,
+    "truncated_first_attempt": 0,
+    "truncated_after_retry": 0,
+    "truncation_rate_after_retry": 0.0,
+    "first_attempt_truncation_rate": 0.0
+  },
+  "Acc@QA": 0.5174418604651163,
+  "Acc@GQA_unverified": 0.22093023255813954
+}

@@ -1,0 +1,68 @@
+video,qid,type,question,pred_answer_idx,pred_answer_label,gold_answer_idx,gold_answer_label,acc_qa,pred_span_start,pred_span_end,gold_spans,iop,iou,acc_gqa_unverified,used_clip_anchor,raw_answer_nonempty,retrieval_span_ms,caption_answer_ms,query_mode,traversal_mode,relation,relation_source,fallback_reason,num_ppr_calls,context_frame_count
+10128261054,9,CW,why did the man on the left turn his face back and walk away,2,C,4,E,False,15.117,19.0,"[[15.2, 19.0]]",0.9787,0.9787,False,True,True,2973.05,2721.9,none,none,,,,1,4
+10149430394,6,CH,how did the lady in purple ride relative to the boy's position,1,B,2,C,False,13.816,18.216,"[[15.0, 22.6]]",0.73091,0.36612,False,True,True,8.1,2612.93,none,none,,,,1,4
+10305881544,3,CW,why was the baby looking at the left while pushing the pram at first,1,B,0,A,False,0.3,4.7,"[[3.0, 9.6]]",0.38636,0.1828,False,True,True,7.61,2982.32,none,none,,,,1,4
+10128261054,4,TN,what does the fencer on the left do after he lunged forward to attack the fencer on the right at the end,2,C,1,B,False,8.678,13.078,"[[15.2, 19]]",0.0,0.0,False,True,True,8.82,1439.33,none,none,,,,1,4
+10128261054,8,TN,what does the man in black do after walking out to the side,0,A,0,A,True,0.0,3.401,"[[6.0, 17.7]]",0.0,0.0,False,True,True,7.15,801.05,none,none,,,,1,4
+10128261054,1,TN,what does the fencer on the right do after he was hit by the fencer on the left at the end,2,C,1,B,False,12.882,17.282,"[[15.1, 18.8]]",0.49585,0.36865,False,True,True,8.65,734.3,none,none,,,,1,4
+10309844035,11,TC,what does the man in blue do when the man on the ladder starts moving the phone up,4,E,2,C,False,6.55,10.95,"[[14.5, 31.6]]",0.0,0.0,False,True,True,7.74,2606.27,none,none,,,,1,4
+10305881544,5,TC,what did the baby do when he walked past a hole,1,B,1,B,True,0.0,2.95,"[[18.8, 20.9]]",0.0,0.0,False,True,True,8.21,1717.38,none,none,,,,1,4
+10316970886,2,CW,why is the lady adjusting the baby s blanket,0,A,4,E,False,17.194,21.594,"[[3.5, 19.8]]",0.59218,0.144,False,True,True,7.46,2621.9,none,none,,,,1,4
+10174992863,2,CW,why did the girls hold each other s hands,2,C,2,C,True,9.745,13.0,"[[9.9, 13]]",0.95246,0.95246,True,True,True,6.66,2429.11,none,none,,,,1,4
+10278239024,0,TC,what did the baby on the floor do when he first reached the sofa in the middle,1,B,4,E,False,34.37,38.77,"[[21.8, 25.5]]",0.0,0.0,False,True,True,7.36,2484.02,none,none,,,,1,4
+10278239024,2,CW,why is the baby drawn to the design of the cover of foot of the sofa,2,C,4,E,False,31.634,36.034,"[[21.8, 25.5]]",0.0,0.0,False,True,True,7.62,2497.93,none,none,,,,1,4
+10174992863,6,TC,what does the girl with ponytail do to her hair at the start,3,D,3,D,True,9.812,13.0,"[[1.1, 3.4]]",0.0,0.0,False,True,True,7.46,1682.34,none,none,,,,1,4
+10209170426,4,TN,what did the man do after the boy took the toy from him,3,D,1,B,False,0.0,3.134,"[[11.6, 14.6]]",0.0,0.0,False,True,True,7.21,3025.49,none,none,,,,1,4
+10128261054,3,TC,what does the man in black at the side do while the fencers were playing,4,E,1,B,False,12.882,17.282,"[[5.9, 17.7]]",1.0,0.37288,False,True,True,7.25,167.95,none,none,,,,1,4
+10309844035,7,TN,how does the man on the ladder feel after finishing taking the photo,3,D,3,D,True,23.633,28.033,"[[36.2, 40.0]]",0.0,0.0,False,True,True,7.33,1425.53,none,none,,,,1,4
+10309844035,5,TC,how does the men appear while taking the photo,3,D,3,D,True,15.383,19.783,"[[7.5, 35.0]]",1.0,0.16,True,True,True,7.88,2076.36,none,none,,,,1,4
+10305881544,2,CW,why did the lady hold the pram in middle of the video again,1,B,1,B,True,0.383,4.783,"[[19.6, 23.1]]",0.0,0.0,False,True,True,7.51,2730.36,none,none,,,,1,4
+10316970886,7,TN,what does the man do after the baby is properly wrapped,4,E,4,E,True,11.48,15.88,"[[22.3, 27.4]]",0.0,0.0,False,True,True,7.56,1608.58,none,none,,,,1,4
+10278239024,3,CW,why did the boy in green bend down on the sofa,4,E,4,E,True,35.838,40.238,"[[24.5, 27.9]]",0.0,0.0,False,True,True,17.15,2613.8,none,none,,,,1,4
+10316970886,3,CW,why is the man rocking with the baby towards the end,0,A,0,A,True,11.355,15.755,"[[22.3, 27.4]]",0.0,0.0,False,True,True,7.87,1787.06,none,none,,,,1,4
+10278239024,6,CH,how did the baby end up facing the sofa,1,B,2,C,False,34.27,38.67,"[[15.8, 21.0]]",0.0,0.0,False,True,True,7.98,184.24,none,none,,,,1,4
+10305881544,4,TC,how did the baby react as he was pushing the pram,2,C,4,E,False,25.342,28.0,"[[11.3, 12.5]]",0.0,0.0,False,True,True,8.04,148.81,none,none,,,,1,4
+10173643695,7,TP,what was the boy in red and blue doing right before he let go off the pole,4,E,4,E,True,12.0,16.4,"[[18.1, 22.3]]",0.0,0.0,False,True,True,7.47,2594.7,none,none,,,,1,4
+10173643695,9,TN,what does the boy in red and black shorts do after climbing on the table,2,C,4,E,False,11.6,16.0,"[[13.7, 20.5]]",0.52273,0.25843,False,True,True,7.39,2080.88,none,none,,,,1,4
+10309844035,10,CW,why does the man on ladder move the phone up throughout the video,3,D,3,D,True,6.55,10.95,"[[8.1, 34.6]]",0.64773,0.1016,True,True,True,9.52,748.11,none,none,,,,1,4
+10305881544,1,CW,why was the lady in white pants holding the pram at the start,2,C,2,C,True,25.342,28.0,"[[1.1, 3.0]]",0.0,0.0,False,True,True,8.11,197.41,none,none,,,,1,4
+10173643695,6,CW,why was the boy in red and black shorts running in the middle,4,E,2,C,False,12.0,16.4,"[[9.9, 19.2]]",1.0,0.47312,False,True,True,8.41,781.93,none,none,,,,1,4
+10109006686,3,CW,why is there an orange barrier out of which people can stand,2,C,4,E,False,4.874,9.274,"[[0.5, 12.6]]",1.0,0.36364,False,True,True,7.86,2513.46,none,none,,,,1,4
+10174992863,5,CH,how do the girls exchange greetings after talking,4,E,4,E,True,10.479,13.0,"[[9.2, 13]]",1.0,0.66333,True,True,True,7.75,1275.37,none,none,,,,1,4
+10173643695,1,CH,how did the boy in blue pants get up onto the table,1,B,1,B,True,3.8,8.2,"[[0.2, 7.4]]",0.81818,0.45,True,True,True,7.41,2840.7,none,none,,,,1,4
+10173643695,5,TC,what does the boy in red and black shorts do as the boy in blue shorts was hanging on the pole,2,C,4,E,False,11.6,16.0,"[[11.9, 19.1]]",0.93182,0.54667,False,True,True,7.22,183.24,none,none,,,,1,4
+10278239024,1,TC,what does the boy in green do when he got off the sofa,4,E,4,E,True,28.898,33.298,"[[31.0, 32.6]]",0.36364,0.36364,False,True,True,11.93,1960.6,none,none,,,,1,4
+10128261054,6,TN,what does the fencer on the right do after he tried to move forward towards the fencer on the left in the middle,1,B,2,C,False,8.678,13.078,"[[6.2, 15.3]]",1.0,0.48352,False,True,True,7.48,751.72,none,none,,,,1,4
+10174992863,7,CW,why did the girl with ponytail lift her hand to her head at the start,3,D,3,D,True,0.0,4.002,"[[1.1, 3.4]]",0.57474,0.57474,True,True,True,7.99,176.51,none,none,,,,1,4
+10109006686,6,CW,why is there an orange thing at the end of the video,1,B,2,C,False,4.874,9.274,"[[29.1, 34.8]]",0.0,0.0,False,True,True,8.35,1356.4,none,none,,,,1,4
+10173643695,8,CW,why did the boy in red and black shorts climb on the table too,1,B,0,A,False,12.0,16.4,"[[9.8, 22.2]]",1.0,0.35484,False,True,True,7.56,772.76,none,none,,,,1,4
+10316970886,5,CH,how does the woman make the blanket tighter at the beginning,3,D,4,E,False,14.9,19.3,"[[3.5, 19.8]]",1.0,0.26994,False,True,True,7.61,762.47,none,none,,,,1,4
+10278239024,5,CH,how does the baby moving his right hand,0,A,0,A,True,0.0,3.368,"[[3.1, 9.1]]",0.07953,0.02943,False,True,True,8.01,2188.41,none,none,,,,1,4
+10174992863,1,CW,why did the girl on the left reach out her hand towards the girl on the right,4,E,4,E,True,10.479,13.0,"[[9.9, 13]]",1.0,0.81311,True,True,True,7.69,161.57,none,none,,,,1,4
+10128261054,2,CW,why does the man on the left jump back in the middle of the video,1,B,1,B,True,11.881,16.281,"[[8.9, 15.1]]",0.73165,0.43617,True,True,True,7.63,1971.84,none,none,,,,1,4
+10109006686,2,CW,why are there people standing so far away from the plane,1,B,2,C,False,0.0,3.401,"[[0.5, 12.6]]",0.85299,0.23025,False,True,True,7.35,1973.04,none,none,,,,1,4
+10305881544,6,TC,what did another baby in black pram do when they passed by the lady in white and the baby,4,E,4,E,True,1.8,6.2,"[[26.7, 28.0]]",0.0,0.0,False,True,True,7.67,2264.13,none,none,,,,1,4
+10109006686,0,CW,why are there three people standing beside the red net fence,2,C,2,C,True,0.0,2.2,"[[0.5, 12.6]]",0.77273,0.13492,True,True,True,6.7,1427.24,none,none,,,,1,4
+10209170426,1,CH,how did the boy learn how to play with the toy,1,B,1,B,True,0.0,3.134,"[[1.4, 7.4]]",0.55332,0.23436,True,True,True,7.41,210.38,none,none,,,,1,4
+10209170426,3,CH,how did the boy help to keep the toy,1,B,1,B,True,0.0,3.134,"[[11.2, 16]]",0.0,0.0,False,True,True,7.76,162.7,none,none,,,,1,4
+10309844035,9,CH,how does the man on the ladder stay stable on it,0,A,0,A,True,16.133,20.533,"[[10.6, 37.9]]",1.0,0.16117,True,True,True,7.69,176.56,none,none,,,,1,4
+10309844035,4,TN,what does the man on the ladder do after checking out the other man s phone,1,B,3,D,False,6.55,10.95,"[[8.1, 34.6]]",0.64773,0.1016,False,True,True,7.84,219.9,none,none,,,,1,4
+10173643695,0,CH,how did the boy in blue pants get onto the hanging pole,1,B,3,D,False,7.7,12.1,"[[6.0, 11.8]]",0.93182,0.67213,False,True,True,7.04,803.85,none,none,,,,1,4
+10209170426,2,CW,why did the boy take the toy from the man after putting his own toy down,3,D,2,C,False,12.748,16.0,"[[11.2, 16]]",1.0,0.67744,False,True,True,8.37,795.1,none,none,,,,1,4
+10109006686,4,CW,why are the people looking at the sky,0,A,0,A,True,0.0,2.2,"[[0.5, 12.6]]",0.77273,0.13492,True,True,True,6.59,1363.54,none,none,,,,1,4
+10173643695,3,CW,why was the boy in red and blue in the pile of foam at the end,2,C,2,C,True,12.0,16.4,"[[19.0, 30.0]]",0.0,0.0,False,True,True,7.62,774.93,none,none,,,,1,4
+10149430394,4,CW,why does the boy ride on a different path from the lady in purple in the beginning,2,C,0,A,False,13.816,18.216,"[[0.2, 8.6]]",0.0,0.0,False,True,True,7.67,830.36,none,none,,,,1,4
+10316970886,6,TN,how does the cameraman react after seeing the baby s leg tucks out,0,A,0,A,True,14.108,18.508,"[[13.5, 19.9]]",1.0,0.6875,True,True,True,6.85,1748.75,none,none,,,,1,4
+10316970886,4,CH,how does the woman show affection towards the baby at the end,3,D,2,C,False,11.647,16.047,"[[27.8, 30.6]]",0.0,0.0,False,True,True,8.37,1850.37,none,none,,,,1,4
+10174992863,8,CH,how does the girl in ponytail tidy her hair at the start,4,E,4,E,True,10.479,13.0,"[[1.1, 3.4]]",0.0,0.0,False,True,True,8.27,151.1,none,none,,,,1,4
+10316970886,8,TC,how does the baby react while the woman adjusts the blanket,2,C,4,E,False,14.025,18.425,"[[7.6, 19.4]]",1.0,0.37288,False,True,True,8.28,171.27,none,none,,,,1,4
+10309844035,3,CW,why are they holding up the phones,2,C,2,C,True,6.55,10.95,"[[0.0, 38.7]]",1.0,0.1137,True,True,True,8.45,1402.98,none,none,,,,1,4
+10209170426,0,CW,why did the boy mimick the man,2,C,2,C,True,12.682,16.0,"[[1.4, 7.4]]",0.0,0.0,False,True,True,7.38,178.77,none,none,,,,1,4
+10278239024,8,CW,why did the baby look up in front of the sofa,2,C,0,A,False,37.84,41.0,"[[28.6, 32.1]]",0.0,0.0,False,True,True,7.62,732.22,none,none,,,,1,4
+10173643695,2,CH,how did the boy in blue pants get up onto the table,3,D,3,D,True,3.8,8.2,"[[0.3, 11.8]]",1.0,0.38261,True,True,True,7.19,204.62,none,none,,,,1,4
+10309844035,0,CW,why is there a ladder present in the room,1,B,2,C,False,5.133,9.533,"[[18.1, 27.2]]",0.0,0.0,False,True,True,8.56,1823.64,none,none,,,,1,4
+10173643695,4,TN,what does the boy in red and blue do after getting on the table,4,E,4,E,True,11.6,16.0,"[[4.5, 11.8]]",0.04545,0.01739,False,True,True,8.27,219.23,none,none,,,,1,4
+10149430394,5,CW,why does the lady in purple try to slow down,2,C,0,A,False,0.0,3.201,"[[11.7, 22.5]]",0.0,0.0,False,True,True,8.07,2504.48,none,none,,,,1,4
+10209170426,5,TN,what did the boy do after he turned away from the man,4,E,4,E,True,13.816,16.0,"[[14.2, 16]]",0.82418,0.82418,True,True,True,6.99,2474.69,none,none,,,,1,4
+10149430394,3,CW,why does the boy avoid the grass patch at the end,1,B,4,E,False,18.754,23.0,"[[15.2, 22.5]]",0.88223,0.48022,False,True,True,8.02,2654.04,none,none,,,,1,4
+10309844035,2,CW,why is the man wearing a blue jacket standing on the ladder,3,D,3,D,True,23.633,28.033,"[[18.1, 27.2]]",0.81061,0.35906,True,True,True,10.36,696.03,none,none,,,,1,4

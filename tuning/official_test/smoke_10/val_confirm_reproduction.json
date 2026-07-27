@@ -1,0 +1,663 @@
+{
+  "committed_csv": "/home/ccbd/IRIS-1/tuning/val_confirm_e2e_per_question.csv",
+  "n_questions_loaded": 639,
+  "n_rows_committed": 639,
+  "question_identity_and_order_match": true,
+  "n_compared": 639,
+  "n_skipped_missing_index": 0,
+  "columns_compared": [
+    "pred_span_start",
+    "pred_span_end",
+    "iop",
+    "iou",
+    "used_clip_anchor",
+    "gold_spans",
+    "gold_answer_idx",
+    "type",
+    "question"
+  ],
+  "columns_excluded_timing": [
+    "retrieval_span_ms",
+    "caption_answer_ms"
+  ],
+  "columns_excluded_model_dependent": [
+    "pred_answer_idx",
+    "pred_answer_label",
+    "acc_qa",
+    "acc_gqa_unverified",
+    "raw_answer_nonempty"
+  ],
+  "n_mismatches": 46,
+  "mismatches": [
+    {
+      "video": "6793786769",
+      "qid": "5",
+      "diff": {
+        "pred_span_end": {
+          "committed": "49.7",
+          "now": "48.0"
+        },
+        "iop": {
+          "committed": "0.61364",
+          "now": "1.0"
+        },
+        "iou": {
+          "committed": "0.40299",
+          "now": "0.54"
+        }
+      }
+    },
+    {
+      "video": "2821968703",
+      "qid": "5",
+      "diff": {
+        "pred_span_end": {
+          "committed": "30.295",
+          "now": "30.0"
+        }
+      }
+    },
+    {
+      "video": "4087654898",
+      "qid": "0",
+      "diff": {
+        "pred_span_end": {
+          "committed": "12.21",
+          "now": "11.0"
+        },
+        "iop": {
+          "committed": "0.04318",
+          "now": "0.05956"
+        },
+        "iou": {
+          "committed": "0.02874",
+          "now": "0.03519"
+        }
+      }
+    },
+    {
+      "video": "4087654898",
+      "qid": "7",
+      "diff": {
+        "pred_span_end": {
+          "committed": "12.077",
+          "now": "11.0"
+        },
+        "iop": {
+          "committed": "0.70988",
+          "now": "0.93982"
+        },
+        "iou": {
+          "committed": "0.64051",
+          "now": "0.82196"
+        }
+      }
+    },
+    {
+      "video": "3249402410",
+      "qid": "4",
+      "diff": {
+        "pred_span_end": {
+          "committed": "24.823",
+          "now": "23.0"
+        }
+      }
+    },
+    {
+      "video": "8208035645",
+      "qid": "2",
+      "diff": {
+        "pred_span_end": {
+          "committed": "15.513",
+          "now": "14.0"
+        }
+      }
+    },
+    {
+      "video": "4087654898",
+      "qid": "6",
+      "diff": {
+        "pred_span_end": {
+          "committed": "12.744",
+          "now": "11.0"
+        },
+        "iop": {
+          "committed": "0.24003",
+          "now": "0.39762"
+        },
+        "iou": {
+          "committed": "0.08287",
+          "now": "0.09601"
+        }
+      }
+    },
+    {
+      "video": "4822859674",
+      "qid": "4",
+      "diff": {
+        "pred_span_end": {
+          "committed": "37.235",
+          "now": "36.0"
+        },
+        "iop": {
+          "committed": "0.26477",
+          "now": "0.36809"
+        },
+        "iou": {
+          "committed": "0.23138",
+          "now": "0.30658"
+        }
+      }
+    },
+    {
+      "video": "7330294814",
+      "qid": "5",
+      "diff": {
+        "pred_span_end": {
+          "committed": "77.108",
+          "now": "77.0"
+        }
+      }
+    },
+    {
+      "video": "4087654898",
+      "qid": "5",
+      "diff": {
+        "pred_span_end": {
+          "committed": "12.944",
+          "now": "11.0"
+        }
+      }
+    },
+    {
+      "video": "3355698421",
+      "qid": "1",
+      "diff": {
+        "pred_span_end": {
+          "committed": "41.239",
+          "now": "40.0"
+        }
+      }
+    },
+    {
+      "video": "6205856607",
+      "qid": "7",
+      "diff": {
+        "pred_span_end": {
+          "committed": "34.265",
+          "now": "33.0"
+        }
+      }
+    },
+    {
+      "video": "6018514357",
+      "qid": "7",
+      "diff": {
+        "pred_span_end": {
+          "committed": "43.274",
+          "now": "43.0"
+        },
+        "iop": {
+          "committed": "0.86946",
+          "now": "0.92728"
+        },
+        "iou": {
+          "committed": "0.59089",
+          "now": "0.61704"
+        }
+      }
+    },
+    {
+      "video": "4087654898",
+      "qid": "3",
+      "diff": {
+        "pred_span_end": {
+          "committed": "12.744",
+          "now": "11.0"
+        }
+      }
+    },
+    {
+      "video": "4744503881",
+      "qid": "0",
+      "diff": {
+        "pred_span_end": {
+          "committed": "16.414",
+          "now": "16.0"
+        },
+        "iop": {
+          "committed": "0.75",
+          "now": "0.82794"
+        },
+        "iou": {
+          "committed": "0.75",
+          "now": "0.82794"
+        }
+      }
+    },
+    {
+      "video": "7330294814",
+      "qid": "1",
+      "diff": {
+        "pred_span_end": {
+          "committed": "77.809",
+          "now": "77.0"
+        }
+      }
+    },
+    {
+      "video": "6160414832",
+      "qid": "8",
+      "diff": {
+        "pred_span_end": {
+          "committed": "62.694",
+          "now": "61.0"
+        }
+      }
+    },
+    {
+      "video": "3124551255",
+      "qid": "5",
+      "diff": {
+        "pred_span_end": {
+          "committed": "66.965",
+          "now": "65.0"
+        }
+      }
+    },
+    {
+      "video": "2547885226",
+      "qid": "5",
+      "diff": {
+        "pred_span_end": {
+          "committed": "14.779",
+          "now": "14.0"
+        },
+        "iop": {
+          "committed": "0.27273",
+          "now": "0.33142"
+        },
+        "iou": {
+          "committed": "0.27273",
+          "now": "0.33142"
+        }
+      }
+    },
+    {
+      "video": "2589540862",
+      "qid": "2",
+      "diff": {
+        "pred_span_end": {
+          "committed": "24.722",
+          "now": "23.0"
+        },
+        "iop": {
+          "committed": "0.40909",
+          "now": "0.67214"
+        },
+        "iou": {
+          "committed": "0.40909",
+          "now": "0.67214"
+        }
+      }
+    },
+    {
+      "video": "2547885226",
+      "qid": "4",
+      "diff": {
+        "pred_span_end": {
+          "committed": "14.779",
+          "now": "14.0"
+        },
+        "iop": {
+          "committed": "0.23199",
+          "now": "0.28192"
+        },
+        "iou": {
+          "committed": "0.11627",
+          "now": "0.1276"
+        }
+      }
+    },
+    {
+      "video": "7887764754",
+      "qid": "3",
+      "diff": {
+        "pred_span_end": {
+          "committed": "35.266",
+          "now": "35.0"
+        }
+      }
+    },
+    {
+      "video": "4279106208",
+      "qid": "4",
+      "diff": {
+        "pred_span_end": {
+          "committed": "22.56",
+          "now": "22.0"
+        },
+        "iop": {
+          "committed": "0.38636",
+          "now": "0.44271"
+        },
+        "iou": {
+          "committed": "0.38636",
+          "now": "0.44271"
+        }
+      }
+    },
+    {
+      "video": "6793786769",
+      "qid": "2",
+      "diff": {
+        "pred_span_end": {
+          "committed": "48.367",
+          "now": "48.0"
+        }
+      }
+    },
+    {
+      "video": "2547885226",
+      "qid": "1",
+      "diff": {
+        "pred_span_end": {
+          "committed": "15.213",
+          "now": "14.0"
+        },
+        "iop": {
+          "committed": "0.25",
+          "now": "0.34515"
+        },
+        "iou": {
+          "committed": "0.25",
+          "now": "0.34515"
+        }
+      }
+    },
+    {
+      "video": "3502722122",
+      "qid": "3",
+      "diff": {
+        "pred_span_end": {
+          "committed": "18.76",
+          "now": "17.0"
+        },
+        "iop": {
+          "committed": "0.6",
+          "now": "1.0"
+        },
+        "iou": {
+          "committed": "0.56652",
+          "now": "0.91034"
+        }
+      }
+    },
+    {
+      "video": "10597533885",
+      "qid": "2",
+      "diff": {
+        "pred_span_end": {
+          "committed": "59.624",
+          "now": "58.0"
+        }
+      }
+    },
+    {
+      "video": "7887764754",
+      "qid": "7",
+      "diff": {
+        "pred_span_end": {
+          "committed": "35.266",
+          "now": "35.0"
+        },
+        "iop": {
+          "committed": "0.52273",
+          "now": "0.55641"
+        },
+        "iou": {
+          "committed": "0.52273",
+          "now": "0.55641"
+        }
+      }
+    },
+    {
+      "video": "8547321641",
+      "qid": "0",
+      "diff": {
+        "pred_span_end": {
+          "committed": "12.744",
+          "now": "11.0"
+        },
+        "iop": {
+          "committed": "0.43182",
+          "now": "0.71533"
+        },
+        "iou": {
+          "committed": "0.43182",
+          "now": "0.71533"
+        }
+      }
+    },
+    {
+      "video": "7691172922",
+      "qid": "2",
+      "diff": {
+        "pred_span_end": {
+          "committed": "50.248",
+          "now": "49.0"
+        }
+      }
+    },
+    {
+      "video": "4087654898",
+      "qid": "1",
+      "diff": {
+        "pred_span_end": {
+          "committed": "12.944",
+          "now": "11.0"
+        }
+      }
+    },
+    {
+      "video": "2716277960",
+      "qid": "8",
+      "diff": {
+        "pred_span_end": {
+          "committed": "14.879",
+          "now": "13.0"
+        }
+      }
+    },
+    {
+      "video": "3355698421",
+      "qid": "4",
+      "diff": {
+        "pred_span_end": {
+          "committed": "41.339",
+          "now": "40.0"
+        }
+      }
+    },
+    {
+      "video": "2716277960",
+      "qid": "2",
+      "diff": {
+        "pred_span_end": {
+          "committed": "14.879",
+          "now": "13.0"
+        }
+      }
+    },
+    {
+      "video": "2821968703",
+      "qid": "9",
+      "diff": {
+        "pred_span_end": {
+          "committed": "31.229",
+          "now": "30.0"
+        },
+        "iop": {
+          "committed": "0.69795",
+          "now": "0.96846"
+        },
+        "iou": {
+          "committed": "0.66343",
+          "now": "0.90324"
+        }
+      }
+    },
+    {
+      "video": "2885091387",
+      "qid": "4",
+      "diff": {
+        "pred_span_end": {
+          "committed": "36.234",
+          "now": "36.0"
+        },
+        "iop": {
+          "committed": "0.25",
+          "now": "0.26404"
+        },
+        "iou": {
+          "committed": "0.25",
+          "now": "0.26404"
+        }
+      }
+    },
+    {
+      "video": "11670386946",
+      "qid": "6",
+      "diff": {
+        "pred_span_end": {
+          "committed": "33.832",
+          "now": "33.0"
+        },
+        "iop": {
+          "committed": "0.81099",
+          "now": "1.0"
+        },
+        "iou": {
+          "committed": "0.64508",
+          "now": "0.75923"
+        }
+      }
+    },
+    {
+      "video": "4087654898",
+      "qid": "8",
+      "diff": {
+        "pred_span_end": {
+          "committed": "12.077",
+          "now": "11.0"
+        },
+        "iop": {
+          "committed": "0.09624",
+          "now": "0.12742"
+        },
+        "iou": {
+          "committed": "0.08342",
+          "now": "0.10587"
+        }
+      }
+    },
+    {
+      "video": "3249402410",
+      "qid": "0",
+      "diff": {
+        "pred_span_end": {
+          "committed": "24.723",
+          "now": "23.0"
+        }
+      }
+    },
+    {
+      "video": "8547321641",
+      "qid": "4",
+      "diff": {
+        "pred_span_end": {
+          "committed": "11.743",
+          "now": "11.0"
+        },
+        "iop": {
+          "committed": "0.39935",
+          "now": "0.48047"
+        },
+        "iou": {
+          "committed": "0.3955",
+          "now": "0.4749"
+        }
+      }
+    },
+    {
+      "video": "8547321641",
+      "qid": "1",
+      "diff": {
+        "pred_span_end": {
+          "committed": "12.977",
+          "now": "11.0"
+        },
+        "iop": {
+          "committed": "0.29545",
+          "now": "0.53662"
+        },
+        "iou": {
+          "committed": "0.29545",
+          "now": "0.53662"
+        }
+      }
+    },
+    {
+      "video": "2835125654",
+      "qid": "5",
+      "diff": {
+        "pred_span_end": {
+          "committed": "47.778",
+          "now": "47.0"
+        }
+      }
+    },
+    {
+      "video": "7691172922",
+      "qid": "4",
+      "diff": {
+        "pred_span_end": {
+          "committed": "50.248",
+          "now": "49.0"
+        }
+      }
+    },
+    {
+      "video": "4087654898",
+      "qid": "2",
+      "diff": {
+        "pred_span_end": {
+          "committed": "11.509",
+          "now": "11.0"
+        }
+      }
+    },
+    {
+      "video": "6160414832",
+      "qid": "1",
+      "diff": {
+        "pred_span_end": {
+          "committed": "61.693",
+          "now": "61.0"
+        }
+      }
+    },
+    {
+      "video": "3249402410",
+      "qid": "5",
+      "diff": {
+        "pred_span_end": {
+          "committed": "24.823",
+          "now": "23.0"
+        }
+      }
+    }
+  ],
+  "verdict": "MISMATCH -- see mismatches",
+  "elapsed_s": 35.9
+}

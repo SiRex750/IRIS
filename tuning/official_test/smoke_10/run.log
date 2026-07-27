@@ -1,0 +1,164 @@
+[resume] 0 question(s) already present in official_test_e2e_per_question.csv -- these will be skipped
+[setup] split=official_test query_mode=none temporal_traversal_mode=none -> official_test_e2e_per_question.csv
+[setup] frozen hyperparameters read live from tuning/frozen_state.json: {'retrieval_strategy': 'hybrid', 'ppr_lambda': 0.5, 'ppr_damping': 0.5, 'l2_retrieve_top_k': 4, 'span_method': 'D', 'span_method_half_width_s': 2.2, 'peak_distance': 5, 'peak_prominence': 0.05, 'packet_size_weight': 0.8, 'motion_weight': 0.1, 'luma_entropy_weight': 0.1, 'persistence_threshold': 0.4, 'max_prominence': 0.5}
+[setup] config: cerberus_mode=none ranking_mode=ppr codec_conf_source=packet_size codec_conf_pictype_norm=True answerer_backend=llama_server answerer_endpoint=http://127.0.0.1:8091/v1 answerer_model=granite4:micro
+[serving] /v1/models OK -- alias 'granite4:micro' present (advertised: ['granite4:micro'])
+[serving] outgoing sampler payload verified on the wire: {'temperature': 0.0, 'top_k': 1, 'top_p': 1.0, 'seed': 42, 'cache_prompt': False}
+[setup] smoke test OK, backend reachable. Raw response: 'ANSWER: B\nREASON: The sky on a clear day is typically blue.'
+[guard] split_guard manifest: /home/ccbd/IRIS-1/benchmark_runs/paper_setup_20260720T074844Z_1e431b7/split_manifest.json
+[guard] guard_official_test_command('official_test') returned cleanly
+[guard] leakage check OK -- 0 of 990 test videos appear in val_tune or val_confirm (567 tuning ids checked)
+[setup] --limit-videos=10 -> 10 videos, 67 questions. PLUMBING CHECK ONLY, not a result.
+[setup] official_test questions loaded: 67 usable (nominal 990 videos) across 10 usable videos
+[setup] wrote environment/provenance to /home/ccbd/IRIS-1/tuning/official_test/official_test_e2e_environment.json
+[ingest] fresh_ingests=0 cache_hits=10 (resumed from cache)
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10128261054.mp4' unique_frame_seeks_requested=4 frames_decoded=524 survivor_count=67 decode_overhead_ratio=7.82
+/home/ccbd/IRIS-1/scripts/val_confirm_e2e_eval.py:867: RuntimeWarning: QUERY-CAPTION-001: GOP-seek decode overhead: frames_decoded_for_captions=524 > 3x survivor_count=67 (unique_frame_seeks_requested=4) for video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10128261054.mp4'. This can indicate very sparse I-frames (long GOPs) forcing a long forward decode to reach mid-GOP caption targets.
+  iris_query._ensure_captions(index, retrieved_frames, cfg)
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10149430394.mp4' unique_frame_seeks_requested=4 frames_decoded=85 survivor_count=80 decode_overhead_ratio=1.06
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10305881544.mp4' unique_frame_seeks_requested=4 frames_decoded=614 survivor_count=84 decode_overhead_ratio=7.31
+/home/ccbd/IRIS-1/scripts/val_confirm_e2e_eval.py:867: RuntimeWarning: QUERY-CAPTION-001: GOP-seek decode overhead: frames_decoded_for_captions=614 > 3x survivor_count=84 (unique_frame_seeks_requested=4) for video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10305881544.mp4'. This can indicate very sparse I-frames (long GOPs) forcing a long forward decode to reach mid-GOP caption targets.
+  iris_query._ensure_captions(index, retrieved_frames, cfg)
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10128261054.mp4' unique_frame_seeks_requested=2 frames_decoded=214 survivor_count=67 decode_overhead_ratio=3.19
+/home/ccbd/IRIS-1/scripts/val_confirm_e2e_eval.py:867: RuntimeWarning: QUERY-CAPTION-001: GOP-seek decode overhead: frames_decoded_for_captions=214 > 3x survivor_count=67 (unique_frame_seeks_requested=2) for video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10128261054.mp4'. This can indicate very sparse I-frames (long GOPs) forcing a long forward decode to reach mid-GOP caption targets.
+  iris_query._ensure_captions(index, retrieved_frames, cfg)
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10128261054.mp4' unique_frame_seeks_requested=1 frames_decoded=37 survivor_count=67 decode_overhead_ratio=0.55
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10128261054.mp4' unique_frame_seeks_requested=1 frames_decoded=33 survivor_count=67 decode_overhead_ratio=0.49
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10309844035.mp4' unique_frame_seeks_requested=4 frames_decoded=193 survivor_count=120 decode_overhead_ratio=1.61
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10305881544.mp4' unique_frame_seeks_requested=2 frames_decoded=656 survivor_count=84 decode_overhead_ratio=7.81
+/home/ccbd/IRIS-1/scripts/val_confirm_e2e_eval.py:867: RuntimeWarning: QUERY-CAPTION-001: GOP-seek decode overhead: frames_decoded_for_captions=656 > 3x survivor_count=84 (unique_frame_seeks_requested=2) for video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10305881544.mp4'. This can indicate very sparse I-frames (long GOPs) forcing a long forward decode to reach mid-GOP caption targets.
+  iris_query._ensure_captions(index, retrieved_frames, cfg)
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10316970886.mp4' unique_frame_seeks_requested=4 frames_decoded=147 survivor_count=111 decode_overhead_ratio=1.32
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10174992863.mp4' unique_frame_seeks_requested=4 frames_decoded=79 survivor_count=48 decode_overhead_ratio=1.65
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10278239024.mp4' unique_frame_seeks_requested=4 frames_decoded=124 survivor_count=143 decode_overhead_ratio=0.87
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10278239024.mp4' unique_frame_seeks_requested=4 frames_decoded=226 survivor_count=143 decode_overhead_ratio=1.58
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10174992863.mp4' unique_frame_seeks_requested=3 frames_decoded=57 survivor_count=48 decode_overhead_ratio=1.19
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10209170426.mp4' unique_frame_seeks_requested=4 frames_decoded=449 survivor_count=58 decode_overhead_ratio=7.74
+/home/ccbd/IRIS-1/scripts/val_confirm_e2e_eval.py:867: RuntimeWarning: QUERY-CAPTION-001: GOP-seek decode overhead: frames_decoded_for_captions=449 > 3x survivor_count=58 (unique_frame_seeks_requested=4) for video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10209170426.mp4'. This can indicate very sparse I-frames (long GOPs) forcing a long forward decode to reach mid-GOP caption targets.
+  iris_query._ensure_captions(index, retrieved_frames, cfg)
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10309844035.mp4' unique_frame_seeks_requested=2 frames_decoded=141 survivor_count=120 decode_overhead_ratio=1.18
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10309844035.mp4' unique_frame_seeks_requested=3 frames_decoded=345 survivor_count=120 decode_overhead_ratio=2.88
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10305881544.mp4' unique_frame_seeks_requested=4 frames_decoded=496 survivor_count=84 decode_overhead_ratio=5.9
+/home/ccbd/IRIS-1/scripts/val_confirm_e2e_eval.py:867: RuntimeWarning: QUERY-CAPTION-001: GOP-seek decode overhead: frames_decoded_for_captions=496 > 3x survivor_count=84 (unique_frame_seeks_requested=4) for video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10305881544.mp4'. This can indicate very sparse I-frames (long GOPs) forcing a long forward decode to reach mid-GOP caption targets.
+  iris_query._ensure_captions(index, retrieved_frames, cfg)
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10316970886.mp4' unique_frame_seeks_requested=2 frames_decoded=193 survivor_count=111 decode_overhead_ratio=1.74
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10278239024.mp4' unique_frame_seeks_requested=4 frames_decoded=481 survivor_count=143 decode_overhead_ratio=3.36
+/home/ccbd/IRIS-1/scripts/val_confirm_e2e_eval.py:867: RuntimeWarning: QUERY-CAPTION-001: GOP-seek decode overhead: frames_decoded_for_captions=481 > 3x survivor_count=143 (unique_frame_seeks_requested=4) for video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10278239024.mp4'. This can indicate very sparse I-frames (long GOPs) forcing a long forward decode to reach mid-GOP caption targets.
+  iris_query._ensure_captions(index, retrieved_frames, cfg)
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10316970886.mp4' unique_frame_seeks_requested=3 frames_decoded=103 survivor_count=111 decode_overhead_ratio=0.93
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10173643695.mp4' unique_frame_seeks_requested=4 frames_decoded=103 survivor_count=45 decode_overhead_ratio=2.29
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10173643695.mp4' unique_frame_seeks_requested=3 frames_decoded=164 survivor_count=45 decode_overhead_ratio=3.64
+/home/ccbd/IRIS-1/scripts/val_confirm_e2e_eval.py:867: RuntimeWarning: QUERY-CAPTION-001: GOP-seek decode overhead: frames_decoded_for_captions=164 > 3x survivor_count=45 (unique_frame_seeks_requested=3) for video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10173643695.mp4'. This can indicate very sparse I-frames (long GOPs) forcing a long forward decode to reach mid-GOP caption targets.
+  iris_query._ensure_captions(index, retrieved_frames, cfg)
+[scene_retrieval] shortlisted 4/14 scenes, margin=0.0013 tau=0.015 branch=descend base_pool=21 post_pull_pool=23 cross_scene_edges_added=10
+[scene_retrieval] shortlisted 4/14 scenes, margin=0.0108 tau=0.015 branch=descend base_pool=34 post_pull_pool=34 cross_scene_edges_added=6
+[scene_retrieval] shortlisted 5/18 scenes, margin=0.0042 tau=0.015 branch=descend base_pool=31 post_pull_pool=34 cross_scene_edges_added=15
+[scene_retrieval] shortlisted 4/14 scenes, margin=0.0049 tau=0.015 branch=descend base_pool=22 post_pull_pool=22 cross_scene_edges_added=6
+[scene_retrieval] shortlisted 4/14 scenes, margin=0.0051 tau=0.015 branch=descend base_pool=18 post_pull_pool=18 cross_scene_edges_added=6
+[scene_retrieval] shortlisted 4/14 scenes, margin=0.0026 tau=0.015 branch=descend base_pool=19 post_pull_pool=22 cross_scene_edges_added=15
+[scene_retrieval] shortlisted 6/27 scenes, margin=0.0014 tau=0.015 branch=descend base_pool=45 post_pull_pool=45 cross_scene_edges_added=15
+[scene_retrieval] shortlisted 5/18 scenes, margin=0.0088 tau=0.015 branch=descend base_pool=24 post_pull_pool=24 cross_scene_edges_added=10
+[scene_retrieval] shortlisted 5/20 scenes, margin=0.0023 tau=0.015 branch=descend base_pool=21 post_pull_pool=21 cross_scene_edges_added=10
+[scene_retrieval] shortlisted 4/9 scenes, base_pool=21 margin=0.0154 tau=0.015 branch=shortcut
+[scene_retrieval] shortlisted 6/31 scenes, margin=0.0004 tau=0.015 branch=descend base_pool=27 post_pull_pool=28 cross_scene_edges_added=21
+[scene_retrieval] shortlisted 6/31 scenes, margin=0.0006 tau=0.015 branch=descend base_pool=25 post_pull_pool=25 cross_scene_edges_added=15
+[scene_retrieval] shortlisted 4/9 scenes, margin=0.0044 tau=0.015 branch=descend base_pool=21 post_pull_pool=21 cross_scene_edges_added=6
+[scene_retrieval] shortlisted 4/11 scenes, margin=0.0060 tau=0.015 branch=descend base_pool=18 post_pull_pool=22 cross_scene_edges_added=15
+[scene_retrieval] shortlisted 4/14 scenes, margin=0.0039 tau=0.015 branch=descend base_pool=16 post_pull_pool=17 cross_scene_edges_added=10
+[scene_retrieval] shortlisted 6/27 scenes, margin=0.0002 tau=0.015 branch=descend base_pool=26 post_pull_pool=26 cross_scene_edges_added=15
+[scene_retrieval] shortlisted 6/27 scenes, margin=0.0005 tau=0.015 branch=descend base_pool=39 post_pull_pool=41 cross_scene_edges_added=21
+[scene_retrieval] shortlisted 5/18 scenes, margin=0.0037 tau=0.015 branch=descend base_pool=27 post_pull_pool=30 cross_scene_edges_added=15
+[scene_retrieval] shortlisted 5/20 scenes, margin=0.0068 tau=0.015 branch=descend base_pool=23 post_pull_pool=23 cross_scene_edges_added=10
+[scene_retrieval] shortlisted 6/31 scenes, margin=0.0013 tau=0.015 branch=descend base_pool=45 post_pull_pool=45 cross_scene_edges_added=15
+[scene_retrieval] shortlisted 5/20 scenes, margin=0.0080 tau=0.015 branch=descend base_pool=20 post_pull_pool=22 cross_scene_edges_added=15
+[scene_retrieval] shortlisted 6/31 scenes, margin=0.0020 tau=0.015 branch=descend base_pool=27 post_pull_pool=29 cross_scene_edges_added=21
+[scene_retrieval] shortlisted 5/18 scenes, margin=0.0015 tau=0.015 branch=descend base_pool=39 post_pull_pool=39 cross_scene_edges_added=10
+[scene_retrieval] shortlisted 4/15 scenes, margin=0.0014 tau=0.015 branch=descend base_pool=14 post_pull_pool=17 cross_scene_edges_added=10
+[scene_retrieval] shortlisted 4/15 scenes, margin=0.0108 tau=0.015 branch=descend base_pool=15 post_pull_pool=19 cross_scene_edges_added=15
+[25/67] done=25 elapsed=0h00m51s projected_remaining=0h01m26s
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10309844035.mp4' unique_frame_seeks_requested=1 frames_decoded=31 survivor_count=120 decode_overhead_ratio=0.26
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10173643695.mp4' unique_frame_seeks_requested=1 frames_decoded=4 survivor_count=45 decode_overhead_ratio=0.09
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10109006686.mp4' unique_frame_seeks_requested=4 frames_decoded=121 survivor_count=122 decode_overhead_ratio=0.99
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10174992863.mp4' unique_frame_seeks_requested=2 frames_decoded=81 survivor_count=48 decode_overhead_ratio=1.69
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10173643695.mp4' unique_frame_seeks_requested=4 frames_decoded=241 survivor_count=45 decode_overhead_ratio=5.36
+/home/ccbd/IRIS-1/scripts/val_confirm_e2e_eval.py:867: RuntimeWarning: QUERY-CAPTION-001: GOP-seek decode overhead: frames_decoded_for_captions=241 > 3x survivor_count=45 (unique_frame_seeks_requested=4) for video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10173643695.mp4'. This can indicate very sparse I-frames (long GOPs) forcing a long forward decode to reach mid-GOP caption targets.
+  iris_query._ensure_captions(index, retrieved_frames, cfg)
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10278239024.mp4' unique_frame_seeks_requested=3 frames_decoded=185 survivor_count=143 decode_overhead_ratio=1.29
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10128261054.mp4' unique_frame_seeks_requested=1 frames_decoded=49 survivor_count=67 decode_overhead_ratio=0.73
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10109006686.mp4' unique_frame_seeks_requested=2 frames_decoded=85 survivor_count=122 decode_overhead_ratio=0.7
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10173643695.mp4' unique_frame_seeks_requested=1 frames_decoded=1 survivor_count=45 decode_overhead_ratio=0.02
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10316970886.mp4' unique_frame_seeks_requested=1 frames_decoded=44 survivor_count=111 decode_overhead_ratio=0.4
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10278239024.mp4' unique_frame_seeks_requested=3 frames_decoded=56 survivor_count=143 decode_overhead_ratio=0.39
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10128261054.mp4' unique_frame_seeks_requested=3 frames_decoded=183 survivor_count=67 decode_overhead_ratio=2.73
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10109006686.mp4' unique_frame_seeks_requested=3 frames_decoded=417 survivor_count=122 decode_overhead_ratio=3.42
+/home/ccbd/IRIS-1/scripts/val_confirm_e2e_eval.py:867: RuntimeWarning: QUERY-CAPTION-001: GOP-seek decode overhead: frames_decoded_for_captions=417 > 3x survivor_count=122 (unique_frame_seeks_requested=3) for video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10109006686.mp4'. This can indicate very sparse I-frames (long GOPs) forcing a long forward decode to reach mid-GOP caption targets.
+  iris_query._ensure_captions(index, retrieved_frames, cfg)
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10305881544.mp4' unique_frame_seeks_requested=3 frames_decoded=564 survivor_count=84 decode_overhead_ratio=6.71
+/home/ccbd/IRIS-1/scripts/val_confirm_e2e_eval.py:867: RuntimeWarning: QUERY-CAPTION-001: GOP-seek decode overhead: frames_decoded_for_captions=564 > 3x survivor_count=84 (unique_frame_seeks_requested=3) for video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10305881544.mp4'. This can indicate very sparse I-frames (long GOPs) forcing a long forward decode to reach mid-GOP caption targets.
+  iris_query._ensure_captions(index, retrieved_frames, cfg)
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10109006686.mp4' unique_frame_seeks_requested=2 frames_decoded=121 survivor_count=122 decode_overhead_ratio=0.99
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10173643695.mp4' unique_frame_seeks_requested=1 frames_decoded=3 survivor_count=45 decode_overhead_ratio=0.07
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10209170426.mp4' unique_frame_seeks_requested=1 frames_decoded=26 survivor_count=58 decode_overhead_ratio=0.45
+[scene_retrieval] shortlisted 6/27 scenes, margin=0.0003 tau=0.015 branch=descend base_pool=40 post_pull_pool=40 cross_scene_edges_added=15
+[scene_retrieval] shortlisted 5/18 scenes, margin=0.0023 tau=0.015 branch=descend base_pool=32 post_pull_pool=32 cross_scene_edges_added=10
+[scene_retrieval] shortlisted 4/15 scenes, margin=0.0065 tau=0.015 branch=descend base_pool=14 post_pull_pool=17 cross_scene_edges_added=10
+[scene_retrieval] shortlisted 6/26 scenes, margin=0.0068 tau=0.015 branch=descend base_pool=29 post_pull_pool=29 cross_scene_edges_added=15
+[scene_retrieval] shortlisted 4/9 scenes, margin=0.0039 tau=0.015 branch=descend base_pool=21 post_pull_pool=21 cross_scene_edges_added=6
+[scene_retrieval] shortlisted 4/15 scenes, margin=0.0037 tau=0.015 branch=descend base_pool=11 post_pull_pool=17 cross_scene_edges_added=15
+[scene_retrieval] shortlisted 4/15 scenes, margin=0.0042 tau=0.015 branch=descend base_pool=14 post_pull_pool=15 cross_scene_edges_added=10
+[scene_retrieval] shortlisted 6/31 scenes, margin=0.0031 tau=0.015 branch=descend base_pool=42 post_pull_pool=42 cross_scene_edges_added=15
+[scene_retrieval] shortlisted 4/14 scenes, margin=0.0033 tau=0.015 branch=descend base_pool=23 post_pull_pool=23 cross_scene_edges_added=6
+[scene_retrieval] shortlisted 4/9 scenes, margin=0.0059 tau=0.015 branch=descend base_pool=21 post_pull_pool=21 cross_scene_edges_added=6
+[scene_retrieval] shortlisted 6/26 scenes, margin=0.0030 tau=0.015 branch=descend base_pool=34 post_pull_pool=34 cross_scene_edges_added=15
+[scene_retrieval] shortlisted 4/15 scenes, margin=0.0126 tau=0.015 branch=descend base_pool=14 post_pull_pool=17 cross_scene_edges_added=10
+[scene_retrieval] shortlisted 5/20 scenes, margin=0.0073 tau=0.015 branch=descend base_pool=27 post_pull_pool=27 cross_scene_edges_added=10
+[scene_retrieval] shortlisted 6/31 scenes, margin=0.0008 tau=0.015 branch=descend base_pool=28 post_pull_pool=28 cross_scene_edges_added=15
+[scene_retrieval] shortlisted 4/9 scenes, margin=0.0096 tau=0.015 branch=descend base_pool=21 post_pull_pool=21 cross_scene_edges_added=6
+[scene_retrieval] shortlisted 4/14 scenes, margin=0.0022 tau=0.015 branch=descend base_pool=28 post_pull_pool=31 cross_scene_edges_added=15
+[scene_retrieval] shortlisted 6/26 scenes, margin=0.0077 tau=0.015 branch=descend base_pool=29 post_pull_pool=29 cross_scene_edges_added=15
+[scene_retrieval] shortlisted 5/18 scenes, margin=0.0036 tau=0.015 branch=descend base_pool=29 post_pull_pool=29 cross_scene_edges_added=10
+[scene_retrieval] shortlisted 6/26 scenes, base_pool=29 margin=0.0216 tau=0.015 branch=shortcut
+[scene_retrieval] shortlisted 4/11 scenes, margin=0.0067 tau=0.015 branch=descend base_pool=18 post_pull_pool=22 cross_scene_edges_added=15
+[scene_retrieval] shortlisted 4/11 scenes, margin=0.0057 tau=0.015 branch=descend base_pool=18 post_pull_pool=22 cross_scene_edges_added=15
+[scene_retrieval] shortlisted 6/27 scenes, margin=0.0084 tau=0.015 branch=descend base_pool=29 post_pull_pool=35 cross_scene_edges_added=21
+[scene_retrieval] shortlisted 6/27 scenes, margin=0.0038 tau=0.015 branch=descend base_pool=44 post_pull_pool=48 cross_scene_edges_added=28
+[scene_retrieval] shortlisted 4/15 scenes, margin=0.0003 tau=0.015 branch=descend base_pool=14 post_pull_pool=17 cross_scene_edges_added=10
+[scene_retrieval] shortlisted 4/11 scenes, margin=0.0083 tau=0.015 branch=descend base_pool=18 post_pull_pool=22 cross_scene_edges_added=15
+[50/67] done=50 elapsed=0h01m18s projected_remaining=0h00m26s
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10109006686.mp4' unique_frame_seeks_requested=2 frames_decoded=61 survivor_count=122 decode_overhead_ratio=0.5
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10173643695.mp4' unique_frame_seeks_requested=1 frames_decoded=4 survivor_count=45 decode_overhead_ratio=0.09
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10149430394.mp4' unique_frame_seeks_requested=1 frames_decoded=45 survivor_count=80 decode_overhead_ratio=0.56
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10316970886.mp4' unique_frame_seeks_requested=3 frames_decoded=64 survivor_count=111 decode_overhead_ratio=0.58
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10316970886.mp4' unique_frame_seeks_requested=3 frames_decoded=120 survivor_count=111 decode_overhead_ratio=1.08
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10309844035.mp4' unique_frame_seeks_requested=2 frames_decoded=165 survivor_count=120 decode_overhead_ratio=1.38
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10278239024.mp4' unique_frame_seeks_requested=1 frames_decoded=55 survivor_count=143 decode_overhead_ratio=0.38
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10309844035.mp4' unique_frame_seeks_requested=3 frames_decoded=129 survivor_count=120 decode_overhead_ratio=1.07
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10149430394.mp4' unique_frame_seeks_requested=4 frames_decoded=232 survivor_count=80 decode_overhead_ratio=2.9
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10209170426.mp4' unique_frame_seeks_requested=3 frames_decoded=481 survivor_count=58 decode_overhead_ratio=8.29
+/home/ccbd/IRIS-1/scripts/val_confirm_e2e_eval.py:867: RuntimeWarning: QUERY-CAPTION-001: GOP-seek decode overhead: frames_decoded_for_captions=481 > 3x survivor_count=58 (unique_frame_seeks_requested=3) for video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10209170426.mp4'. This can indicate very sparse I-frames (long GOPs) forcing a long forward decode to reach mid-GOP caption targets.
+  iris_query._ensure_captions(index, retrieved_frames, cfg)
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10149430394.mp4' unique_frame_seeks_requested=4 frames_decoded=629 survivor_count=80 decode_overhead_ratio=7.86
+/home/ccbd/IRIS-1/scripts/val_confirm_e2e_eval.py:867: RuntimeWarning: QUERY-CAPTION-001: GOP-seek decode overhead: frames_decoded_for_captions=629 > 3x survivor_count=80 (unique_frame_seeks_requested=4) for video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10149430394.mp4'. This can indicate very sparse I-frames (long GOPs) forcing a long forward decode to reach mid-GOP caption targets.
+  iris_query._ensure_captions(index, retrieved_frames, cfg)
+[_ensure_captions] video='/home/ccbd/IRIS-1/eval/data/nextqa/NExTVideo_flat/10309844035.mp4' unique_frame_seeks_requested=1 frames_decoded=34 survivor_count=120 decode_overhead_ratio=0.28
+[scene_retrieval] shortlisted 6/26 scenes, base_pool=28 margin=0.0250 tau=0.015 branch=shortcut
+[scene_retrieval] shortlisted 4/15 scenes, margin=0.0006 tau=0.015 branch=descend base_pool=14 post_pull_pool=18 cross_scene_edges_added=15
+[scene_retrieval] shortlisted 4/14 scenes, margin=0.0084 tau=0.015 branch=descend base_pool=32 post_pull_pool=32 cross_scene_edges_added=6
+[scene_retrieval] shortlisted 5/20 scenes, base_pool=27 margin=0.0180 tau=0.015 branch=shortcut
+[scene_retrieval] shortlisted 5/20 scenes, margin=0.0030 tau=0.015 branch=descend base_pool=20 post_pull_pool=20 cross_scene_edges_added=10
+[scene_retrieval] shortlisted 4/9 scenes, margin=0.0087 tau=0.015 branch=descend base_pool=21 post_pull_pool=21 cross_scene_edges_added=6
+[scene_retrieval] shortlisted 5/20 scenes, margin=0.0018 tau=0.015 branch=descend base_pool=36 post_pull_pool=36 cross_scene_edges_added=10
+[scene_retrieval] shortlisted 6/27 scenes, margin=0.0019 tau=0.015 branch=descend base_pool=19 post_pull_pool=23 cross_scene_edges_added=28
+[scene_retrieval] shortlisted 4/11 scenes, margin=0.0010 tau=0.015 branch=descend base_pool=18 post_pull_pool=18 cross_scene_edges_added=6
+[scene_retrieval] shortlisted 6/31 scenes, margin=0.0047 tau=0.015 branch=descend base_pool=27 post_pull_pool=27 cross_scene_edges_added=15
+[scene_retrieval] shortlisted 4/15 scenes, margin=0.0037 tau=0.015 branch=descend base_pool=11 post_pull_pool=17 cross_scene_edges_added=15
+[scene_retrieval] shortlisted 6/27 scenes, margin=0.0040 tau=0.015 branch=descend base_pool=39 post_pull_pool=39 cross_scene_edges_added=15
+[scene_retrieval] shortlisted 4/15 scenes, margin=0.0005 tau=0.015 branch=descend base_pool=14 post_pull_pool=18 cross_scene_edges_added=15
+[scene_retrieval] shortlisted 4/14 scenes, margin=0.0006 tau=0.015 branch=descend base_pool=21 post_pull_pool=22 cross_scene_edges_added=10
+[scene_retrieval] shortlisted 4/11 scenes, margin=0.0050 tau=0.015 branch=descend base_pool=16 post_pull_pool=16 cross_scene_edges_added=6
+[scene_retrieval] shortlisted 4/14 scenes, margin=0.0074 tau=0.015 branch=descend base_pool=32 post_pull_pool=32 cross_scene_edges_added=6
+[scene_retrieval] shortlisted 6/27 scenes, margin=0.0039 tau=0.015 branch=descend base_pool=25 post_pull_pool=27 cross_scene_edges_added=21
+[67/67] done=67 elapsed=0h01m38s projected_remaining=0h00m00s
+[repeat 1/1] scored=67 Acc@QA=0.5224 Acc@GQA=0.2537
+OFFICIAL_TEST_E2E_METRICS_JSON={"split": "official_test", "n_scored": 67, "n_repeats": 1, "n_nominal_videos": 990, "n_usable_videos": 10, "n_resume_skipped": 0, "n_fresh_ingests": 0, "n_cache_hits": 10, "mIoP": 0.461198217119934, "mIoU": 0.22824070876465113, "IoP@0.3": 0.5522388059701493, "IoP@0.5": 0.5074626865671642, "IoU@0.3": 0.3582089552238806, "IoU@0.5": 0.14925373134328357, "median_retrieval_span_ms": 7.687123026698828, "p95_retrieval_span_ms": 11.301703180652112, "median_caption_answer_ms": 1425.53, "p95_caption_answer_ms": 2796.564, "total_wall_s": 98.5565960679669, "minicpm_truncation_stats": {"total_calls": 134, "truncated_first_attempt": 0, "truncated_after_retry": 0, "truncation_rate_after_retry": 0.0, "first_attempt_truncation_rate": 0.0}, "Acc@QA": 0.5223880597014925, "Acc@GQA_unverified": 0.2537313432835821}
+OFFICIAL_TEST_E2E_COMPLETE
