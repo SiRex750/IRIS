@@ -1,0 +1,12 @@
+{
+  "outcome": "SUCCESS",
+  "num_survivors": 4892,
+  "load_wall_sec": 68.5182089805603,
+  "flat_build_wall_sec": 78.82261204719543,
+  "flat_node_count": 4892,
+  "flat_edge_count": 11963386,
+  "flat_edges_theoretical_N_choose_2": 11963386,
+  "edge_count_matches_theoretical": true,
+  "peak_rss_bytes": 8375418880,
+  "peak_rss_gb": 8.37541888
+}

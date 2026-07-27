@@ -1,0 +1,22 @@
+{
+  "video": "C:\\Users\\Siddanth Anil\\IRIS\\eval\\data\\virat\\videos\\VIRAT_S_040001_01_000448_001101.mp4",
+  "container_frames_meta": null,
+  "num_survivors": 4892,
+  "num_scenes": 528,
+  "unassigned_scene_id_count": 0,
+  "ingest_wall_sec": 773.8998126983643,
+  "save_wall_sec": 0.4075031280517578,
+  "peak_rss_bytes_during_ingest": 26147848192,
+  "peak_rss_gb_during_ingest": 26.147848192,
+  "scene_sparse_node_count": 4892,
+  "scene_sparse_edge_count": 23571,
+  "sum_C_scene_size_choose_2": 23571,
+  "block_diagonal_exact": true,
+  "edges_flat_theoretical_N_choose_2": 11963386,
+  "codec_log_capture_count": 0,
+  "codec_log_capture_sample": [],
+  "frames_processed_total": 4892,
+  "skipped_frames_ratio": 0.7499872233863137,
+  "storage_reduction_factor": 3.999795584627964,
+  "cache_path": "C:\\Users\\Siddanth Anil\\IRIS\\eval\\data\\virat\\index_cache\\VIRAT_S_040001_01_000448_001101.npz"
+}
