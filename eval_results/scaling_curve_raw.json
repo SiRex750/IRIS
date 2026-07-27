@@ -1,0 +1,476 @@
+{
+  "provenance": {
+    "git_commit_at_run_start": "ccf764f9e2857997af34ff48351a1675cf0793f2",
+    "git_commit_current": "ccf764f9e2857997af34ff48351a1675cf0793f2",
+    "harness": "extends scripts/virat_latency_ab.py + scripts/virat_smoke_flat.py + scripts/virat_smoke_scenesparse.py patterns; reuses scripts/latency_ab.py constants (N_WARMUP=3, N_REPS=5, TOP_K=8)",
+    "query_seed": 20260726,
+    "n_queries_per_clip": 50,
+    "flat_arm_watchdog": {
+      "wall_time_cap_sec": 480.0,
+      "mem_cap_bytes": 29000000000,
+      "note": "covers flat GRAPH BUILD + full 50-query timed loop combined, same caps as committed scripts/virat_smoke_flat.py"
+    },
+    "nextqa_cache_sha256_before": "c6a522716ca41f303ca18f6e8630b0b50dd41fdf96c78676eaf84f3b99f6618c",
+    "nextqa_cache_sha256_after": "c6a522716ca41f303ca18f6e8630b0b50dd41fdf96c78676eaf84f3b99f6618c",
+    "nextqa_cache_untouched": true
+  },
+  "clips": [
+    {
+      "label": "Normal_Videos_881",
+      "dataset": "ucf",
+      "video": "eval/data/ucf/videos/Testing_Normal_Videos_Anomaly/Normal_Videos_881_x264.mp4",
+      "raw_container_frames": 224,
+      "target_n_selection_basis": "~250 (raw-frame proxy)",
+      "n_survivors": 24,
+      "skipped_frames_ratio": 0.8928571428571429,
+      "ingest_wall_sec": 8.045622110366821,
+      "ingest_peak_rss_gb": 1.38651648,
+      "scene_sparse_node_count_at_ingest": 24,
+      "scene_sparse_edge_count_at_ingest": 46,
+      "excluded": true,
+      "excluded_reason": "n_survivors=24 < N_Q=50; harness cannot sample 50 unique queries without replacement"
+    },
+    {
+      "label": "Normal_Videos_289",
+      "dataset": "ucf",
+      "video": "eval/data/ucf/videos/Testing_Normal_Videos_Anomaly/Normal_Videos_289_x264.mp4",
+      "raw_container_frames": 863,
+      "target_n_selection_basis": "~800 (raw-frame proxy)",
+      "n_survivors": 91,
+      "skipped_frames_ratio": 0.8945538818076477,
+      "ingest_wall_sec": 8.555603742599487,
+      "ingest_peak_rss_gb": 1.416978432,
+      "scene_sparse_node_count_at_ingest": 91,
+      "scene_sparse_edge_count_at_ingest": 145,
+      "excluded": false,
+      "flat": {
+        "outcome": "SUCCESS",
+        "n_survivors": 91,
+        "n_queries": 50,
+        "query_seed": 20260726,
+        "load_wall_sec": 0.03230643272399902,
+        "flat_build_wall_sec": 0.02516031265258789,
+        "flat_node_count": 91,
+        "flat_edge_count": 4095,
+        "flat_edges_theoretical_N_choose_2": 4095,
+        "edge_count_matches_theoretical": true,
+        "peak_rss_bytes": 285720576,
+        "peak_rss_gb": 0.285720576,
+        "median_total_retrieval_s": 0.0022215000062715262,
+        "component_breakdown_median_s": {
+          "query_embed_s": null,
+          "total_retrieval_s": 0.0022215000062715262,
+          "flat_ppr_s": 0.002209400001447648,
+          "scene_centroid_rank_s": null,
+          "subgraph_induction_s": null,
+          "cross_scene_edges_s": null,
+          "scene_ppr_s": null
+        },
+        "median_ppr_nodes_edges": {
+          "ppr_nodes": 91.0,
+          "ppr_edges": 4095.0
+        }
+      },
+      "scene_sparse": {
+        "outcome": "SUCCESS",
+        "n_survivors": 91,
+        "n_queries": 50,
+        "query_seed": 20260726,
+        "load_wall_sec": 0.03816490000463091,
+        "scene_sparse_node_count": 91,
+        "scene_sparse_edge_count": 145,
+        "median_total_retrieval_s": 0.0008102999854600057,
+        "median_total_retrieval_s_shortcut": 6.969999230932444e-05,
+        "median_total_retrieval_s_descend": 0.0008130499918479472,
+        "component_breakdown_median_s": {
+          "query_embed_s": null,
+          "total_retrieval_s": 0.0008102999854600057,
+          "flat_ppr_s": null,
+          "scene_centroid_rank_s": 3.3849995816126466e-05,
+          "subgraph_induction_s": 0.0001463999942643568,
+          "cross_scene_edges_s": 8.339999476447701e-05,
+          "scene_ppr_s": 0.0004621499974746257
+        },
+        "median_ppr_nodes_edges": {
+          "ppr_nodes": 23.0,
+          "ppr_edges": 52.5
+        },
+        "branch_fire_rate": {
+          "shortcut": 2,
+          "descend": 48,
+          "total": 50,
+          "shortcut_pct": 4.0
+        }
+      }
+    },
+    {
+      "label": "Abuse025",
+      "dataset": "ucf",
+      "video": "eval/data/ucf/videos/Anomaly-Videos-Part-1/Abuse/Abuse025_x264.mp4",
+      "raw_container_frames": 2031,
+      "target_n_selection_basis": "~2k (raw-frame proxy)",
+      "n_survivors": 212,
+      "skipped_frames_ratio": 0.8956179222058099,
+      "ingest_wall_sec": 12.632243633270264,
+      "ingest_peak_rss_gb": 1.46577408,
+      "scene_sparse_node_count_at_ingest": 212,
+      "scene_sparse_edge_count_at_ingest": 995,
+      "excluded": false,
+      "flat": {
+        "outcome": "SUCCESS",
+        "n_survivors": 212,
+        "n_queries": 50,
+        "query_seed": 20260726,
+        "load_wall_sec": 0.13649511337280273,
+        "flat_build_wall_sec": 0.13287091255187988,
+        "flat_node_count": 212,
+        "flat_edge_count": 22366,
+        "flat_edges_theoretical_N_choose_2": 22366,
+        "edge_count_matches_theoretical": true,
+        "peak_rss_bytes": 302780416,
+        "peak_rss_gb": 0.302780416,
+        "median_total_retrieval_s": 0.012263199998415075,
+        "component_breakdown_median_s": {
+          "query_embed_s": null,
+          "total_retrieval_s": 0.012263199998415075,
+          "flat_ppr_s": 0.01223875000141561,
+          "scene_centroid_rank_s": null,
+          "subgraph_induction_s": null,
+          "cross_scene_edges_s": null,
+          "scene_ppr_s": null
+        },
+        "median_ppr_nodes_edges": {
+          "ppr_nodes": 212.0,
+          "ppr_edges": 22366.0
+        }
+      },
+      "scene_sparse": {
+        "outcome": "SUCCESS",
+        "n_survivors": 212,
+        "n_queries": 50,
+        "query_seed": 20260726,
+        "load_wall_sec": 0.14295430001220666,
+        "scene_sparse_node_count": 212,
+        "scene_sparse_edge_count": 995,
+        "median_total_retrieval_s": 0.0009335500071756542,
+        "median_total_retrieval_s_shortcut": 0.00013610000314656645,
+        "median_total_retrieval_s_descend": 0.0009845500026131049,
+        "component_breakdown_median_s": {
+          "query_embed_s": null,
+          "total_retrieval_s": 0.0009335500071756542,
+          "flat_ppr_s": null,
+          "scene_centroid_rank_s": 4.3750012991949916e-05,
+          "subgraph_induction_s": 0.00020130000484641641,
+          "cross_scene_edges_s": 0.0001317000132985413,
+          "scene_ppr_s": 0.0005176499980734661
+        },
+        "median_ppr_nodes_edges": {
+          "ppr_nodes": 29.0,
+          "ppr_edges": 83.0
+        },
+        "branch_fire_rate": {
+          "shortcut": 12,
+          "descend": 38,
+          "total": 50,
+          "shortcut_pct": 24.0
+        }
+      }
+    },
+    {
+      "label": "Arrest016",
+      "dataset": "ucf",
+      "video": "eval/data/ucf/videos/Anomaly-Videos-Part-1/Arrest/Arrest016_x264.mp4",
+      "raw_container_frames": 10586,
+      "target_n_selection_basis": "~10k (raw-frame proxy)",
+      "n_survivors": 1102,
+      "skipped_frames_ratio": 0.895900245607406,
+      "ingest_wall_sec": 45.03868579864502,
+      "ingest_peak_rss_gb": 1.801801728,
+      "scene_sparse_node_count_at_ingest": 1102,
+      "scene_sparse_edge_count_at_ingest": 2069,
+      "excluded": false,
+      "flat": {
+        "outcome": "SUCCESS",
+        "n_survivors": 1102,
+        "n_queries": 50,
+        "query_seed": 20260726,
+        "load_wall_sec": 4.287278890609741,
+        "flat_build_wall_sec": 5.236487627029419,
+        "flat_node_count": 1102,
+        "flat_edge_count": 606651,
+        "flat_edges_theoretical_N_choose_2": 606651,
+        "edge_count_matches_theoretical": true,
+        "peak_rss_bytes": 735469568,
+        "peak_rss_gb": 0.735469568,
+        "median_total_retrieval_s": 0.47087189999001566,
+        "component_breakdown_median_s": {
+          "query_embed_s": null,
+          "total_retrieval_s": 0.47087189999001566,
+          "flat_ppr_s": 0.47079459999804385,
+          "scene_centroid_rank_s": null,
+          "subgraph_induction_s": null,
+          "cross_scene_edges_s": null,
+          "scene_ppr_s": null
+        },
+        "median_ppr_nodes_edges": {
+          "ppr_nodes": 1102.0,
+          "ppr_edges": 606651.0
+        }
+      },
+      "scene_sparse": {
+        "outcome": "SUCCESS",
+        "n_survivors": 1102,
+        "n_queries": 50,
+        "query_seed": 20260726,
+        "load_wall_sec": 4.2272092000057455,
+        "scene_sparse_node_count": 1102,
+        "scene_sparse_edge_count": 2069,
+        "median_total_retrieval_s": 0.003194449993316084,
+        "median_total_retrieval_s_shortcut": 0.00040109999827109277,
+        "median_total_retrieval_s_descend": 0.0032367999956477433,
+        "component_breakdown_median_s": {
+          "query_embed_s": null,
+          "total_retrieval_s": 0.003194449993316084,
+          "flat_ppr_s": null,
+          "scene_centroid_rank_s": 0.0003151499986415729,
+          "subgraph_induction_s": 0.000665100000333041,
+          "cross_scene_edges_s": 0.0008454000053461641,
+          "scene_ppr_s": 0.0011189999931957573
+        },
+        "median_ppr_nodes_edges": {
+          "ppr_nodes": 70,
+          "ppr_edges": 291
+        },
+        "branch_fire_rate": {
+          "shortcut": 5,
+          "descend": 45,
+          "total": 50,
+          "shortcut_pct": 10.0
+        }
+      }
+    },
+    {
+      "label": "Abuse042",
+      "dataset": "ucf",
+      "video": "eval/data/ucf/videos/Anomaly-Videos-Part-1/Abuse/Abuse042_x264.mp4",
+      "raw_container_frames": 28476,
+      "target_n_selection_basis": "~30k (raw-frame proxy)",
+      "n_survivors": 2963,
+      "skipped_frames_ratio": 0.8959474645315353,
+      "ingest_wall_sec": 131.47110605239868,
+      "ingest_peak_rss_gb": 4.488699904,
+      "scene_sparse_node_count_at_ingest": 2963,
+      "scene_sparse_edge_count_at_ingest": 8325,
+      "excluded": false,
+      "flat": {
+        "outcome": "FAILED",
+        "reason": "wall_timeout",
+        "elapsed_sec_before_kill": 480.1274902820587,
+        "peak_rss_bytes": 3793461248,
+        "peak_rss_gb": 3.793461248,
+        "wall_time_cap_sec": 480.0,
+        "mem_cap_bytes": 29000000000
+      },
+      "scene_sparse": {
+        "outcome": "SUCCESS",
+        "n_survivors": 2963,
+        "n_queries": 50,
+        "query_seed": 20260726,
+        "load_wall_sec": 43.99166420000256,
+        "scene_sparse_node_count": 2963,
+        "scene_sparse_edge_count": 8325,
+        "median_total_retrieval_s": 0.008239000002504326,
+        "median_total_retrieval_s_shortcut": 0.001680399989709258,
+        "median_total_retrieval_s_descend": 0.00842299999203533,
+        "component_breakdown_median_s": {
+          "query_embed_s": null,
+          "total_retrieval_s": 0.008239000002504326,
+          "flat_ppr_s": null,
+          "scene_centroid_rank_s": 0.0013803500041831285,
+          "subgraph_induction_s": 0.0021790500031784177,
+          "cross_scene_edges_s": 0.001969200005987659,
+          "scene_ppr_s": 0.002063749998342246
+        },
+        "median_ppr_nodes_edges": {
+          "ppr_nodes": 122.5,
+          "ppr_edges": 716.5
+        },
+        "branch_fire_rate": {
+          "shortcut": 6,
+          "descend": 44,
+          "total": 50,
+          "shortcut_pct": 12.0
+        }
+      }
+    },
+    {
+      "label": "VIRAT_S_040001_01_000448_001101",
+      "dataset": "virat",
+      "video": "eval/data/virat/videos/VIRAT_S_040001_01_000448_001101.mp4",
+      "raw_container_frames": null,
+      "target_n_selection_basis": "reused committed point (~5k), NOT re-run",
+      "n_survivors": 4892,
+      "excluded": false,
+      "provenance": "eval_results/virat_latency_N4892_raw.json (git commit ccf764f)",
+      "flat": {
+        "outcome": "SUCCESS",
+        "n_survivors": 4892,
+        "n_queries": 50,
+        "query_seed": 20260726,
+        "median_total_retrieval_s": 7.944804999999178,
+        "component_breakdown_median_s": {
+          "query_embed_s": null,
+          "total_retrieval_s": 7.944804999999178,
+          "flat_ppr_s": 7.944533850008156,
+          "scene_centroid_rank_s": null,
+          "subgraph_induction_s": null,
+          "cross_scene_edges_s": null,
+          "scene_ppr_s": null
+        },
+        "median_ppr_nodes_edges": {
+          "ppr_nodes": 4892.0,
+          "ppr_edges": 11963386.0
+        },
+        "setup_costs_one_time_excluded_from_per_query": {
+          "scene_sparse_load_s": 69.27003430000332,
+          "flat_build_s": 80.14173469999514
+        },
+        "note": "uncapped run (no wall/mem watchdog) -- see caveats in .md re: methodology asymmetry vs UCF flat arms"
+      },
+      "scene_sparse": {
+        "outcome": "SUCCESS",
+        "n_survivors": 4892,
+        "n_queries": 50,
+        "query_seed": 20260726,
+        "median_total_retrieval_s": 0.0071983500092756,
+        "component_breakdown_median_s": {
+          "query_embed_s": null,
+          "total_retrieval_s": 0.0071983500092756,
+          "flat_ppr_s": null,
+          "scene_centroid_rank_s": 0.0007050499989418313,
+          "subgraph_induction_s": 0.0029290499951457605,
+          "cross_scene_edges_s": 0.0011674499983200803,
+          "scene_ppr_s": 0.001905950004584156
+        },
+        "median_ppr_nodes_edges": {
+          "ppr_nodes": 214.5,
+          "ppr_edges": 1264.0
+        },
+        "branch_fire_rate": {
+          "shortcut": 0,
+          "descend": 50,
+          "total": 50,
+          "shortcut_pct": 0.0
+        }
+      }
+    },
+    {
+      "label": "Arrest047",
+      "dataset": "ucf",
+      "video": "eval/data/ucf/videos/Anomaly-Videos-Part-1/Arrest/Arrest047_x264.mp4",
+      "raw_container_frames": 63060,
+      "target_n_selection_basis": "~80k (raw-frame proxy)",
+      "n_survivors": 6559,
+      "skipped_frames_ratio": 0.8959879479860451,
+      "ingest_wall_sec": 361.3588650226593,
+      "ingest_peak_rss_gb": 14.10592768,
+      "scene_sparse_node_count_at_ingest": 6559,
+      "scene_sparse_edge_count_at_ingest": 12144,
+      "excluded": false,
+      "flat": {
+        "outcome": "FAILED",
+        "reason": "wall_timeout",
+        "elapsed_sec_before_kill": 481.2252333164215,
+        "peak_rss_bytes": 15892967424,
+        "peak_rss_gb": 15.892967424,
+        "wall_time_cap_sec": 480.0,
+        "mem_cap_bytes": 29000000000
+      },
+      "scene_sparse": {
+        "outcome": "SUCCESS",
+        "n_survivors": 6559,
+        "n_queries": 50,
+        "query_seed": 20260726,
+        "load_wall_sec": 144.5056501000072,
+        "scene_sparse_node_count": 6559,
+        "scene_sparse_edge_count": 12144,
+        "median_total_retrieval_s": 0.010940050007775426,
+        "median_total_retrieval_s_shortcut": 0.0031236000068020076,
+        "median_total_retrieval_s_descend": 0.011074199981521815,
+        "component_breakdown_median_s": {
+          "query_embed_s": null,
+          "total_retrieval_s": 0.010940050007775426,
+          "flat_ppr_s": null,
+          "scene_centroid_rank_s": 0.002778599999146536,
+          "subgraph_induction_s": 0.001563400001032278,
+          "cross_scene_edges_s": 0.004390200017951429,
+          "scene_ppr_s": 0.0016124999965541065
+        },
+        "median_ppr_nodes_edges": {
+          "ppr_nodes": 139,
+          "ppr_edges": 1316
+        },
+        "branch_fire_rate": {
+          "shortcut": 9,
+          "descend": 41,
+          "total": 50,
+          "shortcut_pct": 18.0
+        }
+      }
+    },
+    {
+      "label": "Arson019",
+      "dataset": "ucf",
+      "video": "eval/data/ucf/videos/Anomaly-Videos-Part-1/Arson/Arson019_x264.mp4",
+      "raw_container_frames": 126553,
+      "target_n_selection_basis": "~126k (raw-frame proxy)",
+      "n_survivors": 13506,
+      "skipped_frames_ratio": 0.8932779151817816,
+      "ingest_wall_sec": 1285.5050675868988,
+      "ingest_peak_rss_gb": 21.931073536,
+      "scene_sparse_node_count_at_ingest": 13506,
+      "scene_sparse_edge_count_at_ingest": 23821,
+      "excluded": false,
+      "flat": {
+        "outcome": "FAILED",
+        "reason": "wall_timeout",
+        "elapsed_sec_before_kill": 480.45354866981506,
+        "peak_rss_bytes": 26739228672,
+        "peak_rss_gb": 26.739228672,
+        "wall_time_cap_sec": 480.0,
+        "mem_cap_bytes": 29000000000
+      },
+      "scene_sparse": {
+        "outcome": "SUCCESS",
+        "n_survivors": 13506,
+        "n_queries": 50,
+        "query_seed": 20260726,
+        "load_wall_sec": 659.1140537000028,
+        "scene_sparse_node_count": 13506,
+        "scene_sparse_edge_count": 23821,
+        "median_total_retrieval_s": 0.02026854998257477,
+        "median_total_retrieval_s_shortcut": 0.005490550000104122,
+        "median_total_retrieval_s_descend": 0.020344000004115514,
+        "component_breakdown_median_s": {
+          "query_embed_s": null,
+          "total_retrieval_s": 0.02026854998257477,
+          "flat_ppr_s": null,
+          "scene_centroid_rank_s": 0.004965699990862049,
+          "subgraph_induction_s": 0.004277550004189834,
+          "cross_scene_edges_s": 0.007120499998563901,
+          "scene_ppr_s": 0.0026809000119101256
+        },
+        "median_ppr_nodes_edges": {
+          "ppr_nodes": 239.5,
+          "ppr_edges": 2213.0
+        },
+        "branch_fire_rate": {
+          "shortcut": 4,
+          "descend": 46,
+          "total": 50,
+          "shortcut_pct": 8.0
+        }
+      }
+    }
+  ]
+}
