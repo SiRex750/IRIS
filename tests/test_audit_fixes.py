@@ -35,7 +35,7 @@ def test_compute_motion_geometry_absolute_divergence():
     ]
     # Under signed divergence: mean of gradients would sum to 0.0.
     # Under absolute divergence: absolute mean of gradients is non-zero.
-    geom = compute_motion_geometry(mvs, width, height)
+    geom = compute_motion_geometry(mvs, width, height, compute_full_geometry=True)
     assert geom["divergence"] > 0.0
     assert geom["curl"] >= 0.0
 

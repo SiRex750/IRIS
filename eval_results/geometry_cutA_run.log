@@ -1,0 +1,136 @@
+[IRIS codec warn] C:\Users\Siddanth Anil\IRIS\eval\data\virat\videos\VIRAT_S_040001_01_000448_001101.mp4: codec 'mpeg4' is not h264/hevc; motion-vector export may be unavailable
+[IRIS codec warn] C:\Users\Siddanth Anil\IRIS\eval\data\virat\videos\VIRAT_S_040001_01_000448_001101.mp4: codec 'mpeg4' is not h264/hevc; motion-vector export may be unavailable
+video_path=C:\Users\Siddanth Anil\IRIS\eval\data\virat\videos\VIRAT_S_040001_01_000448_001101.mp4
+cached frame count=4892
+=== Ingesting WITH full geometry (compute_full_geometry=True, today's behavior) ===
+DIAGNOSTICS: {"backend": "LlamaBackend", "model": "llama3.2:3b", "captioner": "MiniCPMCaptioner", "captioner_model": "minicpm-v4.6", "api_key_present": false}
+  extraction=362.685s total=662.558s frames=4892
+=== Ingesting WITH Cut A (compute_full_geometry=False, new default) ===
+DIAGNOSTICS: {"backend": "LlamaBackend", "model": "llama3.2:3b", "captioner": "MiniCPMCaptioner", "captioner_model": "minicpm-v4.6", "api_key_present": false}
+  extraction=358.706s total=662.968s frames=4892
+{
+  "outcome": "GATE_PASS",
+  "gate4_graph_identity_pass": true,
+  "gate6_l1_aria_safety_pass": true,
+  "gate7_schema_pass": true,
+  "edge_report": {
+    "edge_count_a": 23571,
+    "edge_count_b": 23571,
+    "only_in_a": 0,
+    "only_in_b": 0,
+    "field_mismatch_count": 0,
+    "field_mismatches_sample": [],
+    "identical": true
+  },
+  "ppr_report": {
+    "order_identical": true,
+    "scores_bit_identical": true,
+    "order_full": [
+      8519,
+      19199,
+      7007,
+      19175,
+      11759,
+      12993,
+      13017,
+      17747,
+      8507,
+      15513
+    ],
+    "order_cut": [
+      8519,
+      19199,
+      7007,
+      19175,
+      11759,
+      12993,
+      13017,
+      17747,
+      8507,
+      15513
+    ]
+  },
+  "field_report": {
+    "cutA_gated_fields_sentinel_zero_under_cut": {
+      "divergence": {
+        "full_geometry_any_nonzero": true,
+        "cutA_all_sentinel_zero": true
+      },
+      "curl": {
+        "full_geometry_any_nonzero": true,
+        "cutA_all_sentinel_zero": true
+      },
+      "jacobian_frobenius": {
+        "full_geometry_any_nonzero": true,
+        "cutA_all_sentinel_zero": true
+      }
+    },
+    "cutB_preserved_fields_bit_identical": {
+      "hessian_max_eigenvalue": {
+        "bit_identical": true,
+        "mismatch_count": 0,
+        "mismatches_sample": []
+      },
+      "motion_entropy": {
+        "bit_identical": true,
+        "mismatch_count": 0,
+        "mismatches_sample": []
+      }
+    },
+    "graph_read_fields_bit_identical": {
+      "action_score": {
+        "bit_identical": true,
+        "mismatch_count": 0
+      },
+      "persistence_value": {
+        "bit_identical": true,
+        "mismatch_count": 0
+      },
+      "luma_diff_energy": {
+        "bit_identical": true,
+        "mismatch_count": 0
+      },
+      "motion_magnitude": {
+        "bit_identical": true,
+        "mismatch_count": 0
+      },
+      "luma_entropy": {
+        "bit_identical": true,
+        "mismatch_count": 0
+      },
+      "packet_size": {
+        "bit_identical": true,
+        "mismatch_count": 0
+      },
+      "pict_type": {
+        "bit_identical": true,
+        "mismatch_count": 0
+      },
+      "codec_conf": {
+        "bit_identical": true,
+        "mismatch_count": 0
+      },
+      "scene_id": {
+        "bit_identical": true,
+        "mismatch_count": 0
+      },
+      "pagerank_score": {
+        "bit_identical": true,
+        "mismatch_count": 0
+      }
+    }
+  },
+  "speedup_report": {
+    "extraction_full_geometry_sec": 362.6847641468048,
+    "extraction_cutA_sec": 358.7061433792114,
+    "delta_sec": 3.978620767593384,
+    "delta_pct_of_full": 1.096991426412097,
+    "total_full_sec": 662.5580630302429,
+    "total_cutA_sec": 662.9675431251526
+  }
+}
+
+Wrote C:\Users\Siddanth Anil\IRIS\eval_results\geometry_cutA_identity_gate.json
+Wrote C:\Users\Siddanth Anil\IRIS\eval_results\geometry_cutA_identity_gate.md
+
+=== GATE RESULT: GATE_PASS ===

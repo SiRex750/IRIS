@@ -25,7 +25,7 @@ def test_compute_motion_geometry_expansion():
             motion_y = 2.0 if gy >= 5 else -2.0
             motion_vectors.append((dst_x, dst_y, dst_x, dst_y, motion_x, motion_y))
             
-    res = compute_motion_geometry(motion_vectors, 160, 160)
+    res = compute_motion_geometry(motion_vectors, 160, 160, compute_full_geometry=True)
     # Divergence should be positive for expansion
     assert res["divergence"] > 0.0
     # No rotation
@@ -43,7 +43,7 @@ def test_compute_motion_geometry_rotation():
             motion_y = (gx - 4.5)
             motion_vectors.append((dst_x, dst_y, dst_x, dst_y, motion_x, motion_y))
             
-    res = compute_motion_geometry(motion_vectors, 160, 160)
+    res = compute_motion_geometry(motion_vectors, 160, 160, compute_full_geometry=True)
     # Curl should be positive (non-zero)
     assert res["curl"] > 0.0
     # Divergence should be near zero (incompressible rotation)

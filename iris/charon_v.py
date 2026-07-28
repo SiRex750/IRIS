@@ -18,9 +18,16 @@ def get_stream_fps(video_path: str) -> float:
         container.close()
     return fps
 
-def compute_motion_geometry(motion_vectors: list, width: int, height: int) -> dict:
+def compute_motion_geometry(motion_vectors: list, width: int, height: int, compute_full_geometry: bool = False) -> dict:
     """
     Computes physical motion geometry descriptors from raw H.264 motion vectors.
+
+    divergence/curl/jacobian_frobenius are unconsumed by every currently-exercised
+    downstream path (see eval_results/geometry_gate_plan.md, "Cut A"). By default
+    (compute_full_geometry=False) their first-order-gradient block is skipped and
+    they are serialized as the sentinel 0.0 to preserve the FrameRecord/.npz
+    schema. hessian_max_eigenvalue and motion_entropy (consumed by L1 keep_score)
+    are always computed regardless of this flag.
     """
     if not motion_vectors or width <= 0 or height <= 0:
         return {
@@ -30,14 +37,14 @@ def compute_motion_geometry(motion_vectors: list, width: int, height: int) -> di
             "hessian_max_eigenvalue": 0.0,
             "motion_entropy": 0.0
         }
-        
+
     grid_w = max(1, width // 16)
     grid_h = max(1, height // 16)
-    
+
     U = np.zeros((grid_h, grid_w), dtype=np.float32)
     V = np.zeros((grid_h, grid_w), dtype=np.float32)
     counts = np.zeros((grid_h, grid_w), dtype=np.float32)
-    
+
     for mv in motion_vectors:
         # mv: (src_x, src_y, dst_x, dst_y, motion_x, motion_y)
         gx = min(max(0, mv[2] // 16), grid_w - 1)
@@ -45,29 +52,34 @@ def compute_motion_geometry(motion_vectors: list, width: int, height: int) -> di
         U[gy, gx] += mv[4]
         V[gy, gx] += mv[5]
         counts[gy, gx] += 1.0
-        
+
     mask = counts > 0
     U[mask] /= counts[mask]
     V[mask] /= counts[mask]
-    
-    if grid_h > 1 and grid_w > 1:
-        U_y, U_x = np.gradient(U)
-        V_y, V_x = np.gradient(V)
+
+    if compute_full_geometry:
+        if grid_h > 1 and grid_w > 1:
+            U_y, U_x = np.gradient(U)
+            V_y, V_x = np.gradient(V)
+        else:
+            U_y = np.zeros_like(U)
+            U_x = np.zeros_like(U)
+            V_y = np.zeros_like(V)
+            V_x = np.zeros_like(V)
+
+        div = U_x + V_y
+        divergence = float(np.mean(np.abs(div)))
+
+        rot = V_x - U_y
+        curl = float(np.mean(np.abs(rot)))
+
+        jac_norm = np.sqrt(U_x**2 + U_y**2 + V_x**2 + V_y**2)
+        jacobian_frobenius = float(np.mean(jac_norm))
     else:
-        U_y = np.zeros_like(U)
-        U_x = np.zeros_like(U)
-        V_y = np.zeros_like(V)
-        V_x = np.zeros_like(V)
-        
-    div = U_x + V_y
-    divergence = float(np.mean(np.abs(div)))
-    
-    rot = V_x - U_y
-    curl = float(np.mean(np.abs(rot)))
-    
-    jac_norm = np.sqrt(U_x**2 + U_y**2 + V_x**2 + V_y**2)
-    jacobian_frobenius = float(np.mean(jac_norm))
-    
+        divergence = 0.0
+        curl = 0.0
+        jacobian_frobenius = 0.0
+
     M = np.sqrt(U**2 + V**2)
     if grid_h > 1 and grid_w > 1:
         M_y, M_x = np.gradient(M)
@@ -152,7 +164,7 @@ def detect_peaks(
     
     return peak_frame_ids
 
-def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = False, candidate_thresh: float = 0.08, salient_thresh: float = 0.35, adaptive: bool = True, visual_debug_mode: bool = False, peak_order: int | None = None, full_decode: bool = False):
+def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = False, candidate_thresh: float = 0.08, salient_thresh: float = 0.35, adaptive: bool = True, visual_debug_mode: bool = False, peak_order: int | None = None, full_decode: bool = False, compute_full_geometry: bool = False):
     """
     Parses an H.264 video stream using PyAV and numpy without full RGB decoding.
     Returns a list of dicts for salient frames (I_FRAME, SALIENT, CANDIDATE) only.
@@ -361,7 +373,7 @@ def parse_video(video_path: str, return_stats: bool = False, return_raw: bool = 
 
                 # Append survivor to output_frames
                 if tier != "SKIP":
-                    geom = compute_motion_geometry(motion_vectors, frame.width, frame.height)
+                    geom = compute_motion_geometry(motion_vectors, frame.width, frame.height, compute_full_geometry=compute_full_geometry)
                     # Capture PIL image so pipeline.py can extract CLIP embeddings
                     # without opening the video a third time.
                     try:

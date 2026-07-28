@@ -91,6 +91,15 @@ class IRISConfig:
     # ── Visual Debug Mode ──────────────────────────────────────────────────
     visual_debug_mode:      bool  = False
 
+    # ── Motion geometry (CUT-A) ─────────────────────────────────────────────
+    # divergence/curl/jacobian_frobenius are unconsumed by every currently-
+    # exercised path (graph/PPR: dead by wiring bug; L1 keep_score: never
+    # read). Default False skips their computation in charon_v.
+    # compute_motion_geometry (see eval_results/geometry_gate_plan.md).
+    # hessian_max_eigenvalue / motion_entropy are always computed regardless
+    # of this flag (consumed by L1 keep_score).
+    compute_full_geometry:  bool  = False
+
     # ── ARIA / LLM model (CFG-005) ─────────────────────────────────────────
     # Override the Ollama/OpenAI model used by ARIA. Empty string = use backend default.
     aria_model:             str   = ""

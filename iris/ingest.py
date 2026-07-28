@@ -407,6 +407,7 @@ def ingest(video_path: str | Path, config: Any = None, *, nms_window: int = 10) 
         salient_thresh=config.salient_thresh,
         adaptive=getattr(config, "adaptive", True),
         visual_debug_mode=getattr(config, "visual_debug_mode", False),
+        compute_full_geometry=getattr(config, "compute_full_geometry", False),
     )
     # INGEST-002: parse_video already called _demux_packet_curve internally.
     # Calling it again doubles the demux cost for every ingest. Reuse the
