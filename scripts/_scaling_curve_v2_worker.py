@@ -57,8 +57,24 @@ import iris.ingest as iris_ingest
 import iris.scene_retrieval as scene_retrieval
 from iris import _perf
 from iris.iris_config import IRISConfig
-from iris.query import _build_retrieved
+from iris.query import _build_retrieved, _embed_query
 from latency_ab import N_WARMUP, N_REPS, TOP_K, TIMER_KEYS, COUNT_KEYS, _median_or_none  # noqa: E402
+
+# Fixed surveillance-domain text queries for --query-source text. Cycled to
+# match --n-queries so per-clip query count stays identical to the synthetic
+# (sampled-survivor-embedding) run.
+TEXT_QUERIES = [
+    "a person running",
+    "an unattended bag",
+    "two people fighting",
+    "a vehicle entering the scene",
+    "a person falling",
+    "someone climbing over a fence",
+    "a person carrying a weapon",
+    "a crowd gathering suddenly",
+    "someone breaking a window",
+    "a person loitering near a doorway",
+]
 
 
 class Watchdog:
@@ -115,15 +131,22 @@ class Watchdog:
         self._thread.join(timeout=2)
 
 
-def _timed_query_from_embedding(index, emb, cfg) -> tuple[dict, dict]:
+def _timed_query_from_embedding(index, item, cfg) -> tuple[dict, dict]:
+    """item is either a pre-computed np.ndarray embedding (query_source=synthetic)
+    or a text string (query_source=text, embedded via the real CLIP text encoder
+    inside the timed region, matching latency_ab.py's _timed_query)."""
     _perf.reset()
+    if isinstance(item, str):
+        emb = _embed_query(item, cfg)
+    else:
+        emb = item
     _build_retrieved(index, emb, cfg)
     timings = {k: _perf.TIMINGS.get(k) for k in TIMER_KEYS}
     counts = {k: _perf.COUNTS.get(k) for k in COUNT_KEYS}
     return timings, counts
 
 
-def run_query_loop(mode: str, index, queries: list[np.ndarray]) -> list[dict]:
+def run_query_loop(mode: str, index, queries: list) -> list[dict]:
     cfg = IRISConfig(
         ranking_mode="ppr",
         codec_conf_source="packet_size",
@@ -170,6 +193,13 @@ def seeded_queries(frames, seed: int, n_q: int):
     return queries, chosen_frame_idxs
 
 
+def text_queries(n_q: int):
+    """Cycle the fixed TEXT_QUERIES list to length n_q -- same query count as
+    the synthetic run, no seed needed (list order is fixed)."""
+    chosen = [TEXT_QUERIES[i % len(TEXT_QUERIES)] for i in range(n_q)]
+    return chosen, None
+
+
 def pooled(records, key, branch=None):
     vals = [r[key] for r in records if r[key] is not None and (branch is None or r["branch"] == branch)]
     return _median_or_none(vals)
@@ -186,6 +216,9 @@ def main():
     ap.add_argument("--mem-cap-bytes", type=int, required=True)
     ap.add_argument("--query-seed", type=int, required=True)
     ap.add_argument("--n-queries", type=int, required=True)
+    ap.add_argument("--query-source", choices=["synthetic", "text"], default="synthetic",
+                     help="synthetic: seeded sample of survivor CLIP image embeddings (default, "
+                          "matches v2). text: fixed list of real CLIP text-encoded queries.")
     args = ap.parse_args()
 
     out_json = Path(args.out_json)
@@ -224,7 +257,10 @@ def main():
             n_survivors = len(idx.frames)
             graph = idx._graph
 
-    queries, chosen_frame_idxs = seeded_queries(idx.frames, args.query_seed, args.n_queries)
+    if args.query_source == "text":
+        queries, chosen_frame_idxs = text_queries(args.n_queries)
+    else:
+        queries, chosen_frame_idxs = seeded_queries(idx.frames, args.query_seed, args.n_queries)
     records = run_query_loop(args.mode, idx, queries)
 
     wd.stop()
@@ -238,6 +274,7 @@ def main():
         "source": args.source,
         "n_survivors": n_survivors,
         "n_queries": args.n_queries,
+        "query_source": args.query_source,
         "query_seed": args.query_seed,
         "chosen_frame_idxs": chosen_frame_idxs,
         "load_or_build_wall_sec": load_or_build_s,

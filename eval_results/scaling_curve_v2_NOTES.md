@@ -1,5 +1,9 @@
 # Scaling curve v2 — what this run does and does not claim
 
+**SUPERSEDED by `eval_results/scaling_curve_v2_textquery.md`**: synthetic
+queries measured a scene-centroid shortcut path real text queries never take
+(`shortcut_pct` 4-24% vs 0%). Retained for provenance.
+
 Human-readable summary of `eval_results/scaling_curve_v2.{md,json}`. Full
 detail lives in the linked report; this is the quick-reference record.
 

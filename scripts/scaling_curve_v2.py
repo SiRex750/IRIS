@@ -76,7 +76,7 @@ def _dir_fingerprint(d: Path) -> str:
 
 
 def run_worker(mode: str, cache_path: Path, out_json: Path, *, video: Path | None = None,
-                source: str = "cached_frames") -> dict:
+                source: str = "cached_frames", query_source: str = "synthetic") -> dict:
     if out_json.exists():
         out_json.unlink()
     cmd = [
@@ -89,6 +89,7 @@ def run_worker(mode: str, cache_path: Path, out_json: Path, *, video: Path | Non
         "--mem-cap-bytes", str(MEM_CAP_BYTES),
         "--query-seed", str(QUERY_SEED),
         "--n-queries", str(N_Q),
+        "--query-source", query_source,
     ]
     if video is not None:
         cmd += ["--video", str(video)]

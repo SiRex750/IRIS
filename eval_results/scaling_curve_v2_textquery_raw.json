@@ -1,0 +1,578 @@
+{
+  "provenance": {
+    "harness": "scripts/scaling_curve_v2_textquery.py + scripts/scaling_curve_v2.py + scripts/_scaling_curve_v2_worker.py",
+    "query_source": "text",
+    "text_queries": [
+      "a person running",
+      "an unattended bag",
+      "two people fighting",
+      "a vehicle entering the scene",
+      "a person falling",
+      "someone climbing over a fence",
+      "a person carrying a weapon",
+      "a crowd gathering suddenly",
+      "someone breaking a window",
+      "a person loitering near a doorway"
+    ],
+    "n_queries_per_clip": 50,
+    "uniform_watchdog": {
+      "wall_time_cap_sec": 3600.0,
+      "mem_cap_bytes": 29000000000
+    },
+    "run_complete": true,
+    "note": "Re-run of scaling_curve_v2 with query_source=text (real CLIP ViT-B/32 text-encoded queries, cycling scripts/_scaling_curve_v2_worker.py:TEXT_QUERIES to 50/clip) instead of v2's default query_source=synthetic (sampled survivor CLIP image embeddings). Same 7 clips, same N, same uniform watchdog as v2. Purpose: confirm the fitted scaling exponent is invariant to query type. Does NOT re-run v2's fairness check (independent_ingest vs cached_frames) -- orthogonal to query source, already settled. Arson019's flat arm was launched via a detached Windows Scheduled Task (schtasks) after the interactive-session background process was twice reclaimed during idle gaps (diagnosed: not OS sleep -- no Kernel-Power sleep/resume events in the System log across either kill window -- consistent with session/job-object teardown of Bash-tool background children). Same worker script, same CLI args, same watchdog policy; only the launch mechanism differs."
+  },
+  "clips": [
+    {
+      "label": "Normal_Videos_289",
+      "dataset": "ucf",
+      "video": "eval\\data\\ucf\\videos\\Testing_Normal_Videos_Anomaly\\Normal_Videos_289_x264.mp4",
+      "target_n_selection_basis": "~800 (raw-frame proxy)",
+      "scene_sparse": {
+        "outcome": "SUCCESS",
+        "mode": "scene_sparse",
+        "source": "cached_frames",
+        "n_survivors": 91,
+        "n_queries": 50,
+        "query_source": "text",
+        "query_seed": 20260726,
+        "chosen_frame_idxs": null,
+        "load_or_build_wall_sec": 0.031151294708251953,
+        "node_count": 91,
+        "edge_count": 145,
+        "median_total_retrieval_s": 0.001434849998986465,
+        "component_breakdown_median_s": {
+          "query_embed_s": 0.016840900001625414,
+          "total_retrieval_s": 0.001434849998986465,
+          "flat_ppr_s": null,
+          "scene_centroid_rank_s": 0.00011420000009820797,
+          "subgraph_induction_s": 0.00022480000006908085,
+          "cross_scene_edges_s": 0.000161749998369487,
+          "scene_ppr_s": 0.0007639499999640975
+        },
+        "median_ppr_nodes_edges": {
+          "ppr_nodes": 17.5,
+          "ppr_edges": 42.0
+        },
+        "peak_rss_bytes": 1367351296,
+        "peak_rss_gb": 1.367351296,
+        "wall_time_cap_sec": 3600.0,
+        "mem_cap_bytes": 29000000000,
+        "branch_fire_rate": {
+          "shortcut": 0,
+          "descend": 50,
+          "total": 50,
+          "shortcut_pct": 0.0
+        },
+        "median_total_retrieval_s_shortcut": null,
+        "median_total_retrieval_s_descend": 0.001434849998986465,
+        "wall_sec_observed_by_driver": 9.742570161819458,
+        "outcome_normalized": "completed"
+      },
+      "n_survivors": 91,
+      "flat": {
+        "outcome": "SUCCESS",
+        "mode": "flat",
+        "source": "cached_frames",
+        "n_survivors": 91,
+        "n_queries": 50,
+        "query_source": "text",
+        "query_seed": 20260726,
+        "chosen_frame_idxs": null,
+        "load_or_build_wall_sec": 0.05494117736816406,
+        "node_count": 91,
+        "edge_count": 4095,
+        "median_total_retrieval_s": 0.003780400000323425,
+        "component_breakdown_median_s": {
+          "query_embed_s": 0.01634150000063528,
+          "total_retrieval_s": 0.003780400000323425,
+          "flat_ppr_s": 0.0037491999992198544,
+          "scene_centroid_rank_s": null,
+          "subgraph_induction_s": null,
+          "cross_scene_edges_s": null,
+          "scene_ppr_s": null
+        },
+        "median_ppr_nodes_edges": {
+          "ppr_nodes": 91.0,
+          "ppr_edges": 4095.0
+        },
+        "peak_rss_bytes": 1367433216,
+        "peak_rss_gb": 1.367433216,
+        "wall_time_cap_sec": 3600.0,
+        "mem_cap_bytes": 29000000000,
+        "wall_sec_observed_by_driver": 9.792114019393921,
+        "outcome_normalized": "completed"
+      }
+    },
+    {
+      "label": "Abuse025",
+      "dataset": "ucf",
+      "video": "eval\\data\\ucf\\videos\\Anomaly-Videos-Part-1\\Abuse\\Abuse025_x264.mp4",
+      "target_n_selection_basis": "~2k (raw-frame proxy)",
+      "scene_sparse": {
+        "outcome": "SUCCESS",
+        "mode": "scene_sparse",
+        "source": "cached_frames",
+        "n_survivors": 212,
+        "n_queries": 50,
+        "query_source": "text",
+        "query_seed": 20260726,
+        "chosen_frame_idxs": null,
+        "load_or_build_wall_sec": 0.15429091453552246,
+        "node_count": 212,
+        "edge_count": 995,
+        "median_total_retrieval_s": 0.003883749999658903,
+        "component_breakdown_median_s": {
+          "query_embed_s": 0.016291249998175772,
+          "total_retrieval_s": 0.003883749999658903,
+          "flat_ppr_s": null,
+          "scene_centroid_rank_s": 0.00013419999959296547,
+          "subgraph_induction_s": 0.0016914500010898337,
+          "cross_scene_edges_s": 0.0002118500015058089,
+          "scene_ppr_s": 0.0015730499999335734
+        },
+        "median_ppr_nodes_edges": {
+          "ppr_nodes": 84.5,
+          "ppr_edges": 578.5
+        },
+        "peak_rss_bytes": 1364574208,
+        "peak_rss_gb": 1.364574208,
+        "wall_time_cap_sec": 3600.0,
+        "mem_cap_bytes": 29000000000,
+        "branch_fire_rate": {
+          "shortcut": 0,
+          "descend": 50,
+          "total": 50,
+          "shortcut_pct": 0.0
+        },
+        "median_total_retrieval_s_shortcut": null,
+        "median_total_retrieval_s_descend": 0.003883749999658903,
+        "wall_sec_observed_by_driver": 9.888081789016724,
+        "outcome_normalized": "completed"
+      },
+      "n_survivors": 212,
+      "flat": {
+        "outcome": "SUCCESS",
+        "mode": "flat",
+        "source": "cached_frames",
+        "n_survivors": 212,
+        "n_queries": 50,
+        "query_source": "text",
+        "query_seed": 20260726,
+        "chosen_frame_idxs": null,
+        "load_or_build_wall_sec": 0.26154327392578125,
+        "node_count": 212,
+        "edge_count": 22366,
+        "median_total_retrieval_s": 0.01569424999979674,
+        "component_breakdown_median_s": {
+          "query_embed_s": 0.016459950000353274,
+          "total_retrieval_s": 0.01569424999979674,
+          "flat_ppr_s": 0.015647300000637188,
+          "scene_centroid_rank_s": null,
+          "subgraph_induction_s": null,
+          "cross_scene_edges_s": null,
+          "scene_ppr_s": null
+        },
+        "median_ppr_nodes_edges": {
+          "ppr_nodes": 212.0,
+          "ppr_edges": 22366.0
+        },
+        "peak_rss_bytes": 1385070592,
+        "peak_rss_gb": 1.385070592,
+        "wall_time_cap_sec": 3600.0,
+        "mem_cap_bytes": 29000000000,
+        "wall_sec_observed_by_driver": 13.163853645324707,
+        "outcome_normalized": "completed"
+      }
+    },
+    {
+      "label": "Arrest016",
+      "dataset": "ucf",
+      "video": "eval\\data\\ucf\\videos\\Anomaly-Videos-Part-1\\Arrest\\Arrest016_x264.mp4",
+      "target_n_selection_basis": "~10k (raw-frame proxy)",
+      "scene_sparse": {
+        "outcome": "SUCCESS",
+        "mode": "scene_sparse",
+        "source": "cached_frames",
+        "n_survivors": 1102,
+        "n_queries": 50,
+        "query_source": "text",
+        "query_seed": 20260726,
+        "chosen_frame_idxs": null,
+        "load_or_build_wall_sec": 3.453176975250244,
+        "node_count": 1102,
+        "edge_count": 2069,
+        "median_total_retrieval_s": 0.0038954999999987194,
+        "component_breakdown_median_s": {
+          "query_embed_s": 0.016389449998314376,
+          "total_retrieval_s": 0.0038954999999987194,
+          "flat_ppr_s": null,
+          "scene_centroid_rank_s": 0.0005413999988377327,
+          "subgraph_induction_s": 0.0007711999987805029,
+          "cross_scene_edges_s": 0.0009678500009613344,
+          "scene_ppr_s": 0.001242899999851943
+        },
+        "median_ppr_nodes_edges": {
+          "ppr_nodes": 62.5,
+          "ppr_edges": 259.5
+        },
+        "peak_rss_bytes": 1418682368,
+        "peak_rss_gb": 1.418682368,
+        "wall_time_cap_sec": 3600.0,
+        "mem_cap_bytes": 29000000000,
+        "branch_fire_rate": {
+          "shortcut": 0,
+          "descend": 50,
+          "total": 50,
+          "shortcut_pct": 0.0
+        },
+        "median_total_retrieval_s_shortcut": null,
+        "median_total_retrieval_s_descend": 0.0038954999999987194,
+        "wall_sec_observed_by_driver": 13.153705835342407,
+        "outcome_normalized": "completed"
+      },
+      "n_survivors": 1102,
+      "flat": {
+        "outcome": "SUCCESS",
+        "mode": "flat",
+        "source": "cached_frames",
+        "n_survivors": 1102,
+        "n_queries": 50,
+        "query_source": "text",
+        "query_seed": 20260726,
+        "chosen_frame_idxs": null,
+        "load_or_build_wall_sec": 7.336383104324341,
+        "node_count": 1102,
+        "edge_count": 606651,
+        "median_total_retrieval_s": 0.40342564999991737,
+        "component_breakdown_median_s": {
+          "query_embed_s": 0.018040599999949336,
+          "total_retrieval_s": 0.40342564999991737,
+          "flat_ppr_s": 0.4032937000010861,
+          "scene_centroid_rank_s": null,
+          "subgraph_induction_s": null,
+          "cross_scene_edges_s": null,
+          "scene_ppr_s": null
+        },
+        "median_ppr_nodes_edges": {
+          "ppr_nodes": 1102.0,
+          "ppr_edges": 606651.0
+        },
+        "peak_rss_bytes": 1811329024,
+        "peak_rss_gb": 1.811329024,
+        "wall_time_cap_sec": 3600.0,
+        "mem_cap_bytes": 29000000000,
+        "wall_sec_observed_by_driver": 122.09308409690857,
+        "outcome_normalized": "completed"
+      }
+    },
+    {
+      "label": "Abuse042",
+      "dataset": "ucf",
+      "video": "eval\\data\\ucf\\videos\\Anomaly-Videos-Part-1\\Abuse\\Abuse042_x264.mp4",
+      "target_n_selection_basis": "~30k (raw-frame proxy)",
+      "scene_sparse": {
+        "outcome": "SUCCESS",
+        "mode": "scene_sparse",
+        "source": "cached_frames",
+        "n_survivors": 2963,
+        "n_queries": 50,
+        "query_source": "text",
+        "query_seed": 20260726,
+        "chosen_frame_idxs": null,
+        "load_or_build_wall_sec": 25.525995016098022,
+        "node_count": 2963,
+        "edge_count": 8325,
+        "median_total_retrieval_s": 0.007937000000310945,
+        "component_breakdown_median_s": {
+          "query_embed_s": 0.016542349998417194,
+          "total_retrieval_s": 0.007937000000310945,
+          "flat_ppr_s": null,
+          "scene_centroid_rank_s": 0.0015198500004771631,
+          "subgraph_induction_s": 0.0017993499986914685,
+          "cross_scene_edges_s": 0.0023388999979943037,
+          "scene_ppr_s": 0.0018602999989525415
+        },
+        "median_ppr_nodes_edges": {
+          "ppr_nodes": 110.0,
+          "ppr_edges": 671.0
+        },
+        "peak_rss_bytes": 2458836992,
+        "peak_rss_gb": 2.458836992,
+        "wall_time_cap_sec": 3600.0,
+        "mem_cap_bytes": 29000000000,
+        "branch_fire_rate": {
+          "shortcut": 0,
+          "descend": 50,
+          "total": 50,
+          "shortcut_pct": 0.0
+        },
+        "median_total_retrieval_s_shortcut": null,
+        "median_total_retrieval_s_descend": 0.007937000000310945,
+        "wall_sec_observed_by_driver": 36.496033668518066,
+        "outcome_normalized": "completed"
+      },
+      "n_survivors": 2963,
+      "flat": {
+        "outcome": "SUCCESS",
+        "mode": "flat",
+        "source": "cached_frames",
+        "n_survivors": 2963,
+        "n_queries": 50,
+        "query_source": "text",
+        "query_seed": 20260726,
+        "chosen_frame_idxs": null,
+        "load_or_build_wall_sec": 54.2714569568634,
+        "node_count": 2963,
+        "edge_count": 4388203,
+        "median_total_retrieval_s": 2.976174049999827,
+        "component_breakdown_median_s": {
+          "query_embed_s": 0.017707300001347903,
+          "total_retrieval_s": 2.976174049999827,
+          "flat_ppr_s": 2.9758912500001315,
+          "scene_centroid_rank_s": null,
+          "subgraph_induction_s": null,
+          "cross_scene_edges_s": null,
+          "scene_ppr_s": null
+        },
+        "median_ppr_nodes_edges": {
+          "ppr_nodes": 2963.0,
+          "ppr_edges": 4388203.0
+        },
+        "peak_rss_bytes": 4864200704,
+        "peak_rss_gb": 4.864200704,
+        "wall_time_cap_sec": 3600.0,
+        "mem_cap_bytes": 29000000000,
+        "wall_sec_observed_by_driver": 818.5260372161865,
+        "outcome_normalized": "completed"
+      }
+    },
+    {
+      "label": "VIRAT_S_040001_01_000448_001101",
+      "dataset": "virat",
+      "video": "eval\\data\\virat\\videos\\VIRAT_S_040001_01_000448_001101.mp4",
+      "target_n_selection_basis": "reused committed point (~5k), remeasured under uniform policy",
+      "scene_sparse": {
+        "outcome": "SUCCESS",
+        "mode": "scene_sparse",
+        "source": "cached_frames",
+        "n_survivors": 4892,
+        "n_queries": 50,
+        "query_source": "text",
+        "query_seed": 20260726,
+        "chosen_frame_idxs": null,
+        "load_or_build_wall_sec": 68.67004585266113,
+        "node_count": 4892,
+        "edge_count": 23571,
+        "median_total_retrieval_s": 0.010091550000652205,
+        "component_breakdown_median_s": {
+          "query_embed_s": 0.016648200000418,
+          "total_retrieval_s": 0.010091550000652205,
+          "flat_ppr_s": null,
+          "scene_centroid_rank_s": 0.0011890000005223555,
+          "subgraph_induction_s": 0.0038558500018552877,
+          "cross_scene_edges_s": 0.0017373500013491139,
+          "scene_ppr_s": 0.0026231499996356433
+        },
+        "median_ppr_nodes_edges": {
+          "ppr_nodes": 192.0,
+          "ppr_edges": 1031.0
+        },
+        "peak_rss_bytes": 5728108544,
+        "peak_rss_gb": 5.728108544,
+        "wall_time_cap_sec": 3600.0,
+        "mem_cap_bytes": 29000000000,
+        "branch_fire_rate": {
+          "shortcut": 0,
+          "descend": 50,
+          "total": 50,
+          "shortcut_pct": 0.0
+        },
+        "median_total_retrieval_s_shortcut": null,
+        "median_total_retrieval_s_descend": 0.010091550000652205,
+        "wall_sec_observed_by_driver": 144.15121173858643,
+        "outcome_normalized": "completed"
+      },
+      "n_survivors": 4892,
+      "flat": {
+        "outcome": "SUCCESS",
+        "mode": "flat",
+        "source": "cached_frames",
+        "n_survivors": 4892,
+        "n_queries": 50,
+        "query_source": "text",
+        "query_seed": 20260726,
+        "chosen_frame_idxs": null,
+        "load_or_build_wall_sec": 147.70345449447632,
+        "node_count": 4892,
+        "edge_count": 11963386,
+        "median_total_retrieval_s": 7.939507700000831,
+        "component_breakdown_median_s": {
+          "query_embed_s": 0.01800050000019837,
+          "total_retrieval_s": 7.939507700000831,
+          "flat_ppr_s": 7.9391241499997705,
+          "scene_centroid_rank_s": null,
+          "subgraph_induction_s": null,
+          "cross_scene_edges_s": null,
+          "scene_ppr_s": null
+        },
+        "median_ppr_nodes_edges": {
+          "ppr_nodes": 4892.0,
+          "ppr_edges": 11963386.0
+        },
+        "peak_rss_bytes": 9605771264,
+        "peak_rss_gb": 9.605771264,
+        "wall_time_cap_sec": 3600.0,
+        "mem_cap_bytes": 29000000000,
+        "wall_sec_observed_by_driver": 2180.785567522049,
+        "outcome_normalized": "completed"
+      }
+    },
+    {
+      "label": "Arrest047",
+      "dataset": "ucf",
+      "video": "eval\\data\\ucf\\videos\\Anomaly-Videos-Part-1\\Arrest\\Arrest047_x264.mp4",
+      "target_n_selection_basis": "~80k (raw-frame proxy)",
+      "scene_sparse": {
+        "outcome": "SUCCESS",
+        "mode": "scene_sparse",
+        "source": "cached_frames",
+        "n_survivors": 6559,
+        "n_queries": 50,
+        "query_source": "text",
+        "query_seed": 20260726,
+        "chosen_frame_idxs": null,
+        "load_or_build_wall_sec": 127.31127643585205,
+        "node_count": 6559,
+        "edge_count": 12144,
+        "median_total_retrieval_s": 0.017371750000165775,
+        "component_breakdown_median_s": {
+          "query_embed_s": 0.017024400000082096,
+          "total_retrieval_s": 0.017371750000165775,
+          "flat_ppr_s": null,
+          "scene_centroid_rank_s": 0.004522799999904237,
+          "subgraph_induction_s": 0.002657600000020466,
+          "cross_scene_edges_s": 0.006483349998234189,
+          "scene_ppr_s": 0.0026622999994287966
+        },
+        "median_ppr_nodes_edges": {
+          "ppr_nodes": 149.0,
+          "ppr_edges": 1404.5
+        },
+        "peak_rss_bytes": 10750296064,
+        "peak_rss_gb": 10.750296064,
+        "wall_time_cap_sec": 3600.0,
+        "mem_cap_bytes": 29000000000,
+        "branch_fire_rate": {
+          "shortcut": 0,
+          "descend": 50,
+          "total": 50,
+          "shortcut_pct": 0.0
+        },
+        "median_total_retrieval_s_shortcut": null,
+        "median_total_retrieval_s_descend": 0.017371750000165775,
+        "wall_sec_observed_by_driver": 141.17260456085205,
+        "outcome_normalized": "completed"
+      },
+      "n_survivors": 6559,
+      "flat": {
+        "outcome": "timed_out",
+        "elapsed_sec_before_kill": 3600.4789295196533,
+        "peak_rss_bytes": 18067267584,
+        "peak_rss_gb": 18.067267584,
+        "wall_time_cap_sec": 3600.0,
+        "mem_cap_bytes": 29000000000,
+        "wall_sec_observed_by_driver": 3602.9833111763,
+        "outcome_normalized": "timed_out"
+      }
+    },
+    {
+      "label": "Arson019",
+      "dataset": "ucf",
+      "video": "eval/data/ucf/videos/Anomaly-Videos-Part-1/Arson/Arson019_x264.mp4",
+      "target_n_selection_basis": "~126k (raw-frame proxy)",
+      "scene_sparse": {
+        "outcome": "SUCCESS",
+        "mode": "scene_sparse",
+        "source": "cached_frames",
+        "n_survivors": 13506,
+        "n_queries": 50,
+        "query_source": "text",
+        "query_seed": 20260726,
+        "chosen_frame_idxs": null,
+        "load_or_build_wall_sec": 669.1753597259521,
+        "node_count": 13506,
+        "edge_count": 23821,
+        "median_total_retrieval_s": 0.02896350000082748,
+        "component_breakdown_median_s": {
+          "query_embed_s": 0.017095699997298652,
+          "total_retrieval_s": 0.02896350000082748,
+          "flat_ppr_s": null,
+          "scene_centroid_rank_s": 0.007570300000224961,
+          "subgraph_induction_s": 0.0059135000010428485,
+          "cross_scene_edges_s": 0.010186600000452017,
+          "scene_ppr_s": 0.00375345000429661
+        },
+        "median_ppr_nodes_edges": {
+          "ppr_nodes": 228.0,
+          "ppr_edges": 2201.5
+        },
+        "peak_rss_bytes": 25083158528,
+        "peak_rss_gb": 25.083158528,
+        "wall_time_cap_sec": 3600.0,
+        "mem_cap_bytes": 29000000000,
+        "branch_fire_rate": {
+          "shortcut": 0,
+          "descend": 50,
+          "total": 50,
+          "shortcut_pct": 0.0
+        },
+        "median_total_retrieval_s_shortcut": null,
+        "median_total_retrieval_s_descend": 0.02896350000082748,
+        "outcome_normalized": "completed",
+        "wall_sec_observed_by_driver": null,
+        "_driver_note": "launched via schtasks (session-reclaim workaround), not the subprocess.run driver -- no external wall clock wrapper observation available; watchdog's own timing fields are authoritative."
+      },
+      "n_survivors": 13506,
+      "flat": {
+        "outcome": "timed_out",
+        "elapsed_sec_before_kill": 3600.1713972091675,
+        "peak_rss_bytes": 26935701504,
+        "peak_rss_gb": 26.935701504,
+        "wall_time_cap_sec": 3600.0,
+        "mem_cap_bytes": 29000000000,
+        "outcome_normalized": "timed_out",
+        "wall_sec_observed_by_driver": null,
+        "_driver_note": "launched via schtasks (session-reclaim workaround), not the subprocess.run driver -- no external wall clock wrapper observation available; watchdog's own timing fields (elapsed_sec_before_kill=3600.17s) are authoritative and directly comparable to v2's Arrest047/Arson019 timed_out entries."
+      }
+    }
+  ],
+  "fits_ucf_only": {
+    "flat_ucf_only": {
+      "exponent_k": 1.926088408570082,
+      "log_intercept": -14.361043679445007,
+      "n_points": 4,
+      "points_used": [
+        91,
+        212,
+        1102,
+        2963
+      ],
+      "r_squared": 0.9990676946624617
+    },
+    "scene_sparse_ucf_only": {
+      "exponent_k": 0.5367934850305084,
+      "log_intercept": -8.874589016431155,
+      "n_points": 6,
+      "points_used": [
+        91,
+        212,
+        1102,
+        2963,
+        6559,
+        13506
+      ],
+      "r_squared": 0.9133135405873999
+    }
+  }
+}
