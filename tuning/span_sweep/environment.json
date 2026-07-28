@@ -1,0 +1,33 @@
+{
+  "git_sha_when_this_task_began": "505c2f70bfd310eefd662aea327526cbd3ef9428",
+  "git_sha_committing_on_top_of": "eeaeacc82e07378d6aa64bc0c21272936fe2503f",
+  "concurrent_work_note": "Two commits (a929453, eeaeacc) landed on feat/prerun-fixes and were already pushed to origin by another session/agent (same author) while this span-sweep task's long background computation was running. Neither touches eval/metrics.py, eval/, tuning/span_sweep/, or split_manifest.json's tune_videos/confirm_videos -- confirmed via `git show --stat` and `git diff eeaeacc -- eval/metrics.py` (still exactly this task's additive diff, no conflict). This task's work is committed on top of eeaeacc, not 505c2f7.",
+  "git_status_porcelain_at_writeup": " M eval/metrics.py\n M external_data/qvhighlights/manifests/external_train.jsonl\n?? scratch/bakeoff_harness_dataset.json\n?? scripts/answerer_bakeoff_harness.py\n?? scripts/span_sweep.py\n?? scripts/span_sweep_bootstrap.py\n?? scripts/span_sweep_final.py\n?? tests/test_span_methods_ef.py\n?? tuning/span_sweep/\n",
+  "tree_clean_at_start": false,
+  "tree_clean_note": "NOT clean -- pre-existing unrelated changes from an earlier, separate task in this session (external_data/qvhighlights/manifests/external_train.jsonl modified, scratch/bakeoff_harness_dataset.json and scripts/answerer_bakeoff_harness.py untracked, neither touched by or relevant to this task) plus this task's own in-progress work. Reported honestly rather than fabricated as clean.",
+  "hostname": "worker-1",
+  "uname_a": "Linux worker-1 6.8.0-136-generic #136~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Fri Jul  3 16:29:11 UTC  x86_64 x86_64 x86_64 GNU/Linux",
+  "python_version": "3.13.12 | packaged by Anaconda, Inc. | (main, Feb 24 2026, 16:13:31) [GCC 14.3.0]",
+  "numpy_version": "2.4.4",
+  "scipy_version": "1.17.1",
+  "index_cache_dir": "tuning/index_cache",
+  "index_cache_config_hash": "4edae64ed40256e3",
+  "index_cache_file_count_under_hash": 450,
+  "frozen_config_used": {
+    "retrieval_strategy": "hybrid",
+    "ppr_lambda": 0.5,
+    "ppr_damping": 0.5,
+    "l2_retrieve_top_k": 4,
+    "span_method": "D",
+    "span_method_half_width_s": 2.2,
+    "peak_distance": 5,
+    "peak_prominence": 0.05,
+    "packet_size_weight": 0.8,
+    "motion_weight": 0.1,
+    "luma_entropy_weight": 0.1,
+    "persistence_threshold": 0.4,
+    "max_prominence": 0.5
+  },
+  "duration_source": "eval/data/nextqa/gsub_val.json per-video duration field, available for all 450 val_tune videos",
+  "gpu_note": "iris/query.py._embed_query uses CUDA when available for CLIP text embedding. This introduces small (~1e-4 magnitude) run-to-run floating-point jitter in retrieval results across separate process invocations (observed and documented in scripts/span_sweep_final.py header). Every number in the final report comes from a single retrieval pass (scripts/span_sweep_final.py), so all within-report comparisons are self-consistent; only the reproduction_gate.json artifact (written by the earlier scripts/span_sweep.py run) is from a separate process, and its match was exact to 8 decimal places, well inside tolerance."
+}

@@ -195,6 +195,323 @@ def predicted_span_from_frames_peak(
     return (lo, hi), used_clip_anchor
 
 
+def _cosine(q: np.ndarray, v) -> float | None:
+    """Cosine similarity, or None if either vector is missing/zero-norm."""
+    if v is None:
+        return None
+    vv = np.asarray(v, dtype=np.float32).ravel()
+    vn = float(np.linalg.norm(vv))
+    if vn == 0.0:
+        return None
+    return float(np.dot(q, vv / vn))
+
+
+def _normalize_query(query_embedding) -> np.ndarray | None:
+    if query_embedding is None:
+        return None
+    q = np.asarray(query_embedding, dtype=np.float32).ravel()
+    qn = float(np.linalg.norm(q))
+    if qn == 0.0:
+        return None
+    return q / qn
+
+
+def compute_similarity_profile(
+    survivor_frames: list, query_embedding, smooth_s: float = 0.5,
+) -> dict:
+    """Method E, stage 1 (spec steps 1-3): per-video CLIP-similarity profile
+    over ALL survivor frames (index.frames), not just the retrieved top-K.
+
+    survivor_frames elements may be FrameRecord objects (attribute access:
+    .timestamp/.clip_embedding/.frame_idx) or dicts (key access) -- both are
+    supported so this can run against either index.frames directly or a
+    dict-projected copy.
+
+    smooth_s: centered time-window moving average, in seconds (not an
+    index-count window, since survivor frames are not evenly spaced in
+    time). smooth_s=0 means no smoothing (s~ = s).
+
+    Returns a dict with sorted timestamps/frame_idxs, the smoothed+
+    normalized z array, n_skipped (no embedding or zero-norm), n_scored,
+    and degenerate (True iff max(s~) == min(s~), e.g. <2 scored frames or a
+    perfectly flat profile -- callers must fall back to Method D on this).
+    Empty/degenerate results always still populate n_skipped/n_scored so
+    telemetry is never silently lost.
+    """
+    q = _normalize_query(query_embedding)
+    if q is None:
+        return {"timestamps": np.array([]), "frame_idxs": [], "z": np.array([]),
+                "n_skipped": len(survivor_frames), "n_scored": 0, "degenerate": True}
+
+    def _get(fr, name):
+        return fr.get(name) if isinstance(fr, dict) else getattr(fr, name, None)
+
+    pairs = []
+    n_skipped = 0
+    for fr in survivor_frames:
+        sim = _cosine(q, _get(fr, "clip_embedding"))
+        if sim is None:
+            n_skipped += 1
+            continue
+        pairs.append((float(_get(fr, "timestamp")), _get(fr, "frame_idx"), sim))
+
+    if len(pairs) < 2:
+        return {"timestamps": np.array([p[0] for p in pairs]), "frame_idxs": [p[1] for p in pairs],
+                "z": np.array([]), "n_skipped": n_skipped, "n_scored": len(pairs), "degenerate": True}
+
+    pairs.sort(key=lambda p: p[0])
+    timestamps = np.array([p[0] for p in pairs], dtype=np.float64)
+    frame_idxs = [p[1] for p in pairs]
+    s = np.array([p[2] for p in pairs], dtype=np.float64)
+
+    if smooth_s and smooth_s > 0:
+        s_smooth = np.empty_like(s)
+        for i, t in enumerate(timestamps):
+            window = np.abs(timestamps - t) <= (smooth_s / 2.0)
+            s_smooth[i] = s[window].mean()
+    else:
+        s_smooth = s
+
+    lo, hi = float(s_smooth.min()), float(s_smooth.max())
+    if hi == lo:
+        return {"timestamps": timestamps, "frame_idxs": frame_idxs, "z": np.array([]),
+                "n_skipped": n_skipped, "n_scored": len(pairs), "degenerate": True}
+
+    z = (s_smooth - lo) / (hi - lo)
+    return {"timestamps": timestamps, "frame_idxs": frame_idxs, "z": z,
+            "n_skipped": n_skipped, "n_scored": len(pairs), "degenerate": False}
+
+
+def span_from_similarity_profile(
+    profile: dict, retrieved_frames: list[dict], duration_s: float,
+    tau: float, w_min: float, gap: int = 1, anchor_source: str = "topk",
+    w_max: float | None = None,
+) -> tuple[tuple[float, float], bool, dict]:
+    """Method E, stage 2 (spec steps 4-7): extract a span from an already-
+    computed similarity profile (see compute_similarity_profile). Kept
+    separate from stage 1 so a tau/w_min sweep can reuse one profile
+    computation per question across every (tau, w_min) cell.
+
+    Degenerate-profile fallback: a profile only degenerates when fewer than
+    2 survivor frames carry a usable embedding, or every survivor's
+    (smoothed) cosine is identical -- both mean the profile carries no
+    usable anchor signal. Falls back to the same discipline Method D uses
+    when it can't rank frames (predicted_span_from_frames_peak with
+    query_embedding=None, which forces the retrieved_frames[0] anchor and
+    reports used_clip_anchor=False), width=w_min. In >2685 questions on
+    val_tune this branch essentially never fires with real embeddings, but
+    it must still be correct: never a bare (0.0, 0.0) span unrelated to the
+    video's actual duration.
+
+    Returns (span, used_clip_anchor, telemetry). telemetry always carries
+    n_survivors_scored/degenerate_profile_fallback/final_width/
+    n_frames_included so no cell can complete without full accounting.
+    """
+    telemetry = {
+        "n_survivors_scored": profile["n_scored"], "n_skipped": profile["n_skipped"],
+        "degenerate_profile_fallback": False, "final_width": None, "n_frames_included": 0,
+    }
+    if profile["degenerate"] or len(profile["z"]) == 0:
+        telemetry["degenerate_profile_fallback"] = True
+        span, used_clip_anchor = predicted_span_from_frames_peak(
+            retrieved_frames, None, half_width_s=w_min / 2.0, duration_s=duration_s,
+        )
+        telemetry["final_width"] = span[1] - span[0]
+        return span, used_clip_anchor, telemetry
+
+    timestamps = profile["timestamps"]
+    frame_idxs = profile["frame_idxs"]
+    z = profile["z"]
+    n = len(z)
+    retrieved_frame_idxs = [f["frame_idx"] for f in retrieved_frames]
+
+    if anchor_source == "topk" and retrieved_frame_idxs:
+        idx_pos = {fi: i for i, fi in enumerate(frame_idxs)}
+        candidates = [idx_pos[fi] for fi in retrieved_frame_idxs if fi in idx_pos]
+        if not candidates:
+            candidates = list(range(n))
+    else:
+        candidates = list(range(n))
+
+    anchor_idx = max(candidates, key=lambda i: z[i])
+    used_clip_anchor = True
+    t_star = float(timestamps[anchor_idx])
+
+    if w_max is None:
+        w_max = min(20.0, 0.5 * float(duration_s))
+
+    left_idx = anchor_idx
+    consecutive_below = 0
+    j = anchor_idx - 1
+    while j >= 0:
+        if z[j] >= tau:
+            left_idx = j
+            consecutive_below = 0
+        else:
+            consecutive_below += 1
+            if consecutive_below > gap:
+                break
+        j -= 1
+
+    right_idx = anchor_idx
+    consecutive_below = 0
+    j = anchor_idx + 1
+    while j < n:
+        if z[j] >= tau:
+            right_idx = j
+            consecutive_below = 0
+        else:
+            consecutive_below += 1
+            if consecutive_below > gap:
+                break
+        j += 1
+
+    lo = float(timestamps[left_idx])
+    hi = float(timestamps[right_idx])
+    n_included = right_idx - left_idx + 1
+
+    lo = max(0.0, lo)
+    hi = min(float(duration_s), hi)
+    if hi < lo:
+        hi = lo
+
+    width = hi - lo
+    if width < w_min:
+        half = w_min / 2.0
+        lo = max(0.0, t_star - half)
+        hi = min(float(duration_s), t_star + half)
+    elif width > w_max:
+        half = w_max / 2.0
+        lo = max(0.0, t_star - half)
+        hi = min(float(duration_s), t_star + half)
+
+    telemetry["final_width"] = hi - lo
+    telemetry["n_frames_included"] = n_included
+    telemetry["anchor_timestamp"] = t_star
+    return (lo, hi), used_clip_anchor, telemetry
+
+
+def predicted_span_from_frames_profile(
+    survivor_frames: list, retrieved_frames: list[dict], query_embedding,
+    duration_s: float, tau: float, w_min: float, smooth_s: float = 0.5,
+    gap: int = 1, anchor_source: str = "topk", w_max: float | None = None,
+) -> tuple[tuple[float, float], bool, dict]:
+    """Method E (new): profile-thresholded adaptive-width span. Single-call
+    convenience wrapper around compute_similarity_profile +
+    span_from_similarity_profile -- see those for the two-stage
+    implementation a tau/w_min sweep should call directly to avoid
+    recomputing the CLIP profile once per cell.
+
+    Falls back to Method D (predicted_span_from_frames_peak) whenever the
+    profile is degenerate (fewer than 2 scored survivors, or a perfectly
+    flat similarity profile) or retrieved_frames is empty; the fallback is
+    always reported in the returned telemetry. See span_from_similarity_profile
+    for the exact fallback discipline -- this wrapper delegates to it so
+    there is exactly one fallback code path, not two that could drift.
+    """
+    profile = compute_similarity_profile(survivor_frames, query_embedding, smooth_s=smooth_s)
+    return span_from_similarity_profile(
+        profile, retrieved_frames, duration_s, tau, w_min,
+        gap=gap, anchor_source=anchor_source, w_max=w_max,
+    )
+
+
+def weighted_std_topk(retrieved_frames: list[dict], query_embedding) -> tuple[float, bool]:
+    """Weighted std-dev of retrieved top-K timestamps, weights = CLIP
+    cosine similarity to the query (negative cosines clipped to 0 so the
+    weighted-variance formula stays well-defined). Returns (std,
+    weight_fallback) -- weight_fallback=True means every weight was zero
+    (e.g. all cosines <= 0, or no frame carried an embedding) and an
+    unweighted std was used instead."""
+    if not retrieved_frames:
+        return 0.0, False
+    timestamps = np.array([f["timestamp"] for f in retrieved_frames], dtype=np.float64)
+    if len(timestamps) == 1:
+        return 0.0, False
+
+    q = _normalize_query(query_embedding)
+    weights = np.zeros(len(retrieved_frames), dtype=np.float64)
+    if q is not None:
+        for i, f in enumerate(retrieved_frames):
+            sim = _cosine(q, f.get("clip_embedding"))
+            weights[i] = max(0.0, sim) if sim is not None else 0.0
+
+    weight_fallback = False
+    if weights.sum() <= 0.0:
+        weight_fallback = True
+        weights = np.ones(len(retrieved_frames), dtype=np.float64)
+
+    mean = float(np.average(timestamps, weights=weights))
+    var = float(np.average((timestamps - mean) ** 2, weights=weights))
+    return var ** 0.5, weight_fallback
+
+
+def predicted_span_from_frames_weighted_spread(
+    retrieved_frames: list[dict], query_embedding, duration_s: float,
+    alpha: float, w_min: float, w_max: float | None = None,
+) -> tuple[tuple[float, float], bool, dict]:
+    """Method F (new): Method B's weighted-spread intuition with a width
+    floor, fixing B's 29.8%-zero-width failure mode.
+
+    w = clamp(alpha * weighted_std(top-K timestamps, weights=CLIP cosine), w_min, w_max)
+    span = [t_peak - w/2, t_peak + w/2], clamped to [0, duration_s].
+    t_peak is the same CLIP-similarity-peak anchor Method D uses (shared
+    _pick_peak_by_clip), so a Method-D vs Method-F comparison isolates the
+    width rule, not the anchor.
+
+    w_max defaults to Method E's non-binding sanity clamp, min(20.0, 0.5*D)
+    -- the spec does not give Method F its own w_max, and this is the only
+    fixed value already established for a `clamp(..., w_min, w_max)` span
+    formula in this task.
+    """
+    if w_max is None:
+        w_max = min(20.0, 0.5 * float(duration_s))
+
+    peak = _pick_peak_by_clip(retrieved_frames, query_embedding)
+    used_clip_anchor = peak is not None
+    if peak is None:
+        if not retrieved_frames:
+            return (0.0, 0.0), False, {"weight_fallback": False, "raw_std": 0.0, "final_width": 0.0}
+        peak = retrieved_frames[0]
+    t_peak = float(peak["timestamp"])
+
+    std, weight_fallback = weighted_std_topk(retrieved_frames, query_embedding)
+    width = min(max(alpha * std, w_min), w_max)
+
+    lo = max(0.0, t_peak - width / 2.0)
+    hi = min(float(duration_s), t_peak + width / 2.0)
+    if hi < lo:
+        hi = lo
+    return (lo, hi), used_clip_anchor, {
+        "weight_fallback": weight_fallback, "raw_std": std, "final_width": hi - lo,
+    }
+
+
+def is_structurally_barred(gold_spans: list[list[float]], pred_width: float) -> bool:
+    """True iff no predicted span of this width, however placed, could
+    reach IoP@0.5 against the longest gold span -- i.e. max_gold_len <
+    0.5 * pred_width. Zero-width predictions are never "barred" by this
+    definition (they follow the separate zero-width-span IoP=1.0 special
+    case in get_tIoU, not a width-vs-gold-length comparison)."""
+    if pred_width <= 0:
+        return False
+    max_gold_len = max((g[1] - g[0]) for g in gold_spans) if gold_spans else 0.0
+    return max_gold_len < 0.5 * pred_width
+
+
+def assert_no_confirm_videos(video_ids, confirm_videos: set) -> None:
+    """Fail loudly if any video_ids entry is a val_confirm video. Intended
+    to be called on every invocation of a val_tune-only harness (e.g. the
+    span-construction sweep) so a split_manifest.json mixup can never
+    silently leak confirm-split questions into a tune-only measurement."""
+    leaked = sorted(set(video_ids) & set(confirm_videos))
+    if leaked:
+        raise AssertionError(
+            f"val_confirm video(s) leaked into a val_tune-only run: {leaked[:10]}"
+            f"{'...' if len(leaked) > 10 else ''} ({len(leaked)} total)"
+        )
+
+
 def is_zero_width_span(span: tuple[float, float]) -> bool:
     """True when a predicted span collapses to a single instant
     (min timestamp == max timestamp). Methods B and D can both degenerate

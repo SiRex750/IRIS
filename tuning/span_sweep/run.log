@@ -1,0 +1,28 @@
+[2026-07-28T03:49:23.774866+00:00] === span_sweep_final.py -- single-pass authoritative run ===
+[2026-07-28T03:51:57.099248+00:00] [pass1] {'n_questions': 2685, 'n_scored': 2685, 'n_retrieval_fail': 0, 'wall_s': 60.95627530399997, 'retrieval_wall_s': 56.49253809099844, 'profile_wall_s': 4.448459777001858, 'gold_at_4_rate': 0.5303538175046555}
+[2026-07-28T03:51:58.695672+00:00] [grid] 50 cells computed in this single pass
+[2026-07-28T03:51:58.696896+00:00] [grid] wrote authoritative /home/ccbd/IRIS-1/tuning/span_sweep/grid_results.csv
+[2026-07-28T03:51:58.696942+00:00] [selection] best D (by mIoP): cell 1 {'half_width_s': 0.5} mIoP=0.31231 mIoU=0.05642
+[2026-07-28T03:51:58.696948+00:00] [selection] frozen D@2.2: cell 5 mIoP=0.30454 mIoU=0.16462
+[2026-07-28T03:51:58.696954+00:00] [selection] best E (by mIoP): cell 34 {'tau': 0.8, 'w_min': 0.6, 'smooth_s': 0.5, 'gap': 1, 'anchor_source': 'topk'} mIoP=0.31974 mIoU=0.07350
+[2026-07-28T03:51:58.696960+00:00] [selection] best F (by mIoP): cell 39 {'alpha': 1.0, 'w_min': 0.6} mIoP=0.30182 mIoU=0.13835
+[2026-07-28T03:51:58.696975+00:00] [criterion1] vs best-D-by-mIoP (cell 1): 10 candidates pass point-estimate test: [29, 30, 31, 32, 33, 34, 35, 36, 37, 38]
+[2026-07-28T03:51:58.696981+00:00] [criterion1] vs frozen-D@2.2 (cell 5): 0 candidates pass point-estimate test: []
+[2026-07-28T03:51:59.190953+00:00] [bootstrap] best_D_by_mIoP vs cell29_E_{"anchor_source": "topk", "gap": 1, "smooth_s": 0.5, "tau": 0.7, "w_min": 0.6}: mIoP_diff=+0.00308 excl0=False mIoU_diff=+0.05574 excl0=True passes_all_4=False
+[2026-07-28T03:51:59.710663+00:00] [bootstrap] best_D_by_mIoP vs cell30_E_{"anchor_source": "topk", "gap": 1, "smooth_s": 0.5, "tau": 0.7, "w_min": 1.0}: mIoP_diff=+0.00318 excl0=False mIoU_diff=+0.06215 excl0=True passes_all_4=False
+[2026-07-28T03:52:00.219424+00:00] [bootstrap] best_D_by_mIoP vs cell31_E_{"anchor_source": "topk", "gap": 1, "smooth_s": 0.5, "tau": 0.7, "w_min": 1.4}: mIoP_diff=+0.00198 excl0=False mIoU_diff=+0.06906 excl0=True passes_all_4=False
+[2026-07-28T03:52:00.743508+00:00] [bootstrap] best_D_by_mIoP vs cell32_E_{"anchor_source": "topk", "gap": 1, "smooth_s": 0.5, "tau": 0.7, "w_min": 1.8}: mIoP_diff=+0.00179 excl0=False mIoU_diff=+0.07685 excl0=True passes_all_4=False
+[2026-07-28T03:52:01.261819+00:00] [bootstrap] best_D_by_mIoP vs cell33_E_{"anchor_source": "topk", "gap": 1, "smooth_s": 0.5, "tau": 0.7, "w_min": 2.2}: mIoP_diff=+0.00108 excl0=False mIoU_diff=+0.08484 excl0=True passes_all_4=False
+[2026-07-28T03:52:01.791244+00:00] [bootstrap] best_D_by_mIoP vs cell34_E_{"anchor_source": "topk", "gap": 1, "smooth_s": 0.5, "tau": 0.8, "w_min": 0.6}: mIoP_diff=+0.00743 excl0=False mIoU_diff=+0.01709 excl0=True passes_all_4=False
+[2026-07-28T03:52:02.301611+00:00] [bootstrap] best_D_by_mIoP vs cell35_E_{"anchor_source": "topk", "gap": 1, "smooth_s": 0.5, "tau": 0.8, "w_min": 1.0}: mIoP_diff=+0.00651 excl0=False mIoU_diff=+0.02863 excl0=True passes_all_4=False
+[2026-07-28T03:52:02.821945+00:00] [bootstrap] best_D_by_mIoP vs cell36_E_{"anchor_source": "topk", "gap": 1, "smooth_s": 0.5, "tau": 0.8, "w_min": 1.4}: mIoP_diff=+0.00477 excl0=False mIoU_diff=+0.04064 excl0=True passes_all_4=False
+[2026-07-28T03:52:03.329990+00:00] [bootstrap] best_D_by_mIoP vs cell37_E_{"anchor_source": "topk", "gap": 1, "smooth_s": 0.5, "tau": 0.8, "w_min": 1.8}: mIoP_diff=+0.00304 excl0=False mIoU_diff=+0.05287 excl0=True passes_all_4=False
+[2026-07-28T03:52:03.845543+00:00] [bootstrap] best_D_by_mIoP vs cell38_E_{"anchor_source": "topk", "gap": 1, "smooth_s": 0.5, "tau": 0.8, "w_min": 2.2}: mIoP_diff=+0.00200 excl0=False mIoU_diff=+0.06481 excl0=True passes_all_4=False
+[2026-07-28T03:52:03.845806+00:00] [acceptance] ANY candidate clears all 4 criteria against any anchor: False
+[2026-07-28T03:52:03.846268+00:00] [sensitivity] recomputing smooth_s=0.0 variant at best-E cell (this re-embeds all questions once more)...
+[2026-07-28T03:52:56.240912+00:00] [sensitivity] smooth_s: default(0.5)={'mIoP': 0.31974403994813905, 'mIoU': 0.07350293745591975} variant(0.0)={'mIoP': 0.31751677030054815, 'mIoU': 0.06654975635116728, 'n': 2685}
+[2026-07-28T03:52:56.292267+00:00] [sensitivity] gap: default(1)={'mIoP': 0.31974403994813905, 'mIoU': 0.07350293745591975} variant(0)={'mIoP': 0.32140707898616516, 'mIoU': 0.06620886276890116}
+[2026-07-28T03:52:56.338329+00:00] [sensitivity] anchor_source: default(topk)={'mIoP': 0.31974403994813905, 'mIoU': 0.07350293745591975} variant(survivors)={'mIoP': 0.3115169791525685, 'mIoU': 0.07209505182461305}
+[2026-07-28T03:52:56.338504+00:00] [deliverable] wrote sensitivity_checks.json
+[2026-07-28T03:52:56.387186+00:00] [deliverable] wrote per-question CSVs for ['D_hw2.2_cell5', 'D_best_cell1', 'E_best_cell34', 'F_best_cell39']
+[2026-07-28T03:52:56.387341+00:00] === span_sweep_final.py complete ===

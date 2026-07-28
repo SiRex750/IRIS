@@ -1,0 +1,44 @@
+{
+  "winning_cell_note": "No cell cleared all 4 acceptance criteria (see bootstrap_ci.json) -- these sensitivity checks are reported at the best-E-by-mIoP cell for transparency, not as validation of a recommended cell.",
+  "cell_id": 34,
+  "params": {
+    "tau": 0.8,
+    "w_min": 0.6,
+    "smooth_s": 0.5,
+    "gap": 1,
+    "anchor_source": "topk"
+  },
+  "checks": {
+    "smooth_s": {
+      "default_0.5": {
+        "mIoP": 0.31974403994813905,
+        "mIoU": 0.07350293745591975
+      },
+      "variant_0.0": {
+        "mIoP": 0.31751677030054815,
+        "mIoU": 0.06654975635116728,
+        "n": 2685
+      }
+    },
+    "gap": {
+      "default_1": {
+        "mIoP": 0.31974403994813905,
+        "mIoU": 0.07350293745591975
+      },
+      "variant_0": {
+        "mIoP": 0.32140707898616516,
+        "mIoU": 0.06620886276890116
+      }
+    },
+    "anchor_source": {
+      "default_topk": {
+        "mIoP": 0.31974403994813905,
+        "mIoU": 0.07350293745591975
+      },
+      "variant_survivors": {
+        "mIoP": 0.3115169791525685,
+        "mIoU": 0.07209505182461305
+      }
+    }
+  }
+}

@@ -1,0 +1,72 @@
+# Adaptive span-construction sweep (Methods D/E/F) -- exact commands, in order
+
+# 1. Add Method E/F to eval/metrics.py (compute_similarity_profile,
+#    span_from_similarity_profile, predicted_span_from_frames_profile,
+#    weighted_std_topk, predicted_span_from_frames_weighted_spread,
+#    is_structurally_barred, assert_no_confirm_videos), alongside existing
+#    Methods A-D. No existing function's logic was touched.
+
+# 2. Unit tests
+python3 -m pytest tests/test_span_methods_ef.py tests/test_span_methods.py -q
+# -> 27 passed (includes all pre-existing Method A-D tests, confirming
+#    byte-identical behaviour)
+
+# 3. Smoke test on a 40-question subset before committing to a full run
+python3 <ad-hoc smoke script, not committed> # see run.log timestamps for
+                                              # the real run's own smoke path
+
+# 4. First full run: reproduction gate + 50-cell grid (scripts/span_sweep.py)
+python3 scripts/span_sweep.py
+# -> reproduction_gate_passed=True (n=2685, all metrics within tolerance)
+# -> all 50 cells complete, wall_s=1.61 for the sweep itself (14.8s for the
+#    one-time retrieval+profile pass)
+# -> wrote grid_results.csv, reproduction_gate.json, sweep_summary.json,
+#    per_question/*.csv (4 designated cells), run.log
+
+# 5. First bootstrap attempt (scripts/span_sweep_bootstrap.py), run as a
+#    SEPARATE process from step 4
+python3 scripts/span_sweep_bootstrap.py
+# -> Discovered a discrepancy: this run's point estimates for cell 28 (E,
+#    tau=0.6, w_min=2.2) vs frozen D@2.2 disagreed with grid_results.csv's
+#    values at the 4th decimal place (mIoU diff +0.00046 in step 4's file
+#    vs -0.00021 here). Root cause: iris/query.py's _embed_query runs CLIP
+#    text embedding on CUDA when available, which introduces small
+#    (~1e-4 magnitude) run-to-run floating-point jitter in retrieval
+#    results across SEPARATE process invocations. Verified independently
+#    via a standalone check script.
+
+# 6. Consolidated, single-pass authoritative run (scripts/span_sweep_final.py)
+#    -- computes the retrieval+profile pass ONCE and derives the full grid,
+#    the acceptance-criteria scan, the bootstrap CI, and the fixed-a-priori
+#    sensitivity checks all from that SAME pass, eliminating the cross-run
+#    jitter problem entirely. This run's outputs supersede step 4's
+#    grid_results.csv/sweep_summary.json and step 5's bootstrap_ci.json
+#    (overwritten in place, same filenames, by design).
+python3 scripts/span_sweep_final.py
+# -> pass1: n_scored=2685, gold_at_4=0.5303538175046555 (matches step 4's
+#    pass exactly -- the actual QUESTION-level Gold@4 metric is retrieval-
+#    strategy-deterministic even though raw cosine values jitter slightly)
+# -> 50 cells computed, wrote authoritative grid_results.csv
+# -> criterion-1 scan (point estimate mIoP AND mIoU both improve):
+#      vs best-D-by-mIoP (cell 1, hw=0.5): 10 candidates (E cells 29-38)
+#      vs frozen-D@2.2 (cell 5): 0 candidates
+# -> bootstrap (2000 resamples, 450 videos, seed 20260728) on all 10
+#    candidates vs best-D-by-mIoP: ALL 10 fail criterion 2 (mIoP 95% CI
+#    does not exclude zero for any of them)
+# -> acceptance: ANY candidate clears all 4 criteria against any anchor = False
+# -> sensitivity checks at best-E-by-mIoP (cell 34, tau=0.8, w_min=0.6):
+#      smooth_s 0.5->0.0:        mIoP 0.31974->0.31752, mIoU 0.07350->0.06655
+#      gap 1->0:                 mIoP 0.31974->0.32141, mIoU 0.07350->0.06621
+#      anchor_source topk->survivors: mIoP 0.31974->0.31152, mIoU 0.07350->0.07210
+# -> wrote sensitivity_checks.json, per_question/*.csv (4 designated cells),
+#    sweep_summary.json
+
+# 7. Protected-file hashing (before this task's first write, and after all
+#    of the above)
+sha256sum tuning/frozen_state.json split_manifest.json dataset_manifest.json \
+  tuning/val_confirm_e2e_per_question.csv tuning/val_confirm_e2e_report.md \
+  eval/data/nextqa/{val,test}.csv eval/data/nextqa/gsub_{val,test}.json
+find tuning/blind_ablation tuning/determinism_gate tuning/prerun_fixes -type f \
+  -not -path "*/index_cache/*" | sort | xargs sha256sum
+# -> byte-identical before/after (see protected_hashes_before.txt /
+#    protected_hashes_after.txt)
