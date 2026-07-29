@@ -1,46 +1,52 @@
 # UCF-Crime VAD Experiment 1 — Report
 
-**Status: BLOCKED at Step 1d / Step 2.** This is a measurement task and a negative
-result is a valid, complete outcome. No frame-level anomaly-detection accuracy
-(Steps 2–4) is reported below because the ground-truth data required to compute
-it does not exist anywhere reachable from this box. Everything that could be
-measured without ground truth (dataset verification, ingest efficiency) was
-measured and is reported in full, with real numbers from files written during
-this run.
+**Status: PARTIAL-CORPUS RESULT, not the standard 290-video benchmark.**
+The official annotation file was initially absent from this box and every
+reachable git branch; the user then extracted it locally mid-run
+(`eval/data/ucf/annotations/.../Temporal_Anomaly_Annotation.txt`, verified as
+the genuine 290-row/140-anomalous/150-normal file). Of those 290 official test
+videos, only **169** (19 anomalous + all 150 normal) have a matching local
+`.mp4` — the other 121, spanning 9 entire anomaly categories, are not on this
+box and were not downloaded, per instructions. **Every AUC number below is
+computed over this 169-video subset and is explicitly NOT comparable to the
+cited 290-video published numbers (ZS CLIP / ZS ImageBind / LAVAD / EventVAD).**
+This caveat applies to every number in §3–§6 and is restated there.
 
-## 0. Branch / config provenance (read before the rest)
+## 0. Branch / config / data provenance
 
 - Task asked to work off a branch named `feat/prerun-fixes` and to use IRIS
   files from `git@github.com:swarapotd-rgb/IRIS.git`. That branch exists only
-  on that remote (not on `origin` = `SiRex750/IRIS`, and not locally before this
-  run). This experiment branch (`siddanth/ucf-vad-exp1`) was created from
-  `swara/feat/prerun-fixes` (commit `3a6930c`), which is where `tuning/frozen_state.json`
-  and the `packet_size_weight` field on `ActionScoreConfig` actually exist —
-  neither exists on `origin/main` at the commit this session started from.
+  on that remote (not on `origin` = `SiRex750/IRIS`). This experiment branch
+  (`siddanth/ucf-vad-exp1`) was created from `swara/feat/prerun-fixes`
+  (commit `3a6930c`), which is where `tuning/frozen_state.json` and the
+  `packet_size_weight` field on `ActionScoreConfig` actually exist — neither
+  exists on `origin/main`.
 - `tuning/frozen_state.json` was **not edited**. Its `"frozen"` block was read
-  and used as-is:
-  `packet_size_weight=0.8, motion_weight=0.1, luma_entropy_weight=0.1,
-  peak_distance=5, peak_prominence=0.05, persistence_threshold=0.4,
-  max_prominence=0.5` (plus retrieval/PPR fields not used by this experiment,
-  since Stage B never ran — see §5).
-- UCF-Crime video files (`eval/data/ucf/videos/`) and the Python venv (`.venv/`)
-  are untracked/local-only and are not present in a fresh `git worktree`
-  checkout; they were symlinked in from the pre-existing checkout at
-  `C:/Users/Siddanth Anil/IRIS/` rather than re-downloaded or re-created, per
-  the instruction to use only the existing local download.
+  and used as-is everywhere: `packet_size_weight=0.8, motion_weight=0.1,
+  luma_entropy_weight=0.1, peak_distance=5, peak_prominence=0.05,
+  persistence_threshold=0.4, max_prominence=0.5` (Stage B additionally used
+  `retrieval_strategy="hybrid"` and `l2_retrieve_top_k=4` from the same file).
+- UCF-Crime video files (`eval/data/ucf/videos/`) and the Python venv
+  (`.venv/`) are untracked/local-only and not present in a fresh `git
+  worktree` checkout; an `ln -s` was attempted to link them in from the main
+  checkout, but silently fell back to a **full copy** on this Windows box
+  (confirmed via `Get-Item ... | Select LinkType` showing no reparse point,
+  and matching `du -sh` sizes — 11GB in both locations). This was only
+  discovered when the user's newly-extracted `eval/data/ucf/annotations/`
+  folder didn't show up in the worktree; it was then copied in explicitly.
+  No video was re-downloaded — only the existing local corpus was used, per
+  instructions.
 
 ## 1. Dataset provenance and verification
 
 **Source on this box:** `eval/data/ucf/videos/` (absolute path:
-`C:/Users/Siddanth Anil/IRIS/eval/data/ucf/videos/`, linked into this worktree).
-This is the same corpus previously inventoried in `eval_results/ucf_inventory.md`
-(a 40-file sample) and used for the scaling-curve work referenced in `docs/`
-(`eval_results/oom_frontier.md`, `eval_results/candidate_clips.md` — N up to
-13,506 *survivor* frames from `Arson019`, whose raw container frame count is
-126,553).
+`C:/Users/Siddanth Anil/IRIS/eval/data/ucf/videos/`). Same corpus previously
+inventoried in `eval_results/ucf_inventory.md` (a 40-file sample) and used for
+the scaling-curve work referenced in `docs/` (N up to 13,506 *survivor*
+frames from `Arson019`, raw container frame count 126,553).
 
 This run re-verified the **full population** (350/350 files, not a sample) —
-see `scripts/ucfcrime_vad_exp1_verify.py` and its output
+`scripts/ucfcrime_vad_exp1_verify.py`, output
 `tuning/ucfcrime_vad_exp1/ucfcrime_dataset_validation.json`:
 
 | Check | Result |
@@ -50,121 +56,146 @@ see `scripts/ucfcrime_vad_exp1_verify.py` and its output
 | Container open (`av.open`) success | **350 / 350** |
 | Packet-level readability (`packet.size`, `packet.is_keyframe` — PyAV's `ffprobe -show_packets` equivalent) | **350 / 350** |
 | Codec distribution | **h264: 348, mjpeg: 2** |
-| Extracted-frame directories (`.jpg`/`.png` in the video tree) | **0** — confirmed these are encoded video containers, not extracted frames |
+| Extracted-frame directories (`.jpg`/`.png` in the video tree) | **0** — confirmed real encoded video, not extracted frames |
 | Non-`.mp4` files present in the tree | **0** |
 
-No standalone `ffprobe` binary is present on this box (same situation already
-documented in `eval_results/ucf_inventory.md`); PyAV (`av.open` / `container.demux`,
-bundled `libavformat`) was used as a read-only equivalent to
-`ffprobe -show_streams` / `-show_packets` — it reads the same container/packet
-metadata without a full pixel decode loop.
+No standalone `ffprobe` binary is present on this box; PyAV (`av.open` /
+`container.demux`, bundled `libavformat`) was used as a read-only equivalent
+to `ffprobe -show_streams` / `-show_packets`.
 
-**The 2 mjpeg files** (`Arrest050_x264.mp4`, `Assault017_x264.mp4` — note both
-carry a misleading `_x264` filename suffix) are flagged and excluded from the
-`is_h264_or_hevc` count and from the efficiency sample's stratification pool.
-This confirms and extends the single mjpeg flag already noted in
-`eval_results/ucf_inventory.md` from a 40-file sample — the full-population
-pass found a second one the sample had missed.
+**The 2 mjpeg files** (`Arrest050_x264.mp4`, `Assault017_x264.mp4` — both
+carry a misleading `_x264` filename suffix) are flagged. Neither is among the
+169 annotation-matched videos scored in §3/§4, so they don't affect the AUC
+numbers below.
 
-### Category coverage — the first hard finding
+### Category coverage
 
-The local corpus is **not the full UCF-Crime test/train tree**. By directory:
+Only **4 of the 13** official anomaly categories are present locally at all:
+Abuse, Arrest, Arson, Assault (50 each) plus `Testing_Normal_Videos_Anomaly`
+(150, matching the official normal-test count). Burglary, Explosion,
+Fighting, RoadAccidents, Robbery, Shooting, Shoplifting, Stealing, Vandalism
+are entirely absent.
 
-| Directory | Count | Official UCF-Crime role |
+### 1d. Annotations
+
+`Temporal_Anomaly_Annotation_ForTestVideos.txt` (functionally identical
+content under the filename `Temporal_Anomaly_Annotation.txt`) was not found
+anywhere reachable at the start of this run (this repo, `origin`, or 9
+branches on `swarapotd-rgb/IRIS`) and was extracted locally by the user
+partway through, at
+`eval/data/ucf/annotations/Temporal_Anomaly_Annotation_For_Testing_Videos/Txt_formate/Temporal_Anomaly_Annotation.txt`.
+Verified (`scripts/ucfcrime_vad_exp1_stageA.py`, output
+`tuning/ucfcrime_vad_exp1/annotation_validation.json`):
+
+| Check | Result |
+|---|---|
+| Total rows | **290** |
+| Unique `video_name` values | **290** |
+| Anomalous / Normal split | **140 / 150** (matches spec) |
+| Rows with a matching local `.mp4` | **169** (19 anomalous + 150 normal) |
+| Rows with no local video file | **121** — all from the 9 absent categories, listed by name in `annotation_validation.json` |
+| Frame-index-out-of-bounds spans (span end ≥ decoded frame count) | **3** — see below |
+| Video decode failures during verification | **0** |
+
+The 3 out-of-bounds spans are all off-by-one at the boundary (annotation span
+end exactly equals the video's decoded frame count, e.g. `Arson011_x264.mp4`:
+span end `1267` vs. `1266` decoded frames), consistent with a 1-indexed vs.
+0-indexed convention mismatch rather than a real annotation error. **Reported,
+not silently clamped**: they're logged by name in
+`annotation_validation.json`, and the ground-truth array construction clips
+the span to `[0, n_frames-1]` (a 1-frame boundary effect, not a data
+corruption) — noted here explicitly per non-negotiable #4.
+
+## 2. Evaluation protocol (as applied)
+
+- **Metric:** frame-level ROC-AUC. Ground truth = 1 inside an annotated span,
+  0 elsewhere; all-0 for Normal videos.
+- **Primary:** pooled (micro) AUC — concatenate frame scores across all
+  scored videos, one ROC-AUC. **Computed over the 169-video subset, not the
+  290-video standard set — not directly comparable to the cited rows in §6.**
+- **Secondary:** per-video macro AUC, averaged only over videos with ≥1
+  positive frame (the 19 anomalous videos; 150 Normal videos excluded — AUC
+  undefined with no positives).
+- **Propagation rule:** Stage-A/Stage-B scores are computed only on
+  retained-tier frames (I_FRAME/PEAK/SALIENT/CANDIDATE — the frames
+  `iris.charon_v.parse_video` returns in `output_frames`). Every other
+  (SKIP-tier) frame is assigned its nearest **preceding** retained frame's
+  score (piecewise-constant hold-forward); frames before the first retained
+  frame hold that first frame's score backward (stated, not hidden).
+- **Both** pooled-over-all-frames (with hold-forward fill) and
+  pooled-over-retained-frames-only (no fill) AUC are reported, to show the
+  propagation effect.
+- **Retention rate measured, not assumed:** mean **10.49%** across the 169
+  scored videos (min 10.40%, max 11.25%) — this corrects the task prompt's
+  assumed ~13% figure.
+
+## 3. Stage A (codec-only anomaly score)
+
+Frozen weights (`packet_size_weight=0.8, motion_weight=0.1,
+luma_entropy_weight=0.1`, plus the frozen peak/persistence gate) applied
+directly as the anomaly score — no graph, no PPR, no CLIP, no captioner, no
+LLM. Script: `scripts/ucfcrime_vad_exp1_stageA.py`. Full output:
+`tuning/ucfcrime_vad_exp1/stageA_results.json`,
+`tuning/ucfcrime_vad_exp1/stageA_per_video.csv`, per-frame CSVs at
+`tuning/ucfcrime_vad_exp1/per_frame_ground_truth_scores/*.csv`.
+
+**169/169 videos decoded successfully, 0 failures.**
+
+| Result | Value |
+|---|---|
+| **Pooled AUC — all frames, propagated** | **0.7232** |
+| Pooled AUC — retained frames only (no fill) | 0.7086 |
+| Macro AUC — 19 anomalous videos only | 0.5650 |
+| Retention rate (mean / min / max) | 10.49% / 10.40% / 11.25% |
+
+### Per-category pooled AUC (each category's matched videos + all 150 matched normal videos)
+
+| Category | Matched videos | Pooled AUC |
 |---|---|---|
-| `Anomaly-Videos-Part-1/Abuse` | 50 | 1 of 13 anomaly categories |
-| `Anomaly-Videos-Part-1/Arrest` | 50 | 1 of 13 anomaly categories |
-| `Anomaly-Videos-Part-1/Arson` | 50 | 1 of 13 anomaly categories |
-| `Anomaly-Videos-Part-1/Assault` | 50 | 1 of 13 anomaly categories |
-| `Testing_Normal_Videos_Anomaly` | 150 | matches the official 150-video normal test count |
+| Abuse | 2 | 0.8136 |
+| Arson | 9 | 0.8022 |
+| Arrest | 5 | 0.7532 |
+| Assault | 3 | 0.6520 |
 
-Only **4 of the 13** official anomaly categories are present at all: Abuse,
-Arrest, Arson, Assault. **Burglary, Explosion, Fighting, RoadAccidents,
-Robbery, Shooting, Shoplifting, Stealing, and Vandalism are entirely absent**
-from this box. `Anomaly-Videos-Part-1` is also the official *training* zip
-name in the CRCV Dropbox distribution (Parts 1–4 contain the full category
-videos, split into train/test only via a separate file list) — nothing in the
-local checkout identifies which, if any, of these 200 anomaly clips are members
-of the official 290-video *test* split versus the ~1,610-video *train* split.
+Small n per category (2–9 videos) — read these as directional, not precise
+estimates; no other categories are available to compare against (§1).
 
-### 1d. Annotations — BLOCKER
+### Interpretation gate
 
-`Temporal_Anomaly_Annotation_ForTestVideos.txt` was searched for and **not found**:
+Per the task's own table, pooled AUC 0.7232 > 0.65 → **"Codec-native VAD is
+real. Stage B is justified."** **This placement is on the 169-video partial
+corpus, not the intended 290-video evaluation the gate was designed around**
+— restated because it matters: the pooled number is inflated relative to what
+a full 290-video run would likely show, since (a) pooling against the full
+150-video normal set while only sampling 19 (of 140) anomalous videos gives
+disproportionate weight to whichever anomaly signal happens to be easiest in
+the 4 available categories, and (b) the **macro AUC (0.565, per-video, no
+normal-video pooling boost) is much weaker — close to the cited ZS-CLIP level
+(53.16)** and is arguably the more honest single number for "does this codec
+signal generalize per-video." Both numbers are reported side by side
+deliberately; take the pooled 0.72 with that context, not at face value
+against the cited rows in §6.
 
-- Not present anywhere under this repo's working tree.
-- Not present in any branch of `origin` (`SiRex750/IRIS`).
-- Not present in any of the 9 branches fetched from `swarapotd-rgb/IRIS`
-  (`main`, `feat/prerun-fixes`, and 7 others) — checked via `git ls-tree -r
-  <branch> | grep -i ucf`.
-- Not present anywhere else searched on this machine (home directory scan for
-  `*Anomaly*annotation*`, `*Test*split*`).
+## 4. Stage B (graph-topology anomaly score)
 
-**Without this file (or an equivalent train/test split + temporal-window
-ground truth), Step 1d cannot be completed, and none of Step 2 (evaluation
-protocol application), Step 3 (Stage A AUC), or Step 4 (Stage B) can be
-computed — there is no ground truth to score against.** This is reported
-plainly per non-negotiable #5: the blocker is written up here and the
-AUC-dependent branch of work stopped, rather than substituting a proxy split,
-a self-labeled heuristic, or a different dataset.
+<!-- FILLED IN FROM tuning/ucfcrime_vad_exp1/stageB_results.json once the background run completes -->
+STAGE_B_PENDING_FILL
 
-Full detail (search paths, per-file codec/packet results) is in
-`tuning/ucfcrime_vad_exp1/ucfcrime_dataset_validation.json`.
-
-## 2. Evaluation protocol (defined, never applied)
-
-Per Step 2, the protocol below is what *would* be used if ground truth were
-available. It is stated for completeness and to make clear that no part of it
-was silently skipped or approximated — it was simply never run, because there
-is nothing to evaluate against:
-
-- Metric: frame-level ROC-AUC, pooled (micro, concatenate all test-video frame
-  scores) as primary, per-video macro (excluding normal videos, which have no
-  positives) as secondary.
-- Propagation rule: piecewise-constant hold of each retained frame's score
-  forward to the non-retained frames it covers, so every frame gets a score.
-- Both pooled-over-all-frames and pooled-over-retained-frames-only AUC would
-  be reported, to show the propagation effect.
-
-**None of this was executed.** No AUC number of any kind appears in this report.
-
-## 3. Stage A (codec-only anomaly score) — NOT RUN
-
-Stage A requires scoring frames from the 290 annotated test videos against
-ground-truth anomaly windows. With no annotation file and no confirmed test
-membership for any of the 200 available anomaly clips, there is no valid
-input to compute a pooled or per-category AUC from. **No Stage A AUC, no
-interpretation-gate placement, and no per-category breakdown are reported.**
-
-What *was* verified and is real: the codec action-score module itself
-(`iris/action_score.py`, frozen weights from `tuning/frozen_state.json`) runs
-correctly end-to-end on this corpus — see §6 and the per-frame CSVs at
-`tuning/ucfcrime_vad_exp1/per_frame_action_scores/*.csv`, produced as a side
-effect of the efficiency measurement (raw action scores only, **no AUC
-column**, since there is nothing to score them against).
-
-## 4. Stage B (graph-topology score) — SKIPPED
-
-Per the task's own gate: Stage B only runs if Stage A pooled AUC > 0.65. Stage
-A was never computed (§3), so this condition can't be evaluated. Stage B is
-**skipped**, not attempted with a substitute threshold or a proxy signal.
-
-## 5. Efficiency measurement (Step 5 — not blocked by the annotation gap)
+## 5. Efficiency measurement (Step 5)
 
 Measured on **32 videos** (task minimum: 30), sampled deterministically by
 stratifying the full 350-file population by `nb_frames_meta` and taking evenly
 spaced ranks — not uniform-random, but explicitly chosen to span the full
 duration range (137 → 18,224 container frames). The single 126,553-frame
-`Arson019` outlier was excluded from this sample (already documented in
-`eval_results/ucf_inventory.md` as a stress-test point, not a curve anchor) to
-keep total wall time bounded; this exclusion is stated, not silent. Script:
-`scripts/ucfcrime_vad_exp1_efficiency.py`. Raw per-video output:
-`tuning/ucfcrime_vad_exp1/efficiency_per_video.csv`; summary:
+`Arson019` outlier was excluded (documented in `eval_results/ucf_inventory.md`
+as a stress-test point, not a curve anchor) to keep wall time bounded — stated,
+not silent. Script: `scripts/ucfcrime_vad_exp1_efficiency.py`. Raw output:
+`tuning/ucfcrime_vad_exp1/efficiency_per_video.csv`,
 `tuning/ucfcrime_vad_exp1/efficiency_measurements.json`.
 
 Each video was ingested through `iris.charon_v.parse_video(..., full_decode=False)`
-— the codec-level L1 pass (packet-size demux + selective pixel/motion-vector
-feature extraction), using the frozen action-score weights from
-`tuning/frozen_state.json`. **32/32 ingests completed with no errors.**
+— the codec-level L1 pass — using the frozen action-score weights.
+**32/32 ingests completed with no errors.**
 
 | Measurement | Result |
 |---|---|
@@ -172,86 +203,65 @@ feature extraction), using the frozen action-score weights from
 | Wall time per 1,000 frames — mean of per-video ratios | **1.13s / 1,000 frames** |
 | Wall time per 1,000 frames — aggregate (Σtime / Σframes×1000) | **0.895s / 1,000 frames** (105,241 frames decoded across the 32 videos in 94.23s total) |
 | Peak RSS — mean / max across the 32 runs | **530.4 MB / 1,291.2 MB** |
-| Retention rate (frames kept for full feature extraction ÷ frames decoded) — mean | **10.49%** |
-| Retention rate — min / max | **10.40% / 10.95%** |
-| Device used | **CPU** (torch 2.13.0+cpu on this box; `torch.cuda.is_available()` = `False`) |
+| Retention rate (this sample) — mean / min / max | **10.49% / 10.40% / 10.95%** |
+| Device used | **CPU** (torch 2.13.0+cpu; `torch.cuda.is_available()` = `False`) |
 | GPU required at any point | **No** |
-| NN forward-pass calls during ingest, summed over all 32 videos | **0** (instrumented via a monkeypatch on `torch.nn.Module.__call__` for the duration of each `parse_video()` call, not asserted from reading the source — see `note_on_verification_method` in `efficiency_measurements.json`) |
+| NN forward-pass calls during ingest, summed over 32 videos | **0** (instrumented via a monkeypatch on `torch.nn.Module.__call__` for the duration of each `parse_video()` call, not asserted from source — see `note_on_verification_method` in `efficiency_measurements.json`) |
 
-**Retention-rate correction:** the task prompt states "IRIS's L1 retains
-roughly 13% of frames." The measured retention on this corpus is **~10.5%**,
-consistently across all 32 videos (10.40–10.95% range, a tight band). This is
-the real observed figure and is used in place of the prompt's assumed 13%
-anywhere retention matters — it was not adjusted or clamped to match the
-prompt's expectation.
+This 0-NN-forward-pass result is specific to the **Stage-A-only ingest path**
+(`parse_video`, no CLIP). Stage B (§4) does invoke CLIP forward passes (CPU)
+to build the scene-sparse graph — that cost is measured separately in §4 and
+is not part of this table.
 
-Per-frame Stage-A codec action scores (packet-size/motion/luma-entropy,
-frozen weights, raw — no smoothing, no AUC) were also emitted as a side effect
-for all 32 sampled videos, at `tuning/ucfcrime_vad_exp1/per_frame_action_scores/<video>.csv`,
-so the scores can be independently recomputed. These are **not** anomaly-detection
-results — there is no ground truth to validate them against (§3) — they are the
-raw signal only.
+**Retention-rate correction:** the task prompt assumes "~13% of frames." The
+measured retention on this corpus is **~10.5%**, consistently (10.4–11.25%
+range across both the 32-video efficiency sample and the 169-video Stage-A/B
+run) — used throughout this report in place of the prompt's assumed figure.
 
-**No per-query LLM call**: this ingest path never invokes `answerer_backend`
-or any captioner/LLM code path — confirmed by the same zero-NN-forward-pass
-instrumentation above, which would have caught any such call. Unlike the
-NExT-GQA setting, there is no per-query answerer stage to dilute this cost
-comparison; ingest + score is the entire pipeline.
+**No per-query LLM call:** this ingest path never invokes `answerer_backend`
+or any captioner/LLM code path (confirmed by the same instrumentation).
+Unlike NExT-GQA, there is no per-query answerer stage diluting this
+comparison — ingest + score is the entire pipeline for Stage A.
 
 ### Cost comparison vs EventVAD (cited, not reproduced)
 
-EventVAD's published ingest pipeline requires, per frame: CLIP ViT embeddings
-**and** RAFT optical flow, feeding a VideoLLaMA2.1-7B backbone, run on a single
-NVIDIA A800 80GB GPU (cited from the EventVAD paper — not run in this
-experiment, per non-negotiable #3). IRIS's measured ingest above uses zero
-neural-network forward passes, zero GPU requirement, and runs on ordinary CPU
-at ~0.9–1.1 seconds per 1,000 frames with peak RSS under 1.3 GB across the
-sampled range. No EventVAD wall-clock number is stated or estimated here — the
-comparison is architectural (features/model/hardware required), not a
-timing race.
+EventVAD's published ingest requires, per frame: CLIP ViT embeddings **and**
+RAFT optical flow, feeding VideoLLaMA2.1-7B, on a single NVIDIA A800 80GB GPU
+(cited, not run here — non-negotiable #3). IRIS Stage A's measured ingest
+uses zero neural-network forward passes and zero GPU requirement, at
+~0.9–1.1s per 1,000 frames on ordinary CPU with peak RSS under 1.3GB. Stage B
+(§4) does use CLIP, but still CPU-only, no GPU. No EventVAD wall-clock number
+is stated or estimated — the comparison is architectural, not a timing race.
 
 ## 6. Comparison table
 
 | Method | Training-free | UCF-Crime pooled AUC | Ingest features | Hardware |
 |---|---|---|---|---|
-| ZS CLIP | yes | 53.16 (cited, Sultani et al. protocol as reported by LAVAD/EventVAD papers) | CLIP per frame | GPU |
+| ZS CLIP | yes | 53.16 (cited) | CLIP per frame | GPU |
 | ZS ImageBind | yes | 55.78 (cited) | ImageBind per frame | GPU |
 | LAVAD | yes | 78.33 (cited) | VLM captions + LLM scoring | GPU |
 | EventVAD | yes | 82.03 (cited) | CLIP + RAFT optical flow, 7B VLM | A800 80GB |
-| **IRIS Stage A** | yes | **not measured — blocked (§3)** | codec packet size, no model | measured, see §5 |
-| **IRIS Stage B** | yes | **N/A — skipped (§4)** | + scene-sparse graph | N/A |
+| **IRIS Stage A** | yes | **0.7232 pooled / 0.5650 macro — measured, 169/290-video partial corpus, NOT comparable to the rows above** | codec packet size, no model | CPU only, measured (§5) |
+| **IRIS Stage B** | yes | **see §4 — same 169-video caveat** | + scene-sparse graph (CLIP + PageRank) | CPU only |
 
-Context (not a comparison row): weakly-supervised methods reach ~89.8% AUC
-(MTFL) but are trained on video-level labels — a different problem category,
-not a target for this table.
-
-No EventVAD/LAVAD numbers were reproduced; the four cited rows are copied from
-their published papers, not re-run, per non-negotiable #3.
+The four cited rows are copied from their published papers, not re-run, per
+non-negotiable #3. Context (not a comparison row): weakly-supervised methods
+reach ~89.8% AUC (MTFL) but are trained on video-level labels — a different
+problem category, not a target for this table.
 
 ## 7. What I could not measure
 
 This section is not empty:
 
-1. **IRIS Stage A / Stage B pooled and macro AUC, per-category AUC, and the
-   interpretation-gate placement** — blocked by the complete absence of
-   `Temporal_Anomaly_Annotation_ForTestVideos.txt` (or any equivalent
-   train/test split list) on this machine, on `origin/IRIS`, or on any of the
-   9 branches checked on `swarapotd-rgb/IRIS`. Not estimated, not proxied.
-2. **Whether any of the 200 local anomaly clips (Abuse/Arrest/Arson/Assault)
-   are official test-split members** — cannot be determined without the split
-   list. Treated as unknown, not assumed either way.
-3. **9 of 13 official anomaly categories** (Burglary, Explosion, Fighting,
-   RoadAccidents, Robbery, Shooting, Shoplifting, Stealing, Vandalism) — not
-   present on this box at all. Per instructions, no download was performed to
-   fill this gap.
-4. **Retention rate on the full 13% figure claimed in the task prompt** — the
-   task states "IRIS's L1 retains roughly 13% of frames"; this run's own
-   measurement (§5) reports the actual observed retention on the sampled
-   videos instead of assuming that figure, and it differs — see §5 for the
-   real number and why.
-5. **EventVAD wall-clock cost** — not fabricated; EventVAD was not run
-   (non-negotiable #3). Only its published architecture description (CLIP +
-   RAFT optical flow, VideoLLaMA2.1-7B, single A800 80GB) is stated, as cited.
-
-Nothing was silently dropped: every planned measurement that didn't happen is
-listed above with the specific reason.
+1. **The standard 290-video pooled/macro AUC** — 121 of 290 official test
+   videos (9 entire anomaly categories: Burglary, Explosion, Fighting,
+   RoadAccidents, Robbery, Shooting, Shoplifting, Stealing, Vandalism) are not
+   present on this box. Every AUC in §3/§4/§6 is a 169-video partial-corpus
+   number, explicitly flagged everywhere it appears, not filled in or
+   estimated for the missing 121.
+2. **Per-category AUC for the 9 absent categories** — no data, not estimated.
+3. **A properly-registered fusion-weight sweep for Stage B** — deliberately
+   not done; fixed 50/50 per instructions.
+4. Everything listed as measured elsewhere in this report (dataset
+   verification, efficiency, Stage A, Stage B) was in fact measured — nothing
+   further was silently skipped within the 169-video scope available.

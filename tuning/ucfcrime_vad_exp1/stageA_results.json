@@ -1,0 +1,50 @@
+{
+  "generated_utc": "2026-07-29T08:42:43Z",
+  "IMPORTANT_CAVEAT": "This AUC is computed over 169/290 official UCF-Crime test videos (19 anomalous + all 150 normal) -- the 121 videos from 9 entirely absent categories are excluded. It is NOT the standard 290-video pooled benchmark number and is NOT directly comparable to the cited ZS CLIP / ZS ImageBind / LAVAD / EventVAD figures, which were computed over the full 290-video set.",
+  "frozen_config_used": {
+    "retrieval_strategy": "hybrid",
+    "ppr_lambda": 0.5,
+    "ppr_damping": 0.5,
+    "l2_retrieve_top_k": 4,
+    "span_method": "D",
+    "span_method_half_width_s": 2.2,
+    "peak_distance": 5,
+    "peak_prominence": 0.05,
+    "packet_size_weight": 0.8,
+    "motion_weight": 0.1,
+    "luma_entropy_weight": 0.1,
+    "persistence_threshold": 0.4,
+    "max_prominence": 0.5
+  },
+  "n_videos_scored": 169,
+  "n_decode_failures": 0,
+  "decode_failures": [],
+  "elapsed_s": 643.8862924575806,
+  "retention_pct_mean": 10.49220289728337,
+  "retention_pct_min": 10.400577809878326,
+  "retention_pct_max": 11.251980982567353,
+  "pooled_auc_all_frames_propagated": 0.7231810201084687,
+  "pooled_auc_retained_frames_only": 0.7086370143582097,
+  "macro_auc_anomalous_videos_only": 0.5650317998485116,
+  "n_anomalous_videos_in_macro_avg": 19,
+  "n_normal_videos_excluded_from_macro": 150,
+  "per_category_pooled_auc_vs_matched_normal": {
+    "Abuse": {
+      "pooled_auc_vs_all_matched_normal": 0.8135565083926214,
+      "n_videos": 2
+    },
+    "Arrest": {
+      "pooled_auc_vs_all_matched_normal": 0.7532451008082413,
+      "n_videos": 5
+    },
+    "Arson": {
+      "pooled_auc_vs_all_matched_normal": 0.8021575395994356,
+      "n_videos": 9
+    },
+    "Assault": {
+      "pooled_auc_vs_all_matched_normal": 0.6519543542504997,
+      "n_videos": 3
+    }
+  },
+  "interpretation_gate": "gt_0.65_codec_native_real"
+}
