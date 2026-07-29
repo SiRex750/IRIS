@@ -12,6 +12,13 @@ computed over this 169-video subset and is explicitly NOT comparable to the
 cited 290-video published numbers (ZS CLIP / ZS ImageBind / LAVAD / EventVAD).**
 This caveat applies to every number in §3–§6 and is restated there.
 
+**Headline results:** Stage A (codec-only, frozen weights) pooled AUC =
+**0.7232**, clearing the task's own >0.65 gate. Stage B (scene-sparse
+graph + PageRank "node isolation") was therefore attempted and is a **clean
+negative result**: 0.4837 pooled alone (chance level), and the fixed 50/50
+fusion with Stage A (0.5984) is *worse* than Stage A alone — reported
+plainly, not re-run or re-formulated after seeing this.
+
 ## 0. Branch / config / data provenance
 
 - Task asked to work off a branch named `feat/prerun-fixes` and to use IRIS
@@ -178,8 +185,52 @@ against the cited rows in §6.
 
 ## 4. Stage B (graph-topology anomaly score)
 
-<!-- FILLED IN FROM tuning/ucfcrime_vad_exp1/stageB_results.json once the background run completes -->
-STAGE_B_PENDING_FILL
+Stage A's pooled AUC (0.7232, §3) cleared the task's own >0.65 gate, so Stage B
+was attempted, on the same 169-video subset, same partial-corpus caveat.
+
+**Formulation (fixed before running, per instructions):**
+`score_B(frame) = 1 - rank_percentile(pagerank_score)` within that video's own
+scene-sparse graph — i.e. **node isolation**: a frame whose PageRank rank is
+low relative to the rest of its own video's graph (poorly connected /
+structurally atypical) scores high on this anomaly axis. Rank-percentile
+(not raw PageRank) keeps scores comparable across videos of very different
+graph sizes. This is one of the three example formulations the task text
+itself offers ("PageRank drop-off, node isolation, edge-weight
+discontinuity"); it was picked and written down (§ script docstring, this
+section) before the run, and run once. The scene-sparse graph was built with
+the frozen config (`retrieval_strategy=hybrid`, `l2_retrieve_top_k=4`,
+`graph_mode=scene_sparse`) via `iris.ingest.ingest()`, which requires CLIP
+embeddings on the retained-tier frames only (~10.5% of frames, per the
+measured retention rate) — CPU-only, no GPU. Non-retained frames get the same
+piecewise-constant hold-forward as Stage A. Combination: fixed 50/50 average
+of Stage A and Stage B, no fusion-weight sweep. Script:
+`scripts/ucfcrime_vad_exp1_stageB.py`. Output:
+`tuning/ucfcrime_vad_exp1/stageB_results.json`,
+`tuning/ucfcrime_vad_exp1/stageB_per_video.csv`.
+
+**169/169 videos processed successfully, 0 failures.** Wall time: 4,835s
+(~80.6 minutes) for 169 videos — substantially slower than Stage A alone
+because of the CLIP forward passes (still CPU-only; no GPU was used or
+required).
+
+| Result | Value |
+|---|---|
+| **Pooled AUC — Stage B alone** | **0.4837** |
+| **Pooled AUC — Stage A + Stage B (fixed 50/50)** | **0.5984** |
+| Pooled AUC — Stage A alone (for reference, from §3) | 0.7232 |
+| Macro AUC — Stage B alone (19 anomalous videos) | 0.4677 |
+| Macro AUC — Stage A + Stage B (50/50) | 0.4924 |
+
+**This is a negative result for Stage B, reported as such.** Stage B alone is
+at essentially chance level (0.4837 pooled, 0.4677 macro — a coin flip would
+score ~0.5). Combining it with Stage A **degrades** performance relative to
+Stage A alone on every measure (pooled 0.7232 → 0.5984, macro 0.5650 →
+0.4924). The "node isolation" PageRank-rank-percentile signal, at least as
+formulated here, does not carry anomaly information on this corpus — if
+anything it acts as noise that dilutes Stage A's real signal under a naive
+50/50 blend. Per instructions, this formulation was picked once and run once;
+no alternative formulation, no fusion-weight sweep, and no re-run were
+attempted after seeing this result.
 
 ## 5. Efficiency measurement (Step 5)
 
@@ -242,7 +293,8 @@ is stated or estimated — the comparison is architectural, not a timing race.
 | LAVAD | yes | 78.33 (cited) | VLM captions + LLM scoring | GPU |
 | EventVAD | yes | 82.03 (cited) | CLIP + RAFT optical flow, 7B VLM | A800 80GB |
 | **IRIS Stage A** | yes | **0.7232 pooled / 0.5650 macro — measured, 169/290-video partial corpus, NOT comparable to the rows above** | codec packet size, no model | CPU only, measured (§5) |
-| **IRIS Stage B** | yes | **see §4 — same 169-video caveat** | + scene-sparse graph (CLIP + PageRank) | CPU only |
+| **IRIS Stage B (alone)** | yes | **0.4837 pooled / 0.4677 macro — measured, chance-level, negative result (§4)** | + scene-sparse graph (CLIP + PageRank) | CPU only |
+| **IRIS Stage A+B (50/50 fusion)** | yes | **0.5984 pooled / 0.4924 macro — measured, worse than Stage A alone (§4)** | codec + graph combined | CPU only |
 
 The four cited rows are copied from their published papers, not re-run, per
 non-negotiable #3. Context (not a comparison row): weakly-supervised methods

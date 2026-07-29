@@ -1,0 +1,29 @@
+{
+  "generated_utc": "2026-07-29T10:07:15Z",
+  "IMPORTANT_CAVEAT": "Same 169/290-video partial-corpus caveat as Stage A -- NOT comparable to the cited 290-video published numbers.",
+  "formulation": "score_B(frame) = 1 - rank_percentile(pagerank_score) within that video's own scene-sparse graph nodes (node isolation). Non-retained frames hold-forward propagated identically to Stage A. Combined score = fixed 0.5*StageA + 0.5*StageB, no fusion-weight sweep.",
+  "frozen_config_used": {
+    "retrieval_strategy": "hybrid",
+    "ppr_lambda": 0.5,
+    "ppr_damping": 0.5,
+    "l2_retrieve_top_k": 4,
+    "span_method": "D",
+    "span_method_half_width_s": 2.2,
+    "peak_distance": 5,
+    "peak_prominence": 0.05,
+    "packet_size_weight": 0.8,
+    "motion_weight": 0.1,
+    "luma_entropy_weight": 0.1,
+    "persistence_threshold": 0.4,
+    "max_prominence": 0.5
+  },
+  "n_videos_attempted": 169,
+  "n_ingest_failures": 0,
+  "ingest_failures": [],
+  "elapsed_s": 4835.00009894371,
+  "pooled_auc_stageB_alone": 0.48369240417527304,
+  "pooled_auc_stageA_plus_B_50_50": 0.5984490707076219,
+  "pooled_auc_stageA_alone_for_reference": 0.7231810201084687,
+  "macro_auc_stageB_alone": 0.4676849152381061,
+  "macro_auc_stageA_plus_B_50_50": 0.49243590338885185
+}
