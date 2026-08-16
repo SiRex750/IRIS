@@ -21,6 +21,7 @@ logs/
 
 eval/data/
 data/
+mlvu/
 benchmark_results/
 *_output.log
 *.npz
