@@ -163,7 +163,15 @@ def _embed_query(question: str, config: Any) -> np.ndarray:
         if model is None:
             return np.zeros(512, dtype=np.float32)
         try:
-            text_input = clip.tokenize([question]).to(device)
+            # truncate=True: CLIP's tokenizer hard-caps at a 77-token context
+            # length and raises RuntimeError past it. Long queries (e.g. MC
+            # prompts that enumerate several candidate options) previously
+            # hit that raise, fell through to the bare except below, and
+            # silently returned an all-zero embedding -- which then failed
+            # downstream at the zero-norm guard in scene_retrieval.py as an
+            # opaque "Invalid query embedding" query failure. Truncating
+            # keeps the query answerable instead of guaranteeing failure.
+            text_input = clip.tokenize([question], truncate=True).to(device)
             with torch.no_grad():
                 qf = model.encode_text(text_input)
                 qf /= qf.norm(dim=-1, keepdim=True)
