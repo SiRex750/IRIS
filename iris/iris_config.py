@@ -41,6 +41,14 @@ class IRISConfig:
     ppr_damping:            float = 0.5    # PPR teleport probability α passed to nx.pagerank
     motion_similarity_mode: str   = "action_score"  # "action_score" (default, today's behavior) | "geometry_6d"
 
+    # ── Scene segmentation (ablation knob, Phase 6) ──
+    # "codec"        : current behavior (valley boundaries from packet-size curve). UNCHANGED default.
+    # "fixed_count"  : run codec segmentation to get N = scene count for this video, then assign
+    #                  scene_id by N equal-frame-count buckets (N-1 uniform boundaries over [0, n_frames)).
+    # "fixed_seconds": scene_id = floor(timestamp_seconds / fixed_scene_seconds).
+    scene_segmentation:      str   = "codec"  # "codec" | "fixed_count" | "fixed_seconds"
+    fixed_scene_seconds:     float = 60.0  # bucket width (s) for scene_segmentation="fixed_seconds"
+
     # ── L2 Asphodel Graph representation mode ──
     graph_mode:             str   = "flat"  # "flat" | "scene_sparse"
     scene_shortlist_width:  int   = 0      # scene_sparse coarse-prune width; 0 = auto max(4, ceil(sqrt(num_scenes)))
@@ -196,6 +204,10 @@ class IRISConfig:
                f"Invalid motion_similarity_mode '{self.motion_similarity_mode}'")
         _check(self.graph_mode in {"flat", "scene_sparse"},
                f"Invalid graph_mode '{self.graph_mode}'")
+        _check(self.scene_segmentation in {"codec", "fixed_count", "fixed_seconds"},
+               f"Invalid scene_segmentation '{self.scene_segmentation}'")
+        _check(self.fixed_scene_seconds > 0.0,
+               "fixed_scene_seconds must be positive")
         _check(self.scene_shortlist_width >= 0,
                "scene_shortlist_width must be non-negative (0 = auto)")
         _check(self.scene_shortcut_margin >= 0.0,

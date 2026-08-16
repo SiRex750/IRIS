@@ -145,6 +145,74 @@ def _build_graph(records: list, config: Any) -> L2Asphodel:
     return graph
 
 
+def _assign_scene_ids(
+    frames_to_index: list[dict],
+    scene_spans: list[tuple[int, int]],
+    mode: str,
+    fixed_scene_seconds: float,
+) -> None:
+    """Set f["scene_id"] on every frame in frames_to_index in place.
+
+    mode="codec": UNCHANGED behavior -- containment lookup against
+    scene_spans (valley boundaries from the packet-size curve).
+
+    mode="fixed_count": N = the realized codec-mode scene count for THIS
+    video, i.e. the number of distinct scene_id values codec segmentation
+    actually assigns to these indexed/survivor frames (spans with zero
+    survivors don't count -- that's the unit scene_sparse groups on).
+    Frames are then sorted by frame_idx and split into N contiguous,
+    equal-frame-COUNT buckets (N-1 uniform boundaries over survivor rank,
+    sizes as equal as possible when N doesn't evenly divide the survivor
+    count). Matched count (always exactly N, since N <= survivor count by
+    construction), uniform placement -- an ablation of "where do boundaries
+    go" holding "how many scenes" fixed.
+
+    mode="fixed_seconds": scene_id = floor(timestamp_seconds / T), T =
+    fixed_scene_seconds. Mirrors EgoSG's fixed 60s chunking.
+    """
+    def _codec_scene_id(fi: int) -> int:
+        for scene_idx, (start, end) in enumerate(scene_spans):
+            if start <= fi < end:
+                return scene_idx
+        return -1
+
+    if mode == "codec":
+        for f in frames_to_index:
+            f["scene_id"] = _codec_scene_id(f["frame_idx"])
+        return
+
+    if mode == "fixed_count":
+        codec_ids = [_codec_scene_id(f["frame_idx"]) for f in frames_to_index]
+        n = len(set(sid for sid in codec_ids if sid >= 0))
+        if n <= 0:
+            for f in frames_to_index:
+                f["scene_id"] = -1
+            return
+        # Sort survivors by frame_idx (deterministic), then split into N
+        # contiguous buckets: total // n each, with the first
+        # (total % n) buckets getting one extra -- always N nonempty
+        # buckets since n <= total by construction.
+        order = sorted(range(len(frames_to_index)), key=lambda i: frames_to_index[i]["frame_idx"])
+        total = len(order)
+        base, rem = divmod(total, n)
+        pos = 0
+        for bucket in range(n):
+            size = base + (1 if bucket < rem else 0)
+            for _ in range(size):
+                frames_to_index[order[pos]]["scene_id"] = bucket
+                pos += 1
+        return
+
+    if mode == "fixed_seconds":
+        import math
+        for f in frames_to_index:
+            ts = float(f.get("timestamp", 0.0))
+            f["scene_id"] = int(math.floor(ts / fixed_scene_seconds))
+        return
+
+    raise ValueError(f"Unknown scene_segmentation mode '{mode}'")
+
+
 def _compute_scene_centroids(frames: list) -> dict:
     """Edgeless per-scene centroid index: {scene_id: mean CLIP embedding}.
     Deterministic function of frames+scene_id -- called identically at build
@@ -243,14 +311,9 @@ def _build_index_from_records(
     if packet_curve is not None:
         all_frame_energies, iframe_indices, fps = packet_curve
         scene_spans = charon_v.compute_valley_scene_boundaries(all_frame_energies, iframe_indices, fps)
-        for f in frames_to_index:
-            fi = f["frame_idx"]
-            for scene_idx, (start, end) in enumerate(scene_spans):
-                if start <= fi < end:
-                    f["scene_id"] = scene_idx
-                    break
-            else:
-                f["scene_id"] = -1
+        seg_mode = getattr(config, "scene_segmentation", "codec")
+        fixed_scene_seconds = getattr(config, "fixed_scene_seconds", 60.0)
+        _assign_scene_ids(frames_to_index, scene_spans, seg_mode, fixed_scene_seconds)
     else:
         for f in frames_to_index:
             f["scene_id"] = -1
