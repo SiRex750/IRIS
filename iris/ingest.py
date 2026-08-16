@@ -150,6 +150,7 @@ def _assign_scene_ids(
     scene_spans: list[tuple[int, int]],
     mode: str,
     fixed_scene_seconds: float,
+    video_duration_s: float | None = None,
 ) -> None:
     """Set f["scene_id"] on every frame in frames_to_index in place.
 
@@ -169,6 +170,15 @@ def _assign_scene_ids(
 
     mode="fixed_seconds": scene_id = floor(timestamp_seconds / T), T =
     fixed_scene_seconds. Mirrors EgoSG's fixed 60s chunking.
+
+    mode="fixed_time_matched": N = the same realized codec-mode scene count
+    as fixed_count (equal COUNT), but boundaries are equal-TIME instead of
+    equal-frame-COUNT: scene_id = floor(timestamp_seconds / (video_duration_s
+    / N)), clamped to [0, N-1]. Distinct from fixed_count -- same N, but
+    boundaries placed uniformly over wall-clock time rather than over
+    survivor rank (which can bunch boundaries where survivors are dense).
+    Requires video_duration_s (the full-video duration covered by the packet
+    curve, not just the survivor timestamp span).
     """
     def _codec_scene_id(fi: int) -> int:
         for scene_idx, (start, end) in enumerate(scene_spans):
@@ -208,6 +218,21 @@ def _assign_scene_ids(
         for f in frames_to_index:
             ts = float(f.get("timestamp", 0.0))
             f["scene_id"] = int(math.floor(ts / fixed_scene_seconds))
+        return
+
+    if mode == "fixed_time_matched":
+        import math
+        codec_ids = [_codec_scene_id(f["frame_idx"]) for f in frames_to_index]
+        n = len(set(sid for sid in codec_ids if sid >= 0))
+        if n <= 0 or not video_duration_s or video_duration_s <= 0.0:
+            for f in frames_to_index:
+                f["scene_id"] = -1
+            return
+        bucket_width = video_duration_s / n
+        for f in frames_to_index:
+            ts = float(f.get("timestamp", 0.0))
+            sid = int(math.floor(ts / bucket_width))
+            f["scene_id"] = max(0, min(n - 1, sid))
         return
 
     raise ValueError(f"Unknown scene_segmentation mode '{mode}'")
@@ -313,7 +338,8 @@ def _build_index_from_records(
         scene_spans = charon_v.compute_valley_scene_boundaries(all_frame_energies, iframe_indices, fps)
         seg_mode = getattr(config, "scene_segmentation", "codec")
         fixed_scene_seconds = getattr(config, "fixed_scene_seconds", 60.0)
-        _assign_scene_ids(frames_to_index, scene_spans, seg_mode, fixed_scene_seconds)
+        video_duration_s = (len(all_frame_energies) / fps) if fps else None
+        _assign_scene_ids(frames_to_index, scene_spans, seg_mode, fixed_scene_seconds, video_duration_s)
     else:
         for f in frames_to_index:
             f["scene_id"] = -1

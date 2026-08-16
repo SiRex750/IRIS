@@ -46,7 +46,11 @@ class IRISConfig:
     # "fixed_count"  : run codec segmentation to get N = scene count for this video, then assign
     #                  scene_id by N equal-frame-count buckets (N-1 uniform boundaries over [0, n_frames)).
     # "fixed_seconds": scene_id = floor(timestamp_seconds / fixed_scene_seconds).
-    scene_segmentation:      str   = "codec"  # "codec" | "fixed_count" | "fixed_seconds"
+    # "fixed_time_matched": N = same realized codec scene count as "fixed_count", but N
+    #                  equal-TIME buckets over the full video duration instead of N
+    #                  equal-frame-COUNT buckets -- isolates "where do boundaries go"
+    #                  from "how many scenes" while placing them by wall-clock time.
+    scene_segmentation:      str   = "codec"  # "codec" | "fixed_count" | "fixed_seconds" | "fixed_time_matched"
     fixed_scene_seconds:     float = 60.0  # bucket width (s) for scene_segmentation="fixed_seconds"
 
     # ── L2 Asphodel Graph representation mode ──
@@ -204,7 +208,7 @@ class IRISConfig:
                f"Invalid motion_similarity_mode '{self.motion_similarity_mode}'")
         _check(self.graph_mode in {"flat", "scene_sparse"},
                f"Invalid graph_mode '{self.graph_mode}'")
-        _check(self.scene_segmentation in {"codec", "fixed_count", "fixed_seconds"},
+        _check(self.scene_segmentation in {"codec", "fixed_count", "fixed_seconds", "fixed_time_matched"},
                f"Invalid scene_segmentation '{self.scene_segmentation}'")
         _check(self.fixed_scene_seconds > 0.0,
                "fixed_scene_seconds must be positive")

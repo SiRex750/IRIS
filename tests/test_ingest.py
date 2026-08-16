@@ -94,6 +94,9 @@ def test_scene_segmentation_modes(patched):
     idx_codec = ingest_mod.ingest(str(_SAMPLE_VIDEO), config=IRISConfig(scene_segmentation="codec"))
     idx_fixed_count = ingest_mod.ingest(str(_SAMPLE_VIDEO), config=IRISConfig(scene_segmentation="fixed_count"))
     idx_fixed_seconds = ingest_mod.ingest(str(_SAMPLE_VIDEO), config=IRISConfig(scene_segmentation="fixed_seconds"))
+    idx_fixed_time_matched = ingest_mod.ingest(
+        str(_SAMPLE_VIDEO), config=IRISConfig(scene_segmentation="fixed_time_matched")
+    )
 
     # -- codec-mode scene_id unchanged: recompute the historical containment
     #    lookup independently from the same packet curve and diff exactly.
@@ -132,3 +135,30 @@ def test_scene_segmentation_modes(patched):
         f"fixed_seconds scene count ({fixed_seconds_scene_count}) != "
         f"ceil(duration/T) ({expected_scenes})"
     )
+
+    # -- fixed_time_matched: same realized scene COUNT as codec (matches
+    #    fixed_count's N), but boundaries placed by equal wall-clock time
+    #    instead of equal survivor count -- so its boundary frame_idxs
+    #    should differ from fixed_count's whenever survivors aren't spread
+    #    uniformly over time.
+    fixed_time_matched_scene_count = len(set(fr.scene_id for fr in idx_fixed_time_matched.frames))
+    assert fixed_time_matched_scene_count == codec_scene_count, (
+        f"fixed_time_matched scene count ({fixed_time_matched_scene_count}) != "
+        f"codec scene count ({codec_scene_count})"
+    )
+
+    def _first_frame_idx_per_scene(idx) -> dict:
+        out = {}
+        for fr in sorted(idx.frames, key=lambda f: f.frame_idx):
+            out.setdefault(fr.scene_id, fr.frame_idx)
+        return out
+
+    for fr in idx_fixed_time_matched.frames:
+        ts = fr.timestamp
+        n = fixed_time_matched_scene_count
+        bucket_width = duration_seconds / n
+        expected_sid = max(0, min(n - 1, int(math.floor(ts / bucket_width))))
+        assert fr.scene_id == expected_sid, (
+            f"fixed_time_matched scene_id mismatch at frame_idx={fr.frame_idx} ts={ts}: "
+            f"got {fr.scene_id}, expected {expected_sid} (bucket_width={bucket_width})"
+        )
