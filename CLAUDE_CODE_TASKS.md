@@ -189,3 +189,70 @@ not-print-safe rows blocking rather than nice-to-have.
 C2 (block-diagonal) is the only contribution that is `PRINT-SAFE` outright today. C1 (scaling
 law) has one row blocked, one superseded, one with no CIs. If Uma is expecting the scaling law
 to lead, she should know that the identity result is currently the more defensible one.
+
+---
+---
+
+# Queued 2026-08-17 — filed out of the T5 shot-bucketing run (`01c159d`)
+
+## T5 is CLOSED as a negative — do not reopen it
+
+The T5 verdict is **UNDERPOWERED** on the pre-registered primary and a **POWERED null** on the
+pure-geometry secondary (`_shotbucket/run/summary.md`). The one-line takeaway to preserve
+everywhere this is cited: **the powered result is the geometry null — codec shot geometry ties
+uniform, properly — not the underpowered primary.** The `+1.667pp` dM3 point estimate is a
+precision *lean* inside a CI of `[-0.941, +4.646]`; it must never be quoted as a positive.
+
+Standing guards on this result:
+
+- **Do not re-run T5 to chase significance.** No new shot-bucketing arms, no new seeds or
+  budgets hunting for a positive — that is forking-paths. The corpus has exactly 19
+  gold-annotated videos (the 150 Normal videos have no gold windows, so M2/M3 are undefined
+  on them), so the primary is *structurally* underpowered at ~1pp. No amount of re-running
+  fixes it; only annotating more anomaly videos would, and that is out of scope. State this
+  if anyone proposes another T5 pass.
+- **No `iris/` change is warranted from T5.** A null does not justify touching production.
+
+## T4-followup / candidate T6 — Is R0's action-score "tie" a coverage artifact of hold-forward propagation?
+
+**Why:** post-hoc from T5. `action_score_propagated` is hold-forward-propagated from the
+retained tier — it is a step function, ~9.5 frames per plateau. Top-k by this score (T5 arm
+`E_action_topk`, which *is* the R0 method) therefore selects the earliest frame of each plateau
+and spends the rest of the budget on adjacent near-duplicates: **42 distinct temporal instants
+out of k≈503 (8.4%), mean run length 13.19 vs uniform's 1.00.**
+
+This matters because R0's headline — "codec motion-scoring admission ties uniform at matched
+budget" — may be partly a **coverage artifact of propagation** (the score never resolves
+distinct gold frames, so it cannot get credit for them), not evidence that motion scoring is
+uninformative. If so, R0's negative is real but its *mechanism* is mislabeled.
+
+This is a **new pre-registered study**, not a T5 continuation. Step 1 may moot the whole thread.
+
+```
+TASK — R0 propagation-coverage check. STEP 1 IS READ-ONLY. Report before building anything.
+
+STEP 1 — verify before building (do this first, on its own)
+Confirm what R0's admission actually ranks on: action_score_propagated, a raw/peak
+(un-propagated) score, or is_retained_tier. Quote the exact file+line where the ranked
+signal is chosen. Then measure that selection's distinct-instant coverage (maximal runs of
+consecutive selected frames / budget k) over the same 19 videos.
+  -> If R0 already selects on a NON-PLATEAUED signal, the thread is moot: CLOSE the ticket
+     and report that. Do not proceed to Step 2.
+
+STEP 2 — only if Step 1 shows the thread is live: pre-register separately as T6
+Contrast action top-k vs action top-k with PLATEAU-DEDUP (one representative per plateau,
+then fill from distinct plateaus / min-gap NMS), at matched budget, on M2/M3 plus a
+coverage metric, paired bootstrap over the same 19 videos.
+Pre-commit the read BEFORE running:
+  coverage-corrected score lifts M2/M3 past the powered threshold
+      -> R0's tie is partly a propagation artifact
+  flat
+      -> the score genuinely ties uniform
+Reuse r0_gate_full.py's metrics/loader/bootstrap verbatim, as T5 did.
+
+GUARDS
+  - the same n=19 power ceiling applies (~1pp). A null is only informative if the CI
+    half-widths clear 1pp — otherwise the honest verdict is UNDERPOWERED, not TIES.
+  - write the pre-registration down before the run, not after
+  - READ-ONLY on iris/*.py
+```
