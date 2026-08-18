@@ -1,0 +1,1757 @@
+{
+  "task": "ledger C1.5 -- confidence intervals on query-latency scaling exponents",
+  "provenance": {
+    "git_head": "9c66393d1624ebae5443f62ddbe8f5fb8dc12b7f",
+    "git_dirty": true,
+    "git_dirty_file_count": 94,
+    "harness_config_hash": {
+      "scripts/scaling_curve_ci.py": "79c22304e65b31aaffca61348514eeb9ffa8c015",
+      "scripts/_scaling_curve_ci_census_worker.py": "b8c6669f0e82115eeacc88917be64d82fef62ae5",
+      "scripts/scaling_curve_v2.py": "16e9e40823a52bba5bfb0b6e9cefcc1176e19c7a",
+      "scripts/_scaling_curve_v2_worker.py": "b6baa5b919350a97efc585277bdbca137ade912d",
+      "scripts/scaling_curve_v3_report.py": "de6589518df3b67a0df775888f80da9959e42d01"
+    },
+    "query_source": "text",
+    "n_queries_per_clip": 50,
+    "watchdog": {
+      "wall_time_cap_sec": 3600.0,
+      "mem_cap_bytes": 29000000000
+    },
+    "bootstrap": {
+      "n_boot": 10000,
+      "seed": 42,
+      "method": "resample WITHIN each N-bucket, refit, repeat (clip-level resampling, not bucket-mean resampling)"
+    }
+  },
+  "survivor_census": {
+    "population_size": 350,
+    "population_container_frame_proxy": {
+      "note": "Container (encoded) frame count is a WEAK proxy for survivor N -- content/motion density, not duration, drives admission (see scripts/scaling_curve_ci.py docstring; e.g. Arson019: 126,553 container frames -> 13,506 survivors, ~10.7%, while other clips of similar length survive at very different rates). Reported here ONLY to describe the population's raw-length spread, NOT as a survivor-N estimate.",
+      "n": 350,
+      "min": 137,
+      "median": 2021,
+      "max": 126553
+    },
+    "measured_survivor_n": {
+      "note": "Actual post-selection survivor N (+ scene count, duration) for every clip with a built index_cache -- i.e. this fit's actual support. NOT all 350 population clips have been ingested (ingesting all 350 was out of scope/budget for this task); this is the honest subset the fit rests on, not the full population.",
+      "n_clips": 31,
+      "min": 24,
+      "median": 333,
+      "max": 13506,
+      "histogram_by_decade": {
+        "10-99": 4,
+        "100-999": 20,
+        "1000-9999": 6,
+        "10000-99999": 1
+      },
+      "excluded_graph_edge_mode_mismatch": [
+        {
+          "label": "Normal_Videos_924",
+          "graph_edge_mode": "block_diagonal",
+          "n_survivors": 11233
+        },
+        {
+          "label": "Normal_Videos_935",
+          "graph_edge_mode": "block_diagonal",
+          "n_survivors": 11232
+        }
+      ],
+      "per_clip": [
+        {
+          "label": "Normal_Videos_881",
+          "n_survivors": 24,
+          "n_scenes": 6,
+          "survivor_timespan_s": 7.3,
+          "total_video_duration_s": 7.466666666666667,
+          "salience_weights": [
+            0.5,
+            0.3,
+            0.2
+          ],
+          "weights_match_frozen_default": false
+        },
+        {
+          "label": "Normal_Videos_289",
+          "n_survivors": 91,
+          "n_scenes": 27,
+          "survivor_timespan_s": 28.266666666666666,
+          "total_video_duration_s": 28.766666666666666,
+          "salience_weights": [
+            0.5,
+            0.3,
+            0.2
+          ],
+          "weights_match_frozen_default": false
+        },
+        {
+          "label": "Normal_Videos_908",
+          "n_survivors": 93,
+          "n_scenes": 27,
+          "survivor_timespan_s": 29.366666666666667,
+          "total_video_duration_s": 29.633333333333333,
+          "salience_weights": [
+            0.5,
+            0.3,
+            0.2
+          ],
+          "weights_match_frozen_default": false
+        },
+        {
+          "label": "Assault036",
+          "n_survivors": 97,
+          "n_scenes": 29,
+          "survivor_timespan_s": 29.9,
+          "total_video_duration_s": 30.4,
+          "salience_weights": [
+            0.5,
+            0.3,
+            0.2
+          ],
+          "weights_match_frozen_default": false
+        },
+        {
+          "label": "Abuse023",
+          "n_survivors": 106,
+          "n_scenes": 24,
+          "survivor_timespan_s": 32.96666666666667,
+          "total_video_duration_s": 33.06666666666667,
+          "salience_weights": [
+            0.5,
+            0.3,
+            0.2
+          ],
+          "weights_match_frozen_default": false
+        },
+        {
+          "label": "Assault045",
+          "n_survivors": 131,
+          "n_scenes": 32,
+          "survivor_timespan_s": 37.266666666666666,
+          "total_video_duration_s": 37.3,
+          "salience_weights": [
+            0.5,
+            0.3,
+            0.2
+          ],
+          "weights_match_frozen_default": false
+        },
+        {
+          "label": "Arson050",
+          "n_survivors": 166,
+          "n_scenes": 50,
+          "survivor_timespan_s": 52.233333333333334,
+          "total_video_duration_s": 52.7,
+          "salience_weights": [
+            0.5,
+            0.3,
+            0.2
+          ],
+          "weights_match_frozen_default": false
+        },
+        {
+          "label": "Normal_Videos_758",
+          "n_survivors": 166,
+          "n_scenes": 51,
+          "survivor_timespan_s": 52.6,
+          "total_video_duration_s": 52.96666666666667,
+          "salience_weights": [
+            0.5,
+            0.3,
+            0.2
+          ],
+          "weights_match_frozen_default": false
+        },
+        {
+          "label": "Arrest022",
+          "n_survivors": 167,
+          "n_scenes": 49,
+          "survivor_timespan_s": 52.56666666666667,
+          "total_video_duration_s": 53.166666666666664,
+          "salience_weights": [
+            0.5,
+            0.3,
+            0.2
+          ],
+          "weights_match_frozen_default": false
+        },
+        {
+          "label": "Normal_Videos_168",
+          "n_survivors": 181,
+          "n_scenes": 51,
+          "survivor_timespan_s": 57.0,
+          "total_video_duration_s": 58.0,
+          "salience_weights": [
+            0.5,
+            0.3,
+            0.2
+          ],
+          "weights_match_frozen_default": false
+        },
+        {
+          "label": "Abuse037",
+          "n_survivors": 188,
+          "n_scenes": 35,
+          "survivor_timespan_s": 59.4,
+          "total_video_duration_s": 59.833333333333336,
+          "salience_weights": [
+            0.5,
+            0.3,
+            0.2
+          ],
+          "weights_match_frozen_default": false
+        },
+        {
+          "label": "Normal_Videos_891",
+          "n_survivors": 188,
+          "n_scenes": 54,
+          "survivor_timespan_s": 59.4,
+          "total_video_duration_s": 60.0,
+          "salience_weights": [
+            0.5,
+            0.3,
+            0.2
+          ],
+          "weights_match_frozen_default": false
+        },
+        {
+          "label": "Arrest031",
+          "n_survivors": 194,
+          "n_scenes": 49,
+          "survivor_timespan_s": 61.06666666666667,
+          "total_video_duration_s": 61.6,
+          "salience_weights": [
+            0.5,
+            0.3,
+            0.2
+          ],
+          "weights_match_frozen_default": false
+        },
+        {
+          "label": "Abuse025",
+          "n_survivors": 212,
+          "n_scenes": 43,
+          "survivor_timespan_s": 67.6,
+          "total_video_duration_s": 67.7,
+          "salience_weights": [
+            0.5,
+            0.3,
+            0.2
+          ],
+          "weights_match_frozen_default": false
+        },
+        {
+          "label": "Arson040",
+          "n_survivors": 297,
+          "n_scenes": 72,
+          "survivor_timespan_s": 94.3,
+          "total_video_duration_s": 94.5,
+          "salience_weights": [
+            0.5,
+            0.3,
+            0.2
+          ],
+          "weights_match_frozen_default": false
+        },
+        {
+          "label": "Arrest007",
+          "n_survivors": 333,
+          "n_scenes": 73,
+          "survivor_timespan_s": 104.56666666666666,
+          "total_video_duration_s": 104.8,
+          "salience_weights": [
+            0.5,
+            0.3,
+            0.2
+          ],
+          "weights_match_frozen_default": false
+        },
+        {
+          "label": "Arrest036",
+          "n_survivors": 399,
+          "n_scenes": 101,
+          "survivor_timespan_s": 126.83333333333333,
+          "total_video_duration_s": 127.56666666666666,
+          "salience_weights": [
+            0.5,
+            0.3,
+            0.2
+          ],
+          "weights_match_frozen_default": false
+        },
+        {
+          "label": "Abuse043",
+          "n_survivors": 405,
+          "n_scenes": 109,
+          "survivor_timespan_s": 128.93333333333334,
+          "total_video_duration_s": 129.0,
+          "salience_weights": [
+            0.5,
+            0.3,
+            0.2
+          ],
+          "weights_match_frozen_default": false
+        },
+        {
+          "label": "Arson002",
+          "n_survivors": 463,
+          "n_scenes": 167,
+          "survivor_timespan_s": 147.7,
+          "total_video_duration_s": 147.96666666666667,
+          "salience_weights": [
+            0.5,
+            0.3,
+            0.2
+          ],
+          "weights_match_frozen_default": false
+        },
+        {
+          "label": "Abuse036",
+          "n_survivors": 496,
+          "n_scenes": 117,
+          "survivor_timespan_s": 155.3,
+          "total_video_duration_s": 156.76666666666668,
+          "salience_weights": [
+            0.5,
+            0.3,
+            0.2
+          ],
+          "weights_match_frozen_default": false
+        },
+        {
+          "label": "Arson042",
+          "n_survivors": 613,
+          "n_scenes": 110,
+          "survivor_timespan_s": 195.5,
+          "total_video_duration_s": 195.76666666666668,
+          "salience_weights": [
+            0.5,
+            0.3,
+            0.2
+          ],
+          "weights_match_frozen_default": false
+        },
+        {
+          "label": "Normal_Videos_925",
+          "n_survivors": 806,
+          "n_scenes": 157,
+          "survivor_timespan_s": 255.0,
+          "total_video_duration_s": 257.53333333333336,
+          "salience_weights": [
+            0.5,
+            0.3,
+            0.2
+          ],
+          "weights_match_frozen_default": false
+        },
+        {
+          "label": "Arrest030",
+          "n_survivors": 903,
+          "n_scenes": 247,
+          "survivor_timespan_s": 287.8333333333333,
+          "total_video_duration_s": 288.06666666666666,
+          "salience_weights": [
+            0.5,
+            0.3,
+            0.2
+          ],
+          "weights_match_frozen_default": false
+        },
+        {
+          "label": "Assault042",
+          "n_survivors": 936,
+          "n_scenes": 271,
+          "survivor_timespan_s": 299.0,
+          "total_video_duration_s": 299.8,
+          "salience_weights": [
+            0.5,
+            0.3,
+            0.2
+          ],
+          "weights_match_frozen_default": false
+        },
+        {
+          "label": "Arrest016",
+          "n_survivors": 1102,
+          "n_scenes": 315,
+          "survivor_timespan_s": 352.3666666666667,
+          "total_video_duration_s": 352.8666666666667,
+          "salience_weights": [
+            0.5,
+            0.3,
+            0.2
+          ],
+          "weights_match_frozen_default": false
+        },
+        {
+          "label": "Arrest039",
+          "n_survivors": 1648,
+          "n_scenes": 422,
+          "survivor_timespan_s": 525.8,
+          "total_video_duration_s": 527.8333333333334,
+          "salience_weights": [
+            0.5,
+            0.3,
+            0.2
+          ],
+          "weights_match_frozen_default": false
+        },
+        {
+          "label": "Abuse042",
+          "n_survivors": 2963,
+          "n_scenes": 712,
+          "survivor_timespan_s": 948.9333333333333,
+          "total_video_duration_s": 949.2,
+          "salience_weights": [
+            0.5,
+            0.3,
+            0.2
+          ],
+          "weights_match_frozen_default": false
+        },
+        {
+          "label": "Normal_Videos_940",
+          "n_survivors": 3747,
+          "n_scenes": 910,
+          "survivor_timespan_s": 1200.4666666666667,
+          "total_video_duration_s": 1200.5666666666666,
+          "salience_weights": [
+            0.5,
+            0.3,
+            0.2
+          ],
+          "weights_match_frozen_default": false
+        },
+        {
+          "label": "VIRAT_S_040001_01_000448_001101",
+          "n_survivors": 4892,
+          "n_scenes": 528,
+          "survivor_timespan_s": 652.8522,
+          "total_video_duration_s": null,
+          "salience_weights": [
+            0.5,
+            0.3,
+            0.2
+          ],
+          "weights_match_frozen_default": false
+        },
+        {
+          "label": "Arrest047",
+          "n_survivors": 6559,
+          "n_scenes": 2178,
+          "survivor_timespan_s": 2101.366666666667,
+          "total_video_duration_s": 2102.0,
+          "salience_weights": [
+            0.5,
+            0.3,
+            0.2
+          ],
+          "weights_match_frozen_default": false
+        },
+        {
+          "label": "Arson019",
+          "n_survivors": 13506,
+          "n_scenes": 3592,
+          "survivor_timespan_s": 4218.133333333333,
+          "total_video_duration_s": 4218.433333333333,
+          "salience_weights": [
+            0.5,
+            0.3,
+            0.2
+          ],
+          "weights_match_frozen_default": false
+        }
+      ]
+    }
+  },
+  "bin_occupancy": [
+    {
+      "target_N": 1102,
+      "n_clips": 7,
+      "meets_target_5": true,
+      "clips": [
+        {
+          "label": "Arrest016",
+          "n_survivors": 1102,
+          "source": "existing_v2_textquery_corpus"
+        },
+        {
+          "label": "Assault042",
+          "n_survivors": 936,
+          "source": "ci_census_candidate"
+        },
+        {
+          "label": "Arrest030",
+          "n_survivors": 903,
+          "source": "ci_census_candidate"
+        },
+        {
+          "label": "Normal_Videos_925",
+          "n_survivors": 806,
+          "source": "ci_census_candidate"
+        },
+        {
+          "label": "Arrest039",
+          "n_survivors": 1648,
+          "source": "ci_census_candidate"
+        },
+        {
+          "label": "Arson042",
+          "n_survivors": 613,
+          "source": "ci_census_candidate"
+        },
+        {
+          "label": "Abuse036",
+          "n_survivors": 496,
+          "source": "ci_census_candidate"
+        }
+      ]
+    },
+    {
+      "target_N": 2963,
+      "n_clips": 2,
+      "meets_target_5": false,
+      "clips": [
+        {
+          "label": "Abuse042",
+          "n_survivors": 2963,
+          "source": "existing_v2_textquery_corpus"
+        },
+        {
+          "label": "Normal_Videos_940",
+          "n_survivors": 3747,
+          "source": "ci_census_candidate"
+        }
+      ]
+    },
+    {
+      "target_N": 6559,
+      "n_clips": 2,
+      "meets_target_5": false,
+      "clips": [
+        {
+          "label": "Arrest047",
+          "n_survivors": 6559,
+          "source": "existing_v2_textquery_corpus"
+        },
+        {
+          "label": "VIRAT_S_040001_01_000448_001101",
+          "n_survivors": 4892,
+          "source": "existing_v2_textquery_corpus"
+        }
+      ]
+    },
+    {
+      "target_N": 13506,
+      "n_clips": 1,
+      "meets_target_5": false,
+      "clips": [
+        {
+          "label": "Arson019",
+          "n_survivors": 13506,
+          "source": "existing_v2_textquery_corpus"
+        }
+      ]
+    },
+    {
+      "target_N": 91,
+      "n_clips": 5,
+      "meets_target_5": true,
+      "clips": [
+        {
+          "label": "Normal_Videos_289",
+          "n_survivors": 91,
+          "source": "existing_v2_textquery_corpus"
+        },
+        {
+          "label": "Normal_Videos_908",
+          "n_survivors": 93,
+          "source": "ci_census_candidate"
+        },
+        {
+          "label": "Assault036",
+          "n_survivors": 97,
+          "source": "ci_census_candidate"
+        },
+        {
+          "label": "Abuse023",
+          "n_survivors": 106,
+          "source": "ci_census_candidate"
+        },
+        {
+          "label": "Assault045",
+          "n_survivors": 131,
+          "source": "ci_census_candidate"
+        }
+      ]
+    },
+    {
+      "target_N": 212,
+      "n_clips": 13,
+      "meets_target_5": true,
+      "clips": [
+        {
+          "label": "Abuse025",
+          "n_survivors": 212,
+          "source": "existing_v2_textquery_corpus"
+        },
+        {
+          "label": "Arrest031",
+          "n_survivors": 194,
+          "source": "ci_census_candidate"
+        },
+        {
+          "label": "Abuse037",
+          "n_survivors": 188,
+          "source": "ci_census_candidate"
+        },
+        {
+          "label": "Normal_Videos_891",
+          "n_survivors": 188,
+          "source": "ci_census_candidate"
+        },
+        {
+          "label": "Normal_Videos_168",
+          "n_survivors": 181,
+          "source": "ci_census_candidate"
+        },
+        {
+          "label": "Arrest022",
+          "n_survivors": 167,
+          "source": "ci_census_candidate"
+        },
+        {
+          "label": "Arson050",
+          "n_survivors": 166,
+          "source": "ci_census_candidate"
+        },
+        {
+          "label": "Normal_Videos_758",
+          "n_survivors": 166,
+          "source": "ci_census_candidate"
+        },
+        {
+          "label": "Arson040",
+          "n_survivors": 297,
+          "source": "ci_census_candidate"
+        },
+        {
+          "label": "Arrest007",
+          "n_survivors": 333,
+          "source": "ci_census_candidate"
+        },
+        {
+          "label": "Arrest036",
+          "n_survivors": 399,
+          "source": "ci_census_candidate"
+        },
+        {
+          "label": "Abuse043",
+          "n_survivors": 405,
+          "source": "ci_census_candidate"
+        },
+        {
+          "label": "Arson002",
+          "n_survivors": 463,
+          "source": "ci_census_candidate"
+        }
+      ]
+    }
+  ],
+  "per_clip_raw_latency": [
+    {
+      "label": "Normal_Videos_289",
+      "dataset": "ucf",
+      "n_survivors": 91,
+      "source": "existing_v2_textquery_corpus",
+      "flat": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 0.003780400000323425,
+        "query_embed_s": 0.01634150000063528,
+        "shortcut_pct": null,
+        "censored": false
+      },
+      "scene_sparse": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 0.001434849998986465,
+        "query_embed_s": 0.016840900001625414,
+        "shortcut_pct": 0.0,
+        "censored": false
+      }
+    },
+    {
+      "label": "Normal_Videos_908",
+      "dataset": "ucf",
+      "n_survivors": 93,
+      "source": "ci_census_candidate",
+      "flat": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 0.0032333499984815717,
+        "query_embed_s": 0.015572449992760085,
+        "shortcut_pct": null,
+        "censored": false
+      },
+      "scene_sparse": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 0.0017812500009313226,
+        "query_embed_s": 0.015664000005926937,
+        "shortcut_pct": 0.0,
+        "censored": false
+      }
+    },
+    {
+      "label": "Assault036",
+      "dataset": "ucf",
+      "n_survivors": 97,
+      "source": "ci_census_candidate",
+      "flat": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 0.0035986000002594665,
+        "query_embed_s": 0.01564795000012964,
+        "shortcut_pct": null,
+        "censored": false
+      },
+      "scene_sparse": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 0.0019611500028986484,
+        "query_embed_s": 0.015636500014807098,
+        "shortcut_pct": 20.0,
+        "censored": false
+      }
+    },
+    {
+      "label": "Abuse023",
+      "dataset": "ucf",
+      "n_survivors": 106,
+      "source": "ci_census_candidate",
+      "flat": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 0.004057849990203977,
+        "query_embed_s": 0.01570585000445135,
+        "shortcut_pct": null,
+        "censored": false
+      },
+      "scene_sparse": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 0.0014758999896002933,
+        "query_embed_s": 0.01563085000088904,
+        "shortcut_pct": 0.0,
+        "censored": false
+      }
+    },
+    {
+      "label": "Assault045",
+      "dataset": "ucf",
+      "n_survivors": 131,
+      "source": "ci_census_candidate",
+      "flat": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 0.005677599998307414,
+        "query_embed_s": 0.015647000007447787,
+        "shortcut_pct": null,
+        "censored": false
+      },
+      "scene_sparse": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 0.0024338999937754124,
+        "query_embed_s": 0.015564299988909625,
+        "shortcut_pct": 0.0,
+        "censored": false
+      }
+    },
+    {
+      "label": "Arson050",
+      "dataset": "ucf",
+      "n_survivors": 166,
+      "source": "ci_census_candidate",
+      "flat": {
+        "outcome": "not_measured",
+        "median_total_retrieval_s": null,
+        "query_embed_s": null,
+        "shortcut_pct": null,
+        "censored": false
+      },
+      "scene_sparse": {
+        "outcome": "not_measured",
+        "median_total_retrieval_s": null,
+        "query_embed_s": null,
+        "shortcut_pct": null,
+        "censored": false
+      }
+    },
+    {
+      "label": "Normal_Videos_758",
+      "dataset": "ucf",
+      "n_survivors": 166,
+      "source": "ci_census_candidate",
+      "flat": {
+        "outcome": "not_measured",
+        "median_total_retrieval_s": null,
+        "query_embed_s": null,
+        "shortcut_pct": null,
+        "censored": false
+      },
+      "scene_sparse": {
+        "outcome": "not_measured",
+        "median_total_retrieval_s": null,
+        "query_embed_s": null,
+        "shortcut_pct": null,
+        "censored": false
+      }
+    },
+    {
+      "label": "Arrest022",
+      "dataset": "ucf",
+      "n_survivors": 167,
+      "source": "ci_census_candidate",
+      "flat": {
+        "outcome": "not_measured",
+        "median_total_retrieval_s": null,
+        "query_embed_s": null,
+        "shortcut_pct": null,
+        "censored": false
+      },
+      "scene_sparse": {
+        "outcome": "not_measured",
+        "median_total_retrieval_s": null,
+        "query_embed_s": null,
+        "shortcut_pct": null,
+        "censored": false
+      }
+    },
+    {
+      "label": "Normal_Videos_168",
+      "dataset": "ucf",
+      "n_survivors": 181,
+      "source": "ci_census_candidate",
+      "flat": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 0.009503449997282587,
+        "query_embed_s": 0.015809349992196076,
+        "shortcut_pct": null,
+        "censored": false
+      },
+      "scene_sparse": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 0.0017670499946689233,
+        "query_embed_s": 0.015581849991576746,
+        "shortcut_pct": 0.0,
+        "censored": false
+      }
+    },
+    {
+      "label": "Abuse037",
+      "dataset": "ucf",
+      "n_survivors": 188,
+      "source": "ci_census_candidate",
+      "flat": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 0.009840550017543137,
+        "query_embed_s": 0.01569474999269005,
+        "shortcut_pct": null,
+        "censored": false
+      },
+      "scene_sparse": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 0.0018859499832615256,
+        "query_embed_s": 0.015560849991743453,
+        "shortcut_pct": 10.0,
+        "censored": false
+      }
+    },
+    {
+      "label": "Normal_Videos_891",
+      "dataset": "ucf",
+      "n_survivors": 188,
+      "source": "ci_census_candidate",
+      "flat": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 0.010442750004585832,
+        "query_embed_s": 0.015755250002257526,
+        "shortcut_pct": null,
+        "censored": false
+      },
+      "scene_sparse": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 0.00218239999958314,
+        "query_embed_s": 0.015658000003895722,
+        "shortcut_pct": 0.0,
+        "censored": false
+      }
+    },
+    {
+      "label": "Arrest031",
+      "dataset": "ucf",
+      "n_survivors": 194,
+      "source": "ci_census_candidate",
+      "flat": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 0.01156625000294298,
+        "query_embed_s": 0.016034349988331087,
+        "shortcut_pct": null,
+        "censored": false
+      },
+      "scene_sparse": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 0.0022233499912545085,
+        "query_embed_s": 0.01564129997859709,
+        "shortcut_pct": 0.0,
+        "censored": false
+      }
+    },
+    {
+      "label": "Abuse025",
+      "dataset": "ucf",
+      "n_survivors": 212,
+      "source": "existing_v2_textquery_corpus",
+      "flat": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 0.01569424999979674,
+        "query_embed_s": 0.016459950000353274,
+        "shortcut_pct": null,
+        "censored": false
+      },
+      "scene_sparse": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 0.003883749999658903,
+        "query_embed_s": 0.016291249998175772,
+        "shortcut_pct": 0.0,
+        "censored": false
+      }
+    },
+    {
+      "label": "Arson040",
+      "dataset": "ucf",
+      "n_survivors": 297,
+      "source": "ci_census_candidate",
+      "flat": {
+        "outcome": "not_measured",
+        "median_total_retrieval_s": null,
+        "query_embed_s": null,
+        "shortcut_pct": null,
+        "censored": false
+      },
+      "scene_sparse": {
+        "outcome": "not_measured",
+        "median_total_retrieval_s": null,
+        "query_embed_s": null,
+        "shortcut_pct": null,
+        "censored": false
+      }
+    },
+    {
+      "label": "Arrest007",
+      "dataset": "ucf",
+      "n_survivors": 333,
+      "source": "ci_census_candidate",
+      "flat": {
+        "outcome": "not_measured",
+        "median_total_retrieval_s": null,
+        "query_embed_s": null,
+        "shortcut_pct": null,
+        "censored": false
+      },
+      "scene_sparse": {
+        "outcome": "not_measured",
+        "median_total_retrieval_s": null,
+        "query_embed_s": null,
+        "shortcut_pct": null,
+        "censored": false
+      }
+    },
+    {
+      "label": "Arrest036",
+      "dataset": "ucf",
+      "n_survivors": 399,
+      "source": "ci_census_candidate",
+      "flat": {
+        "outcome": "not_measured",
+        "median_total_retrieval_s": null,
+        "query_embed_s": null,
+        "shortcut_pct": null,
+        "censored": false
+      },
+      "scene_sparse": {
+        "outcome": "not_measured",
+        "median_total_retrieval_s": null,
+        "query_embed_s": null,
+        "shortcut_pct": null,
+        "censored": false
+      }
+    },
+    {
+      "label": "Abuse043",
+      "dataset": "ucf",
+      "n_survivors": 405,
+      "source": "ci_census_candidate",
+      "flat": {
+        "outcome": "not_measured",
+        "median_total_retrieval_s": null,
+        "query_embed_s": null,
+        "shortcut_pct": null,
+        "censored": false
+      },
+      "scene_sparse": {
+        "outcome": "not_measured",
+        "median_total_retrieval_s": null,
+        "query_embed_s": null,
+        "shortcut_pct": null,
+        "censored": false
+      }
+    },
+    {
+      "label": "Arson002",
+      "dataset": "ucf",
+      "n_survivors": 463,
+      "source": "ci_census_candidate",
+      "flat": {
+        "outcome": "not_measured",
+        "median_total_retrieval_s": null,
+        "query_embed_s": null,
+        "shortcut_pct": null,
+        "censored": false
+      },
+      "scene_sparse": {
+        "outcome": "not_measured",
+        "median_total_retrieval_s": null,
+        "query_embed_s": null,
+        "shortcut_pct": null,
+        "censored": false
+      }
+    },
+    {
+      "label": "Abuse036",
+      "dataset": "ucf",
+      "n_survivors": 496,
+      "source": "ci_census_candidate",
+      "flat": {
+        "outcome": "not_measured",
+        "median_total_retrieval_s": null,
+        "query_embed_s": null,
+        "shortcut_pct": null,
+        "censored": false
+      },
+      "scene_sparse": {
+        "outcome": "not_measured",
+        "median_total_retrieval_s": null,
+        "query_embed_s": null,
+        "shortcut_pct": null,
+        "censored": false
+      }
+    },
+    {
+      "label": "Arson042",
+      "dataset": "ucf",
+      "n_survivors": 613,
+      "source": "ci_census_candidate",
+      "flat": {
+        "outcome": "not_measured",
+        "median_total_retrieval_s": null,
+        "query_embed_s": null,
+        "shortcut_pct": null,
+        "censored": false
+      },
+      "scene_sparse": {
+        "outcome": "not_measured",
+        "median_total_retrieval_s": null,
+        "query_embed_s": null,
+        "shortcut_pct": null,
+        "censored": false
+      }
+    },
+    {
+      "label": "Normal_Videos_925",
+      "dataset": "ucf",
+      "n_survivors": 806,
+      "source": "ci_census_candidate",
+      "flat": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 0.20518970000557601,
+        "query_embed_s": 0.016397749990574084,
+        "shortcut_pct": null,
+        "censored": false
+      },
+      "scene_sparse": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 0.004135249997489154,
+        "query_embed_s": 0.015774399988004006,
+        "shortcut_pct": 0.0,
+        "censored": false
+      }
+    },
+    {
+      "label": "Arrest030",
+      "dataset": "ucf",
+      "n_survivors": 903,
+      "source": "ci_census_candidate",
+      "flat": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 0.25654314999701455,
+        "query_embed_s": 0.016409949996159412,
+        "shortcut_pct": null,
+        "censored": false
+      },
+      "scene_sparse": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 0.0031522000062977895,
+        "query_embed_s": 0.015707200000179,
+        "shortcut_pct": 0.0,
+        "censored": false
+      }
+    },
+    {
+      "label": "Assault042",
+      "dataset": "ucf",
+      "n_survivors": 936,
+      "source": "ci_census_candidate",
+      "flat": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 0.27539039999828674,
+        "query_embed_s": 0.01648070001101587,
+        "shortcut_pct": null,
+        "censored": false
+      },
+      "scene_sparse": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 0.0037465499917743728,
+        "query_embed_s": 0.015921300000627525,
+        "shortcut_pct": 0.0,
+        "censored": false
+      }
+    },
+    {
+      "label": "Arrest016",
+      "dataset": "ucf",
+      "n_survivors": 1102,
+      "source": "existing_v2_textquery_corpus",
+      "flat": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 0.40342564999991737,
+        "query_embed_s": 0.018040599999949336,
+        "shortcut_pct": null,
+        "censored": false
+      },
+      "scene_sparse": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 0.0038954999999987194,
+        "query_embed_s": 0.016389449998314376,
+        "shortcut_pct": 0.0,
+        "censored": false
+      }
+    },
+    {
+      "label": "Arrest039",
+      "dataset": "ucf",
+      "n_survivors": 1648,
+      "source": "ci_census_candidate",
+      "flat": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 0.881943450003746,
+        "query_embed_s": 0.016347099997801706,
+        "shortcut_pct": null,
+        "censored": false
+      },
+      "scene_sparse": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 0.004709600005298853,
+        "query_embed_s": 0.015869099981500767,
+        "shortcut_pct": 0.0,
+        "censored": false
+      }
+    },
+    {
+      "label": "Abuse042",
+      "dataset": "ucf",
+      "n_survivors": 2963,
+      "source": "existing_v2_textquery_corpus",
+      "flat": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 2.976174049999827,
+        "query_embed_s": 0.017707300001347903,
+        "shortcut_pct": null,
+        "censored": false
+      },
+      "scene_sparse": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 0.007937000000310945,
+        "query_embed_s": 0.016542349998417194,
+        "shortcut_pct": 0.0,
+        "censored": false
+      }
+    },
+    {
+      "label": "Normal_Videos_940",
+      "dataset": "ucf",
+      "n_survivors": 3747,
+      "source": "ci_census_candidate",
+      "flat": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 5.054244450016995,
+        "query_embed_s": 0.016175349985132925,
+        "shortcut_pct": null,
+        "censored": false
+      },
+      "scene_sparse": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 0.008328000010806136,
+        "query_embed_s": 0.015561499996692874,
+        "shortcut_pct": 0.0,
+        "censored": false
+      }
+    },
+    {
+      "label": "VIRAT_S_040001_01_000448_001101",
+      "dataset": "virat",
+      "n_survivors": 4892,
+      "source": "existing_v2_textquery_corpus",
+      "flat": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 7.939507700000831,
+        "query_embed_s": 0.01800050000019837,
+        "shortcut_pct": null,
+        "censored": false
+      },
+      "scene_sparse": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 0.010091550000652205,
+        "query_embed_s": 0.016648200000418,
+        "shortcut_pct": 0.0,
+        "censored": false
+      }
+    },
+    {
+      "label": "Arrest047",
+      "dataset": "ucf",
+      "n_survivors": 6559,
+      "source": "existing_v2_textquery_corpus",
+      "flat": {
+        "outcome": "timed_out",
+        "median_total_retrieval_s": null,
+        "query_embed_s": null,
+        "shortcut_pct": null,
+        "censored": true
+      },
+      "scene_sparse": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 0.017371750000165775,
+        "query_embed_s": 0.017024400000082096,
+        "shortcut_pct": 0.0,
+        "censored": false
+      }
+    },
+    {
+      "label": "Arson019",
+      "dataset": "ucf",
+      "n_survivors": 13506,
+      "source": "existing_v2_textquery_corpus",
+      "flat": {
+        "outcome": "timed_out",
+        "median_total_retrieval_s": null,
+        "query_embed_s": null,
+        "shortcut_pct": null,
+        "censored": true
+      },
+      "scene_sparse": {
+        "outcome": "completed",
+        "median_total_retrieval_s": 0.02896350000082748,
+        "query_embed_s": 0.017095699997298652,
+        "shortcut_pct": 0.0,
+        "censored": false
+      }
+    }
+  ],
+  "censoring_table": [
+    {
+      "label": "Arrest047",
+      "arm": "flat",
+      "n_survivors": 6559,
+      "outcome": "timed_out",
+      "wall_time_cap_sec": 3600.0,
+      "note": "true latency >= cap; excluded from completions-only fit, included as a floor value in the lower-bound fit variant"
+    },
+    {
+      "label": "Arson019",
+      "arm": "flat",
+      "n_survivors": 13506,
+      "outcome": "timed_out",
+      "wall_time_cap_sec": 3600.0,
+      "note": "true latency >= cap; excluded from completions-only fit, included as a floor value in the lower-bound fit variant"
+    }
+  ],
+  "fits": {
+    "arms": {
+      "flat": {
+        "fits": {
+          "full_range": {
+            "point_fit": {
+              "exponent_k": 1.9797314562106865,
+              "log_intercept": -14.790924748448699,
+              "n_points": 17,
+              "points_used": [
+                91,
+                212,
+                1102,
+                2963,
+                806,
+                903,
+                936,
+                1648,
+                93,
+                97,
+                106,
+                131,
+                181,
+                188,
+                188,
+                194,
+                3747
+              ],
+              "r_squared": 0.9978496394750674
+            },
+            "ci_low": 1.95130006843172,
+            "ci_high": 2.0056790537700566,
+            "n_boot": 10000,
+            "n_points": 17,
+            "n_buckets": 4,
+            "clips_used": [
+              "Normal_Videos_289",
+              "Abuse025",
+              "Arrest016",
+              "Abuse042",
+              "Normal_Videos_925",
+              "Arrest030",
+              "Assault042",
+              "Arrest039",
+              "Normal_Videos_908",
+              "Assault036",
+              "Abuse023",
+              "Assault045",
+              "Normal_Videos_168",
+              "Abuse037",
+              "Normal_Videos_891",
+              "Arrest031",
+              "Normal_Videos_940"
+            ]
+          },
+          "full_range_excl_shortcut_violations": {
+            "point_fit": {
+              "exponent_k": 1.979661112280573,
+              "log_intercept": -14.784496285554413,
+              "n_points": 15,
+              "points_used": [
+                91,
+                212,
+                1102,
+                2963,
+                806,
+                903,
+                936,
+                1648,
+                93,
+                106,
+                131,
+                181,
+                188,
+                194,
+                3747
+              ],
+              "r_squared": 0.9981735376656176
+            },
+            "ci_low": 1.9459264749607255,
+            "ci_high": 2.010246065233766,
+            "n_boot": 10000,
+            "n_points": 15,
+            "n_buckets": 4,
+            "clips_used": [
+              "Normal_Videos_289",
+              "Abuse025",
+              "Arrest016",
+              "Abuse042",
+              "Normal_Videos_925",
+              "Arrest030",
+              "Assault042",
+              "Arrest039",
+              "Normal_Videos_908",
+              "Abuse023",
+              "Assault045",
+              "Normal_Videos_168",
+              "Normal_Videos_891",
+              "Arrest031",
+              "Normal_Videos_940"
+            ]
+          },
+          "N_ge_1102_headline": {
+            "point_fit": {
+              "exponent_k": 2.0628184554970113,
+              "log_intercept": -15.37917365613253,
+              "n_points": 4,
+              "points_used": [
+                1102,
+                2963,
+                1648,
+                3747
+              ],
+              "r_squared": 0.9994422990960734
+            },
+            "ci_low": 2.020474224515457,
+            "ci_high": 2.1254813814709306,
+            "n_boot": 10000,
+            "n_points": 4,
+            "n_buckets": 2,
+            "clips_used": [
+              "Arrest016",
+              "Abuse042",
+              "Arrest039",
+              "Normal_Videos_940"
+            ]
+          },
+          "N_ge_1102_minus_subnoisefloor": {
+            "point_fit": {
+              "exponent_k": 2.0628184554970113,
+              "log_intercept": -15.37917365613253,
+              "n_points": 4,
+              "points_used": [
+                1102,
+                2963,
+                1648,
+                3747
+              ],
+              "r_squared": 0.9994422990960734
+            },
+            "ci_low": 2.020474224515457,
+            "ci_high": 2.1254813814709306,
+            "n_boot": 10000,
+            "n_points": 4,
+            "n_buckets": 2,
+            "clips_used": [
+              "Arrest016",
+              "Abuse042",
+              "Arrest039",
+              "Normal_Videos_940"
+            ]
+          },
+          "with_censored_as_lower_bound": {
+            "point_fit": {
+              "exponent_k": 2.596835633915911,
+              "log_intercept": -18.134892853499565,
+              "n_points": 19,
+              "points_used": [
+                91,
+                212,
+                1102,
+                2963,
+                806,
+                903,
+                936,
+                1648,
+                93,
+                97,
+                106,
+                131,
+                181,
+                188,
+                188,
+                194,
+                3747,
+                6559,
+                13506
+              ],
+              "r_squared": 0.9195311876163524
+            },
+            "n_points": 19,
+            "n_completions": 17,
+            "n_censored_substituted_at_cap": 2,
+            "censored_clips_used": [
+              "Arrest047",
+              "Arson019"
+            ],
+            "interpretation": "k here is a LOWER BOUND on the true exponent (censored points' true latency is >= the substituted cap value), not a point estimate; no bootstrap CI reported for a bound."
+          }
+        },
+        "censored_lower_bounds": [
+          {
+            "label": "Arrest047",
+            "n_survivors": 6559
+          },
+          {
+            "label": "Arson019",
+            "n_survivors": 13506
+          }
+        ]
+      },
+      "scene_sparse": {
+        "fits": {
+          "full_range": {
+            "point_fit": {
+              "exponent_k": 0.49677140038807976,
+              "log_intercept": -8.7361383679315,
+              "n_points": 19,
+              "points_used": [
+                91,
+                212,
+                1102,
+                2963,
+                6559,
+                13506,
+                806,
+                903,
+                936,
+                1648,
+                93,
+                97,
+                106,
+                131,
+                181,
+                188,
+                188,
+                194,
+                3747
+              ],
+              "r_squared": 0.8980394207598517
+            },
+            "ci_low": 0.46063108775299755,
+            "ci_high": 0.5302519312775414,
+            "n_boot": 10000,
+            "n_points": 19,
+            "n_buckets": 6,
+            "clips_used": [
+              "Normal_Videos_289",
+              "Abuse025",
+              "Arrest016",
+              "Abuse042",
+              "Arrest047",
+              "Arson019",
+              "Normal_Videos_925",
+              "Arrest030",
+              "Assault042",
+              "Arrest039",
+              "Normal_Videos_908",
+              "Assault036",
+              "Abuse023",
+              "Assault045",
+              "Normal_Videos_168",
+              "Abuse037",
+              "Normal_Videos_891",
+              "Arrest031",
+              "Normal_Videos_940"
+            ]
+          },
+          "full_range_excl_shortcut_violations": {
+            "point_fit": {
+              "exponent_k": 0.5031184579672144,
+              "log_intercept": -8.78214543057434,
+              "n_points": 17,
+              "points_used": [
+                91,
+                212,
+                1102,
+                2963,
+                6559,
+                13506,
+                806,
+                903,
+                936,
+                1648,
+                93,
+                106,
+                131,
+                181,
+                188,
+                194,
+                3747
+              ],
+              "r_squared": 0.8967923687740926
+            },
+            "ci_low": 0.46218496182241486,
+            "ci_high": 0.5392036910494955,
+            "n_boot": 10000,
+            "n_points": 17,
+            "n_buckets": 6,
+            "clips_used": [
+              "Normal_Videos_289",
+              "Abuse025",
+              "Arrest016",
+              "Abuse042",
+              "Arrest047",
+              "Arson019",
+              "Normal_Videos_925",
+              "Arrest030",
+              "Assault042",
+              "Arrest039",
+              "Normal_Videos_908",
+              "Abuse023",
+              "Assault045",
+              "Normal_Videos_168",
+              "Normal_Videos_891",
+              "Arrest031",
+              "Normal_Videos_940"
+            ]
+          },
+          "N_ge_1102_headline": {
+            "point_fit": {
+              "exponent_k": 0.833892870196405,
+              "log_intercept": -11.488512073345369,
+              "n_points": 6,
+              "points_used": [
+                1102,
+                2963,
+                6559,
+                13506,
+                1648,
+                3747
+              ],
+              "r_squared": 0.9829971663505449
+            },
+            "ci_low": 0.8005433482385389,
+            "ci_high": 0.884257833906474,
+            "n_boot": 10000,
+            "n_points": 6,
+            "n_buckets": 4,
+            "clips_used": [
+              "Arrest016",
+              "Abuse042",
+              "Arrest047",
+              "Arson019",
+              "Arrest039",
+              "Normal_Videos_940"
+            ]
+          },
+          "N_ge_1102_minus_subnoisefloor": {
+            "point_fit": {
+              "exponent_k": 0.833892870196405,
+              "log_intercept": -11.488512073345369,
+              "n_points": 6,
+              "points_used": [
+                1102,
+                2963,
+                6559,
+                13506,
+                1648,
+                3747
+              ],
+              "r_squared": 0.9829971663505449
+            },
+            "ci_low": 0.8005433482385389,
+            "ci_high": 0.884257833906474,
+            "n_boot": 10000,
+            "n_points": 6,
+            "n_buckets": 4,
+            "clips_used": [
+              "Arrest016",
+              "Abuse042",
+              "Arrest047",
+              "Arson019",
+              "Arrest039",
+              "Normal_Videos_940"
+            ]
+          },
+          "with_censored_as_lower_bound": {
+            "point_fit": {
+              "exponent_k": 0.49677140038807976,
+              "log_intercept": -8.7361383679315,
+              "n_points": 19,
+              "points_used": [
+                91,
+                212,
+                1102,
+                2963,
+                6559,
+                13506,
+                806,
+                903,
+                936,
+                1648,
+                93,
+                97,
+                106,
+                131,
+                181,
+                188,
+                188,
+                194,
+                3747
+              ],
+              "r_squared": 0.8980394207598517
+            },
+            "n_points": 19,
+            "n_completions": 19,
+            "n_censored_substituted_at_cap": 0,
+            "censored_clips_used": [],
+            "interpretation": "k here is a LOWER BOUND on the true exponent (censored points' true latency is >= the substituted cap value), not a point estimate; no bootstrap CI reported for a bound."
+          }
+        },
+        "censored_lower_bounds": []
+      }
+    },
+    "headline": {
+      "point_fit": {
+        "exponent_k": 0.833892870196405,
+        "log_intercept": -11.488512073345369,
+        "n_points": 6,
+        "points_used": [
+          1102,
+          2963,
+          6559,
+          13506,
+          1648,
+          3747
+        ],
+        "r_squared": 0.9829971663505449
+      },
+      "ci_low": 0.8005433482385389,
+      "ci_high": 0.884257833906474,
+      "n_boot": 10000,
+      "n_points": 6,
+      "n_buckets": 4,
+      "clips_used": [
+        "Arrest016",
+        "Abuse042",
+        "Arrest047",
+        "Arson019",
+        "Arrest039",
+        "Normal_Videos_940"
+      ]
+    }
+  },
+  "guards": {
+    "shortcut_pct_guard": {
+      "PASS": false,
+      "n_scene_sparse_completed_checked": 20,
+      "violations": [
+        {
+          "label": "Assault036",
+          "shortcut_pct": 20.0
+        },
+        {
+          "label": "Abuse037",
+          "shortcut_pct": 10.0
+        }
+      ],
+      "note": "VIOLATION: one or more scene_sparse measurements took the shortcut path under real text queries -- NOT the v2 defect (that was queries sampled AS survivor embeddings, guaranteeing near-hits; here queries are the same fixed TEXT_QUERIES that scored 0% shortcut on every other clip). Both violating clips sit deep in the small-N range (N=97, N=188) with very few scenes, where a 10-phrase fixed query set has a nonzero chance of landing inside SOME scene's shortcut margin by coincidence -- plausible small-N noise, not yet confirmed. Neither violating clip is in the N>=1102 headline fit range, so the headline number is unaffected; 'full_range' fits ARE contaminated -- see 'full_range_excl_shortcut_violations' for the clean comparison."
+    },
+    "salience_weights_guard": {
+      "frozen_production_default": [
+        0.8,
+        0.1,
+        0.1
+      ],
+      "note": "ledger S6: the corpus this fit rests on (existing v2/textquery corpus + this task's census/latency extension) was built at salience weights (0.5, 0.3, 0.2) throughout (verified via config_snapshot on every index_cache .npz used) -- NOT the frozen production default (0.8, 0.1, 0.1). This is internally consistent (every clip in this fit uses the same weights, so N-vs-latency comparisons within the fit are fair), but the survivor N values here are NOT comparable to any retention/survivor-count number computed elsewhere under the frozen weights -- stated inline per ledger S6, not excluded, since excluding would leave no corpus to fit."
+    }
+  },
+  "interpretation": {
+    "flat_headline_ci": [
+      2.020474224515457,
+      2.1254813814709306
+    ],
+    "scene_sparse_headline_ci": [
+      0.8005433482385389,
+      0.884257833906474
+    ],
+    "cis_overlap": false,
+    "scene_sparse_ci_upper_below_1": true,
+    "PRINT_SAFE": true,
+    "reasons": [
+      "CIs are disjoint and scene_sparse's CI sits below 1.0"
+    ],
+    "fallback": null
+  }
+}
