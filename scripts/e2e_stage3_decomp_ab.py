@@ -56,6 +56,7 @@ OUT_MD = REPO / "eval_results" / "e2e_stage3_decomp_raw.md"
 
 N_Q = 5  # identical to scripts/e2e_speedup_ab.py -- see that file's comment
 ANSWERER_MODEL = "granite4:micro"
+CAPTIONER_MODEL = "minicpm-v4.6:1b"  # exact installed Ollama tag -- see main()
 
 BASE = dict(
     ranking_mode="ppr",
@@ -147,6 +148,17 @@ def main():
     print(f"[provenance] commit={provenance['commit']} tracked_dirty_count={provenance['tracked_dirty_count']}", flush=True)
 
     aria.set_backend(aria.LlamaBackend(text_model=ANSWERER_MODEL))
+
+    # Same pattern as the answerer override above: committed default config
+    # (configs/default_iris_config.json) says captioner_backend="minicpm",
+    # and aria.get_captioner()'s auto-detect picks whichever installed Ollama
+    # tag contains "minicpm" and truncates it at the first ":" -- e.g. the
+    # locally installed "minicpm-v4.6:1b" becomes "minicpm-v4.6", which is
+    # NOT a real Ollama tag (no ":latest" for that model here) and 404s on
+    # generate. Pin the exact installed tag explicitly via the existing
+    # public set_captioner() API rather than touching aria.py's detection
+    # logic -- no captioner/pipeline code modified.
+    aria.set_captioner(aria.MiniCPMCaptioner(model_name=CAPTIONER_MODEL))
 
     nextqa_before = _dir_fingerprint(NEXTQA_CACHE_DIR)
     virat_before = _dir_fingerprint(VIRAT_CACHE_DIR)
