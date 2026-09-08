@@ -1531,7 +1531,7 @@ HEAD before the dedup change `90ef59b` on `siddanth/peak-source-a6-p1`.
 | censoring: dense timed out at N=6,559 and N=13,506 under 3600 s / 29 GB | same | censoring table in artifact; lower-bound fit k ≥ 2.597 |
 | survivor census: 31 clips, median N=333, bins of 7/2/2/1 | `_ci_survivor_census.json`, `scaling_curve_ci_census.json` | harness `scripts/_ci_survivor_census.py` |
 | shortcut guard violations: Assault036 20%, Abuse037 10% | `scaling_curve_v3.md` guards section | — |
-| retrieval mechanics 7.9448 s vs 0.0072 s (1,104×) | `virat_latency_N4892_{raw.json,result.md}` | run 2026-07-27; 50 **synthetic** queries, `query_seed=20260726`; shortcut fired 0/50; **see A.5.1, A.5.2** |
+| retrieval mechanics 7.9448 s vs 0.0072 s (1,104×) | `virat_latency_N4892_{raw.json,result.md}` | run 2026-07-27; 50 **synthetic** queries, `query_seed=20260726`; shortcut fired 0/50; **see A.5.1, A.5.2**; measured under synthetic sampled embeddings, not real CLIP text encoding — real text queries give ≈291× (§5.3) |
 | **end-to-end (primary) 55.64 s vs 69.40 s (0.802×)** | `e2e_stage3_decomp_raw.{json,md}` | commit `deeeba8` (`tracked_dirty_count` 0); 5 real text queries/arm + discarded warmup; caption cache reset per arm; captioner pinned in harness config, resolved identity not recorded |
 | end-to-end (prior) 50.91 s vs 65.45 s (0.778×) | `e2e_speedup.{json,md}` | git HEAD `90ef59bb…` (dirty, 87 changed files); 5 real text queries/arm + discarded warmup; caption cache reset per arm |
 | caption delta +9.30 s [3.52, 16.22] | `caption_stage_diagnosis.{json,md}`, `_stdout.log` | 20 queries/arm; paired clip-level bootstrap, seed 42, B=10,000; top_k byte-identical (30 frames on all 40 queries) |
@@ -1575,8 +1575,9 @@ before and after the VIRAT latency run for both the NExT-QA and VIRAT caches.
 The artifact records that the flat graph was built in memory from the same loaded
 scene-sparse frames, to avoid a second ~13-minute ingest pass, and states plainly that this
 *"has not been independently confirmed"* not to advantage either mode. Since this run
-produces the 1,104× retrieval-mechanics figure, the caveat travels with that number.
-<!-- open item 24 -> Appendix C -->
+produces the 1,104× retrieval-mechanics figure, the caveat travels with that number,
+which is measured under synthetic sampled embeddings, not real CLIP text encoding — real
+text queries give ≈291× (§5.3).
 
 **A.5.2 — The N=4,892 clip is mpeg4, not H.264.** The ingest log for the VIRAT clip warns
 that the codec is not h264/hevc and that motion-vector export may be unavailable. This does
@@ -1931,13 +1932,13 @@ Every bracketed editorial note from the working drafts, collected. Numbering mat
 
 23. `build_cost_final.md` records no commit hash. Stamp one, or state that the reported build figures were measured on an uncommitted tree — see A.5.5.
 
-24. either confirm the two paths produce equivalent inputs, or state this caveat wherever 1,104× appears. Recommendation: state it — §5.3 already labels the figure as retrieval-mechanics-only, and one more clause is cheap.
+24. either confirm the two paths produce equivalent inputs, or state this caveat wherever 1,104× appears. Recommendation: state it — §5.3 already labels the figure as retrieval-mechanics-only, and one more clause is cheap. RESOLVED. The recommendation was taken — the caveat is stated wherever the figure appears rather than claiming path equivalence. The two paths are not equivalent: the same measurement under real CLIP text queries gives approximately 291x against 1,104x under synthetic sampled embeddings, and that gap is itself the evidence.
 
 25. confirm what the codec path actually did on this clip, and add one sentence to §3 or §4.
 
 26. re-stamp or re-run before submission.
 
-27. resolve the repository history blocker so these can be pushed; until then, these numbers rest on a single machine.
+27. RESOLVED, PREMISE FALSE. This item asserted a repository-history blocker preventing these artifacts from being pushed. Verified 2026-09-07 in the working repository (213 commits): the commit and 156 MB archive named in the originating team report do not exist in this tree; the largest object in history is 21.7 MB, below GitHub's 100 MB per-file limit; and `main` was already synchronised with `origin/main`. No history rewrite was needed or performed. The reachability limitation in A.5.4 is unaffected and stands as written — the R0, T5/T6, and ingest-efficiency artifacts remain unreachable from all authors' machines, which is a question of where those files live, not of repository history. See also items 19 and 33.
 
 28. decide how to handle this. Options: re-run the headline measurements from a clean tree, or state the limitation and provide the harness config hashes — `scaling_curve_v3` already records per-script SHA-1 hashes, which is the stronger practice and should be extended to the other harnesses.
 
