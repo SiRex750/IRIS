@@ -992,8 +992,6 @@ not magnitude**: both find the sparse arm slower at the median, but the closenes
 not the MiniCPM backend the committed default configuration specifies (§3.5). The harness
 was untracked at the time and the selection mechanism is unrecoverable.
 
-<!-- open item 12 -> Appendix C -->
-
 **The retrieval ratio in this run is not the ratio in §5.3's first line.** The
 retrieval-mechanics ratio here is approximately 291×, against the 1,104× reported in
 [C1.4]. The two are measured under different query types — real CLIP text encoding here,
@@ -1017,8 +1015,6 @@ project an end-to-end crossover. Doing so requires assuming the constant stage c
 equal across arms, which this run's own data contradicts (39.9 s vs 62.8 s; see §5.4), and
 a projection built on that assumption returns ~1.15× at N=4,892 against a measured 0.778×.
 The measured tractability boundary in §5.2 is the stronger statement and we rest on it.
-
-<!-- open item 13 -> Appendix C -->
 
 ### 5.4 Caption-cache locality (negative result)
 
@@ -1878,9 +1874,9 @@ Every bracketed editorial note from the working drafts, collected. Numbering mat
 
 11. state whether the noise-floor explanation was verified directly or is inferred from the fit; if inferred, say so.
 
-12. — decide which run is canonical for §5.3. The decomposition run has strictly better provenance: clean checkout, recorded commit, the configured captioner, and a component breakdown. The table above has the advantage of being the figure already circulated. They agree on direction and disagree on absolute stage times by roughly 4 s. Our recommendation is to promote the decomposition run to the primary table and retain 0.778× as the corroborating prior measurement — but this changes a headline number, so it is not our call.
+12. — decide which run is canonical for §5.3. The decomposition run has strictly better provenance: clean checkout, recorded commit, the configured captioner, and a component breakdown. The table above has the advantage of being the figure already circulated. They agree on direction and disagree on absolute stage times by roughly 4 s. Our recommendation is to promote the decomposition run to the primary table and retain 0.778× as the corroborating prior measurement — but this changes a headline number, so it is not our call. **RESOLVED.** The decomposition run (commit `deeeba8`, `tracked_dirty_count` 0) was promoted to the primary §5.3 table at 0.802×. The 0.778× run (git HEAD `90ef59b`, 87 dirty files, BLIP captioner, unrecoverable selection mechanism) is retained as the prior measurement. The two used different captioners and corroborate direction only, not magnitude. The promotion was propagated to §1, §8.1, and the Appendix A artifact index, which now carries rows for both runs.
 
-13. decide whether to report the projection at all, or only the measurement plus its assumptions. Arguments both ways; a reviewer may reasonably regard a single-N extrapolation as unsupported.
+13. decide whether to report the projection at all, or only the measurement plus its assumptions. Arguments both ways; a reviewer may reasonably regard a single-N extrapolation as unsupported. **RESOLVED.** The end-to-end crossover projection was CUT. Reason: it assumes L equal across arms, contradicted by the same run's data (39.9 s vs 62.8 s), and returns ~1.15× at N=4,892 against a measured 0.778×. The retrieval-only crossover at N≈24 is retained. The cut covered three locations — §5.3, §8.1, and the Appendix A artifact index — and any future session finding a crossover figure elsewhere should remove it rather than reinstate the projection.
 
 
 **06_correctness_floor.md**
