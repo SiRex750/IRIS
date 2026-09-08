@@ -245,7 +245,9 @@ substitutes** — but the difference is in where description is produced, not in
 questions are reachable. A time-bounded query — "which step did the participant perform
 between 32:10 and 32:38" — is answerable under either design: EgoSG reads symbolic events
 written at construction time, while we select the frames falling inside the interval and
-caption them on demand. What differs is where the cost falls. EgoSG pays a frontier-model
+caption them on demand. We expose no time-window query interface, however — retrieval is
+CLIP-text-driven end to end (§3.4) — so this describes what the representation admits, not
+a measured capability. What differs is where the cost falls. EgoSG pays a frontier-model
 call per chunk during construction and then reads text cheaply for every later query; we
 produce no text at construction and pay the captioning cost per query instead, at roughly
 2.5 s per frame on CPU (§5.4). The asymmetry that genuinely favours a symbolic graph is a
@@ -254,8 +256,6 @@ across an hour, how often some event recurred — are answerable from a serializ
 without revisiting the footage, whereas we would have to caption exhaustively to match it.
 Conversely our structure supports frame-level retrieval that a serialized graph discards.
 We compare on construction cost, not on representational power.
-
-<!-- open item 1 -> Appendix C -->
 
 **(2) How construction scales, and what it depends on.** EgoSG's generation costs
 approximately 5.7 s per one-minute clip and scales linearly with duration, metered against
@@ -851,11 +851,13 @@ separation.
 **On the two scene-sparse exponents.** We report both and take as the headline the one
 *less* favourable to our claim. The full-range fit (0.497) is markedly lower than the
 headline fit (0.834), giving a larger sparse-versus-dense separation than we report.
-Small-N clips sit close to the measurement noise floor, where fixed per-query overhead
-dominates and latency grows more slowly than the asymptotic trend; the full-range fit also
-has visibly poorer explanatory power (R² 0.898 vs 0.983). We take the N ≥ 1102 fit as the
-headline because it is the regime the paper is about — large graphs — and because it is the
-conservative choice. <!-- open item 11 -> Appendix C -->
+We infer that small-N clips sit close to a measurement noise floor from the shape of the
+fit alone — the shallower small-N slope and the full-range fit's visibly poorer explanatory
+power (R² 0.898 vs 0.983) — where fixed per-query overhead would dominate and latency would
+grow more slowly than the asymptotic trend; we have not verified this by direct
+measurement, and no repeated small-N runs or fitted overhead constant exist to confirm it.
+We take the N ≥ 1102 fit as the headline because it is the regime the paper is about — large
+graphs — and because it is the conservative choice.
 
 **Three caveats travel with the table:**
 
@@ -1193,7 +1195,7 @@ coverage rather than the most relevant evidence.
 
 This is the same failure mode we observe on NExT-GQA's directional-temporal questions,
 where accuracy collapses on before/after items even when the correct evidence is
-retrieved. <!-- open item 14 -> Appendix C --> We treat it as a limitation of the
+retrieved. We treat it as a limitation of the
 answerer at this scale rather than of the graph, and note it in §8.
 
 Needle QA's 12% parse-failure rate is the highest of the six and its accuracy (0.280)
@@ -1323,7 +1325,8 @@ blocks are chosen.
 
 This is a narrower claim than the one we set out to make, and a more portable one. A
 pipeline adopting our construction does not need our codec signal, our segmentation, or
-our admission policy; it needs the block structure. <!-- open item 17 -> Appendix C -->
+our admission policy; it needs the block structure. §9 collects this portability point
+rather than restating §4.
 
 ---
 
@@ -1379,7 +1382,7 @@ Action Order and Action Count fall below chance with parse-failure rates of 4% a
 the answerer is confidently wrong rather than unparsed (§6.2). The same pattern appears on
 NExT-GQA's before/after questions. Both require properties top-k retrieval does not
 supply — relative temporal ordering and exhaustive coverage — and neither is addressed by
-changing how the graph is built. <!-- open item 18 -> Appendix C -->
+changing how the graph is built.
 
 **8.8 Scene shortlisting bounds downstream recall.** Retrieval admits only the top
 ⌈√S⌉-scale scenes before frame-level ranking (§3.4), so a scene excluded at that stage
@@ -1877,6 +1880,8 @@ Every bracketed editorial note from the working drafts, collected. Numbering mat
 
 1. we expose no time-window query interface — retrieval is CLIP-text-driven end to end (§3.4) — so the interval case above describes what the representation admits, not a measured capability. Either scope the sentence that way in print or add the interface; it must not read as an evaluated result.
 
+RESOLVED — the §2.2 time-bounded query example now carries an explicit scoping clause: "We expose no time-window query interface, however — retrieval is CLIP-text-driven end to end (§3.4) — so this describes what the representation admits, not a measured capability." Added in place, without restructuring the paragraph or altering the EgoSG comparison.
+
 2. do not convert the Vgent and IRIS construction figures into a ratio. Theirs is seconds per minute of video; ours is a graph build at a given survivor count, and our ingest figure is per video over a 32-video sample. A comparison needs the VIRAT clip durations and a matched denominator, or it becomes the phantom 4.6× again.
 
 RESOLVED — checked, guard held. The draft nowhere converts the Vgent and IRIS construction figures into a ratio. The two are stated side by side once (§2.2), where the text explicitly declines the comparison on the grounds that the denominators differ and frames the claim as being about the class of model each construction requires rather than the seconds. The only multiplier near Vgent in the draft is its own reported 1.73× against Video-RAG, internal to Vgent's paper. Any future edit adding a Vgent-vs-IRIS ratio must first supply the VIRAT clip durations and a matched denominator.
@@ -1905,6 +1910,8 @@ RESOLVED — checked, guard held. The draft nowhere converts the Vgent and IRIS 
 
 11. state whether the noise-floor explanation was verified directly or is inferred from the fit; if inferred, say so.
 
+RESOLVED — §5.1 now states plainly that the noise-floor account is inferred from the shape of the fit (the shallower small-N slope and the full-range fit's lower R², 0.898 vs 0.983), not verified by direct measurement. No artifact in eval_results/ records a direct noise-floor measurement — no repeated small-N runs and no fitted overhead constant exist. `scaling_curve_v2_textquery_NOTES.md` lists "characterize the small-N noise floor directly" under a follow-up run explicitly marked NOT started. The R² figures and the subsequent sentence on taking the N ≥ 1102 fit as the conservative headline are unchanged.
+
 12. — decide which run is canonical for §5.3. The decomposition run has strictly better provenance: clean checkout, recorded commit, the configured captioner, and a component breakdown. The table above has the advantage of being the figure already circulated. They agree on direction and disagree on absolute stage times by roughly 4 s. Our recommendation is to promote the decomposition run to the primary table and retain 0.778× as the corroborating prior measurement — but this changes a headline number, so it is not our call. **RESOLVED.** The decomposition run (commit `deeeba8`, `tracked_dirty_count` 0) was promoted to the primary §5.3 table at 0.802×. The 0.778× run (git HEAD `90ef59b`, 87 dirty files, BLIP captioner, unrecoverable selection mechanism) is retained as the prior measurement. The two used different captioners and corroborate direction only, not magnitude. The promotion was propagated to §1, §8.1, and the Appendix A artifact index, which now carries rows for both runs.
 
 13. decide whether to report the projection at all, or only the measurement plus its assumptions. Arguments both ways; a reviewer may reasonably regard a single-N extrapolation as unsupported. **RESOLVED.** The end-to-end crossover projection was CUT. Reason: it assumes L equal across arms, contradicted by the same run's data (39.9 s vs 62.8 s), and returns ~1.15× at N=4,892 against a measured 0.778×. The retrieval-only crossover at N≈24 is retained. The cut covered three locations — §5.3, §8.1, and the Appendix A artifact index — and any future session finding a crossover figure elsewhere should remove it rather than reinstate the projection.
@@ -1913,6 +1920,8 @@ RESOLVED — checked, guard held. The draft nowhere converts the Vgent and IRIS 
 **06_correctness_floor.md**
 
 14. cross-reference precisely once the companion analysis is available; do not import its numbers into this paper.
+
+RESOLVED — checked, no edit needed. The §6.2 passage names the failure mode and its locus (directional-temporal questions, answerer rather than retrieval) and imports no number, metric, or result from the companion analysis. It contains no reference to the companion work at all. If a citation becomes available before submission, add it there; do not import figures with it.
 
 
 **07_negatives.md**
@@ -1923,10 +1932,14 @@ RESOLVED — checked, guard held. The draft nowhere converts the Vgent and IRIS 
 
 17. one sentence tying this forward to §9 — the conclusion should collect this rather than restate §4.
 
+RESOLVED — §7.3 now ends with one added sentence: "§9 collects this portability point rather than restating §4." §9 already states the portability point (lines 1443–1445 pre-edit), so no other change was needed.
+
 
 **08_09_limitations_conclusion.md**
 
 18. decide how far to forward-reference the companion analysis. Recommendation: name the failure mode and its locus, cite nothing unpublished, and import no numbers.
+
+RESOLVED — the recommendation was taken, and the text already complies. §8.7 names the failure mode and its locus, cites nothing unpublished, and imports no numbers. A grep of the whole draft for companion-work references ("companion", "forthcoming", "in preparation", "under review", "separate paper") returns hits only inside Appendix C's own editorial notes — none in the body, Appendix A, or Appendix B.
 
 19. state plainly whichever of the following remain true at submission: the MLVU baseline artifact records no git commit; the salience-weight provenance question (§3, note 1) is unresolved; the R0/T5 artifacts are not reachable from all authors' machines. If they are fixed by then, delete this item rather than softening it.
 
