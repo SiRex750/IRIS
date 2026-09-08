@@ -14,6 +14,7 @@ Owner: Track B
 """
 from __future__ import annotations
 import os
+import sys
 from dataclasses import dataclass
 
 from iris.claim_contract import ANSWER_CLAIMS_WIRE_SCHEMA
@@ -110,7 +111,14 @@ class MiniCPMCaptioner:
                     else:
                         matched = next((m for m in models if "minicpm" in m.lower()), None)
                         if matched:
-                            model_name = matched.split(":")[0]
+                            # ARIA-001 (bug fix, not a config/dispatch change): using
+                            # matched.split(":")[0] truncated the installed Ollama
+                            # tag at its first ":" -- e.g. "minicpm-v4.6:1b" became
+                            # "minicpm-v4.6", which is a DIFFERENT tag (Ollama treats
+                            # a bare name as an alias for ":latest") and 404s on
+                            # /api/generate when only ":1b" was ever pulled. Use the
+                            # exact tag Ollama reported instead of chopping it.
+                            model_name = matched
             except Exception:
                 pass
         self.model_name = model_name or "minicpm-v"
@@ -163,9 +171,10 @@ class MiniCPMCaptioner:
 
 
 _ACTIVE_CAPTIONER: MiniCPMCaptioner | MoondreamCaptioner | BLIPCaptioner | None = None
+_LAST_CAPTIONER_PROVENANCE: dict | None = None
 
 def get_captioner() -> MiniCPMCaptioner | MoondreamCaptioner | BLIPCaptioner:
-    global _ACTIVE_CAPTIONER
+    global _ACTIVE_CAPTIONER, _LAST_CAPTIONER_PROVENANCE
     if _ACTIVE_CAPTIONER is None:
         try:
             from iris.iris_config import ConfigManager
@@ -180,7 +189,39 @@ def get_captioner() -> MiniCPMCaptioner | MoondreamCaptioner | BLIPCaptioner:
             _ACTIVE_CAPTIONER = BLIPCaptioner()
         else:
             _ACTIVE_CAPTIONER = MiniCPMCaptioner()
+
+        # PROV-001: log the resolved class (and, for MiniCPM, the exact
+        # Ollama tag it will request) at the moment of resolution -- this is
+        # ground truth for what actually loaded, not an inference from
+        # static config reading. See eval_results/captioner_provenance.md:
+        # a source-only dispatch trace concluded "minicpm" for several
+        # artifacts on the premise that the tracked harness script is what
+        # ran; that same premise was contradicted for e2e_speedup.json,
+        # whose own stdout log shows BLIP loaded. Read-only -- does not
+        # change which branch above runs.
+        resolved_class = type(_ACTIVE_CAPTIONER).__name__
+        ollama_tag = getattr(_ACTIVE_CAPTIONER, 'model_name', None)
+        _LAST_CAPTIONER_PROVENANCE = {
+            'resolved_captioner_class': resolved_class,
+            'ollama_tag': ollama_tag,  # None for non-MiniCPM captioners
+        }
+        tag_note = f" ollama_tag={ollama_tag}" if ollama_tag is not None else ""
+        print(
+            f"[aria.get_captioner] resolved_captioner_class={resolved_class}{tag_note}",
+            file=sys.stderr,
+        )
     return _ACTIVE_CAPTIONER
+
+
+def get_captioner_provenance() -> dict | None:
+    """Returns {'resolved_captioner_class', 'ollama_tag'} as recorded at the
+    most recent get_captioner() resolution in this process (None if
+    get_captioner() hasn't been called yet). Any script already writing a
+    provenance/config block into an artifact should pull this in -- it is
+    measured at dispatch time, unlike a field copied off the caller's own
+    IRISConfig object (which get_captioner() never reads; see
+    captioner_provenance.md §2)."""
+    return _LAST_CAPTIONER_PROVENANCE
 
 def set_captioner(captioner: MiniCPMCaptioner | MoondreamCaptioner | BLIPCaptioner) -> None:
     global _ACTIVE_CAPTIONER

@@ -203,7 +203,13 @@ def test_minicpm_captioner_and_mocked_ollama():
         mock_get_config.return_value = mock_cfg
         captioner = get_captioner()
     assert isinstance(captioner, MiniCPMCaptioner)
-    assert captioner.model_name in ("minicpm-v4.6", "minicpm-v")
+    # ARIA-001: whatever minicpm tag is actually installed on this machine
+    # (queried live against /api/tags in MiniCPMCaptioner.__init__, not
+    # mocked here) must resolve to its EXACT installed form, tag suffix
+    # included (e.g. "minicpm-v4.6:1b", not the truncated "minicpm-v4.6" --
+    # that used to 404 on generate; see ARIA-001's fix in iris/aria.py).
+    # Loosely matched here since the installed tag is environment-dependent.
+    assert captioner.model_name.startswith(("minicpm-v4.6", "minicpm-v"))
 
     # Test custom mock Ollama response
     mock_pil = MagicMock()
@@ -225,7 +231,7 @@ def test_minicpm_captioner_and_mocked_ollama():
         args, kwargs = mock_post.call_args
         assert args[0] == "http://localhost:11434/api/generate"
         payload = kwargs["json"]
-        assert payload["model"] in ("minicpm-v4.6", "minicpm-v")
+        assert payload["model"].startswith(("minicpm-v4.6", "minicpm-v"))  # ARIA-001
         assert payload["prompt"] == (
             "List everything visible in this image: every person, object, vehicle, "
             "and action. One short sentence per item. Only what is clearly visible."
