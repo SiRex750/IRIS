@@ -139,9 +139,9 @@ We state the following before the evidence rather than in a closing limitations 
 because it is part of the contribution rather than a concession attached to it.
 
 **A retrieval speedup of three orders of magnitude does not reach the user.** Measuring the
-full query path at N=4,892, the end-to-end ratio is 0.778× — the sparse arm is *slower* at
-the median. Retrieval mechanics shrink from 8.086 s to 0.028 s, but a captioning and
-verification stage costing 40–63 s dominates the total and is O(top_k) rather than O(N), so
+full query path at N=4,892, the end-to-end ratio is 0.802× — the sparse arm is *slower* at
+the median. Retrieval mechanics shrink from 8.535 s to 0.030 s, but a captioning and
+verification stage costing 44–67 s dominates the total and is O(top_k) rather than O(N), so
 it does not shrink with the graph. Sparsifying the graph makes a small term negligible
 while leaving the largest term untouched.
 
@@ -1333,11 +1333,9 @@ deferring them here. This section collects the constraints that bound our claims
 those a reader would otherwise have to assemble across sections.
 
 **8.1 The retrieval speedup is not an end-to-end speedup.** At N=4,892 the measured
-end-to-end ratio is 0.778× despite a retrieval-mechanics ratio of two to three orders of
-magnitude, because a captioning and verification stage costing 40–63 s dominates and is
-O(top_k) rather than O(N) (§5.3). Our projection places a material end-to-end advantage
-near N≈12,274, but that is an extrapolation from a single measured N whose own equal-cost
-assumption is contradicted by the same run's data. **The construction result (§4) carries
+end-to-end ratio is 0.802× despite a retrieval-mechanics ratio of two to three orders of
+magnitude, because a captioning and verification stage costing 44–67 s dominates and is
+O(top_k) rather than O(N) (§5.3). **The construction result (§4) carries
 no equivalent caveat**; the query-latency results should be read as component-level
 characterisations rather than as user-facing latency claims.
 
@@ -1517,8 +1515,8 @@ HEAD before the dedup change `90ef59b` on `siddanth/peak-source-a6-p1`.
 | survivor census: 31 clips, median N=333, bins of 7/2/2/1 | `_ci_survivor_census.json`, `scaling_curve_ci_census.json` | harness `scripts/_ci_survivor_census.py` |
 | shortcut guard violations: Assault036 20%, Abuse037 10% | `scaling_curve_v3.md` guards section | — |
 | retrieval mechanics 7.9448 s vs 0.0072 s (1,104×) | `virat_latency_N4892_{raw.json,result.md}` | run 2026-07-27; 50 **synthetic** queries, `query_seed=20260726`; shortcut fired 0/50; **see A.5.1, A.5.2** |
-| end-to-end 50.91 s vs 65.45 s (0.778×) | `e2e_speedup.{json,md}` | git HEAD `90ef59bb…` (dirty, 87 changed files); 5 real text queries/arm + discarded warmup; caption cache reset per arm |
-| crossover projection N≈12,274 | same | projection, not measurement — assumptions listed in artifact §4 and in paper §5.3 |
+| **end-to-end (primary) 55.64 s vs 69.40 s (0.802×)** | `e2e_stage3_decomp_raw.{json,md}` | commit `deeeba8` (`tracked_dirty_count` 0); 5 real text queries/arm + discarded warmup; caption cache reset per arm; captioner pinned in harness config, resolved identity not recorded |
+| end-to-end (prior) 50.91 s vs 65.45 s (0.778×) | `e2e_speedup.{json,md}` | git HEAD `90ef59bb…` (dirty, 87 changed files); 5 real text queries/arm + discarded warmup; caption cache reset per arm |
 | caption delta +9.30 s [3.52, 16.22] | `caption_stage_diagnosis.{json,md}`, `_stdout.log` | 20 queries/arm; paired clip-level bootstrap, seed 42, B=10,000; top_k byte-identical (30 frames on all 40 queries) |
 
 ### §6 — Correctness floor
@@ -1809,7 +1807,9 @@ retrieval-mechanics ratio would be labelled as such wherever it appeared.
 
 The rule triggered. A prior-artifact search found no measurement backing the carried
 end-to-end figure at all; the fresh measurement returned 0.778×. The paper's framing was
-changed accordingly (§1, §5.3, §9).
+changed accordingly (§1, §5.3, §9). The decomposition run (commit `deeeba8`) has since been
+promoted to the primary §5.3 measurement at 0.802×, and the 0.778× figure recorded here is
+retained as the prior measurement.
 
 ### B.10 Caption-stage diagnosis (2026-08-15)
 
