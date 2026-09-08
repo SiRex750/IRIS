@@ -321,8 +321,6 @@ not like-for-like, since the denominators differ, so the honest claim is about t
 model each construction requires — an image encoder against a generative LVLM — rather than
 about the seconds.
 
-<!-- open item 2 -> Appendix C -->
-
 <!-- open item 3 -> Appendix C -->
 
 ### 2.3 Grounded video question answering
@@ -514,6 +512,15 @@ N=4,892 over S=528 scenes the two quantities are 23,571 and 11,963,386 — the p
 construction discards **99.8%** of the pairs it examines, while block-diagonal construction
 visits exactly as many pairs as it retains.
 
+In the balanced case, where all S scenes hold n = N/S survivors, the block-diagonal pair
+count is S·n(n−1)/2 ≈ N²/(2S) against N²/2 for the dense path, so the saving is the scene
+count S. Two boundaries follow. A single scene (S=1) makes the two paths identical, and the
+construction saves nothing. The saving grows with scene count for a fixed N, and is maximal
+when scenes are equal in size: for fixed N and S, Σᵢ nᵢ² is minimised at nᵢ = N/S, so an
+uneven partition with one dominant scene approaches the dense cost. At N=4,892 over S=528
+the realised ratio is 23,571/11,963,386 = 0.197%, against 1/S = 0.189% for a perfectly
+balanced partition of the same N and S — the VIRAT partition is close to balanced.
+
 Because the pruned graph and the block-diagonal graph are the same object, this is a
 change of construction order, not of representation. §4.1 verifies that claim empirically
 rather than resting on the argument.
@@ -704,7 +711,7 @@ formula, which the block-diagonal construction does not target (§3.5).
 We state this as an identity rather than an approximation because the block-diagonal
 construction is not an approximation. Cross-scene edges are absent from the scene-sparse
 graph by definition; the reference path computes them and then discards them. The
-block-diagonal path simply never computes them. <!-- open item 10 -> Appendix C -->
+block-diagonal path simply never computes them.
 
 ### 4.2 Savings
 
@@ -1872,6 +1879,8 @@ Every bracketed editorial note from the working drafts, collected. Numbering mat
 
 2. do not convert the Vgent and IRIS construction figures into a ratio. Theirs is seconds per minute of video; ours is a graph build at a given survivor count, and our ingest figure is per video over a 32-video sample. A comparison needs the VIRAT clip durations and a matched denominator, or it becomes the phantom 4.6× again.
 
+RESOLVED — checked, guard held. The draft nowhere converts the Vgent and IRIS construction figures into a ratio. The two are stated side by side once (§2.2), where the text explicitly declines the comparison on the grounds that the denominators differ and frames the claim as being about the class of model each construction requires rather than the seconds. The only multiplier near Vgent in the draft is its own reported 1.73× against Video-RAG, internal to Vgent's paper. Any future edit adding a Vgent-vs-IRIS ratio must first supply the VIRAT clip durations and a matched denominator.
+
 3. EgoSG and Vgent are two systems, not a family. One more would let §2.2 speak about a line of work rather than a pair. Unverified candidates from a literature pass: EGAgent (arXiv 2601.18157, temporally annotated entity scene graphs, egocentric), GraphVideoAgent (ACM MM 2025, entity-relation graphs, 8.2 frames average on EgoSchema/NExT-QA), and MemDreamer (arXiv 2606.07512, hierarchical graph memory). None read from source; verify scope before citing.
 
 4. verify the two NG+ variants against Xiao et al. Table 3 directly — currently taken from the benchmark table via our own ledger.
@@ -1892,7 +1901,7 @@ Every bracketed editorial note from the working drafts, collected. Numbering mat
 
 **04_05_construction_and_scaling.md**
 
-10. formal statement in §3.3 — Σ_s |S_s|² vs N², with the balanced-scene case.
+10. formal statement in §3.3 — Σ_s |S_s|² vs N², with the balanced-scene case. RESOLVED. The balanced-scene case is stated in §3.3, with the S=1 and uneven-partition boundaries, and the realised 0.197% checked against 1/S = 0.189% at N=4,892, S=528.
 
 11. state whether the noise-floor explanation was verified directly or is inferred from the fit; if inferred, say so.
 
