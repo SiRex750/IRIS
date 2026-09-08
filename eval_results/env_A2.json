@@ -1,0 +1,62 @@
+{
+  "timestamp_utc": "2026-09-08T18:43:07.315716+00:00",
+  "cpu": {
+    "model": "AMD Ryzen 7 9800X3D 8-Core Processor",
+    "physical_cores": 8,
+    "logical_cores": 16
+  },
+  "ram_total_gb": 31.16,
+  "os": {
+    "name": "Windows",
+    "version": "Windows-11-10.0.26200-SP0"
+  },
+  "python_version": "3.12.10",
+  "torch": {
+    "version": "2.13.0+cpu",
+    "cuda_available": false
+  },
+  "packages": {
+    "numpy": "2.5.1",
+    "networkx": "3.6.1",
+    "av": "18.0.0",
+    "transformers": "4.57.6",
+    "clip_impl": {
+      "package": "clip",
+      "version": "unknown (no __version__ attribute)",
+      "provenance": {
+        "module_file": "C:\\Users\\Siddanth Anil\\IRIS\\.venv\\Lib\\site-packages\\clip\\__init__.py",
+        "pip_show": {
+          "name": "clip",
+          "version": "1.0",
+          "location": "C:\\Users\\Siddanth Anil\\IRIS\\.venv\\Lib\\site-packages"
+        }
+      }
+    }
+  },
+  "tools": {
+    "ffmpeg_on_path": "not on PATH",
+    "ffmpeg_search": {
+      "imageio_ffmpeg_installed": false,
+      "ffmpeg_exe_found_in_venv_or_repo": false,
+      "note": "no ffmpeg binary found under .venv or repo trees; imageio_ffmpeg not installed"
+    },
+    "pyav_linked_ffmpeg_libraries": {
+      "note": "decoder actually used by the caption path, independent of PATH",
+      "pyav_version": "18.0.0",
+      "library_versions": {
+        "libavutil": [60, 26, 102],
+        "libavcodec": [62, 28, 102],
+        "libavformat": [62, 12, 102],
+        "libavdevice": [62, 3, 102],
+        "libavfilter": [11, 14, 102],
+        "libswscale": [9, 5, 102],
+        "libswresample": [6, 3, 102]
+      }
+    },
+    "ollama": "ollama version is 0.33.3"
+  },
+  "git": {
+    "head": "48c082a64465bc363510c4bcb31bbe90513ebcc7",
+    "tracked_dirty_file_count": 2
+  }
+}

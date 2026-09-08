@@ -1462,11 +1462,32 @@ not a reproducibility appendix.
 
 ### A.2 Environment
 
-All measurements are CPU-only. <!-- open item 21 -> Appendix C -->
+**Machine.** CPU: AMD Ryzen 7 9800X3D, 8 physical cores / 16 logical. RAM: 31.16 GB.
+OS: Windows 11 (`Windows-11-10.0.26200-SP0`).
+
+**Runtime.** Python 3.12.10. torch 2.13.0+cpu (CUDA not available). numpy 2.5.1,
+networkx 3.6.1, av 18.0.0, transformers 4.57.6. clip: pip reports version 1.0; the
+package exposes no `__version__` attribute, so the version string is not independently
+verifiable from the module. ollama 0.33.3.
+
+**Decoder (caption path).** PyAV 18.0.0, linked FFmpeg libraries: libavutil 60.26.102,
+libavcodec 62.28.102, libavformat 62.12.102, libavdevice 62.3.102, libavfilter 11.14.102,
+libswscale 9.5.102, libswresample 6.3.102. No ffmpeg binary was found on PATH, in the
+virtual environment, or in the repository; all decoding in the caption path goes through
+PyAV's linked libraries above.
+
+All measurements are CPU-only.
 
 Answerer: `granite4:micro` (~3.4B, Q4_K_M) served via llama-server, temperature 0,
 `cache_prompt=false`, `--parallel 1`. Embeddings: CLIP ViT-B/32, the same model at ingest
 and query time. <!-- open item 22 -> Appendix C -->
+
+All reported measurements are CPU-only on a single machine, and the memory watchdog
+described in §5.2 sits near this machine's total RAM.
+
+This environment was captured on the same machine after the reported runs rather than
+at run time (captured 2026-09-08T18:43:07Z at commit `48c082a`, 2 tracked files dirty);
+the full record is in `eval_results/env_A2.json`.
 
 ### A.3 Artifact index by section
 
@@ -1904,7 +1925,7 @@ Every bracketed editorial note from the working drafts, collected. Numbering mat
 
 **10_appendix_A_artifact_index.md**
 
-21. state CPU model, core count, RAM, OS, Python version, and torch version. None of this is recorded in the artifacts and it must be captured before submission — a reviewer cannot interpret a wall-clock number without it.
+21. state CPU model, core count, RAM, OS, Python version, and torch version. None of this is recorded in the artifacts and it must be captured before submission — a reviewer cannot interpret a wall-clock number without it. **RESOLVED.** A.2 is now populated from `eval_results/env_A2.json`.
 
 22. llama-server build — `b9976` is recorded in one prereg; confirm it is the build used for every reported run.
 
