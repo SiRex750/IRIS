@@ -923,7 +923,49 @@ dense vs 0.0072 s scene-sparse) [C1.4]. **This ratio does not reach the user.**
 We measured the full query path — query text to final answer — at the same N, with
 `granite4:micro` (~3.4B, Q4_K_M) on CPU, `l2_retrieve_top_k=30`, `cerberus_mode="legacy"`,
 five real CLIP-text queries per arm plus a discarded warm-up, and the caption cache reset
-before each arm to prevent cross-arm leakage:
+before each arm to prevent cross-arm leakage. **The primary measurement** is an
+instrumented run on a clean, commit-stamped checkout (commit `deeeba8`,
+`tracked_dirty_count` 0), which reports median per-component costs of:
+
+| component | dense | scene-sparse |
+|---|---:|---:|
+| retrieval mechanics | 8.535 | 0.030 |
+| answerer (LLM) | 2.830 | 2.817 |
+| captioning | 37.269 | 62.132 |
+| L1 retrieval | 0.000 | 0.000 |
+| Cerberus verification | 6.408 | 4.418 |
+
+Stage medians are taken independently, so they need not sum to the reported totals of
+55.64 s and 69.40 s.
+
+Captioning accounts for 85% of the bucket in the dense arm and 93% in the scene-sparse arm.
+L1 retrieval costs **exactly zero** at every query in both arms — it populates an in-memory
+dictionary over already-retrieved frames and issues no I/O or model call — so the bucket is
+in practice a two-way split between captioning and verification, not a three-way one.
+
+Median totals for this run are 55.64 s (dense) and 69.40 s (scene-sparse) —
+**end-to-end ratio: 0.802×** — the sparse arm was slower at the median. Per-query caption
+cost ranges from 2.6 s to 69.3 s depending on how many of the top-30 frames miss the
+caption cache, so with five queries per arm these medians are directionally indicative
+rather than precise.
+
+The third stage bundles two costs: fetching each cache-missing frame's pixels (seek to the
+nearest keyframe, decode forward through that GOP) and the captioner forward pass itself.
+We measured the split on one query at the same N (30 cache misses, 272 frames decoded, 27
+distinct GOPs): 0.815 s in the decode loop against 114.6 s in captioning, so frame fetching
+accounts for under 1% of the stage. This split query was measured cold-cache, with all 30
+retrieved frames missing the caption cache, so its 114.6 s absolute captioning figure
+exceeds the partly-warm 62.132 s median in the table above; the ratio between decode and
+captioning, not the absolute captioning time, is the point. The cost is captioner inference
+at fixed top_k, not frame access.
+
+**Provenance note.** This run was made on a clean, commit-stamped checkout (commit
+`deeeba8`, `tracked_dirty_count` 0) with the captioner pinned in the harness
+configuration; the resolved captioner identity is not recorded in the run artifacts.
+
+**A prior measurement, made before this bucket was decomposed, reports a lower ratio
+under a different captioner.** We measured the same full query path at the same N with
+the same query protocol, the caption cache reset before each arm:
 
 | stage (median, s) | dense | scene-sparse |
 |---|---:|---:|
@@ -941,43 +983,14 @@ figures for what they measure; neither is a reconciliation error.
 Per-query totals span 15.49–88.05 s (dense) and 10.19–79.40 s (sparse), so the sample is
 noisy; but the direction of the median is unambiguous and the mechanism is not in doubt.
 
-Two observations matter more than the headline ratio.
-
-**The LLM is not the bottleneck.** The answerer stage costs 2.63 s and is identical
-across arms, as expected given both feed the same top-k context to the same model. The
-dominant term is the third stage — recorded by the harness as a single bucket covering
-captioning, L1 retrieval, and Cerberus verification, and shown below to be captioning
-almost entirely. It is O(top_k) rather than O(N) and
-therefore does not shrink as the graph sparsifies. Sparsifying the graph makes the
-retrieval step negligible while leaving the largest term untouched.
-
-**The bucket has since been decomposed, and captioning is indeed the dominant term.** A
-separate instrumented run on a clean checkout (commit `deeeba8`, N=4,892, same query
-protocol) reports median per-component costs of:
-
-| component | dense | scene-sparse |
-|---|---:|---:|
-| captioning | 37.269 | 62.132 |
-| L1 retrieval | 0.000 | 0.000 |
-| Cerberus verification | 6.408 | 4.418 |
-
-Captioning accounts for 85% of the bucket in the dense arm and 93% in the scene-sparse arm.
-L1 retrieval costs **exactly zero** at every query in both arms — it populates an in-memory
-dictionary over already-retrieved frames and issues no I/O or model call — so the bucket is
-in practice a two-way split between captioning and verification, not a three-way one.
-
-Two caveats travel with that decomposition. First, per-query caption cost ranges from 2.6 s
-to 69.3 s depending on how many of the top-30 frames miss the caption cache, so with five
-queries per arm these medians are directionally indicative rather than precise. Second, the
-decomposition run used a different captioner from the table above (see the provenance note),
-and its median totals are correspondingly higher at 55.64 s and 69.40 s, giving an
-end-to-end ratio of 0.802× — the same direction and magnitude as the 0.778× reported here,
-which is the useful cross-check.
+This prior measurement used a different captioner from the primary run above, and
+captioning is 85–93% of the dominant stage, so the two runs corroborate **direction only,
+not magnitude**: both find the sparse arm slower at the median, but the closeness of
+0.778× and 0.802× should not be read as agreement in magnitude.
 
 **Provenance note on the table above.** These figures were produced with BLIP captioning,
 not the MiniCPM backend the committed default configuration specifies (§3.5). The harness
-was untracked at the time and the selection mechanism is unrecoverable. The decomposition
-run above used MiniCPM on a clean, commit-stamped checkout.
+was untracked at the time and the selection mechanism is unrecoverable.
 
 <!-- open item 12 -> Appendix C -->
 
@@ -988,20 +1001,22 @@ synthetic sampled embeddings there — and **must not be conflated.** We report 
 their methodology attached; the 1,104× figure is a retrieval-mechanics number under
 synthetic queries and is labelled as such wherever it appears.
 
-**Crossover.** Extrapolating retrieval cost from the §5.1 fits and adding a single
-constant stage cost L = 56.9 s (the pooled median of this run's ten measured
-caption+verify values) to both arms places a *material* (≥2×) end-to-end advantage near
-N≈12,274, with 1.5× near N≈8,772 and 3× near N≈17,176. The retrieval-only crossover is
-N≈24.
+One observation matters more than the headline ratio.
 
-This is a **projection from a single measured N**, and we state its assumptions: (i) L is
-constant in N — plausible, since it scales with top_k, but unverified at any other N;
-(ii) L is equal across arms — **contradicted by this run's own data** (39.9 s vs 62.8 s;
-see §5.4), so the pooled median is a simplification, not a per-arm fit; (iii) the
-retrieval coefficients are taken from the committed fit rather than re-fit here; (iv) a
-single clip underlies both the L measurement and much of the retrieval fit. The
-projection gives ~1.15× at the measured N=4,892, against a measured 0.778× — the
-disagreement is itself an indication of how much noise a five-query sample carries.
+**The LLM is not the bottleneck.** The answerer stage costs 2.83 s and is identical
+across arms, as expected given both feed the same top-k context to the same model. The
+dominant term is the third stage — dominated by captioning per the primary table above,
+though the earlier measurement (the prior-measurement table) recorded it only as a single
+bucket covering captioning, L1 retrieval, and Cerberus verification. It is O(top_k) rather
+than O(N) and therefore does not shrink as the graph sparsifies. Sparsifying the graph makes the
+retrieval step negligible while leaving the largest term untouched.
+
+**Crossover.** The retrieval-only crossover — the graph size past which scene-sparse
+retrieval mechanics cost less than dense — sits at N≈24 from the §5.1 fits. We do not
+project an end-to-end crossover. Doing so requires assuming the constant stage cost L is
+equal across arms, which this run's own data contradicts (39.9 s vs 62.8 s; see §5.4), and
+a projection built on that assumption returns ~1.15× at N=4,892 against a measured 0.778×.
+The measured tractability boundary in §5.2 is the stronger statement and we rest on it.
 
 <!-- open item 13 -> Appendix C -->
 
