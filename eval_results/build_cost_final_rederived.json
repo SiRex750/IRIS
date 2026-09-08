@@ -1,0 +1,52 @@
+{
+  "provenance": {
+    "script": "scripts/build_cost_aggregate.py",
+    "purpose": "independent re-derivation of eval_results/build_cost_final.json for verification; does not overwrite it",
+    "input_files_sha256": {
+      "old_r1.json": "dbcd04e47fb57e25ba712cf9a0cd1f9b68ccfe86846fa81fd07d7e478a3132e2",
+      "old_r2.json": "93721e3faa9aecb6af6e1cc7c03d7b0686ff29aa90116307cfd1d5490ad1f858",
+      "old_r3.json": "475c50cab8d95ba50e029bb5cfb523670937db5ae82564b064226baf97f32618",
+      "new_r1.json": "a30bd39da3318429b0d01dc7a546964761efd920e238575b0b8eeefad8910f76",
+      "new_r2.json": "fb11517947ea6266893ad314d983a3fbf77d41b8519a00e5fd3d402e6fe5d72d",
+      "new_r3.json": "d0431d3d739fee4e77373c3600ea2a7f67850fc783380b127328762c8b26fb62"
+    },
+    "git_head": "6f9c27b2d3ac3e3c1b0fb0a9f4f81bc01cbfd387",
+    "dirty_file_count": 129
+  },
+  "cross_round_medians": {
+    "old_round_medians_sec": [
+      50.135462284088135,
+      50.19512414932251,
+      50.22451567649841
+    ],
+    "new_round_medians_sec": [
+      0.21503138542175293,
+      0.21451151371002197,
+      0.21500074863433838
+    ],
+    "old_cross_round_spread_pct_of_median": 0.1774144280336047,
+    "new_cross_round_spread_pct_of_median": 0.24179995420161382
+  },
+  "pooled": {
+    "old_pooled_n": 9,
+    "new_pooled_n": 150,
+    "old_pooled_median_sec": 50.19512414932251,
+    "new_pooled_median_sec": 0.21493887901306152,
+    "ratio_pooled_medians": 233.53208307312437
+  },
+  "ratio_summary": {
+    "per_round_ratios": [
+      233.15416112747766,
+      233.99734252575644,
+      233.60158508990844
+    ],
+    "min_per_round_ratio": 233.15416112747766,
+    "max_per_round_ratio": 233.99734252575644,
+    "ratio_from_pooled_medians": 233.53208307312437
+  },
+  "old_arm_cross_round_verdict": {
+    "threshold_pct": 2.0,
+    "observed_spread_pct": 0.1774144280336047,
+    "varies_materially_within_this_run": false
+  }
+}
