@@ -1571,7 +1571,7 @@ HEAD before the dedup change `90ef59b` on `siddanth/peak-source-a6-p1`.
 |---|---|---|
 | 4-arm segmentation, ≤600 s: 0.340 / 0.393 / 0.320 / 0.353 | `MLVU_ablation.{json,md}` | seed 42, 150 questions, 145 videos |
 | long-video: +0.088 [−0.009, +0.204]; AR +0.176 [0.000, 0.353]; PQA +0.000 | `MLVU_ablation_long_trimmed.{json,md}` | repo HEAD `9c66393d…` (dirty); question-set hash `67647a0ca98f73f6`; video-clustered bootstrap seed 42, B=10,000; premise guard median 581 scenes/video |
-| R0: uniform saturates coverage at 5%; matched-budget nulls | `Iris/r0_full/summary.md` | **(ledger)**; `r0_full/summary.md` at `origin/sonu/audit-docs` |
+| R0: uniform saturates coverage at 5%; matched-budget nulls | `Iris/r0_full/summary.md` | **verified against artifact** — `r0_full/summary.md` at `origin/sonu/audit-docs`; §7.2 figures checked: M1 = 1.0000 for uniform at every swept budget down to 5%, dM2 +0.256 [−0.236, +0.710], dM3 +0.780 [−0.005, +1.753], mean(M2 − retention) = +0.0017 (sd 0.0099) — all match; contrast is Arm A (production, `is_retained_tier`) vs Arm C (uniform) at Arm A's natural retention of 10.54% |
 | T5 shot geometry null; post-hoc dispersion diagnostic (R0 arm 8.4% distinct/mean run 13.19 vs uniform 100%/1.00) | `_shotbucket/run/summary.md` @ `origin/sonu/t5-shotbucket` | verified against artifact |
 
 ### A.4 Determinism and seeds
@@ -1581,7 +1581,7 @@ HEAD before the dedup change `90ef59b` on `siddanth/peak-source-a6-p1`.
 | all bootstrap resampling | 42 (B=10,000; B=3,000 for the per-type decomposition) |
 | MLVU question sampling | 42 |
 | VIRAT synthetic query generation | 20260726 |
-| R0 bootstrap | 20260805 **(ledger)** |
+| R0 bootstrap | 20260805 **verified against `r0_full/summary.md` at `origin/sonu/audit-docs`** |
 
 Codec-mode scene assignment was verified deterministic across independent parse+build runs
 (1,812 assignments, 174 distinct scenes, identical). Cache non-mutation was fingerprinted
@@ -1609,15 +1609,16 @@ compressed-domain signals should say so rather than let a reader discover it.
 captured error from a failed `git rev-parse`, and its dirty flag is null. The config hash
 is present. <!-- open item 26 -> Appendix C -->
 
-**A.5.4 — Several artifacts are quoted from a ledger rather than read directly.** The R0
+**A.5.4 — Some artifacts are still quoted from a ledger rather than read directly.** The R0
 outputs, T5 outputs, and ingest efficiency measurements are reachable — R0 at
 `origin/sonu/audit-docs` (`r0_full/`, `r0_smoke/`, `_r0check/`), T5 at
 `origin/sonu/t5-shotbucket` (`_shotbucket/`), and the ingest efficiency measurements at
 `origin/siddanth/ucf-vad-exp1` (`tuning/ucfcrime_vad_exp1/efficiency_measurements.json`,
-added in commit `41d7205`) — but several numbers sourced from them are still quoted from a
-ledger rather than read from the artifact itself; those rows remain tagged (ledger) above.
-Reachable is not the same as verified. No T6 artifact exists at all, which is a separate
-matter from reachability (see item 15). <!-- open item 27 -> Appendix C -->
+added in commit `41d7205`). The R0 and T5 figures (§7.2, §7) have since been read from and
+checked against their artifacts and are marked verified above. What remains ledger-quoted
+is the ingest efficiency measurement, the identity-gate result, and the grounding-gate
+result — those artifacts have not been read. No T6 artifact exists at all, which is a
+separate matter from reachability (see item 15). <!-- open item 27 -> Appendix C -->
 
 **A.5.5 — Most runs were made from dirty working trees.** The scaling and end-to-end
 artifacts record 94 and 87 changed files respectively at run time. The changes are scratch
