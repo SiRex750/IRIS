@@ -698,9 +698,10 @@ they agree exactly [C2.1]:
 **The two paths are also indistinguishable at the end of the pipeline.** Over 526 NExT-GQA
 validation questions, the `fully_connected` and `block_diagonal` construction paths produce
 bit-identical retrieval — identical retrieved order, peak frame, predicted span, IoP, and
-peak-in-gold on every question (peak-in-gold 0.3175 and mIoP 0.3140 under both) [C2.3]. We
-run this second gate because graph identity does not by itself guarantee identical
-downstream behaviour.
+peak-in-gold on every question (peak-in-gold 0.3175 and mIoP 0.3140 under both) [C2.3]. The
+gate left its inputs untouched: both NExT-GQA index caches were sha256-identical before and
+after the run. We run this second gate because graph identity does not by itself guarantee
+identical downstream behaviour.
 
 We are precise about what that gate establishes: it is an **equivalence proof between the
 two construction paths the change concerns**, not a re-run of a previously committed
@@ -1536,7 +1537,7 @@ HEAD before the dedup change `90ef59b` on `siddanth/peak-source-a6-p1`.
 
 <!-- open item 23 -> Appendix C -->
 
-| grounding gate: 526 questions, 0 mismatches | `blockdiag_grounding_gate_result.{json,md}` | commit `3d83b2c` on `origin/siddanth/peak-source-a6-p1`, present in the working tree **(ledger)** — contents not yet read |
+| grounding gate: 526 questions, 0 mismatches | `blockdiag_grounding_gate_result.{json,md}` | commit `3d83b2c` on `origin/siddanth/peak-source-a6-p1`, present in the working tree **(verified)**; outcome `GATE_PASS`; all §4.1 figures checked and matching (526 questions across 86 videos, 0 mismatches, peak-in-gold 0.31749 and mIoP 0.31403 identical under both paths); the artifact also reconfirms the frozen flat cell (406 questions, 59 videos, peak-in-gold 0.32266, matching the committed 0.3227) and records both index caches sha256-unchanged across the run |
 | pair-visit counts: 11,963,386 dense vs 23,571 block-diagonal | `virat_smoke_N4892_{flat,scenesparse}.json` | `flat_edge_count: 11963386`, `edge_count_matches_theoretical: true`; `scene_sparse_edge_count: 23571`, `block_diagonal_exact: true` |
 | ingest: 0 neural forward passes; 2.945 s / 530 MB over 32 videos | `Iris-ucfvad/tuning/ucfcrime_vad_exp1/efficiency_measurements.json` | **(ledger)**; `tuning/ucfcrime_vad_exp1/efficiency_measurements.json` at `origin/siddanth/ucf-vad-exp1` |
 
@@ -1615,10 +1616,10 @@ outputs, T5 outputs, and ingest efficiency measurements are reachable — R0 at
 `origin/sonu/t5-shotbucket` (`_shotbucket/`), and the ingest efficiency measurements at
 `origin/siddanth/ucf-vad-exp1` (`tuning/ucfcrime_vad_exp1/efficiency_measurements.json`,
 added in commit `41d7205`). The R0 and T5 figures (§7.2, §7) have since been read from and
-checked against their artifacts and are marked verified above. The identity-gate result
-(§4.1) has since been read from and checked against its artifact and is marked verified
-above. What remains ledger-quoted is the ingest efficiency measurement and the
-grounding-gate result — those artifacts have not been read. No T6 artifact exists at all,
+checked against their artifacts and are marked verified above. The identity-gate and
+grounding-gate results (§4.1) have since been read from and checked against their artifacts
+and are marked verified above. What remains ledger-quoted is the ingest efficiency
+measurement — that artifact has not been read. No T6 artifact exists at all,
 which is a separate matter from reachability (see item 15). <!-- open item 27 -> Appendix C -->
 
 **A.5.5 — Most runs were made from dirty working trees.** The scaling and end-to-end
