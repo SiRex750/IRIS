@@ -1513,7 +1513,7 @@ the full record is in `eval_results/env_A2.json`.
 
 | claim | artifact | provenance |
 |---|---|---|
-| identity gate: 23,571 edges, 0 mismatches at tol 0.0, PageRank bit-identical, PPR identical across 5 seeds | `blockdiag_identity_gate_result.{json,md}` | commit `3d83b2c` **(ledger)**; harness `scripts/blockdiag_identity_gate.py` |
+| identity gate: 23,571 edges, 0 mismatches at tol 0.0, PageRank bit-identical, PPR identical across 5 seeds | `blockdiag_identity_gate_result.{json,md}` | commit `3d83b2c` on `origin/siddanth/peak-source-a6-p1`, present in the working tree **(verified)**; outcome `GATE_PASS`; all five §4.1 claims checked against the artifact and matching; harness `scripts/blockdiag_identity_gate.py`. Nuance: the 0.0 tolerance qualifier appears in the `.md` summary prose, not as a field in the JSON, which records a field-mismatch count of 0 without an explicit tolerance value |
 | build savings, wall-clock: 50.195124 s → 0.214939 s (233.532×) | `build_cost_final.{json,md}`, `build_cost_final_raw/` | harness `scripts/build_cost_final_probe.py`; 159 builds (9 old, 150 new), arms interleaved old→new across 3 rounds, each arm looped in-process; guard `edge_count == 23,571` on all 159, PASSED; machine state snapshotted before each arm |
 | build savings, peak RSS: 6,325,764,096 B → 930,693,120 B (6.80×) | `build_dedup_repeats.{json,md}` | harness `scripts/blockdiag_build_probe.py`; 5 repeats per arm, one build per fresh process, 10 launches, medians reported; guard `edge_count == 23,571` on all 10, PASSED. Measured separately from wall-clock because a peak RSS over a 50-build in-process loop is a peak over the loop, not over a build (§4.2) |
 | RSS ratio cross-check: 6.803870× | `build_dedup.json` (`rss_ratio_after_dedup`) | independent post-dedup figure; agrees with the median-based 6.80× to three significant figures |
@@ -1536,7 +1536,7 @@ HEAD before the dedup change `90ef59b` on `siddanth/peak-source-a6-p1`.
 
 <!-- open item 23 -> Appendix C -->
 
-| grounding gate: 526 questions, 0 mismatches | `blockdiag_grounding_gate_result.{json,md}` | **(ledger)** |
+| grounding gate: 526 questions, 0 mismatches | `blockdiag_grounding_gate_result.{json,md}` | commit `3d83b2c` on `origin/siddanth/peak-source-a6-p1`, present in the working tree **(ledger)** — contents not yet read |
 | pair-visit counts: 11,963,386 dense vs 23,571 block-diagonal | `virat_smoke_N4892_{flat,scenesparse}.json` | `flat_edge_count: 11963386`, `edge_count_matches_theoretical: true`; `scene_sparse_edge_count: 23571`, `block_diagonal_exact: true` |
 | ingest: 0 neural forward passes; 2.945 s / 530 MB over 32 videos | `Iris-ucfvad/tuning/ucfcrime_vad_exp1/efficiency_measurements.json` | **(ledger)**; `tuning/ucfcrime_vad_exp1/efficiency_measurements.json` at `origin/siddanth/ucf-vad-exp1` |
 
@@ -1615,10 +1615,11 @@ outputs, T5 outputs, and ingest efficiency measurements are reachable — R0 at
 `origin/sonu/t5-shotbucket` (`_shotbucket/`), and the ingest efficiency measurements at
 `origin/siddanth/ucf-vad-exp1` (`tuning/ucfcrime_vad_exp1/efficiency_measurements.json`,
 added in commit `41d7205`). The R0 and T5 figures (§7.2, §7) have since been read from and
-checked against their artifacts and are marked verified above. What remains ledger-quoted
-is the ingest efficiency measurement, the identity-gate result, and the grounding-gate
-result — those artifacts have not been read. No T6 artifact exists at all, which is a
-separate matter from reachability (see item 15). <!-- open item 27 -> Appendix C -->
+checked against their artifacts and are marked verified above. The identity-gate result
+(§4.1) has since been read from and checked against its artifact and is marked verified
+above. What remains ledger-quoted is the ingest efficiency measurement and the
+grounding-gate result — those artifacts have not been read. No T6 artifact exists at all,
+which is a separate matter from reachability (see item 15). <!-- open item 27 -> Appendix C -->
 
 **A.5.5 — Most runs were made from dirty working trees.** The scaling and end-to-end
 artifacts record 94 and 87 changed files respectively at run time. The changes are scratch
