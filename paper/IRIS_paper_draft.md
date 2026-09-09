@@ -1308,11 +1308,12 @@ separate an uninformative signal from a budget wasted on near-duplicates. Distin
 the two requires the plateau-dedup contrast, which has been specified but not run.
 
 **Shot geometry adds nothing either.** Segmenting each video into shots directly from the
-packet curve (zero decode) and sampling per shot gives, against uniform, +0.001 pp
-([−0.416, +0.421]) and +0.141 pp ([−0.608, +0.972]) — half-widths that *exclude* a 1 pp
-effect, making this the one properly powered contrast in the group and a genuine null.
+packet curve (zero decode) and sampling one frame per shot at its midpoint gives, against
+uniform, +0.001 pp ([−0.416, +0.421]) and +0.141 pp ([−0.608, +0.972]) — half-widths that
+*exclude* a 1 pp effect, making this the one properly powered contrast in the group and a
+genuine null.
 The corresponding shot-plus-score contrast was underpowered (half-widths 1.69 and 2.79 pp)
-and we report it as such rather than as a tie. <!-- open item 16 -> Appendix C -->
+and we report it as such rather than as a tie.
 
 **Power.** The annotated corpus is 19 videos, so each video is 5.3 pp of any aggregate and
 the resolution floor is roughly 1 pp. No re-run at new seeds or budgets changes this; only
@@ -1952,6 +1953,8 @@ de-clumped profile to "production", inverting which arm clumps.
 clumping objection is not disposed of. The Appendix A row no longer carries the T6 claim.
 
 16. verify from the T5 artifact; report-quoted.
+
+RESOLVED — VERIFIED AGAINST ARTIFACT. The artifact is reachable at origin/sonu/t5-shotbucket, path _shotbucket/run/summary.md. All six cited figures match exactly: the shot-geometry contrast against uniform is the H_shot1_mid row (dM2 +0.001 [−0.416, +0.421], half-width 0.419, TIES; dM3 +0.141 [−0.608, +0.972], half-width 0.790, TIES), and the shot-plus-score half-widths 1.69 and 2.79 are the F_shot1_action primary contrast's 1.691 and 2.793, both labelled UNDERPOWERED in the artifact as in the paper. The prose now names the specific arm; the artifact's parallel two-frame-per-shot midpoint arm (I_shot2_mid) is not cited here and its dM3 is underpowered rather than a tie.
 
 17. one sentence tying this forward to §9 — the conclusion should collect this rather than restate §4.
 
