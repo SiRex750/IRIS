@@ -1292,13 +1292,20 @@ retention, the paired differences are +0.256 pp (95% CI [−0.236, +0.710]) and 
 ([−0.005, +1.753]) on the two informative metrics; both span zero [C3.2]. The admitted
 set sits at the label-blind identity: mean(M2 − retention) = +0.0017 (sd 0.0099) [C3.3].
 
-**The tie is not an artifact of the score wasting its budget.** A natural objection is
-that the score might clump its picks onto near-duplicate frames, so that a tie reflects
-poor temporal coverage rather than an uninformative signal. We measured the temporal
-spread of the *production* admitted set: 83.4% distinct instants with a mean run length of
-1.22 — close to uniform's 100% and 1.00, and far from a naive top-k arm's 7.8% and 13.5.
-Production selection already de-clumps, so the tie is a statement about the signal, not
-about clumping. <!-- open item 15 -> Appendix C -->
+**Whether the tie is an artifact of the score wasting its budget is unresolved.** A natural
+objection is that the score might clump its picks onto near-duplicate frames, so that a tie
+would reflect poor temporal coverage rather than an uninformative signal. A post-hoc
+diagnostic in the shot-bucketing study — explicitly not pre-registered — measured temporal
+dispersion at a matched budget of k=503 across arms. The codec action-score top-k arm, which
+is the R0 selector at the same budget, sampled 42 distinct temporal locations, 8.4% of
+budget, with a mean run length of 13.19; uniform sampled 503 distinct locations, 100%, mean
+run 1.00. The mechanism is that the propagated action score is hold-forward propagated from
+the retained tier, so it is a step function with roughly 9.5 frames per plateau — top-k
+therefore degenerates into selecting whole plateaus from their earliest frame, spending the
+budget on adjacent near-duplicate frames. **This does not dispose of the objection**:
+clumping is real and is a plausible contributor to the tie, and this diagnostic cannot
+separate an uninformative signal from a budget wasted on near-duplicates. Distinguishing
+the two requires the plateau-dedup contrast, which has been specified but not run.
 
 **Shot geometry adds nothing either.** Segmenting each video into shots directly from the
 packet curve (zero decode) and sampling per shot gives, against uniform, +0.001 pp
@@ -1564,7 +1571,7 @@ HEAD before the dedup change `90ef59b` on `siddanth/peak-source-a6-p1`.
 | 4-arm segmentation, ≤600 s: 0.340 / 0.393 / 0.320 / 0.353 | `MLVU_ablation.{json,md}` | seed 42, 150 questions, 145 videos |
 | long-video: +0.088 [−0.009, +0.204]; AR +0.176 [0.000, 0.353]; PQA +0.000 | `MLVU_ablation_long_trimmed.{json,md}` | repo HEAD `9c66393d…` (dirty); question-set hash `67647a0ca98f73f6`; video-clustered bootstrap seed 42, B=10,000; premise guard median 581 scenes/video |
 | R0: uniform saturates coverage at 5%; matched-budget nulls | `Iris/r0_full/summary.md` | **(ledger; not reachable — A.5.4)** |
-| T5 shot geometry null; T6 de-clumping 83.4% | `Iris/_shotbucket/run/summary.md` | **(report-quoted; not reachable — A.5.4)** |
+| T5 shot geometry null; post-hoc dispersion diagnostic (R0 arm 8.4% distinct/mean run 13.19 vs uniform 100%/1.00) | `_shotbucket/run/summary.md` @ `origin/sonu/t5-shotbucket` | verified against artifact |
 
 ### A.4 Determinism and seeds
 
@@ -1927,6 +1934,22 @@ RESOLVED — checked, no edit needed. The §6.2 passage names the failure mode a
 **07_negatives.md**
 
 15. verify from the T6 artifact; report-quoted.
+
+RESOLVED — CLAIM WITHDRAWN, NOT VERIFIED. No T6 artifact exists. A search of 200 commits
+across all branches on both remotes found the figures 83.4% distinct instants, mean run
+1.22, and "naive top-k 7.8% / 13.5" nowhere outside the draft itself and a document quoting
+the draft. What exists is a task specification for a candidate T6 study in
+CLAUDE_CODE_TASKS.md on origin/sonu/t5-shotbucket, gated on a Step 1 that was never run.
+
+The only real measurement of this quantity is a post-hoc, explicitly not-pre-registered
+dispersion diagnostic in _shotbucket/run/summary.md, and it points the other way: the codec
+action-score top-k arm — the R0 selector at matched budget k=503 — sampled 42 distinct
+locations (8.4%) with mean run length 13.19, against uniform's 503 (100%) and 1.00. The
+withdrawn paragraph had attributed the clumped profile to a "naive top-k arm" and a
+de-clumped profile to "production", inverting which arm clumps.
+
+§7.2 has been rewritten to report the real diagnostic and to state plainly that the
+clumping objection is not disposed of. The Appendix A row no longer carries the T6 claim.
 
 16. verify from the T5 artifact; report-quoted.
 
