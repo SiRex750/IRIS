@@ -140,7 +140,16 @@ def _build_graph(records: list, config: Any) -> L2Asphodel:
             "persistence_value": float(_get(r, "persistence_value", 0.0)),
         })
         enrichment_map[fi] = _get(r, "clip_embedding", None)
-    graph.add_frame_nodes_bulk(feature_records, action_score_records, node_groups=node_groups)
+    # defer_recompute=True: skip the edge-weight/PageRank pass this call would
+    # otherwise run. That pass computes semantic similarity with embedding=None
+    # (enrichment hasn't happened yet) and is unconditionally discarded by the
+    # very next line's enrich_nodes_bulk (_update_all_edge_weights() rebuilds
+    # edges from scratch, and _update_pagerank() reruns over the final graph).
+    # Nothing reads edges/PageRank/scene_id between the two calls — see
+    # eval_results/build_dedup.md for the safety-read trace.
+    graph.add_frame_nodes_bulk(
+        feature_records, action_score_records, node_groups=node_groups, defer_recompute=True
+    )
     graph.enrich_nodes_bulk(enrichment_map, node_groups=node_groups)
     return graph
 

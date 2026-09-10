@@ -837,6 +837,7 @@ class L2Asphodel:
         feature_records: list,
         action_score_records: list,
         node_groups: list[list] | None = None,
+        defer_recompute: bool = False,
     ) -> None:
         """
         Batch-insert multiple frame nodes.
@@ -851,6 +852,14 @@ class L2Asphodel:
         Args:
             feature_records:     list of feature dicts (same schema as add_frame_node)
             action_score_records: parallel list of action_score dicts
+            defer_recompute:     if True, skip the edge-weight/PageRank recompute
+                that would otherwise run at the end of this call. Only safe when
+                the caller guarantees a later call (e.g. enrich_nodes_bulk) will
+                perform the recompute against the final node state — this call's
+                own recompute would be immediately discarded anyway, since
+                _update_all_edge_weights() rebuilds edges from scratch. Default
+                False preserves the exact original behavior for every caller
+                that doesn't pass this explicitly.
         """
         def get_val(record: Any, key: str, default: Any = None) -> Any:
             if record is None:
@@ -906,6 +915,8 @@ class L2Asphodel:
             self.graph.add_node(frame_idx, node_data=node_obj)
 
         # Single recompute after all nodes inserted — the key efficiency gain.
+        if defer_recompute:
+            return
         self._update_all_edge_weights(node_groups=node_groups)
         self._update_pagerank()
 
