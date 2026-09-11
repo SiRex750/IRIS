@@ -19,8 +19,8 @@ that enumerates only within-scene node pairs is **bit-identical** to the convent
 dense-then-prune construction — identical nodes and edges, identical edge weights at zero
 tolerance, and bit-identical PageRank across seeds — while visiting only the 0.2% of node
 pairs it retains rather than the 99.8% that pruning discards. This makes construction
-~234× faster (49.71 s → 0.212 s) and ~6.8× smaller in peak memory at a graph of 4,892
-nodes, measured under an interleaved protocol over 159 builds [C2.1, C2.2] — on the
+~234× faster (49.71 s → 0.212 s, interleaved protocol over 159 builds) and ~6.8× smaller
+in peak memory (five fresh-process builds per arm) at a graph of 4,892 nodes [C2.1, C2.2] — on the
 complete-block edge configuration, which is not the sparser tiered configuration our
 accuracy numbers use. The same block structure separates query-latency scaling: over a
 31-clip corpus under real text queries, dense graphs scale with graph size at exponent
@@ -35,9 +35,10 @@ measure: a captioning stage that is O(top_k) rather than O(N) accounts for 85–
 time and dominates the total, so end-to-end latency does not improve despite a
 retrieval-mechanics speedup of three orders of magnitude, and the crossover into a material
 advantage sits near 12,000 nodes. Answer quality sits in the weakly-supervised band — Acc@GQA 0.167 on a held-out validation split, with a ~3.4B answerer on CPU — rather than at the agentic state of the art.
-We report both, and we pre-registered kill criteria for two hypotheses we expected to
-confirm: that codec-derived scene boundaries beat content-blind ones, and that codec-based
-frame admission beats uniform sampling. Both criteria triggered. Neither where the video is
+We report both, and we set kill criteria for two hypotheses we expected to confirm: that
+codec-derived scene boundaries beat content-blind ones (pre-registered), and that codec-based
+frame admission beats uniform sampling (criterion recorded, but its precedence over the run
+cannot be verified). Both criteria triggered. Neither where the video is
 cut nor which frames are kept is doing the work — the block structure is — which is what
 makes the construction cheap, verifiable, and portable across segmentation policies.
 
@@ -46,17 +47,18 @@ makes the construction cheap, verifiable, and portable across segmentation polic
 ## Alternate short version (for a venue with a 150-word cap)
 
 We build long-video retrieval graphs structurally — from compressed-domain signals and CLIP
-embeddings, on CPU, with no neural forward passes at ingest and no frontier model — rather
+embeddings, on CPU, with no generative model at ingest — rather
 than prompting a proprietary MLLM per chunk. A block-diagonal construction that enumerates
 only within-scene pairs is bit-identical to dense-then-prune construction (same nodes,
 edges, weights at zero tolerance, same PageRank) while visiting 0.2% of the pairs, giving
-~234× faster and ~6.8× smaller builds on that configuration. Query latency separates as
+~234× faster and ~6.8× smaller builds on the complete-block configuration, not the tiered
+one our accuracy numbers use. Query latency separates as
 graph size grows —
 dense 2.06 (95% CI [2.02, 2.13]) versus sparse 0.83 ([0.80, 0.88]) — becoming a
 tractability boundary where dense retrieval does not return. We are explicit about the
 limits: a captioning stage dominates end-to-end time, so the retrieval speedup is not
-user-facing, and accuracy sits in the weakly-supervised band. Two pre-registered negatives
-show the block structure, not the codec signal, carries the result.
+user-facing, and accuracy sits in the weakly-supervised band. Two negatives under stated
+kill criteria show the block structure, not the codec signal, carries the result.
 
 ---
 
@@ -93,7 +95,8 @@ frames is the only network involved. We prove, rather than assert, that a block-
 construction yields the bit-identical graph a dense-then-prune construction produces, and
 measure what that saves. We fit query-latency scaling exponents with confidence intervals
 and locate a tractability boundary where the dense arm stops returning at all. And we report
-two pre-registered hypotheses that failed and one efficiency result that does not survive a
+two hypotheses that failed their kill criteria (one pre-registered, one whose registration
+date we cannot verify) and one efficiency result that does not survive a
 full pipeline — which together constrain the claim more usefully than another benchmark row
 would.
 
@@ -161,8 +164,9 @@ below that band, not that it advances it.
 
 ### Negative results as contributions
 
-We pre-registered kill criteria for two hypotheses we expected to confirm, and both
-triggered. Codec-derived boundary placement does not beat content-blind placement at
+We set kill criteria for two hypotheses we expected to confirm, and both triggered. The
+segmentation criterion was pre-registered (B.8); the frame-admission criterion was recorded,
+but we cannot show it preceded its run (B.6), so we do not call it pre-registered. Codec-derived boundary placement does not beat content-blind placement at
 matched segment count: across four segmentation strategies the differences fall within
 noise, and on long videos the codec-versus-matched-count difference is +0.088 M-Avg with a
 95% CI of [−0.009, +0.204]. Codec-based frame admission is statistically indistinguishable
@@ -191,8 +195,9 @@ adopting our codec signal, our segmentation, or our admission policy.
 4. **An Amdahl accounting of the query path**, locating where a three-orders-of-magnitude
    retrieval speedup is absorbed, including a cache-locality cost our own sparse retrieval
    incurs (§5.3, §5.4). We regard this as a result, not a caveat.
-5. **Two pre-registered negative results** delimiting which components of the pipeline are
-   load-bearing (§7).
+5. **Two negative results under stated kill criteria** — one pre-registered (B.8), one
+   whose registration date is unverifiable (B.6) — delimiting which components of the
+   pipeline are load-bearing (§7).
 
 The paper is organised so that each claim arrives with its limit attached. §2 positions the
 work against the symbolic-graph, graph-RAG and compressed-domain lines. §3 describes the
@@ -1205,7 +1210,7 @@ cost, given a construction budget of 0.212 s. We have not implemented or measure
 ## 6. Correctness Floor
 
 This section does not claim competitive accuracy. It claims that a graph costing 0.212 s
-to build, produced without a neural forward pass and queried by a ~3.4B answerer on CPU,
+to build, with no generative model in its construction path, and queried by a ~3.4B answerer on CPU,
 does not degrade answer quality below the weakly-supervised band. That is the relevant
 question for an efficiency contribution: a construction saving is uninteresting if the
 resulting system cannot answer anything.
@@ -1382,11 +1387,13 @@ the answerer rather than in the representation.
 
 ## 7. What Does Not Matter
 
-The results in this section are negative. We report them because each was
-pre-registered with a kill criterion fixed before the data were seen, each criterion
-triggered, and together they constrain what a practitioner should spend effort on. They
+The results in this section are negative. We report them because each was tested
+against a stated kill criterion, each criterion triggered, and together they constrain what a practitioner should spend effort on. They
 also delimit our own contribution: they are the reason §4 claims cheap construction
-rather than better construction.
+rather than better construction. The two criteria differ in standing: §7.1's was
+pre-registered (B.8); §7.2's was recorded, but it entered version control alongside the
+run it governs, so its precedence cannot be verified and we do not describe it as
+pre-registered (B.6).
 
 ### 7.1 Segmentation placement, once the budget is fixed
 
@@ -1583,15 +1590,10 @@ whether that is what happened, because the only hardware signal we captured — 
 torch flag above — cannot distinguish "no GPU present" from "GPU present, CPU-only
 wheel installed." Capturing a hardware inventory (not just a torch capability flag)
 alongside the efficiency run is the fix, and it was not done. None of this affects the
-§4 ingest claim itself: 0 neural forward passes is a property of the code path taken,
+§3.1 frame-selection claim itself: 0 neural forward passes is a property of the code path taken,
 not of the hardware it ran on.
 
-**8.10 Some artifacts are not fully traceable.** <!-- open item 19 -> Appendix C -->
-
----
-
-### 8.10 The construction saving is not yet measured on the evaluated configuration
-
+**8.10 The construction saving is not yet measured on the evaluated configuration.**
 Our construction result (§4) is measured on the complete-block edge configuration, in which
 every intra-scene pair carries an edge. Every accuracy number we report (§6, §7.1) comes
 from the tiered configuration, which shares the block structure but populates each block
@@ -1623,6 +1625,10 @@ believe we have found evidence of: the §3.1 salience channel, §4's constructio
 and §7.2's frame-admission negative are all conditioned on the encoding profiles this
 particular corpus happens to carry.
 
+**8.12 Some artifacts are not fully traceable.** Appendix A.5 lists each known provenance
+gap and what it limits. The one that bears on a headline figure: the ~6.8× peak-memory
+ratio (§4.2) is not tied to a commit, unlike the wall-clock ratio (A.5.8).
+
 ## 9. Conclusion
 
 We set out to test whether a long-video retrieval graph must be expensive to build. It does
@@ -1632,8 +1638,8 @@ Our central result is an identity: block-diagonal construction produces exactly 
 that dense construction produces and then prunes — the same nodes, the same edges, the same
 weights at zero tolerance, the same PageRank — while visiting only the pairs it keeps
 rather than the 99.8% it would discard. That makes construction ~234× faster and ~6.8×
-smaller in memory, on CPU, with no neural forward pass during ingest and no proprietary
-model anywhere in the construction path. The same block structure separates query latency
+smaller in memory, on CPU, with no neural forward pass during frame selection and no
+generative or proprietary model anywhere in the construction path. The same block structure separates query latency
 into quadratic and sublinear regimes, and at large graph sizes into a boundary where dense
 retrieval does not complete at all.
 
@@ -1644,10 +1650,11 @@ avoids precisely because dense retrieval ignores the query; and our answer accur
 the weakly-supervised band rather than at the frontier. We report each of these where it
 arose.
 
-The negative results proved the most useful part of the work. We pre-registered kill
+The negative results proved the most useful part of the work. We set kill
 criteria for two hypotheses we expected to confirm — that codec-derived boundary placement
-beats content-blind placement, and that codec-based admission beats uniform sampling — and
-both criteria triggered. Neither where we cut the video nor which frames we keep is doing
+beats content-blind placement (pre-registered), and that codec-based admission beats uniform
+sampling (criterion recorded; registration date unverifiable, B.6) — and both criteria
+triggered. Neither where we cut the video nor which frames we keep is doing
 the work. **What is doing the work is the block structure alone**, which is also what makes
 the result portable: a pipeline can adopt this construction without adopting our
 segmentation, our admission policy, or our compressed-domain signals.
