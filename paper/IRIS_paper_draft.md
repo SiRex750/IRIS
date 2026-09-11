@@ -19,7 +19,7 @@ that enumerates only within-scene node pairs is **bit-identical** to the convent
 dense-then-prune construction — identical nodes and edges, identical edge weights at zero
 tolerance, and bit-identical PageRank across seeds — while visiting only the 0.2% of node
 pairs it retains rather than the 99.8% that pruning discards. This makes construction
-~233× faster (50.20 s → 0.215 s) and ~6.8× smaller in peak memory at a graph of 4,892
+~234× faster (49.71 s → 0.212 s) and ~6.8× smaller in peak memory at a graph of 4,892
 nodes, measured under an interleaved protocol over 159 builds [C2.1, C2.2] — on the
 complete-block edge configuration, which is not the sparser tiered configuration our
 accuracy numbers use. The same block structure separates query-latency scaling: over a
@@ -50,7 +50,7 @@ embeddings, on CPU, with no neural forward passes at ingest and no frontier mode
 than prompting a proprietary MLLM per chunk. A block-diagonal construction that enumerates
 only within-scene pairs is bit-identical to dense-then-prune construction (same nodes,
 edges, weights at zero tolerance, same PageRank) while visiting 0.2% of the pairs, giving
-~233× faster and ~6.8× smaller builds on that configuration. Query latency separates as
+~234× faster and ~6.8× smaller builds on that configuration. Query latency separates as
 graph size grows —
 dense 2.06 (95% CI [2.02, 2.13]) versus sparse 0.83 ([0.80, 0.88]) — becoming a
 tractability boundary where dense retrieval does not return. We are explicit about the
@@ -117,7 +117,7 @@ verify this with an identity gate rather than a similarity metric: identical nod
 identical edge sets, zero mismatches on every edge attribute at tolerance 0.0, bit-identical
 PageRank across all 4,892 nodes, and identical personalised-PageRank ordering and scores
 across five seeds [C2.1]. A downstream gate over 526 grounded-QA questions produces zero
-behavioural differences [C2.3]. Construction costs 0.215 s instead of 50.20 s (~233×) and
+behavioural differences [C2.3]. Construction costs 0.212 s instead of 49.71 s (~234×) and
 0.93 GB instead of 6.33 GB (~6.8×) [C2.2].
 
 ### The scaling result
@@ -156,7 +156,7 @@ than the ratio that flatters us.
 **Accuracy sits in the weakly-supervised band, not at the state of the art.** On NExT-GQA
 our held-out Acc@GQA is 0.1667 [0.088, 0.243] with a ~3.4B answerer on CPU [C4.1] —
 comparable to weakly-supervised baselines and well below current agentic methods. This
-paper's claim is that a graph costing 0.215 s to build does not degrade answer quality
+paper's claim is that a graph costing 0.212 s to build does not degrade answer quality
 below that band, not that it advances it.
 
 ### Negative results as contributions
@@ -177,7 +177,7 @@ adopting our codec signal, our segmentation, or our admission policy.
 ### Contributions
 
 1. **A block-diagonal graph construction proven bit-identical** to dense-then-prune under a
-   five-seed identity gate and a 526-question downstream gate, at ~233× lower wall-clock
+   five-seed identity gate and a 526-question downstream gate, at ~234× lower wall-clock
    and ~6.8× lower peak memory [C2.1–C2.3]. The result is measured on the complete-block
    edge configuration; §3.5 and §4.3 state how it relates to the tiered configuration our
    accuracy numbers use.
@@ -268,7 +268,7 @@ approach.
 
 Our construction has neither property. Scenes are independent, so the block structure is
 embarrassingly parallel by definition, and no model — proprietary or otherwise —
-participates in construction. Building the graph at N=4,892 costs 0.215 s on CPU (§4.2).
+participates in construction. Building the graph at N=4,892 costs 0.212 s on CPU (§4.2).
 
 **(3) What kind of guarantee is available.** EgoSG's authors are candid that graph
 generation is imperfect: a manual audit of five clips finds roughly 5% of nodes and
@@ -321,6 +321,38 @@ not like-for-like, since the denominators differ, so the honest claim is about t
 model each construction requires — an image encoder against a generative LVLM — rather than
 about the seconds.
 
+EgoSG and Vgent are not an isolated pair. Three further systems build a graph over video and
+share the same trait, though not the same mechanism: **EGAgent**, the entity-scene-graph
+subsystem of *Agentic Very Long Video Understanding* [Rege et al., 2026], applies an LLM-based
+extractor to egocentric video so a planning agent can query the resulting entity graph at
+inference time; **MemDreamer** [Chen et al., 2026] uses a frontier MLLM, Gemini-3.1-Pro, to
+extract a three-tier hierarchical graph structure directly from streaming video, window by
+window; and **GraphVideoAgent** [Chu et al., ACM MM 2025] builds its graph from parsed
+captions rather than a single generative call — entities from named-entity recognition and
+noun-phrase chunking, typed edges (spatial, interaction, action) from dependency parsing —
+applied to captions of an initially sampled frame set. Those captions are themselves produced
+by a captioning model, LaViLa, so a generative forward pass sits one step upstream of graph
+construction even though the parsing step that assembles the graph does not itself call a
+network. None of the three reports a construction-cost figure, so none supports a seconds or
+ratio comparison here; the claim below is about model class only.
+
+Across this line of work, every system's graph construction depends on a generative model
+somewhere in the pipeline — directly, as a single call that emits the graph (EgoSG's Gemini
+call per chunk, MemDreamer's Gemini-3.1-Pro pass per streaming window), or one step removed,
+as a captioner or extractor whose output is then parsed or structured (Vgent's and
+GraphVideoAgent's per-clip or per-frame captioning, EGAgent's LLM extractor over documents).
+We differ from all five in the same way we differ from EgoSG and Vgent above: no model —
+proprietary or otherwise — participates in construction, at either remove. There is a further
+difference of *kind*, not merely degree, in how far each system separates construction from
+query time. GraphVideoAgent's own account of its pipeline does not support a clean split: it
+captions a small, uniformly sampled seed set to build a baseline graph, then folds in further
+captions as the graph is extended during its iterative retrieval loop, so construction keeps
+being written to during what would elsewhere be called query time. Our separation is
+architectural rather than a scheduling choice: `_build_graph` (`iris/ingest.py`) runs zero
+forward passes and leaves every frame's caption field unset, and captioning is deferred
+entirely to `_ensure_captions` (`iris/query.py`), invoked per query, per retrieved frame, at
+most once per frame across a session (§5.4).
+
 <!-- open item 3 -> Appendix C -->
 
 ### 2.3 Grounded video question answering
@@ -333,7 +365,7 @@ accuracy rather than answer accuracy alone (§6.1).
 
 The weakly-supervised band on that benchmark is occupied by Temp[CLIP] with NG+ (16.0
 Acc@GQA), SeViLA as reproduced by the benchmark authors (16.6), LangRepo (17.1), and
-FrozenBiLM with NG+ (17.5). <!-- open item 4 -> Appendix C -->
+FrozenBiLM with NG+ (17.5).
 
 Two conventions matter for reading any of these numbers. First, published figures are
 computed on the full 5,553-question test set, whereas ours is a 120-question held-out
@@ -350,8 +382,11 @@ on NExT-GQA, and **we do not compete with them on accuracy** — our contributio
 construction cost, and our answer quality sits a band below (§6.1). We cite them to
 situate that gap honestly rather than to select a weaker comparison set.
 
-*(Note for co-authors: MUPA's abstract misstates its own Table 1 — cite the table:
-28.7 / 39.1 / 38.7, not 29.0 / 39.7.)*
+*(Note for co-authors: MUPA's abstract agrees with its own Table 1 (30.3% Acc@GQA at 7B,
+matching both) — the discrepancy is in MUPA's §4.1 narrative prose instead, which states
+29.0% Acc@GQA / 39.7% mIoP for the 2B model and is additionally inconsistent with its own
+stated deltas over VideoMind-7B. Cite the table: 28.7 / 39.1 / 38.7. See
+`eval_results/citations_C4_C5.md`.)*
 
 ### 2.5 Compressed-domain video analysis
 
@@ -362,8 +397,8 @@ situate that gap honestly rather than to select a weaker comparison set.
 
 Using signals available in the encoded bitstream — motion vectors, residual energy, packet
 size — to avoid full decode is a long-standing idea in video analysis, running from
-motion-vector surrogates for optical flow through CoViAR and DMC-Net, which modelled
-I-frame, motion and residual streams jointly for action recognition <!-- open item 5 -> Appendix C -->.
+motion-vector surrogates for optical flow [Zhang et al., CVPR 2016] through CoViAR and
+DMC-Net, which modelled I-frame, motion and residual streams jointly for action recognition.
 
 The idea has recently reached video language models directly. **CoPE-VideoLM**
 [Sarkar et al., 2026] passes I-frames through a frozen vision encoder but converts P-frames
@@ -430,7 +465,13 @@ the container — the distinction matters for every scaling figure we report.
 
 
 Ingest demuxes the video and computes, per frame, a scalar **action score** combining
-luma difference, motion energy, and luma entropy at weights 0.5 / 0.3 / 0.2. Frames are
+a codec packet-size residual, motion energy, and luma entropy at weights 0.5 / 0.3 / 0.2.
+Packet size stands in for the residual signal here because it is what the decoder API
+makes available, not because we chose it over a finer-grained alternative: libavcodec
+exposes motion vectors as side data (`EXPORT_MVS`) but exposes no coefficient-level
+residual, no per-block quantisation parameter, and no reconstruction-error signal, so a
+frame-level packet-size proxy is the only route to a residual-shaped channel available
+through this tooling. Frames are
 assigned to tiers by thresholding this signal (`salient_thresh` 0.35, `candidate_thresh`
 0.08) with adaptive per-video thresholding enabled, and local maxima are marked as peaks
 via `argrelextrema` with a window of 3. Admitted frames — the survivors — are the input to
@@ -608,8 +649,58 @@ sparser. Two consequences we state rather than gloss:
 `scene_sparse`, `hierarchical_sparse` selects top-k neighbours *globally* and only then
 discards cross-scene edges. A node whose two nearest motion neighbours both lie in other
 scenes therefore ends with zero motion edges rather than its two best in-scene ones. The
-production graph's edge count consequently depends on scene boundaries in a way we have not
-characterised. <!-- open item 8 -> Appendix C -->
+production graph's edge count consequently depends on scene boundaries — **characterised
+for the `fully_connected`/`block_diagonal` configuration below, and now measured on one
+`hierarchical_sparse` clip as well** (item 8, RESOLVED IN PART; item 37, RESOLVED IN PART).
+
+**Per-node degree is confirmed flat against N, but only for the edge mode §5.1 fits.**
+Computed directly from all 33 cached index manifests, no re-ingest
+(`eval_results/degree_distribution_C8.md`): under `graph_edge_mode ∈ {fully_connected,
+block_diagonal}`, per-node degree does not drift upward across the full measured range,
+N=24 to N=13,506 — pooled maximum degree never exceeds 40, and clip-level correlations
+against N are small and non-positive (r(N, deg_mean) = −0.155, r(N, deg_max) = −0.010). The
+mechanism is scene count, not scene size: number of scenes grows almost linearly with N
+(r(N, n_scenes) = 0.975) while mean and maximum scene size do not (r = 0.135 and −0.010
+respectively). Because every edge mode removes cross-scene edges regardless of family
+(above), per-node degree is hard-bounded by scene size under this configuration, and that
+bound does not grow with N in the measured corpus — the structural precondition §5.1's
+sub-quadratic exponent depends on, now confirmed rather than assumed. **This is a property
+of the `fully_connected`/`block_diagonal` graphs specifically, not a property claimed for
+the system as a whole**, and the next paragraph states why that scope matters.
+
+**The scaling argument and the accuracy results rest on different graph constructions, and
+that gap has not been closed.** §5.1's scaling corpus — all 33 cached indices this paper
+draws on — is built entirely under `graph_edge_mode ∈ {fully_connected, block_diagonal}`.
+The `hierarchical_sparse` tiered path is what actually produced every accuracy number in
+this paper (§5.3 end-to-end, §5.4 caption-stage, §6.2 MLVU, §7.1 segmentation ablation). No
+cached index *in that 33-clip corpus* contains a single `temporal`, `hierarchy_*`,
+`semantic_salient`, or `motion_neighbor` edge — every cache in it was built under one of
+the two other modes. A single `hierarchical_sparse` cache has since been built and measured
+outside that corpus, on one clip (below); it confirms the per-source caps hold degree well
+below `fully_connected`'s on that clip, but it is one point, not a distribution over N, and
+does not establish how `hierarchical_sparse`'s degree behaves as N grows. The degree bound
+§5.1 fits transfers to `hierarchical_sparse` only through the shared block structure (all
+three modes partition on the same scenes, above); it does not by itself confirm anything
+about `hierarchical_sparse`'s degree distribution *within* a scene at other points in the
+corpus's range.
+
+**A cap asymmetry, now measured rather than only reasoned about from source.**
+`semantic_salient` (top-4) and `motion_neighbor` (top-2) cap **per-source out-degree only**
+— the selection is not required to be mutual, so nothing in the code stops many different
+source nodes from independently placing the same popular node inside their own top-k list,
+which would give that node a higher in-degree than the top-k parameter alone suggests. On
+the measured `fully_connected`/`block_diagonal` corpus this asymmetry cannot produce
+unbounded degree, because cross-scene pruning hard-bounds every edge family — this one
+included — to (scene size − 1), and scene size stays small and flat against N in that
+corpus. On one `hierarchical_sparse` cache built specifically to check this
+(`Arson042`, N=613, 110 scenes; `eval_results/tiered_degree_C37.md`), the asymmetry is real:
+the highest-in-degree node received 12 in-edges against a top-4 per-source cap, 8 more than
+any single source's own selection could produce, from independent sources converging on the
+same target. It stays bounded on this clip — well under the same scene-size ceiling
+`fully_connected` also respects there — but **that bound is a property of the one edge mode
+and one clip actually measured, not a property established for the tiered path in
+general**: whether in-degree concentration grows, shrinks, or stays flat as N or scene size
+grows is not known from a single clip (item 37).
 
 The
 exponents in §5.1 were measured under `fully_connected` and transfer to `block_diagonal`
@@ -657,8 +748,6 @@ that ignores the temporal component** — it is also the only one returned witho
 floor, so a pair with zero semantic and zero motion similarity carries weight exactly 0.
 The tiered families use fixed coefficients throughout. A consequence for §5.1: α and β
 affect the dense arm's edge weights and do not affect the scene-sparse arm's at all.
-
-<!-- open item 9 -> Appendix C -->
 
 ---
 
@@ -714,6 +803,12 @@ construction is not an approximation. Cross-scene edges are absent from the scen
 graph by definition; the reference path computes them and then discards them. The
 block-diagonal path simply never computes them.
 
+The N=4,892 clip carries a codec-**name** warning (`mpeg4`, not h264/hevc) at ingest, but a
+separate motion-vector probe — distinct from that name check — found motion vectors
+genuinely present and varying across all 4,892 frames rather than absent (A.5.2); this
+establishes that motion vectors were exported and non-constant on our flagship clip, not
+that they are accurate.
+
 ### 4.2 Savings
 
 ![Figure 2](figures/fig2_construction.svg)
@@ -721,22 +816,27 @@ block-diagonal path simply never computes them.
 **Figure 2.** Left: the dense path enumerates every node pair and retains only the within-scene blocks. Right: cost of the two construction orders for the bit-identical graph.
 
 
-**Building the identical graph block-diagonally is 233.5× faster and uses 6.80× less peak
+**Building the identical graph block-diagonally is 234.4× faster and uses 6.80× less peak
 memory than building it dense and pruning.**
 
 | | reference (dense-then-prune) | block-diagonal | ratio |
 |---|---:|---:|---:|
-| wall-clock (per build) | 50.20 s | 0.215 s | **233.5×** |
+| wall-clock (per build) | 49.71 s | 0.212 s | **234.4×** |
 | peak RSS | 6.33 GB | 0.93 GB | **6.80×** |
 
 The two rows come from two separate measurements, because wall-clock time and peak memory
 are not well measured by the same protocol.
 
-The **wall-clock** figures come from a controlled, interleaved measurement: 159 builds on
-the same clip (N=4,892 survivors, 528 scenes), arms alternated across three rounds so any
-machine drift affects both equally, with load and free memory logged before each arm.
-Round-level ratios were 233.15×, 234.00×, and 233.60×, and the pooled-median ratio 233.53×
-— agreement within 0.4%.
+The **wall-clock** figures come from a controlled, interleaved measurement, executed twice
+under the identical protocol (A.5.8): once on an uncommitted working tree — superseded,
+`build_cost_final.{json,md}`, A.3 §4 — and once, reported here, at commit
+`3a2c1db9794f48a7f5d520b40eb87aa4bf0c6ce7` (`build_cost_final_v2.{json,md}`). Each run is
+159 builds on the same clip (N=4,892 survivors, 528 scenes), arms alternated across three
+rounds so any machine drift affects both equally, with load and free memory logged before
+each arm. In the reported run, round-level ratios were 235.21×, 233.99×, and 234.45×, and
+the pooled-median ratio 234.45× — agreement within 0.52%. Across the two runs, the pooled
+ratios (233.53× and 234.45×) agree to within 0.4% of each other — a stability claim across
+separate sessions, stronger than either run's own within-session agreement (A.5.8).
 
 The **peak RSS** figures come from five repeats per arm, each a single build in a fresh
 process, with medians reported: 6,325,764,096 bytes for the reference path and
@@ -770,13 +870,15 @@ selection-stage cost rather than a full-ingest one (§3.1).
 
 Third, the reported ratio is a **within-session** figure. The reference arm's wall time has
 varied across separate measurement sessions running the same corrected code — 61.39 s and
-48.57 s in two earlier fresh-process runs, against 50.20 s here — a spread of roughly 20%
+48.57 s in two earlier fresh-process runs, against 49.71 s here — a spread of roughly 20%
 that the interleaved protocol neither explains nor reproduces (machine state was logged as
-idle and stable throughout: 2.5–10.1% CPU, 19.78–19.96 GB free of 33.46 GB, across all six
+idle and stable throughout: 4.0–11.9% CPU, 18.57–19.30 GB free of 33.46 GB, across all six
 launches). Interleaving establishes that the two arms drift *together* within a session; it
 does not establish that the reference arm's absolute cost is stable *across* sessions. The
-0.4% cross-round agreement should be read as within-session precision, not as a bound on
-session-to-session variation, and the ratio inherits that variation.
+0.52% cross-round agreement should be read as within-session precision, not as a bound on
+session-to-session variation, and the ratio inherits that variation. Running the same
+protocol twice, on identical code and cache, gives one cross-session data point in the
+other direction: the two runs' pooled ratios agree to within 0.4% of each other (A.5.8).
 
 One correction belongs on the record. An earlier version of this measurement reported ~220×
 and ~6.7×. Both construction paths at that time performed a redundant edge-and-PageRank
@@ -884,7 +986,10 @@ graphs — and because it is the conservative choice.
    the direction unfavourable to us. We report the violation rather than suppress it.
 3. **Salience-weight provenance.** The entire corpus was built at salience weights
    (`luma_diff_weight`, `motion_weight`, `luma_entropy_weight`) = (0.5, 0.3, 0.2), verified
-   per-clip from cached configuration snapshots. These are the shipped defaults:
+   per-clip from cached configuration snapshots. Despite its name, `luma_diff_weight` weights
+   a codec packet-size residual (`frame_features["packet_size"]`), not a luma-difference
+   quantity — a genuine `luma_diff_energy` field exists on frame records and is diagnostic
+   only, never consumed by the scorer (`eval_results/packet_size_weight_C6.md`). These are the shipped defaults:
    `IRISConfig` declares them and `configs/default_iris_config.json` overrides none of the
    three, so survivor-N values here are directly comparable to retention figures computed
    under the production configuration.
@@ -897,6 +1002,33 @@ graphs — and because it is the conservative choice.
    `motion_weight` and `luma_entropy_weight`, and an absent `luma_diff_weight` falls back to
    0.5. So (0.8, 0.1, 0.1) was never IRIS's production salience triple, and the earlier
    disclaimer is withdrawn rather than restated.
+4. **β's narrow influence on this corpus.** α and β are resolved (Appendix A, §5
+   provenance) at `alpha=0.4, beta=0.3` for every clip, with no variation, but neither
+   actually drives the fitted exponents here. `retrieve_ppr` itself never reads `alpha` or
+   `beta` — but that is not because they are bypassed: β sets the *magnitude* of the
+   motion term in every edge weight whenever `motion_similarity_mode="action_score"` (the
+   default, in force here), and PPR propagates its seed over exactly those weighted edges
+   (`eval_results/shared_signal_C35b.md`). β is therefore live on this corpus, not inert.
+   What makes it narrow is scope, not bypass: β reweights edges on a fixed edge set —
+   it changes how much PageRank mass moves along an edge that already exists, not whether
+   the edge exists, how many nodes are indexed, or how many pairs the construction pass
+   considers. The scene-sparse arm restores serialized edge weights (β-dependent
+   magnitudes included) from the cached `.npz` manifest rather than recomputing them at
+   query time; the dense arm recomputes them at query time under whatever β is configured.
+   Either way, β enters only edge-weight magnitude — never the node count, edge count, or
+   operation count the fitted scaling exponent actually measures — so it does not affect
+   the latency this section fits.
+5. **Per-node degree confirmed flat against N, scoped to this fit's edge mode.** §3.5 now
+   records the structural precondition this exponent depends on — per-scene subgraphs not
+   growing with N — checked directly against all 33 cached indices rather than assumed:
+   degree does not drift upward from N=24 to N=13,506 (r(N, deg_mean) = −0.155), because
+   scene count grows with N (r=0.975) while scene size does not (r=0.135). This holds for
+   `fully_connected`/`block_diagonal`, the modes this corpus is built under. It is not
+   checked at scale for `hierarchical_sparse`, the mode §5.3–§7.1's accuracy results use —
+   no cached index in this 33-clip corpus was built under it, and the one
+   `hierarchical_sparse` cache built and measured since (one clip, N=613) confirms bounded
+   degree there but does not establish degree-vs-N behaviour for the tiered path (§3.5;
+   item 37, RESOLVED IN PART).
 
 ### 5.2 Tractability divergence
 
@@ -1064,7 +1196,7 @@ of our efficiency claim is that the sparse graph retrieves far more cheaply *and
 benefits less from cross-query caption reuse.
 
 A build-time caption prefetch over high-centrality nodes would plausibly eliminate this
-cost, given a construction budget of 0.215 s. We have not implemented or measured it.
+cost, given a construction budget of 0.212 s. We have not implemented or measured it.
 
 ---
 
@@ -1072,7 +1204,7 @@ cost, given a construction budget of 0.215 s. We have not implemented or measure
 
 ## 6. Correctness Floor
 
-This section does not claim competitive accuracy. It claims that a graph costing 0.215 s
+This section does not claim competitive accuracy. It claims that a graph costing 0.212 s
 to build, produced without a neural forward pass and queried by a ~3.4B answerer on CPU,
 does not degrade answer quality below the weakly-supervised band. That is the relevant
 question for an efficiency contribution: a construction saving is uninteresting if the
@@ -1099,8 +1231,40 @@ answered correctly, and 20 satisfy both — that is, 0.350 × 0.476 = 0.167.
 **Grounding and correctness are coupled.** P(correct | grounded) is 0.476 against
 P(correct | ungrounded) of 0.321 [C4.2]. This ~15-point gap replicated across two
 independent samples (65 vs 46 in-sample; 47.6 vs 32.1 held out) even though absolute
-levels fell between them, which supports the coupling independently of where the levels
-land.
+levels fell between them — the *replication* of the gap across samples is what this
+supports, regardless of where the absolute levels land. That is a claim about the gap
+recurring, not a claim that what drives grounding and what drives correctness are
+independent of each other; see the caveat immediately below for that distinction.
+
+**Shared upstream input, not independent measurements.** The two factors above are not
+independent measurements of two separately-tuned subsystems — both are readouts of one
+shared retrieval event. `packet_size` enters that event's single `nx.pagerank` call by
+two routes: the personalization vector, via `codec_conf` at weight `(1-λ)=0.5`, and the
+edge weights, via `action_score` at the β slot under `motion_similarity_mode="action_score"`
+(the default, in force for this run) (`eval_results/shared_signal_C35b.md`; cf. §5.1 note
+4, Appendix C item 35(b)). Grounding and answering then read the identical
+`retrieved_frames` list — there is no second, independent frame-selection step for the
+answerer.
+
+This does not undermine the ~15-point gap: "grounded" means the correct region's frames
+were literally present in the answerer's context, and that is a real causal channel
+regardless of why retrieval happened to find them — it would hold even if retrieval
+ranked purely on semantic similarity. What narrows is a stronger reading of "grounded" as
+"retrieved for a query-semantic reason": since up to half the seed (and part of the edge
+weights) is a codec artifact uncorrelated with the question text, a question can be
+grounded because `packet_size` happened to rank the right region highly, not because the
+query matched it. This bears directly on §2.3's framing of grounding as the guard against
+being "right for the wrong reasons" — the guard establishes that the right evidence was
+present, not that it was found for the right reason. Within the retrieved set, the span's
+peak is picked by raw CLIP cosine similarity alone and is `packet_size`-free; it is set
+*membership* — which frames make the top-k that peak selection then searches — that
+carries the `packet_size` dependence.
+
+We cannot rule out, from a code trace alone, a residual confound: some codec-activity
+characteristic correlated with `packet_size`-favorable retrieval might also correlate
+with question difficulty independent of retrieved content. No control analysis for this
+(e.g. matching on codec activity, or an ablation forcing a purely semantic ranking)
+exists in `eval_results/`. We disclose this as unaddressed rather than dismiss it.
 
 **Neither stage is negligible.** Perfect grounding would raise Acc@GQA to 0.476 (+0.31
 headroom); a perfect answerer over current grounding would give 0.350 (+0.18). Grounding
@@ -1206,7 +1370,7 @@ not claim a meaningful margin there.
 ### 6.3 What this section supports
 
 The system answers. It answers in the band occupied by weakly-supervised methods with
-comparable or larger models, using a graph built in 0.215 s on CPU with no training and
+comparable or larger models, using a graph built in 0.212 s on CPU with no training and
 no frontier model. It does not answer as well as current agentic methods, and where it
 fails — directional temporal reasoning, exhaustive counting — the failure is located in
 the answerer rather than in the representation.
@@ -1399,9 +1563,28 @@ cannot contribute evidence downstream. Characterising the recall-versus-cost fro
 that gate — including whether the current width rule is recall-safe at large S — is future
 work and is not evaluated here.
 
-**8.9 The CPU-only demonstration is weaker than it could be.** Our ingest measurements were
-taken on a machine without a GPU. Demonstrating CPU-only operation *by choice* on
-GPU-equipped hardware would be the stronger form of the claim, and has not been done.
+**8.9 The CPU-only demonstration is weaker than it could be.** What the artifact actually
+records is `gpu_available_on_this_box: false` in `efficiency_measurements.json`, a
+`torch.cuda.is_available()` result captured by `scripts/ucfcrime_vad_exp1_efficiency.py`.
+It records no hostname, OS string, or hardware inventory. That is weaker than it reads:
+A.2 records this project's torch build as `2.13.0+cpu`, a CPU-only wheel that reports no
+CUDA device regardless of what hardware it runs on. The flag therefore establishes "no
+CUDA device visible to torch," not "no GPU present in the machine."
+
+What is established, circumstantially: the ingest ran on a Windows machine —
+`efficiency_per_video.csv`, the companion file to the JSON above, carries Windows
+backslash paths (`eval\data\ucf\videos\...`) in every row — and the project's GPU box
+(`worker-1`, §A.2) is Linux, so the ingest did not run there. This is circumstantial
+rather than conclusive: the CSV records no hostname, only path separators.
+
+Demonstrating CPU-only operation *by choice* on GPU-equipped hardware would be the
+stronger form of the claim. The honest complication is that we cannot currently tell
+whether that is what happened, because the only hardware signal we captured — the
+torch flag above — cannot distinguish "no GPU present" from "GPU present, CPU-only
+wheel installed." Capturing a hardware inventory (not just a torch capability flag)
+alongside the efficiency run is the fix, and it was not done. None of this affects the
+§4 ingest claim itself: 0 neural forward passes is a property of the code path taken,
+not of the hardware it ran on.
 
 **8.10 Some artifacts are not fully traceable.** <!-- open item 19 -> Appendix C -->
 
@@ -1427,6 +1610,19 @@ We flag this as the most substantive open item in the paper rather than a minor 
 It is the difference between a construction result about a configuration we evaluate and one
 about a configuration we do not.
 
+**8.11 The corpus's encoding profiles are uncharacterised.** UCF-Crime is redistributed web
+video, already compressed before it reached us, so every codec-derived signal we read —
+packet size, motion vectors, the salience channel built from them — is a second-generation
+measurement of an encoding history we did not observe and do not control. Part of our corpus
+is additionally x264-transcoded on top of that. Nor is the corpus codec-homogeneous: the
+flagship VIRAT efficiency clip carries an `mpeg4` codec tag (§4.1, A.5.2), while the UCF-Crime
+accuracy corpus is H.264. We make no claim about how any codec-derived result here would
+behave under a different encoding profile. This is a scope statement, not a weakness we
+believe we have found evidence of: the §3.1 salience channel, §4's construction result
+(built over scene boundaries themselves derived from the codec), §7.1's segmentation null,
+and §7.2's frame-admission negative are all conditioned on the encoding profiles this
+particular corpus happens to carry.
+
 ## 9. Conclusion
 
 We set out to test whether a long-video retrieval graph must be expensive to build. It does
@@ -1435,7 +1631,7 @@ not.
 Our central result is an identity: block-diagonal construction produces exactly the graph
 that dense construction produces and then prunes — the same nodes, the same edges, the same
 weights at zero tolerance, the same PageRank — while visiting only the pairs it keeps
-rather than the 99.8% it would discard. That makes construction ~233× faster and ~6.8×
+rather than the 99.8% it would discard. That makes construction ~234× faster and ~6.8×
 smaller in memory, on CPU, with no neural forward pass during ingest and no proprietary
 model anywhere in the construction path. The same block structure separates query latency
 into quadratic and sublinear regimes, and at large graph sizes into a boundary where dense
@@ -1459,6 +1655,11 @@ segmentation, our admission policy, or our compressed-domain signals.
 For retrieval over long video, the intermediate graph does not have to be generated, does
 not have to be clever, and does not have to be expensive. It has to be structured — and
 structure, it turns out, is nearly free.
+
+Three extensions do not depend on any of the open scope questions above: characterising the
+shortlist recall-cost frontier at the scene-selection gate (§8.8), a build-time caption
+prefetch over high-centrality nodes to remove the caption-cache penalty (§8.2), and
+ingesting additional large-N clips to firm up the scaling fit's thin support (§8.3).
 
 <!-- open item 20 -> Appendix C -->
 
@@ -1495,18 +1696,138 @@ libswscale 9.5.102, libswresample 6.3.102. No ffmpeg binary was found on PATH, i
 virtual environment, or in the repository; all decoding in the caption path goes through
 PyAV's linked libraries above.
 
-All measurements are CPU-only.
+**Provenance of this record.** The environment block above is a *post-hoc* capture:
+taken on this same Windows/Ryzen machine on 2026-09-08T18:43:07Z at commit `48c082a`
+(2 tracked files dirty), after every run this paper reports, not at run time. No
+reported run captured hardware provenance when it executed. That is the frame for
+everything below — this section describes what a machine looked like well after the
+fact, not what ran the measurements as they ran.
 
-Answerer: `granite4:micro` (~3.4B, Q4_K_M) served via llama-server, temperature 0,
-`cache_prompt=false`, `--parallel 1`. Embeddings: CLIP ViT-B/32, the same model at ingest
-and query time. <!-- open item 22 -> Appendix C -->
+**Traceable to this machine.** A subset of reported measurements can be positively
+tied to the machine described above, but only via incidental evidence — absolute
+paths, CPU inventory, OS strings leaked into artifacts — not via provenance fields
+recorded at run time. These are: the §4.2 wall-clock build figures (`build_cost_final.*`,
+matching CPU inventory and an explicit `Windows` string), both §5.3 end-to-end runs,
+the §5.4 caption-stage diagnosis, and the MLVU runs behind §6.2 and §7.1 (backslash
+paths and, for the long-video runs, absolute `C:\Users\...` paths in the download logs).
+Full accounting in `eval_results/machine_fingerprints_C22c.md`.
 
-All reported measurements are CPU-only on a single machine, and the memory watchdog
-described in §5.2 sits near this machine's total RAM.
+**Not traceable to any machine.** The §4.1 identity and grounding gates, the §5.1
+scaling corpus, the §4.2 peak-RSS figures, the §5.3 retrieval-mechanics run, and the
+§6.1 held-out Acc@GQA carry no incidental leak of any kind — no path, hostname, OS
+string, or device field. Silence here is not evidence for the Windows box: a
+Windows-produced artifact and a provenance-free one are indistinguishable once no
+fingerprint survived, so these measurements are simply unassigned, not implicitly
+this machine.
 
-This environment was captured on the same machine after the reported runs rather than
-at run time (captured 2026-09-08T18:43:07Z at commit `48c082a`, 2 tracked files dirty);
-the full record is in `eval_results/env_A2.json`.
+**A second machine existed.** A Linux x86_64 box (`worker-1`, `/home/ccbd/IRIS-1`)
+with an NVIDIA RTX 4090, CUDA 12.6, served the answerer via llama-server with
+`-ngl 999` (full GPU offload). No number reported in this paper is tied to that
+machine. It is tied instead to answerer infrastructure work outside this paper's
+reported results: the 2026-07-24 `val_confirm_e2e` run and the 2026-07-27 A1
+determinism gate.
+
+**Answerer build.** Three llama-server builds appear in the project record. `b9976`
+is cited in the A6 (2026-07-19) and P-NOW-A (2026-07-23) run logs — the runs behind
+§6.1's held-out result and the A6 grounded-VideoQA measurement — but was never
+binary-verified on any machine; the citation is self-reported prose with no SHA-256
+or `--version` capture behind it. The only build independently verified in this
+repository (SHA-256 and `--version` output) is `b10099` (commit `1a064ab`), used for
+the later runs on `worker-1` and confirmed gone from that machine as of 2026-07-27.
+Full accounting in `eval_results/llama_build_C22.md`.
+
+**Determinism.** The answerer's determinism assurance (temperature 0,
+`cache_prompt=false`, `--parallel 1`) was demonstrated 639/639 byte-identical — but
+that demonstration ran on `worker-1`, with `b10099`, not with `b9976` on the machine
+described in this section, and it does not extend to §6.2 or §7.1 (below).
+
+**This determinism demonstration does not cover the MLVU results (§6.2, §7.1).**
+All four MLVU artifacts (`MLVU_codec_baseline.json`, `MLVU_ablation.json`,
+`MLVU_ablation_long.json`, `MLVU_ablation_long_trimmed.json`) were served by Ollama
+(`aria.LlamaBackend`, `http://localhost:11434/v1`) rather than llama-server, confirmed
+directly from each run's own printed setup line with no call-site override anywhere in
+the repository — see A.5.11. The three conditions above transfer to that path
+differently, not uniformly:
+
+- *Temperature 0* was sent, hardcoded, in every request `aria.LlamaBackend` issues, for
+  all four artifacts.
+- *`cache_prompt=false`* was never sent at all. `aria.LlamaBackend.generate()` has three
+  request branches and none of them constructs a payload containing `cache_prompt` in any
+  form — this is not the A1 gate's "wrong build drops the flag" scenario (which describes
+  a flag that is sent and then silently ignored server-side); the flag is simply absent
+  from the wire contract for this backend class, regardless of which server receives the
+  request.
+- *`--parallel 1`* has no Ollama equivalent — it is a llama-server launch flag, and
+  Ollama's own concurrency is instead governed by daemon-level environment variables that
+  no artifact records. Undetermined for all four MLVU runs.
+
+No repeat-run evidence exists for any MLVU artifact either: checkpoint files show every
+question was answered exactly once, by design (a crash-and-resume never re-asks a
+question already saved), so there is no overlapping question set to check for
+reproduction. The A1 gate's 639/639 result does not transfer as corroboration — it ran a
+different backend class (`LlamaServerBackend`), on a different machine (`worker-1`), over
+a different dataset (not MLVU), and its own recommendation names the Ollama route as the
+one to avoid, not one it validated. Whether the MLVU results in §6.2 and §7.1 are
+reproducible under re-query is therefore undetermined, not confirmed either way. Full
+accounting in `eval_results/long_arm_determinism_C38.md`.
+
+**§5.3 and §5.4 also ran on Ollama, but report nothing this affects.** `scripts/
+e2e_speedup_ab.py`, `scripts/e2e_stage3_decomp_ab.py`, and `scripts/
+caption_stage_diagnosis.py` each call `aria.set_backend(aria.LlamaBackend(
+text_model='granite4:micro'))` with no CLI argument for the endpoint anywhere in any
+of the three scripts — there is no override path even in principle, so all three ran
+against Ollama at `http://localhost:11434/v1`, the same as the MLVU family. The same
+consequence follows: `cache_prompt=false` was never sent, for the same reason (absent
+from `aria.LlamaBackend`'s wire contract, not server-dependent). Unlike the MLVU
+family, this does not scope a determinism claim away from any reported number: every
+quantity §5.3 and §5.4 report — stage wall-clock medians, the 0.802×/0.778×
+end-to-end ratios, caption-cache-miss counts, frame counts, verify-call counts, the
+paired bootstrap difference on caption time — is a timing or a count, not a function
+of what the answerer said. (`e2e_stage3_decomp_raw.json` and `caption_stage_diagnosis.json`
+record no backend/endpoint field at all; `e2e_speedup.json` is the one artifact in this
+audit whose own recorded field is both present and accurate — it names the Ollama
+override in prose.) So: the condition did not hold here either, stated for
+completeness, but it does not widen the determinism exclusion — there is no
+answer-content-dependent number in §5.3 or §5.4 for it to threaten. Full accounting in
+`eval_results/backend_provenance_C39.md`.
+
+**Backend provenance mechanism, not field name, decides reliability.** The identical
+field names (`backend`/`endpoint`/`answerer_backend`/`answerer_endpoint`) appear across
+three structurally different writers in this repository, and only tracing each to its
+writer — never the field's name or apparent shape — tells them apart:
+
+1. **`asdict(config)` on an unrelated `IRISConfig` instance** — a dataclass default,
+   never wired to the live answerer backend, that can assert a specific wrong backend
+   and port with no warning. This is the MLVU family's defect (above; A.5.7, A.5.11).
+2. **Live-backend introspection gated by an `isinstance` + `GET /models` preflight that
+   raises before any query if the wrong backend class is seated or nothing answers** —
+   `scripts/pillar2_grounded_qa.py`'s `preflight_backend()`, shared (by direct import)
+   with `scripts/pnowa_test_accgqa_run.py`. §6.1's A6 grounded-VideoQA measurement, the
+   P1 λ-sweep, and the held-out P-NOW-A result all use this mechanism: the recorded
+   `LlamaServerBackend`/8091/temperature-0/`cache_prompt=false` fields are attributes
+   read off the same live object the preflight gate already verified, not re-declared
+   literals. **VERIFIED**, and independent of item 22's disclosed build-identity gap
+   (which build of llama-server was listening) — that gap persists and is not reopened
+   or narrowed by this.
+3. **OS-level introspection** (`scripts/answerer_provenance.py`): the actual PID
+   listening on the target port, its real `/proc/<pid>/cmdline`, a SHA-256 over the
+   binary file on disk, and a live `/models` GET. This produced `tuning/
+   determinism_gate/environment.json` and its `worker-1` siblings — the gold standard,
+   unrelated to any `IRISConfig` object. Full accounting in `eval_results/
+   backend_provenance_C39.md`.
+
+**Per-section answerer backend, stated explicitly rather than by exception:** §6.1
+(A6, the P1 λ-sweep, held-out P-NOW-A) — llama-server, mechanism (2) above, VERIFIED;
+item 22 is resolved (PREMISE FALSE — no single build was ever recorded and confirmed
+for the same run), but the gap it disclosed, that no build's SHA-256/`--version` was
+captured for any of these specific §6.1 runs, persists regardless and is not reopened
+or narrowed here. §5.3 (both end-to-end runs), §5.4 (caption-stage
+diagnosis), §6.2, and §7.1 (the MLVU family) — Ollama's `aria.LlamaBackend`, with no
+override path exercised or, for §5.3/§5.4, even possible. `granite4:micro` (~3.4B,
+Q4_K_M) is the model in every case; the two backends differ in server, not in model.
+Embeddings: CLIP ViT-B/32, the same model at ingest and query time. <!-- open item 22 -> Appendix C -->
+
+The memory watchdog described in §5.2 sits near this machine's total RAM.
 
 ### A.3 Artifact index by section
 
@@ -1515,13 +1836,13 @@ the full record is in `eval_results/env_A2.json`.
 | claim | artifact | provenance |
 |---|---|---|
 | identity gate: 23,571 edges, 0 mismatches at tol 0.0, PageRank bit-identical, PPR identical across 5 seeds | `blockdiag_identity_gate_result.{json,md}` | commit `3d83b2c` on `origin/siddanth/peak-source-a6-p1`, present in the working tree **(verified)**; outcome `GATE_PASS`; all five §4.1 claims checked against the artifact and matching; harness `scripts/blockdiag_identity_gate.py`. Nuance: the 0.0 tolerance qualifier appears in the `.md` summary prose, not as a field in the JSON, which records a field-mismatch count of 0 without an explicit tolerance value |
-| build savings, wall-clock: 50.195124 s → 0.214939 s (233.532×) | `build_cost_final.{json,md}`, `build_cost_final_raw/` | harness `scripts/build_cost_final_probe.py`; 159 builds (9 old, 150 new), arms interleaved old→new across 3 rounds, each arm looped in-process; guard `edge_count == 23,571` on all 159, PASSED; machine state snapshotted before each arm |
+| build savings, wall-clock: 49.712318 s → 0.212039 s (234.449×) | `build_cost_final_v2.{json,md}`, `build_cost_final_v2_raw/` | commit `3a2c1db9794f48a7f5d520b40eb87aa4bf0c6ce7` on `siddanth/peak-source-a6-p1` **(item 23, resolved)**; harness `scripts/build_cost_final_probe.py` (unmodified); 159 builds (9 old, 150 new), arms interleaved old→new across 3 rounds, each arm looped in-process; guard `edge_count == 23,571` on all 159, PASSED; machine state snapshotted before each arm. Supersedes the uncommitted-tree run below (row 4, A.3 §4 supersession chain) |
 | build savings, peak RSS: 6,325,764,096 B → 930,693,120 B (6.80×) | `build_dedup_repeats.{json,md}` | harness `scripts/blockdiag_build_probe.py`; 5 repeats per arm, one build per fresh process, 10 launches, medians reported; guard `edge_count == 23,571` on all 10, PASSED. Measured separately from wall-clock because a peak RSS over a 50-build in-process loop is a peak over the loop, not over a build (§4.2) |
 | RSS ratio cross-check: 6.803870× | `build_dedup.json` (`rss_ratio_after_dedup`) | independent post-dedup figure; agrees with the median-based 6.80× to three significant figures |
 | **supersession chain for the build-savings figures** | see below | recorded because no single artifact states it |
 
-The build-savings numbers were measured four times. Only the last is reported in §4.2; the
-earlier three are superseded and appear in artifacts that are still on disk, so the chain
+The build-savings numbers were measured five times. Only the last is reported in §4.2; the
+earlier four are superseded and appear in artifacts that are still on disk, so the chain
 is recorded here to prevent a reader reconciling them incorrectly.
 
 | # | figure | artifact | status |
@@ -1529,7 +1850,8 @@ is recorded here to prevent a reader reconciling them incorrectly.
 | 1 | 69.472 s → 0.316 s = 219.88× (~220×); 6.360 → 0.950 GB = 6.698× (~6.7×) | `blockdiag_gate_and_savings_summary.md`, `blockdiag_probe_{old,new}.json` | **superseded** — measured before the redundant edge-and-PageRank pass was removed from both arms |
 | 2 | 61.392 s → 0.237 s = 259.23×; 6.324 → 0.930 GB = 6.804× | `build_dedup.{json,md}` | **superseded for wall-clock** — single fresh-process probe per arm; its RSS ratio survives as the cross-check above |
 | 3 | 48.568233 s → 0.122421 s = 396.73×, pairing spread [224.17×, 406.67×] | `build_dedup_repeats.{json,md}` | **superseded for wall-clock** — spread dominated by the block-diagonal arm's sub-quarter-second timer noise; its **RSS medians are the reported figures** |
-| 4 | 50.195124 s → 0.214939 s = 233.532× | `build_cost_final.{json,md}` | **reported in §4.2** — looped and interleaved to clear the timer floor and symmetrise machine drift; contains no RSS measurement |
+| 4 | 50.195124 s → 0.214939 s = 233.532× | `build_cost_final.{json,md}` | **superseded (item 23, resolved)** — looped and interleaved to clear the timer floor and symmetrise machine drift, but measured on an **uncommitted working tree**: the `defer_recompute` change that sits on this exact timed path (`_build_graph` → `add_frame_nodes_bulk`) existed in no commit at the time of the run. That gap, not a protocol defect, is why row 5 exists — same protocol, same cache, tree now committed |
+| 5 | 49.712318 s → 0.212039 s = 234.449× | `build_cost_final_v2.{json,md}` | **reported in §4.2** — commit `3a2c1db9794f48a7f5d520b40eb87aa4bf0c6ce7` on `siddanth/peak-source-a6-p1`; 132 of 133 dirty paths at run time were untracked scratch (`eval_results/`, `scripts/`, `NExT-GQA/`, `eval/metrics_official.py`) and 1 was `paper/IRIS_paper_draft.md`, none of it on the timed path; `iris/` (the code under test) was confirmed clean. This differs from A.5.5's scaling and end-to-end runs (94 and 87 **tracked** files dirty respectively — the end-to-end count of 87 is a hardcoded literal in the harness with no reproducible source behind it, not a directly checked fact; see A.5.5) in the dimension that matters: there, tracked pipeline files were uncommitted at run time; here, the code under test is committed and only untracked scratch plus the paper draft remain dirty. Contains no RSS measurement |
 
 Cache used by (1)–(3): `eval/data/virat/index_cache/VIRAT_S_040001_01_000448_001101.npz`,
 N=4,892 / 528 scenes, `config_snapshot` sha256 `b61eb07f19b4035708778205f0d94885cb28fafdf5e3681e795f63f34dd72bb5`;
@@ -1549,6 +1871,7 @@ HEAD before the dedup change `90ef59b` on `siddanth/peak-source-a6-p1`.
 | full-range fits: dense 1.980 [1.951, 2.006]; sparse 0.497 [0.461, 0.530] | same | same |
 | censoring: dense timed out at N=6,559 and N=13,506 under 3600 s / 29 GB | same | censoring table in artifact; lower-bound fit k ≥ 2.597 |
 | survivor census: 31 clips, median N=333, bins of 7/2/2/1 | `_ci_survivor_census.json`, `scaling_curve_ci_census.json` | harness `scripts/_ci_survivor_census.py` |
+| **α/β resolved: `alpha=0.4`, `beta=0.3` in every cache, no variation** | 33 `index_cache/*.npz` manifests, all read directly | `eval_results/beta_provenance_C9.md`; verified via per-clip `config_snapshot`, the same path used for the §5.1 salience-weight check (§5.1, note 3); values are `IRISConfig` dataclass defaults, not either shipped JSON — `configs/default_iris_config.json` (`beta=0.6`, `captioner_backend="minicpm"`) and the `ucf-vad-exp1` worktree config (`beta=0.3`, `captioner_backend="minicpm"`) are both ruled out by the recorded `captioner_backend="moondream"`, supplied only by the dataclass, confirming `ConfigManager` was bypassed for a directly-constructed `IRISConfig`; `Normal_Videos_924`/`935` are excluded from the §5.1 fit for a different field, `graph_edge_mode="block_diagonal"` |
 | shortcut guard violations: Assault036 20%, Abuse037 10% | `scaling_curve_v3.md` guards section | — |
 | retrieval mechanics 7.9448 s vs 0.0072 s (1,104×) | `virat_latency_N4892_{raw.json,result.md}` | run 2026-07-27; 50 **synthetic** queries, `query_seed=20260726`; shortcut fired 0/50; **see A.5.1, A.5.2**; measured under synthetic sampled embeddings, not real CLIP text encoding — real text queries give ≈291× (§5.3) |
 | **end-to-end (primary) 55.64 s vs 69.40 s (0.802×)** | `e2e_stage3_decomp_raw.{json,md}` | commit `deeeba8` (`tracked_dirty_count` 0); 5 real text queries/arm + discarded warmup; caption cache reset per arm; captioner pinned in harness config, resolved identity not recorded |
@@ -1559,7 +1882,7 @@ HEAD before the dedup change `90ef59b` on `siddanth/peak-source-a6-p1`.
 
 | claim | artifact | provenance |
 |---|---|---|
-| Acc@GQA 0.1667 [0.088, 0.243], n=120/27 videos | `P_NOWA_accgqa_result.md`, `P_NOWA_accgqa_raw.json` | commit `dc59de3`; second and final test-half touch; frozen config listed in `P_NOWA_accgqa_prereg.md` |
+| Acc@GQA 0.1667 [0.088, 0.243], n=120/27 videos | `P_NOWA_accgqa_result.md`, `P_NOWA_accgqa_raw.json` | git HEAD `b170007b` (clean, `git_dirty: false`), the commit the harness ran at; committed at `dc59de3`, one commit later, whose entire diff is the addition of the raw JSON itself (the result document's title cites this recording commit, so both hashes appear in the record); second and final test-half touch; frozen config listed in `P_NOWA_accgqa_prereg.md`; see `eval_results/commit_provenance_C22d.md` |
 | split: 59 val / 27 test videos, video-level | `P_NOWA_split_declaration.md` | declared 2026-07-22, before any measurement |
 | P(correct \| grounded) 0.476 vs 0.321 | `P_NOWA_accgqa_result.md` | — |
 | vs uniform +0.120 [0.000, 0.248]; vs random +0.127 [+0.036, +0.229] | same | all three arms run together to avoid a third touch |
@@ -1598,17 +1921,63 @@ produces the 1,104× retrieval-mechanics figure, the caveat travels with that nu
 which is measured under synthetic sampled embeddings, not real CLIP text encoding — real
 text queries give ≈291× (§5.3).
 
-**A.5.2 — The N=4,892 clip is mpeg4, not H.264.** The ingest log for the VIRAT clip warns
-that the codec is not h264/hevc and that motion-vector export may be unavailable. This does
-not affect the construction identity result (which is graph algebra and codec-independent)
-or the latency measurements (which time graph mechanics). But our flagship clip is one on
-which codec-derived motion signals may be degraded or absent, and a paper about
-compressed-domain signals should say so rather than let a reader discover it.
-<!-- open item 25 -> Appendix C -->
+**A.5.2 — The N=4,892 clip is mpeg4, not H.264, but its motion channel is verified
+non-degenerate.** `iris/codec_validator.py` emits two independent warnings, and they mean
+different things. The first is a codec-**name** check — it fires whenever the container's
+codec tag is not `h264`/`hevc`, and says nothing about whether motion vectors were actually
+exported — it is a heuristic, not a probe. The second is a separate, later **MV probe**: it
+decodes ahead to a non-keyframe and checks directly, emitting "motion vectors unavailable;
+motion geometry will be zero" when they genuinely are not present, or a third, distinct
+warning when availability could not be determined within the probe's frame budget.
 
-**A.5.3 — The MLVU baseline artifact records no commit.** Its git HEAD field contains a
-captured error from a failed `git rev-parse`, and its dirty flag is null. The config hash
-is present. <!-- open item 26 -> Appendix C -->
+For the VIRAT clip, the ingest log (`eval_results/geometry_cutA_run.log`) shows only the
+name-based warning — codec `mpeg4` is not h264/hevc — firing twice (once per ingest arm).
+**Neither MV-probe warning appears.** Since the probe runs unconditionally after the
+name check and warns explicitly on both of its negative outcomes, its silence here means it
+ran and found motion vectors present, not that the check was skipped. This is not merely an
+unobserved absence: the same MV-probe warning does fire elsewhere in this repository, for
+MLVU's `needle_8.mp4` (`eval_results/_mlvu_ablation_run_stdout.log`), which confirms the
+probe is a live, discriminating check rather than dead code that never fires.
+
+Directly measuring the cached channel bears this out. Across all 4,892 frames,
+`motion_magnitude` takes 3,262 distinct values, ranging [0.0, 0.190978], mean 0.066719,
+sd 0.048806 — plainly not a constant-zero channel. 1,631 of those frames (33.3%) are exactly
+zero, and we state that plainly rather than only the summary statistics. Reading the zero
+frames as static footage rather than a partial systematic failure is an *inference*, not a
+further measurement: it rests on `packet_size` and `action_score` — two independent
+per-frame channels computed on the same clip — showing zero exact zeros across the same
+4,892 frames, i.e. nothing else in the per-frame record goes degenerate on exactly this
+subset. This does not affect the construction identity result (which is graph algebra and
+codec-independent) or the latency measurements (which time graph mechanics); it establishes
+that our flagship clip's codec-derived motion signal was exported and varies, addressing the
+concern this appendix previously only flagged.
+
+**A.5.3 — The MLVU baseline artifact records no commit, but is bracketed and
+independently reproduced.** `MLVU_codec_baseline.json`'s git HEAD field contains a
+captured error from a failed `git rev-parse`, and its dirty flag is null. The config
+hash is present, but `captioner_backend` and `config_hash` cannot substitute for a
+commit — both are dead fields (A.5.7), constant across the repository's history, so
+they cannot discriminate one commit from another the way a live field can.
+
+The run is bracketed instead: matching a failed run's printed JSON report in
+`eval_results/_mlvu_real_run_stdout.log` against the artifact on disk (the harness
+writes its output files before its own sanity guard runs, so a guard-failed run still
+leaves a completed, valid artifact) places the run at `2026-08-16 02:16:44` to
+`05:50:49` (+0530) — under 3h34m — and before every `iris/` commit made that
+day. That window predates a same-day fix to `iris/query.py`'s CLIP text-query
+embedding (long queries past the 77-token cap previously fell through to a silent
+all-zero embedding rather than truncating).
+
+The bracket alone would leave the headline M-Avg open to doubt from that fix. What
+closes it is independent reproduction: `MLVU_ablation.json`'s codec arm was run later
+that same day, after the fix landed, as a from-scratch re-run of the identical 150
+questions — and it reproduces the baseline's M-Avg and all six per-task accuracies
+exactly (`codec_reproduces_baseline: true`, `codec_vs_baseline_diff: {}`). That is
+stronger corroboration than a bare commit stamp would have been: a commit hash alone
+would still have left open the question of whether the code at that commit produced
+this number; the exact reproduction confirms the number directly, under known
+subsequent code. Full derivation in `eval_results/mlvu_provenance_C26.md`.
+<!-- open item 26 -> Appendix C -->
 
 **A.5.4 — Some artifacts are still quoted from a ledger rather than read directly.** The R0
 outputs, T5 outputs, and ingest efficiency measurements are reachable — R0 at
@@ -1623,24 +1992,45 @@ measurement — that artifact has not been read. No T6 artifact exists at all,
 which is a separate matter from reachability (see item 15). <!-- open item 27 -> Appendix C -->
 
 **A.5.5 — Most runs were made from dirty working trees.** The scaling and end-to-end
-artifacts record 94 and 87 changed files respectively at run time. The changes are scratch
-and evaluation outputs rather than pipeline code, but a commit hash plus "dirty" does not
-uniquely identify the code that ran. <!-- open item 28 -> Appendix C -->
+artifacts record 94 and 87 changed files respectively at run time; a commit hash plus
+"dirty" does not uniquely identify the code that ran. The two counts are not equally
+supported, and neither is a directly checked "scratch, not pipeline code" fact — that
+claim previously stood here as if it were.
+
+For §5.1 (94 files), `scaling_curve_v3_report.py` computes `git status --porcelain` live
+but retains only the line count; the file list itself was discarded and is not part of the
+artifact. The composition claim rests on a same-commit sibling instead: `MLVU_ablation_long_trimmed`,
+run 2h15m earlier from the same run-time HEAD (`9c66393d`), retained its full status —
+79 lines, all untracked, zero `iris/*.py` entries — and `iris/` is byte-identical between
+that HEAD and the commit that later recorded `scaling_curve_v3`. This makes "no pipeline
+code was dirty" well-supported for this run, but by inference from a neighbouring run, not
+by a record of this one.
+
+For §5.3 (87 files), nothing supports the claim. `git_dirty_file_count: 87` is a hardcoded
+literal in `_e2e_speedup_report.py`; neither that script nor `e2e_speedup_ab.py` contains a
+`git` or `subprocess` call anywhere. The figure has no reproducible source, and no sibling
+artifact or log exists from that run to cross-check against.
+
+`defer_recompute` (item 23) is not implicated in either case: it exists only from commit
+`3a2c1db` (2026-09-10), and both runs predate it by roughly three weeks (§5.1 run-time HEAD
+2026-08-16; §5.3 run 2026-08-18) — the dirty trees behind these two artifacts could not have
+carried it. <!-- open item 28 -> Appendix C -->
 
 **A.5.6 — One headline artifact was promoted rather than re-run.** The N=4,892 latency
 result document was written by promoting pre-existing artifacts (run 2026-07-27); the
 harness was not re-executed at documentation time, and provenance rests on artifact
 timestamps rather than a commit.
 
-**A.5.7 — `captioner_backend` is inert, and one artifact's recorded value misdescribes
-what ran.** `iris/aria.py::get_captioner()` takes no configuration argument. It ignores the
-`IRISConfig` each harness constructs and performs its own `ConfigManager().get_config()`,
-which loads `configs/default_iris_config.json`. That file has specified `minicpm`
-unchanged across every commit examined, and none of the eight evaluation harnesses calls
-`aria.set_captioner()`. Consequently the `captioner_backend` field on each script's config
-object is validated but never consumed, and **every artifact in this paper was produced by
-the MiniCPM captioner** — one captioner throughout, which is at least internally
-consistent.
+**A.5.7 — Config-hash provenance fails in both directions: a field can be recorded but
+unconsumed, or consumed but unrecorded.** `iris/aria.py::get_captioner()` takes no
+configuration argument. It ignores the `IRISConfig` each harness constructs and performs
+its own `ConfigManager().get_config()`, which loads `configs/default_iris_config.json`.
+That file has specified `minicpm` unchanged across every commit examined, and none of the
+eight evaluation harnesses calls `aria.set_captioner()`. Consequently the
+`captioner_backend` field on each script's config object is validated but never consumed,
+and **every artifact in this paper was produced by the MiniCPM captioner** — one captioner
+throughout, which is at least internally consistent. `packet_size_weight` (§5.1, note 3;
+Appendix C item 6) is the same failure on a different field.
 
 Two corrections follow. `MLVU_codec_baseline.json` records `captioner_backend:
 "moondream"`; that value was never in force and should be read as an artifact of the dead
@@ -1649,6 +2039,75 @@ with no runtime effect, two runs with different hashes may share an identical ca
 path. We report this rather than silently correcting it, because a reader reproducing from
 the recorded configuration would otherwise be misled.
 
+**The inverse direction also occurs, and it is the more dangerous of the two.** `iris/ingest.py`
+reads `scene_segmentation` via `getattr(config, "scene_segmentation", "codec")` — a field
+that genuinely is consumed, unlike the two above — yet `scene_segmentation` is absent from
+the `config_snapshot` of all 33 index caches checked (`eval_results/beta_provenance_C9.md`),
+including the entire §5.1 corpus. Every one of those runs therefore took the `getattr`
+fallback silently and ran the `"codec"` segmentation arm with no field in the snapshot
+recording that it did. This happens to be harmless today, because `"codec"` is also
+`IRISConfig`'s dataclass default — but the snapshot cannot distinguish "ran `"codec"`
+because it was set" from "ran `"codec"` because nothing overrode the fallback." A reader
+reproducing a run from its `config_snapshot` gets the right value only as long as the
+dataclass default does not change; an unconsumed field records noise, but a consumed,
+unrecorded one records a value that is silently correct until the day it silently isn't.
+
+**A third direction is worse than either: a field whose name misdescribes what it
+computes.** `luma_diff_weight` (§5.1, note 3) is consumed — it is not dead like
+`captioner_backend`, and it is recorded in every `config_snapshot` — but the name is wrong.
+It weights a codec packet-size residual (`frame_features["packet_size"]`), read identically
+under this name on production `main` and under the name `packet_size_weight` on the
+`ucf-vad-exp1` branch that briefly carried the corrected name (Appendix C item 6); it has
+never weighted a luma-difference quantity. This is worse than the two failures above
+because it survives inspection: an unconsumed field is caught by checking whether anything
+reads it, and an unrecorded field is caught by checking whether the snapshot has a value for
+what ran, but a misnamed-yet-consumed field passes both checks and still misleads. The
+hazard compounds here because a genuine `luma_diff_energy` field exists on frame records,
+documented "diagnostic only; not consumed by scorer" — a reader who checks the name against
+the field list finds a plausible, wrong corroboration rather than a dead end
+(`eval_results/packet_size_weight_C6.md`).
+
+**A fourth direction is the most severe of all, because it does not fail to inform — it
+misinforms.** The three failures above are absent (`scene_segmentation`, unrecorded),
+unconsumed (`packet_size_weight`/`captioner_backend`, recorded but inert), and misnamed
+(`luma_diff_weight`, consumed under the wrong label) — each leaves a gap or a red herring
+that inspection can eventually catch. The fourth kind records a value that is both
+consumed-sounding and false: `answerer_backend` and `answerer_endpoint`, present in the
+`config` block of all four MLVU artifacts (`MLVU_codec_baseline.json`,
+`MLVU_ablation.json`, `MLVU_ablation_long.json`, `MLVU_ablation_long_trimmed.json`), read
+`"llama_server"` and `"http://127.0.0.1:8091/v1"` in every one of them via
+`asdict(config)` on the `IRISConfig` built for the ingest pipeline — a dataclass default
+that is never wired to the actual answerer backend, which each of the four harness
+scripts constructs separately via `aria.set_backend(aria.LlamaBackend(...))` and which, in
+every case, ran through Ollama on port 11434 instead (A.5.11). The disproof is what makes
+this checkable rather than a matter of trusting the code: `MLVU_ablation_long_trimmed.json`
+carries the identical `"llama_server"`/`8091` fields while independently confirmed, from
+its own run's printed setup line, to have run on Ollama at 11434 — the field is
+demonstrably false on an artifact where the true answer is already known by other means.
+An unconsumed field fails to inform a reader; a misnamed field misleads a reader who
+checks its name against the wrong list; this field actively asserts a specific, wrong
+answerer identity and port to a reader with no independent way to catch it — the sort of
+audit that trusted this block at face value would report the wrong server for every MLVU
+result in the paper (Appendix C item 38).
+
+**This is what makes the fourth direction dangerous rather than merely untidy: the exact
+same field names — `backend`/`endpoint`/`answerer_backend`/`answerer_endpoint` — appear
+under two other, structurally unrelated writers elsewhere in this repository, one of them
+reliable.** `A6_allminmax_raw.json`, `A6_mixed_raw.json`, the P1 λ-sweep artifacts, and
+`P_NOWA_accgqa_raw.json` (§6.1) carry a `backend_class`/`endpoint`/`temperature`/
+`cache_prompt` block that reads identically in shape to the MLVU family's, but is written
+by introspecting the live backend object itself, gated by a preflight check
+(`isinstance` plus a real `GET /models`) that raises before any query if the wrong
+backend or an unreachable endpoint is seated — and a third mechanism, OS-level process
+and binary introspection (`scripts/answerer_provenance.py`, behind `tuning/
+determinism_gate/environment.json`), carries still more of the same-looking fields with
+still higher assurance. A reader cannot tell reliable provenance from false provenance
+by reading the field — the name, the JSON shape, and even the specific string values
+(`"llama_server"`, `8091`, `"granite4:micro"`) can be identical whether the writer
+queried a live, preflight-checked object or serialized a config dataclass nothing ever
+consulted. Only tracing each field to the code that populates it distinguishes them
+(`eval_results/backend_provenance_C39.md`, Appendix C item 39).
+
 **A.5.8 — Build-cost measurement protocol.** The §4.2 figures come from an interleaved
 protocol rather than a single run, and the reason is worth recording. Single-run
 measurements of the same code varied between 224× and 406×: the block-diagonal arm
@@ -1656,9 +2115,84 @@ completes in ~0.2 s, close enough to timer resolution that its run-to-run spread
 the ratio, and the dense arm drifted 30–40% *across* CLI sessions while remaining tight
 within any one session. The protocol fixes both — 159 builds, arms alternated across three
 rounds, machine load and free memory logged before each arm, and the fast arm timed over
-50 consecutive in-process iterations. Under it the dense arm varied 0.177% across rounds
-and the four ratio estimates agreed within 0.4%. Raw per-round, per-arm outputs are
-preserved in `eval_results/build_cost_final_raw/`.
+50 consecutive in-process iterations.
+
+The protocol has now been executed twice on identical code and cache: once on an
+uncommitted working tree (`build_cost_final.{json,md}`, superseded — A.3 §4, row 4) and
+once, reported in §4.2, at commit `3a2c1db9794f48a7f5d520b40eb87aa4bf0c6ce7`
+(`build_cost_final_v2.{json,md}` — A.3 §4, row 5; item 23, resolved). Across the two runs
+the dense arm's cross-round variation ranged **0.177%–0.530%**, and the four ratio estimates
+(three per-round plus one pooled) agreed within **0.4%–0.518%** of their mean *within* the
+given run. The tighter of those figures (0.177%/0.4%, from the superseded run) does not by
+itself characterise what the protocol delivers — the range across both executions is the
+honest statement. More informative than either run's own internal precision: the two runs'
+pooled ratios — 233.532× and 234.449× — agree to within **0.4% of each other**, which is a
+stronger stability claim than either run's within-session agreement, since it holds across
+separate measurement sessions rather than within one. Raw per-round, per-arm outputs are
+preserved in `eval_results/build_cost_final_raw/` (superseded run) and
+`eval_results/build_cost_final_v2_raw/` (reported run).
+
+The two figure sets also differ in machine traceability, not just measurement protocol: the
+wall-clock figures above are traceable to the A.2 machine via incidental evidence (§A.2),
+and — for the reported (v2) run specifically — are now also commit-backed at
+`3a2c1db9794f48a7f5d520b40eb87aa4bf0c6ce7` (item 23, resolved; the superseded run predates
+that commit and carries neither a commit hash nor a claim of one). The peak-RSS figures
+reported alongside the wall-clock table are **neither** machine-traceable nor commit-backed
+— that measurement (`build_dedup_repeats`, a different harness) was not re-run alongside the
+wall-clock re-run, so this new commit-backed provenance does not extend to it: this clause
+on the RSS figures is otherwise unchanged from before the re-run. That distinction matters
+more for a memory figure than for a ratio of wall-clocks — the memory watchdog in §5.2 is
+sized against this machine's total RAM, and a peak-RSS number with no machine attached
+cannot be checked against it.
+
+**A.5.9 — Commit-citation convention.** The §6 Acc@GQA row cited `dc59de3`, the commit
+that recorded the run's output, rather than `b170007b`, the commit the harness actually
+ran at (see A.3, §6). `scaling_curve_v3`'s row already separates these two fields —
+"git HEAD" at run time from "committed at" afterward — which is the convention that
+would have prevented the mislabeling. Future rows citing a commit should follow the
+`scaling_curve_v3` pattern rather than a single undifferentiated commit field.
+
+**A.5.10 — A recorded commit does not always pin the harness that ran.** Three MLVU
+artifacts, three different relationships between "commit recorded" and "code pinned":
+
+- `MLVU_codec_baseline.json` records no commit at all (A.5.3).
+- `MLVU_ablation.json` records `77f625b`, which pins `scripts/mlvu_ablation.py`
+  itself — the harness script was committed as that commit 8 minutes after its
+  last working-tree write, with zero diff against it since. The commit covers
+  what ran.
+- `MLVU_ablation_long_trimmed.json` records `9c66393d`, but that commit pins
+  `iris/` only. Its four harness scripts (`mlvu_ablation_long.py`,
+  `mlvu_ablation_long_trimmed.py`, and their two merge scripts) are untracked at
+  run time and have never been committed, on any ref, at any point — `git log
+  --all` returns nothing for any of the four. The commit is real and the `iris/`
+  pin holds, but the harness that actually drove retrieval, answering, and
+  scoring for the long-video delta is not covered by it.
+
+The third case is the one worth stating plainly: a recorded commit field reads as
+provenance regardless of what it covers, and `9c66393d` looks exactly as authoritative
+in the artifact as `77f625b` does. It isn't — a stamped commit that does not cover the
+harness pins less than it appears to, and a reader checking only "is there a commit
+field" would not catch the difference. Full accounting in
+`eval_results/mlvu_provenance_C26.md`.
+
+**A.5.11 — All four MLVU harness scripts share the same answerer server, and it is not
+the one their own artifacts' config blocks record.** `mlvu_eval.py`, `mlvu_ablation.py`,
+`mlvu_ablation_long.py`, and `mlvu_ablation_long_trimmed.py` are identical at the call
+site: each defaults `--answerer-endpoint` to `http://localhost:11434/v1` (Ollama's own
+OpenAI-compatible port) and wires it via `aria.set_backend(aria.LlamaBackend(...))`. No
+wrapper script anywhere in the repository overrides this flag. Each script's own printed
+setup line, checked directly in every surviving stdout log, confirms the unmodified
+default ran for all four artifacts: `MLVU_codec_baseline.json`, `MLVU_ablation.json`,
+`MLVU_ablation_long.json`, and `MLVU_ablation_long_trimmed.json` were all served by
+Ollama at 11434. The earlier reading of this — that the long-video scripts alone
+defaulted to Ollama while `MLVU_codec_baseline.json` and `MLVU_ablation.json` used a
+standalone llama-server on port 8091 — was wrong: that 8091 figure came only from the
+`answerer_backend`/`answerer_endpoint` fields in those two artifacts' `config` blocks,
+which A.5.7's fourth failure direction establishes are dead `IRISConfig` defaults with no
+tie to the backend that actually answered, not run telemetry. There is no port
+discrepancy between the MLVU scripts; there is a discrepancy between what two of the four
+artifacts' config blocks claim and what all four scripts actually did. See item 38.
+<!-- open item 38 -> Appendix C -->
 
 ### A.6 Reproduction
 
@@ -1687,14 +2221,72 @@ The protocol we followed throughout:
 4. No tuning after the result. If a split is measured more than once, it is burned and
    labelled as such.
 
-**Registration strength is not uniform across these entries, and we say so rather than
-letting the appendix imply otherwise.** Entries B.3–B.6 have standalone pre-registration
-documents written and dated before their runs. Entries B.7–B.11 were registered in the
-task specification that commissioned each run, with the criterion restated verbatim in the
-resulting artifact — a weaker form, since specification and execution were closer together
-in time. We mark each entry accordingly. The distinction does not affect whether the
-criteria bound our reporting, which they did in every case, including the two where the
-registered prediction failed.
+**Registration strength is not uniform across these entries, and a two-tier
+standalone/in-spec split understates how much it varies — a git commit date shows when a
+file entered the repository, not that a prediction preceded its measurement. Verified
+against `eval_results/prereg_dates_C30_33.md` (commit timestamps and, where they exist,
+the run's own independent `timestamp_utc`), the standalone documents split into three
+tiers, not one:**
+
+- **Verifiable** — the pre-registration's commit precedes an *independent* timestamp
+  recorded in the run's own artifact (not another commit, not a filesystem mtime). Four
+  entries clear this bar: P1_lambda (registered 46 min before its λ=0.0 run, 8h16m before
+  λ=1.0), P_funnel/B.5 (registered 3h39m before its run), P_NOWA_accgqa (registered 59 min
+  before its run), and P_selceiling (registered 25 min before its run — and only against a
+  same-day rewrite of the prereg that fixed the two-arm protocol the run actually used; the
+  original version registered a looser, undecided criterion).
+- **Git-only** — the ordering is inferred from commit-to-commit gaps alone, with no
+  independent run timestamp to check them against: P_latency, P_scene_2x2x2, and
+  **P_NOWA_sweep**. For P_NOWA_sweep, the pre-registration commit (`79d0c30`,
+  2026-07-23T11:15) precedes the commit recording its result
+  (`eval_results/P_NOWA_grounding_result.md`, `5e418dc`, 2026-07-24T09:26) by roughly 22
+  hours; no per-cell raw JSON survives with its own independent timestamp, only the
+  summary report, so this entry is ordered by commit gap alone, like the other two. The
+  commits being close together and in the expected order is consistent with correct
+  registration but does not establish it.
+
+  **P_NOWA_sweep was placed in the "no run found" tier by an earlier pass of this audit,
+  and did not belong there — its result exists**, corroborated by `DECISIONS.md`,
+  `P_NOWA_split_declaration.md`, and the sweep harness `scripts/pnowa_width_topk_sweep.py`,
+  just filed under a non-matching filename. The earlier search missed it because it
+  searched by filename rather than content (`eval_results/missing_runs_C36.md`). That was a
+  methodological error in the audit, not a gap in the registration record, and it
+  understated the record rather than overstated it — worth stating plainly, since a
+  filename-only search is exactly the failure a provenance appendix should not make.
+- **No run found** — a pre-registration document exists, but no run artifact of any kind
+  — result file, raw data, or timestamp — exists anywhere in the git history of any branch:
+  P_scene_sparse, P_dtedge, P_width_topk. The evidence differs by entry, not uniformly "no
+  run found": P_dtedge never ran — its pre-registration commit is its only footprint in the
+  repository's history, with no later wiring, run, or result commit of any kind.
+  P_scene_sparse never ran under its own registered design, but was superseded the next day
+  by P_scene_2x2x2, a differently-designed experiment that tests a related hypothesis at a
+  different scale and explicitly self-registers as a fresh mechanism test rather than this
+  prereg's result under another name. P_width_topk most likely was superseded before
+  execution by the larger P_NOWA_sweep, one day later, at a different scale — flagged as
+  inference, not a located artifact, since a real precursor and successor both exist without
+  either matching P_width_topk's own design exactly. We do not cite any of the three as
+  evidence of registration discipline either way, and a superseded registration (a
+  prediction replaced by a better design) is a different fact from an unrun one (a
+  prediction never tested) — collapsing the three into one sentence would erase that
+  distinction (§C, item 36).
+
+Entries B.7–B.11 were registered in the task specification that commissioned each run,
+with the criterion restated verbatim in the resulting artifact — in-spec, not standalone.
+We mark each entry accordingly. The distinction does not affect whether the criteria bound
+our reporting, which they did in every case, including the two where the registered
+prediction failed.
+
+**A related, recurring hazard.** Three separate documents in this project describe work
+that the repository shows postdating them, not preceding it: the P-NOW-A Acc@GQA result
+document's commit citation (Appendix C item 34) named the commit that recorded the result
+rather than the commit the harness ran at; B.6's kill criterion was committed in the same
+commit as the run's own results (below); and P_scene_2x2x2's sweep harness script was
+committed nine hours after the findings it produced were already written up
+(`eval_results/prereg_dates_C30_33.md`). None of the three is the same underlying bug, but
+all three are the same class of mistake — citing or trusting a document's position in time
+without checking it against an artifact that could contradict it — and a reader auditing
+any future addition to this appendix should check commit order against an independent
+timestamp before taking a "registered" or "verified" label at face value.
 
 ### B.2 Summary
 
@@ -1703,17 +2295,22 @@ registered prediction failed.
 | B.3 | NExT-GQA val/test split | 2026-07-22 | standalone | video-level split declared before any measurement | held |
 | B.3a | Held-out grounding | 2026-07-22 | standalone | report whatever returns; no tuning after | **prediction not borne out**, reported |
 | B.4 | Held-out Acc@GQA | 2026-07-22 | standalone | report whatever returns; no tuning after | **prediction failed**, reported |
-| B.5 | Retrieval funnel | <!-- open item 30 -> Appendix C --> | standalone | CI-thresholded action rule, fixed in advance | read as registered |
-| B.6 | R0 admission gate | <!-- open item 31 -> Appendix C --> | standalone | kill criterion on matched-budget control | **triggered** |
+| B.5 | Retrieval funnel | 2026-07-24 (commit `4591c72`, precedes run by 3h39m — verifiable) | standalone, verifiable | CI-thresholded action rule, fixed in advance | read as registered |
+| B.6 | R0 admission gate | not established — see B.6 below | criterion recorded, not registered | kill criterion on matched-budget control | **triggered**; registration status unverifiable |
 | B.7 | Scaling exponent CIs | 2026-08-15 | in-spec | CIs disjoint **and** sparse upper bound < 1.0 | **both held** |
 | B.8 | Segmentation ablation | 2026-08-14 | in-spec | codec−fixed CI must exclude zero; tie counts as failure | **failed** |
 | B.9 | End-to-end verification | 2026-08-15 | in-spec | if e2e materially below claim, restate around construction | **triggered** |
 | B.10 | Caption-stage diagnosis | 2026-08-15 | in-spec | if paired CI includes zero, declare noise and stop | proceeded; hypothesis rejected |
 | B.11 | Shot-bucketing selection | 2026-08-18 | in-spec | three-branch read: beats / ties / underpowered | **underpowered** |
 
-*Form:* **standalone** = a dated pre-registration document written before the run;
-**in-spec** = registered in the commissioning task specification, criterion restated in the
-result artifact (see B.1).
+*Form:* **standalone, verifiable** = a pre-registration document whose commit precedes an
+independent timestamp in the run's own artifact (B.1); **in-spec** = registered in the
+commissioning task specification, criterion restated in the result artifact (see B.1);
+**criterion recorded, not registered** = the only document stating the criterion was
+committed alongside, not before, the run it purports to govern — see B.6. B.3/B.3a/B.4's
+dates are the in-document NExT-GQA split declaration date, corroborated by
+`P_NOWA_split_declaration.md`; B.7–B.11's dates are their task-specification dates and were
+not re-verified in this pass.
 
 ### B.3 NExT-GQA validation/test split (2026-07-22)
 
@@ -1778,7 +2375,7 @@ without a new split.
 We report this failure prominently because it is the clearest demonstration that the
 registration was binding rather than decorative.
 
-### B.5 Retrieval funnel diagnostic
+### B.5 Retrieval funnel diagnostic (registered 2026-07-24, commit `4591c72`)
 
 A read-only diagnostic on validation only, selecting nothing. Three strictly nested
 membership quantities were defined in advance (index coverage ≥ pool coverage ≥
@@ -1796,17 +2393,48 @@ default, or threshold may change as a result. Five limitations were declared in 
 including that the diagnostic is conditional on one ranking mode and that its
 `best_gold_rank` quantity bounds only the headroom reachable by a *different* signal.
 
-<!-- open item 32 -> Appendix C -->
+**Registration date and margin.** The document itself carries no in-text date; the
+verified date is its commit, `4591c72` (2026-07-24T15:34:44 UTC), which precedes the run's
+own `timestamp_utc` (`P_funnel_raw.json`, 2026-07-24T19:13:41 UTC) by **3h39m** — this is
+one of the four entries in the appendix whose ordering is checked against an independent
+run timestamp rather than inferred from commit dates alone (B.1; full detail in
+`eval_results/prereg_dates_C30_33.md`).
 
-### B.6 R0 codec-admission gate
+**Realised outcome against the three-way rule**, from `P_funnel_result.md`, at the
+registered read point top_k=8: selection headroom = 0.3363, 95% CI [0.2778, 0.3939]. CI
+lower (0.2778) ≥ 0.15, so the rule resolves to **material headroom — in-pool caption
+reranking is the highest-value cheap experiment**, exactly the reading already carried
+above. Two further reads the appendix had not previously stated: index_coverage = 0.9925 ≥
+0.95, so this run may **not** be cited as support for densification (rule B); and
+`best_gold_rank` at top_k=8 is concentrated at ranks 1–4 (131/35/27/23 of 267 ranked
+questions), consistent with a different query-conditional signal plausibly recovering
+those questions rather than the pool ordering itself being the problem (rule C).
+
+### B.6 R0 codec-admission gate — criterion recorded, not registered
 
 The kill criterion — that coverage metrics are uninformative without a budget-matched
-control, and that a saturating uniform arm would invalidate the coverage framing — was
-registered before the run and **triggered**: uniform admission reaches the coverage ceiling
-at every budget swept, down to 5% retention. The matched-budget contrast was then reported
-as a null, with intervals spanning zero (§7.2).
+control, and that a saturating uniform arm would invalidate the coverage framing —
+**triggered**: uniform admission reaches the coverage ceiling at every budget swept, down
+to 5% retention. The matched-budget contrast was then reported as a null, with intervals
+spanning zero (§7.2). That result is real and reproducible from `r0_full/results.csv`.
 
-<!-- open item 33 -> Appendix C -->
+What is not established is that the criterion preceded the run. No document containing it
+exists anywhere in the repository's git history except `CLAIMS.md`, and `CLAIMS.md` was
+committed (`a3d3e95`, `sonu/audit-docs`, 2026-08-16T01:44:43+05:30) in the **same commit**
+as the run's own output (`r0_full/summary.md`, `r0_full/results.csv`) and as the readiness
+check that purportedly preceded the run by twelve days
+(`_r0check/R0_READINESS.md`, dated in its own prose "2026-08-04" — a date that is itself
+only committed on 2026-08-16, not independently corroborated). Neither `summary.md` nor
+`results.csv` carries a `timestamp_utc` or equivalent; the only date-shaped value in the
+run's own artifacts is `BOOTSTRAP_SEED = 20260805`, a hardcoded literal in
+`scripts/r0_gate_full.py` that seeds a bootstrap resample and is not a recorded execution
+time. So the ordering cannot be established either way: the criterion, the readiness
+check's claimed date, and the run's results all entered version control together, twelve
+days after the date the readiness check claims for itself. We report this as B.6's actual
+status — a real, disclosed criterion and a real, reproducible result, without a
+pre-registration claim we can verify — rather than describing R0 as pre-registered. See
+`eval_results/prereg_dates_C30_33.md` for the full evidence and Appendix C items 31/33
+(RESOLVED — PREMISE FALSE).
 
 ### B.7 Scaling exponent confidence intervals (2026-08-15)
 
@@ -1905,20 +2533,98 @@ RESOLVED — checked, guard held. The draft nowhere converts the Vgent and IRIS 
 
 3. EgoSG and Vgent are two systems, not a family. One more would let §2.2 speak about a line of work rather than a pair. Unverified candidates from a literature pass: EGAgent (arXiv 2601.18157, temporally annotated entity scene graphs, egocentric), GraphVideoAgent (ACM MM 2025, entity-relation graphs, 8.2 frames average on EgoSchema/NExT-QA), and MemDreamer (arXiv 2606.07512, hierarchical graph memory). None read from source; verify scope before citing.
 
+RESOLVED — all three candidates were read from source, not taken on the literature pass's word; see `eval_results/related_work_C3.md` for the full verification and the follow-up analysis it prompted. Two findings changed what got cited. First, the arXiv identifier for EGAgent resolves correctly but to a paper titled *Agentic Very Long Video Understanding* [Rege et al., 2026] — there is no paper titled "EGAgent," only an entity-scene-graph subsystem by that name within it. Citing "EGAgent, arXiv 2601.18157" as if that were the paper's own title would have looked verifiable while being wrong; §2.2 now cites the paper by its real title and names EGAgent as its subsystem. Second, GraphVideoAgent was initially set aside because its graph-structuring step (dependency parsing over captions) is not itself a neural forward pass, unlike EGAgent's LLM extractor and MemDreamer's direct Gemini-3.1-Pro pass. Dropping it on that basis would have been a selection error: the paper's own pipeline description shows the captions it parses come from a captioning model, LaViLa, so a generative model sits one step upstream of its graph construction even though the parsing step itself does not call one. GraphVideoAgent was included on that corrected basis, stated as "one step removed," not as a direct generative call. §2.2 now describes all five systems (EgoSG, Vgent, EGAgent, MemDreamer, GraphVideoAgent) as sharing a generative-model dependency in construction, direct or one-removed, without asserting a uniform mechanism, and adds that GraphVideoAgent's own account does not cleanly separate construction from query time the way EgoSG's and Vgent's do — a difference from our architectural separation (`_build_graph` in `iris/ingest.py` runs zero forward passes; captioning is deferred to `_ensure_captions` in `iris/query.py`) that is stated as a difference in kind, not degree, and scoped to what the source supports. None of the three newly-cited systems reports a construction-cost figure, so no ratio or seconds comparison was added for any of them — the item-2 guard holds.
+
 4. verify the two NG+ variants against Xiao et al. Table 3 directly — currently taken from the benchmark table via our own ledger.
 
+RESOLVED — widened beyond the two NG+ variants, and all six rows check out. The item as written scoped itself to Temp[CLIP] NG+ and FrozenBiLM NG+, but a comparison table with one verified row and five unchecked ones is not a verified table, so all six rows of the §6 comparison table were checked verbatim against their own primary-source tables: Xiao et al.'s Table 3 (Temp[CLIP] NG+, FrozenBiLM NG+, SeViLA*), LangRepo's own Table 5, and MUPA's own Table 1 (v2). Every figure matches exactly; see `eval_results/citations_C4_C5.md` for the transcribed rows. No abstract-vs-table discrepancy exists for either the Xiao et al. or the LangRepo numbers — checked and clean. MUPA's own discrepancy is real but was misattributed (see the corrected co-author note at §2.4, also in `citations_C4_C5.md`). §6.1's weakly-supervised band claim was checked against this corrected set and survives unchanged: 0.1667 sits between SeViLA's 0.166 and LangRepo's 0.171, below MUPA-2B's 0.287 with our interval excluding it. No table value or placement claim required a wording change.
+
 5. cite the classical line from primary sources; the lineage above is taken from AdaCodec's related-work survey (arXiv 2606.02569) and has not been verified against the original papers
+
+RESOLVED — the identifier and both classical claims check out against source; see `eval_results/citations_C4_C5.md`. AdaCodec's arXiv ID (2606.02569) resolves correctly to AdaCodec itself — worth stating explicitly, given item 3's EGAgent case where an ID resolved correctly but to a differently-titled paper; this one has no such mismatch. Both classical claims were confirmed against the originals, not just against AdaCodec's paraphrase of them: Zhang et al. (CVPR 2016) for the motion-vector/optical-flow-surrogate framing (now cited inline in §2.5, closing a citation gap that clause previously had), Wu et al. (CVPR 2018, CoViAR) for the three-CNN I-frame/motion/residual design, and Shou et al. (CVPR 2019, DMC-Net) for inheriting and fusing CoViAR's three streams alongside its own generated motion cue. The DMC-Net confirmation specifically comes from its §4.2 (Implementation Details), not its abstract — the abstract describes only the generator module in isolation, which on its own would not support the "I-frame, motion, and residual jointly" claim. This is the second instance in this audit of a figure or claim living in a paper's body while its abstract states something narrower or different — MUPA (item 4, §2.4) was the first. Two independent instances across unrelated papers make this a reading practice worth stating for future verification passes, not a coincidence: check the section that actually describes the full system or reports the table, not the abstract's compressed summary of it.
 
 
 **03_method.md**
 
 6. the salience weights behind the §3.1 run are not recoverable from its artifact.** The figures come from the VAD tuning tree, whose `frozen_config_used` block records (`packet_size_weight`, `motion_weight`, `luma_entropy_weight`) = (0.8, 0.1, 0.1). That schema is not `IRISConfig`'s — `IRISConfig` has no `packet_size_weight` — so the block is the experiment's own record of intended settings rather than a dump of the object actually passed, and it cannot tell us what the scoring stage received. If those names were passed through, `packet_size_weight` was silently dropped and `luma_diff_weight` defaulted to 0.5 while the other two took 0.1, giving an effective (0.5, 0.1, 0.1) against the production (0.5, 0.3, 0.2). The wall-clock and forward-pass results do not depend on the weights and stand either way; the recorded 10.49% mean retention does, and should not be quoted as a production figure until an ingest is re-run with the weights logged as resolved. This is the third dead config field found in this codebase, after `captioner_backend` on harness configs and `beta` outside `ranking_mode="legacy"`; Appendix A should say that recorded-but-unconsumed fields are a systematic hazard here, and that a `config_hash` covering them records noise.
 
+RESOLVED — PREMISE FALSE. NO RE-RUN REQUIRED. `packet_size_weight` was not a dead key or a
+name `IRISConfig` never defined; it is a real field, renamed from `luma_diff_weight`, that
+was live on both `IRISConfig` and `ActionScoreConfig` for the specific window in which the
+`ucf-vad-exp1` branch (the origin of this artifact) forked from `main` — after the rename
+merged and before it was reverted. On that branch the writer builds a real `ActionScoreConfig`
+by keyword from `tuning/frozen_state.json`; a stale or unknown kwarg would raise `TypeError`,
+not silently succeed, so `frozen_config_used` is a direct copy of the dict used to construct
+the live object actually passed to the scorer, not a hand-typed record of intent. The
+`(0.8, 0.1, 0.1)` triple is the documented winner of a five-way mIoP sweep on `val_tune`
+(`action_score_weights` family), corroborated independently in `frozen_state.json`,
+`all_trials.csv`, and `selection_decisions.md` — three mutually consistent artifacts. The
+10.49% mean retention figure is therefore fully attributed: `ActionScoreConfig(packet_size_weight=0.8,
+motion_weight=0.1, luma_entropy_weight=0.1, ...)` on commit `41d7205` of `siddanth/ucf-vad-exp1`.
+Git history plus those tuning artifacts establish this without ambiguity; no ingest re-run is
+needed to attribute it.
+
+The real caveat is narrower than the one this item stated: the figure belongs to
+`ucf-vad-exp1`'s selected sweep configuration, not to a production config. `packet_size_weight`
+does not exist on `main` or on this branch today — the rename landed via PR #8
+(`87caa24`) and was reverted the next day (`091347d`), so the name is absent from production
+code now, which is a true statement about current `main`, not evidence that the artifact's
+own pipeline failed to read it at the time it ran.
+
+The revert is recorded honestly rather than read as a rejection of the rename: `091347d`'s
+commit message is a bare git-generated revert with no body; PR #8 has no review comments;
+`DECISIONS.md` is silent for both 2026-07-20 and 2026-07-21; and the revert removed all 60+
+files of PR #8 — unrelated determinism fixes and process docs included — rather than
+targeting the rename alone. This is collateral from a broad rollback, not evidence the
+rename was considered wrong. Independent, later corroboration that the two names are the
+same signal comes from `origin/sonu/audit-docs`, whose `r0_gate_full.py` and
+`r0_gate_smoke.py` carry the comment "main's `ActionScoreConfig` renamed `packet_size_weight`
+-> `luma_diff_weight` (same slot; still weights the codec packet-size residual per its
+docstring)" while constructing a config from a `frozen_state.json` that still uses the
+`packet_size_weight` key.
+
+See `eval_results/packet_size_weight_C6.md` for the full investigation, including the
+commit-by-commit trace and confirmation that `5beab10` (the rename commit) changed only
+which config attribute supplies the multiplier — `residual`/`residual_n`, and the
+`frame_features["packet_size"]` input feeding them, are identical before and after.
+
+Cross-reference: item 9's `(0.5, 0.3, 0.2)` corpus is the same field under the same
+misleading name — see that item's RESOLVED note and §5.1, note 3.
+
 7. state the weight formulas for the semantic / motion / temporal components, and whether any depends on cross-scene context (if any did, the identity result would be non-trivial in a way §4.1 should say explicitly).
 
 8. measure the distribution of surviving motion/semantic edges per node under `scene_sparse` — cheap, and it either closes this or turns it into a finding.
 
+RESOLVED IN PART. Computed from all 33 cached `.npz` manifests
+(`eval/data/ucf/index_cache/`, `eval/data/virat/index_cache/`;
+`eval_results/degree_distribution_C8.md`), no re-ingest. The confirmed half:
+under `graph_edge_mode ∈ {fully_connected, block_diagonal}` — the exact
+configuration §5.1 fits — per-node degree does not grow with N across the
+full measured range and is hard-bounded by scene size, now stated in §3.5 and
+§5.1 with the correlation figures. The unresolved half: this item asked for a
+breakdown by `temporal`/`hierarchy_*`/`semantic_salient`/`motion_neighbor`,
+and that breakdown does not exist to report — every edge in all 33 caches is
+labelled `fully_connected`; none was ever built under
+`graph_edge_mode="hierarchical_sparse"`, the tiered path that produced §5.3,
+§5.4, §6.2, and §7.1's numbers. §3.5 now discloses this split in the body.
+See item 37 for what remains open.
+
 9. α and β do not have a single value in this repository.** `L2Asphodel.__init__` hard-codes `alpha=0.4, beta=0.6`; `IRISConfig`'s dataclass declares `beta=0.3`; `configs/default_iris_config.json` sets `beta=0.6`; and the config in the `ucf-vad-exp1` worktree sets `beta=0.3`. Since a run adopts `IRISConfig`'s value only when a config object is passed, and the two shipped configs disagree, dense-arm edge weights differ between the two trees. Determine which tree produced the §5.1 scaling corpus before the appendix claims a single configuration. This does not affect §4.1's identity gate, where both paths share whatever β was in force.**
+
+RESOLVED — VERIFIED AGAINST 33 CACHED `config_snapshot`S. `alpha=0.4` and `beta=0.3` hold with no variation across every index cache in the §5.1 corpus (`eval_results/beta_provenance_C9.md`) — the same per-clip `config_snapshot` verification already used for the salience weights (§5.1, note 3). Both are `IRISConfig`'s dataclass defaults, not either shipped JSON: `configs/default_iris_config.json` sets `beta=0.6` with `captioner_backend="minicpm"`, and the `ucf-vad-exp1` worktree's config sets `beta=0.3` but still `captioner_backend="minicpm"`, while every one of the 33 snapshots records `captioner_backend="moondream"` — a value only the dataclass supplies. So neither shipped JSON produced this corpus: `ConfigManager` was never invoked, and ingest was passed a directly-constructed `IRISConfig`. `L2Asphodel.__init__`'s hard-coded `alpha=0.4, beta=0.6` therefore never applied either, for the same reason — a config object is always passed to it. (`Normal_Videos_924` and `Normal_Videos_935` are excluded from the §5.1 fit corpus for a different field, `graph_edge_mode="block_diagonal"`, not for alpha/beta.) The resolved values are now recorded in Appendix A's §5 provenance table, and §5.1 states beta's actual — narrow — influence on this corpus. The same `config_snapshot` path also settles the salience weights it was cross-checked against: `(0.5, 0.3, 0.2)` is recorded under the field name `luma_diff_weight`, and despite that name it weights the same codec packet-size residual that the `ucf-vad-exp1` sweep later recorded under the corrected name `packet_size_weight` (item 6, RESOLVED) — the same field under the same misleading name, not two different signals.
+
+   AMENDMENT: the "narrow influence" wording this note points to originally justified
+   itself by claiming `ranking_mode="ppr"` makes `retrieve_ppr` bypass `alpha`/`beta`
+   entirely. That justification was wrong and has been corrected in §5.1, note 4: per
+   item 35(b)'s trace (`eval_results/shared_signal_C35b.md`), `retrieve_ppr` does not
+   read `alpha`/`beta` directly, but `beta` sets the edge-weight magnitudes PPR
+   propagates its seed over whenever `motion_similarity_mode="action_score"` (the
+   default) — β is live, not bypassed. The narrowness is real on different grounds: β
+   reweights a fixed edge set and never changes node count, edge count, or the operation
+   count the fitted exponent measures, so it does not affect the latency §5.1 fits. This
+   amendment does not touch the alpha/beta *values* this item established — `alpha=0.4,
+   beta=0.3` for every clip in the §5.1 corpus stands as verified; item 9 remains
+   RESOLVED.
 
 
 **04_05_construction_and_scaling.md**
@@ -1976,9 +2682,97 @@ RESOLVED — §7.3 now ends with one added sentence: "§9 collects this portabil
 
 RESOLVED — the recommendation was taken, and the text already complies. §8.7 names the failure mode and its locus, cites nothing unpublished, and imports no numbers. A grep of the whole draft for companion-work references ("companion", "forthcoming", "in preparation", "under review", "separate paper") returns hits only inside Appendix C's own editorial notes — none in the body, Appendix A, or Appendix B.
 
-19. state plainly whichever of the following remain true at submission: the MLVU baseline artifact records no git commit; the salience-weight provenance question (§3, note 1) is unresolved; the R0/T5 artifacts are not reachable from all authors' machines. If they are fixed by then, delete this item rather than softening it.
+19. RESOLVED AT SUBMISSION — of the three conditions this item asked to check, none stands
+    as a bare gap.
+
+    **MLVU baseline commit.** Still true: `MLVU_codec_baseline.json` records no git
+    commit. But no longer a bare gap — A.5.3 brackets the run to a 3h34m window
+    (2026-08-16 02:16:44–05:50:49 +0530, before every `iris/` commit made that day) and
+    closes it with an independent same-day reproduction: `MLVU_ablation.json`'s codec arm,
+    run later that day after a same-day fix to CLIP text-query embedding, reproduces the
+    baseline's M-Avg and all six per-task accuracies exactly. State the qualified version —
+    a bracketed window with exact reproduction — not the bare missing-commit claim.
+
+    **Salience-weight provenance. RESOLVED** (items 6, 9, 35a) — say plainly what the
+    answer was, per this item's own instruction not to soften a resolved question back
+    into a caveat. The corpus was built at `(0.5, 0.3, 0.2)`, verified against all 33
+    cached `config_snapshot`s with no variation (item 9). It is recorded under the field
+    name `luma_diff_weight`, and despite that name is the same codec packet-size residual
+    that a later sweep recorded under the corrected name `packet_size_weight` (item 6) —
+    one signal, two names, not two signals.
+
+    **R0/T5 reachability.** Verified against A.5.4: R0 (`origin/sonu/audit-docs`) and T5
+    (`origin/sonu/t5-shotbucket`) are reachable from any author's machine via `git fetch`
+    against their pushed branches, and both have since been read and checked against
+    their artifacts — the §7 shot-geometry figures (item 16) and the §4.1 identity and
+    grounding gates are marked verified from them. What remains true is narrower than
+    "unreachable": the ingest efficiency measurement, at `origin/siddanth/ucf-vad-exp1`,
+    is reachable but still ledger-quoted rather than read.
+
+    Per the item's own instruction, this text is deleted rather than softened, and
+    replaced with the resolution above.
+
+    **A standing note for future verification passes.** This audit closed 37 items. The
+    useful finding is not the count — it is what kind of defect kept surfacing:
+
+    1. **False premises.** Five items resolved because the question itself was wrong, not
+       because a value was filled in: item 15 (a measurement that existed in no artifact,
+       and the real diagnostic pointed the other way — the arm the withdrawn paragraph
+       called "naive" was the one that clumped); item 22 (a llama-server build confirmed
+       for no reported run, not merely an unconfirmed one); item 27 (a repository-history
+       blocker that did not exist); items 31/33 (a registration date asked for on the
+       assumption a predating document exists — it doesn't; the criterion was committed
+       alongside its own run's results); and item 38 (the premise was scoped too narrowly —
+       the question asked which of two backends served one arm, when all four MLVU
+       artifacts ran through the same one). These false-premise items were this appendix's
+       most useful entries, not its confirmations.
+
+    2. **Abstract-vs-body.** Two independent papers where the claim lives in the body
+       while the abstract states something narrower: MUPA's own Table 1 against its §2.4
+       narrative (item 4), and DMC-Net's §4.2 implementation details against its abstract,
+       which alone would not support the joint three-stream claim (item 5).
+
+    3. **Documents postdating the work they describe.** Three: the P-NOW-A result
+       document's commit citation naming the commit that recorded the result rather than
+       the commit the harness ran at (item 34); B.6's kill criterion committed in the same
+       commit as the run's own results (items 31/33); and `P_scene_2x2x2`'s sweep harness
+       script committed nine hours after the findings it produced were already written up.
+
+    4. **Provenance fields that misinform.** A.5.7's fourth failure direction — false
+       provenance surviving inspection — was found only because one artifact
+       (`MLVU_ablation_long_trimmed.json`) carried the identical false backend/endpoint
+       fields as a run independently confirmed to have used a different server (items 38,
+       39).
+
+    5. **A wrong description of the method in the body** (item 35a) — the only defect in
+       this list a reader could have been misled by without ever checking an artifact:
+       §3.1 described the action score's first channel as luma difference; it weights a
+       codec packet-size residual, and always has.
+
+    6. **Searching by the wrong key.** `P_NOWA_sweep` was filed as "no run found" because
+       an earlier pass searched by filename, and its result artifact isn't named to match
+       (item 36).
+
+    The checks that paid were the ones that traced a claim to the code or artifact that
+    produced it, not to the field, filename, or prose that described it.
 
 20. one or two sentences of future work, once the team settles what is in scope for the companion paper. Candidates that do not depend on that decision: the shortlist recall-cost frontier (§8.8), build-time caption prefetch (§8.2), and additional large-N clips (§8.3).
+
+RESOLVED — settled by exclusion, not by importing scope. §9 now carries the two-sentence
+future-work paragraph, and it uses only the three candidates this item names as
+scope-independent: the shortlist recall-cost frontier (§8.8), build-time caption prefetch
+(§8.2), and additional large-N clips (§8.3). The companion paper is not named, its axis is
+not described, and no expected finding of its is stated or hinted at — it was deliberately
+left out rather than waited on, following the no-import rule items 14 and 18 set for the
+correctness-floor and limitations sections respectively. Before writing the future-work
+sentences, §8 was checked for a separate, present-tense gap this item's brief surfaced: the
+corpus's encoding profiles were uncharacterised as a limitation of this paper's own corpus —
+UCF-Crime is already-compressed redistributed web video (second-generation codec metadata),
+part of it is additionally x264-transcoded, and the corpus is not codec-homogeneous (VIRAT
+mpeg4 against UCF-Crime H.264, item 25). That gap is now §8.11, framed as scope rather than
+as a promissory note toward the companion work, alongside a tooling justification added to
+§3.1 for why packet size — rather than a finer-grained residual signal — is the channel
+libavcodec makes available at all.
 
 
 **10_appendix_A_artifact_index.md**
@@ -1987,27 +2781,426 @@ RESOLVED — the recommendation was taken, and the text already complies. §8.7 
 
 22. llama-server build — `b9976` is recorded in one prereg; confirm it is the build used for every reported run.
 
+RESOLVED — PREMISE FALSE. `b9976` cannot be confirmed for any reported run, let alone
+every one. Three build strings appear in the project record (`b9976`, `b10099`/commit
+`1a064ab`, and an uncompiled `b9985` source checkout); `b9976` is cited only in
+self-reported run-log prose (the A6 and P-NOW-A logs) with no binary SHA-256 or
+`--version` capture behind it anywhere in the repository. The only build ever
+independently verified that way is `b10099`, and it ran on a different machine
+(`worker-1`, the project's Linux/RTX-4090 box) for infrastructure work outside this
+paper's reported results — not for either build-cited run — and was confirmed gone
+from that machine as of 2026-07-27. So the original question's premise, that a build
+was recorded and merely needed confirming, does not hold: what exists is an unverified
+citation, a verified build that isn't the one cited, and no path from one to the other.
+Disclosed in A.2; full evidence in `eval_results/llama_build_C22.md` and
+`eval_results/machine_provenance_C22b.md`.
+
 23. `build_cost_final.md` records no commit hash. Stamp one, or state that the reported build figures were measured on an uncommitted tree — see A.5.5.
+
+RESOLVED. Neither option was taken; the underlying gap was closed instead. The `defer_recompute` change that sits on the timed construction path (`_build_graph` → `add_frame_nodes_bulk`) was committed at `3a2c1db9794f48a7f5d520b40eb87aa4bf0c6ce7` on `siddanth/peak-source-a6-p1`, with zero-tolerance identity re-verified across `block_diagonal`, `fully_connected`, and `hierarchical_sparse` in `eval_results/defer_recompute_identity_C23.md`. The build-cost measurement was then re-run against that commit under the unmodified A.5.8 protocol (`eval_results/build_cost_final_v2.md`), producing 49.712318 s → 0.212039 s = 234.449×, now the figure reported in §4.2. The original uncommitted-tree run (`build_cost_final.{json,md}`, 50.195124 s → 0.214939 s = 233.532×) is superseded and recorded as such in A.3 §4 (row 4).
 
 24. either confirm the two paths produce equivalent inputs, or state this caveat wherever 1,104× appears. Recommendation: state it — §5.3 already labels the figure as retrieval-mechanics-only, and one more clause is cheap. RESOLVED. The recommendation was taken — the caveat is stated wherever the figure appears rather than claiming path equivalence. The two paths are not equivalent: the same measurement under real CLIP text queries gives approximately 291x against 1,104x under synthetic sampled embeddings, and that gap is itself the evidence.
 
 25. confirm what the codec path actually did on this clip, and add one sentence to §3 or §4.
 
-26. re-stamp or re-run before submission.
+RESOLVED — VERIFIED AGAINST INGEST LOG AND CACHED CHANNEL. `iris/codec_validator.py` emits two independent warnings: a codec-name check (fired for this clip, `mpeg4` not h264/hevc) and a separate MV probe that warns only when motion vectors are genuinely absent or undetermined. Neither MV-probe warning appears in `eval_results/geometry_cutA_run.log` for this clip, meaning the probe ran and found motion vectors present — a live distinction, confirmed by the same MV-probe warning firing elsewhere in the repo for MLVU's `needle_8.mp4` (`eval_results/_mlvu_ablation_run_stdout.log`). Directly measuring the cached channel confirms it: `motion_magnitude` takes 3,262 distinct values over 4,892 frames, range [0.0, 0.190978], mean 0.066719, sd 0.048806. 1,631 frames (33.3%) are exactly zero; reading those as static footage rather than partial failure is stated as an inference, resting on `packet_size` and `action_score` showing zero exact zeros across the same frames. A.5.2 is rewritten accordingly and §4.1 now states the one sentence this item asked for.
+
+26. RESOLVED AS A DISCLOSURE. Neither option was taken as originally framed. Re-stamping
+    with a commit was not possible: item 9's discriminating-field technique does not
+    transfer to this artifact — the fields that would need to vary by commit,
+    `captioner_backend` and `config_hash`, are dead per A.5.7 (constant across the
+    repository's history regardless of what actually ran), so no field exists that could
+    narrow the artifact to one commit. Re-running was rejected: no llama-server build can
+    be verified for any reported run (item 22), so a re-run today would not reproduce the
+    original conditions — it would produce a new, differently-provenanced number, not
+    settle the old one. What was done instead: the run is bracketed by matching a failed
+    attempt's own printed output to the artifact on disk, and the headline M-Avg is
+    corroborated by an independent same-day reproduction under later, fixed code. See
+    A.5.3 and `eval_results/mlvu_provenance_C26.md`.
 
 27. RESOLVED, PREMISE FALSE. This item asserted a repository-history blocker preventing these artifacts from being pushed. Verified 2026-09-07 in the working repository (213 commits): the commit and 156 MB archive named in the originating team report do not exist in this tree; the largest object in history is 21.7 MB, below GitHub's 100 MB per-file limit; and `main` was already synchronised with `origin/main`. No history rewrite was needed or performed. The reachability limitation in A.5.4 is unaffected and stands as written — the R0, T5/T6, and ingest-efficiency artifacts remain unreachable from all authors' machines, which is a question of where those files live, not of repository history. See also items 19 and 33.
 
 28. decide how to handle this. Options: re-run the headline measurements from a clean tree, or state the limitation and provide the harness config hashes — `scaling_curve_v3` already records per-script SHA-1 hashes, which is the stronger practice and should be extended to the other harnesses.
 
+NARROWED, NOT CLOSED. The build-cost measurement (§4.2) is no longer one of this item's cases: item 23 (resolved) took the first option for it specifically — the `defer_recompute` change was committed and the measurement re-run from that commit (`build_cost_final_v2.{json,md}` at `3a2c1db9794f48a7f5d520b40eb87aa4bf0c6ce7`). This item remains open for the two cases A.5.5 actually describes — the scaling (§5.1) and end-to-end (§5.3) artifacts, which still record dirty working trees (94 and 87 tracked files respectively).
+
+RESOLVED AS A DISCLOSURE. Neither offered option was taken: re-running was not required
+once the specific worry — uncommitted pipeline code sitting on a timed path, item 23's
+failure mode — was checked and ruled out for both runs, and harness config hashes cannot
+retroactively recover a file list that was never retained in the first place. Per
+`eval_results/dirty_tree_C28.md`, the item's own premise — that the dirty-tree contents
+were known and merely needed disclosing — does not hold uniformly. For §5.1, the contents
+are not known from the artifact itself; they are supported only indirectly, by a
+same-commit sibling run's retained status and a byte-identical `iris/` tree across the
+window. For §5.3, nothing supports the figure at all — it is a hardcoded literal with no
+git call behind it anywhere in the harness. A.5.5 now states both of these distinctions
+rather than the single unverifiable "scratch, not pipeline code" claim it asserted before.
+`defer_recompute` (item 23) does not recur in either case: it postdates both runs by about
+three weeks and could not have been part of either dirty tree. The `scaling_curve_v3`
+per-script SHA-1 practice remains worth keeping as forward guidance — it is the reason
+§5.1 has any corroborating trail at all — and should be extended to future harnesses,
+including one that retains the actual `git status` output rather than only its count.
+
 29. write once A.5.5 is decided. It should state the minimal path: which scripts to run, in what order, against which cached indices, and which results are reproducible without re-ingesting video. The `index_cache/*.npz` dependency is no longer a blocker: those caches were built at (0.5, 0.3, 0.2), which is the shipped default configuration, not a deviation from it (§3 note 1, resolved).
+
+RESOLVED — A.5.5 is decided; the path below is what it now states. First, this item's
+own premise needs correcting before the path is usable: the caches were **not** built
+at the shipped default configuration. Item 9 (resolved) established that all 33
+`index_cache/*.npz` snapshots record a directly-constructed `IRISConfig` — dataclass
+defaults (`alpha=0.4, beta=0.3`, `captioner_backend="moondream"`) — never a config
+built through `ConfigManager` from a JSON file. `configs/default_iris_config.json`, the
+shipped default, sets `beta=0.6` and `captioner_backend="minicpm"`; neither field
+matches a single one of the 33 caches. Anyone who reproduces by pointing `ConfigManager`
+at the shipped JSON builds a different graph from the one every cached result in this
+paper was measured against. This is stated here as the single most likely way a
+reproduction attempt silently diverges, because nothing about it raises an error —
+`ConfigManager` and the direct constructor both return a valid `IRISConfig`, just not
+the same one.
+
+**(a) Reproducible from cached indices, no video needed.** In this order:
+
+  1. **§4.1 construction identity** — the blockdiag identity gate
+     (`blockdiag_identity_gate_result`, A.3 §4.1). Read-only: the gate result is a
+     stored artifact: comparing it against the cached `.npz` manifests it names reproduces
+     the check without running anything.
+  2. **§4.2 build cost, 234.449×** — run `scripts/build_cost_final_probe.py` at commit
+     `3a2c1db9794f48a7f5d520b40eb87aa4bf0c6ce7` (the commit `defer_recompute` was
+     introduced on, per item 23), against the same N=4,892/528-scene cached clip, with the
+     `edge_count == 23,571` guard checked on every build. A run that does not reproduce
+     23,571 edges has diverged upstream of the timing and should be treated as invalid,
+     not averaged in.
+  3. **§5.1 scaling exponents** — `scripts/scaling_curve_v2_textquery.py`
+     (`_scaling_curve_v2_worker.py` is the per-clip worker it dispatches to), run over the
+     31-clip fit support recorded in `_ci_survivor_census.json` (median N=333, 24 of 31
+     clips below N=1000). This one requires running the harness, not just reading a stored
+     result — it fits the exponent from per-clip latencies computed at read time.
+  4. **§8 degree distributions** — the item-8 read
+     (`eval_results/degree_distribution_C8.md`, computed from all 33 cached manifests, no
+     re-ingest) for the `fully_connected`/`block_diagonal` degree-boundedness result, plus
+     item 37's tiered build (`eval_results/tiered_degree_C37.md`, one re-ingested
+     `hierarchical_sparse` cache, `Arson042`, N=613) for the tiered-path concentration
+     result. The first is a read against existing caches; the second needs the one
+     re-ingest item 37 already performed to be present — reproducing it fresh means
+     re-running that one clip under `graph_edge_mode="hierarchical_sparse"` from its
+     existing frame records and CLIP embeddings, not from raw video.
+
+  Of these four, (1) and (4)'s first half are pure reads against artifacts already on
+  disk — no code runs. (2), (3), and (4)'s second half require the answerer to actually
+  execute a script, though none of the three touches a video file.
+
+**(b) Requires re-ingesting video, and therefore the source corpus.** Anything touching
+MLVU (§6.2, §7.1): no IRIS index cache exists for any MLVU video — the MLVU artifacts
+that exist are answerer-stage outputs over a captioning/QA pipeline, not `iris/ingest.py`
+graph caches. Also anything needing a `graph_edge_mode` not already cached at the
+required N: the only `hierarchical_sparse` cache in the repository is the single
+N=613 clip named in (a)(4); a scaling or accuracy claim at any other N under that mode
+has no cache to read and must be re-ingested from source video.
+
+**(c) Cannot be reproduced as run.** Stated directly, not as a gap to work around:
+
+  - **§6.1's Acc@GQA.** The test half is burned per B.4 — the registration forbids
+    further test-half measurement without a new split — and no verified llama-server
+    build exists for the original run (item 22, resolved as PREMISE FALSE: `b9976` is
+    cited only in prose, with no binary hash behind it). A reproduction attempt would be
+    a new, differently-provenanced measurement on a new split, not a check of the
+    reported 0.1667.
+  - **The MLVU family (§6.2, §7.1).** Served via Ollama (`aria.LlamaBackend` at
+    `localhost:11434/v1`) with `cache_prompt` never sent on any of the three request
+    branches (items 38, 39, both resolved) — not a dropped setting, an absent one. There
+    is no determinism assurance to reproduce against; A.1's 639/639 gate does not
+    transfer (different backend, different machine, different dataset).
+  - **The §4 ingest efficiency figure.** Per A.5.4, this remains ledger-quoted: the
+    artifact lives at `origin/siddanth/ucf-vad-exp1`
+    (`tuning/ucfcrime_vad_exp1/efficiency_measurements.json`, commit `41d7205`) and is
+    reachable, but has not been read directly in this repository. Reproducing it means
+    reading that artifact for the first time, not re-running a script against a local
+    cache.
+
+**(d) The config trap, as its own step.** Reproduce every cached-index result from that
+cache's own `config_snapshot` field, never from `configs/default_iris_config.json` — the
+premise correction above is the reason this has to be a named step rather than an
+assumption. One further gap in `config_snapshot` itself: it omits `scene_segmentation`
+entirely (item 9's cross-referenced finding), so a reproducer cannot read the codec
+choice back out of the snapshot and must supply `"codec"` explicitly, by hand, rather
+than relying on whatever `IRISConfig`'s default happens to be at reproduction time — that
+default is not pinned by anything the cache records and may change under the reproducer
+without warning.
+
+**RESOLVED.**
+
+34. **the P-NOW-A Acc@GQA row cites the wrong commit.** Appendix A and `P_NOWA_accgqa_result.md`'s own title cite `dc59de3` for the held-out Acc@GQA measurement, but `P_NOWA_accgqa_raw.json`'s machine-written provenance block records `"git_commit": "b170007b329dcd203851527f708fd49db602a9f9"`, `"git_dirty": false`. Checked across both remotes (`origin`, `swara`), all branches: `dc59de3` is `b170007b`'s direct child, one commit later, and its entire diff is the 4,233-line addition of `P_NOWA_accgqa_raw.json` itself — a data commit, not the commit the harness ran at. `b170007b` is the harness commit ("TEST-only Acc@GQA harness"); the measurement ran against it clean, then the output was committed an hour later as `dc59de3`, and that data-commit hash was later mistaken for the run commit when the `.md` result doc was titled the next morning (`b446a7a`). Full evidence in `eval_results/commit_provenance_C22d.md`. Checked against every other Appendix A row citing a commit (`blockdiag_identity_gate_result`, `blockdiag_grounding_gate_result`, `e2e_stage3_decomp_raw`, `scaling_curve_v3`, `efficiency_measurements.json`, `env_A2.json`): none show the same conflation — `scaling_curve_v3`'s row already separates "git HEAD" from "committed at" correctly, and the rest are self-consistent or have no comparable field. This is an isolated mislabeling, not a systemic convention; fix by citing `b170007b` (the recorded run commit) in place of `dc59de3`, optionally noting `dc59de3` as the commit that recorded the result, mirroring the `scaling_curve_v3` row's phrasing.
+
+RESOLVED — CITATION CORRECTED. Appendix A's §6 row now cites `b170007b` (clean,
+`git_dirty: false`) as the commit the harness ran at, with `dc59de3` noted alongside it
+as the commit that recorded the result an hour later — both hashes now appear, per
+`eval_results/commit_provenance_C22d.md`. The reported number is unchanged: 0.1667
+[0.088, 0.243], n=120/27 videos. The row now follows the `scaling_curve_v3` convention
+of separating "git HEAD at run time" from "committed at"; A.5.9 records that this
+convention should apply to future rows citing a commit.
+
+35. **(a) — §3.1 described the action score's first channel as weighting luma difference; it
+    weights `frame_features["packet_size"]`, and always has.** §3.1 read "combining a codec
+    packet-size residual, motion energy, and luma entropy" in an earlier draft state but the
+    surrounding paragraph, describing the same three-channel score as "luma difference,
+    motion energy, and luma entropy," is the sentence this item is about — a wrong description
+    of the mechanism in the body text itself, not a citation or provenance defect. This is
+    filed as its own item rather than folded into item 6, even though both concern the same
+    field, because the two are a different class of error: items 4, 5, 22, and 34 were
+    citation and provenance defects, wrong statements about a source or an artifact, detectable
+    only by checking that artifact against the claim. This one was a wrong statement about
+    what the system does, sitting in the method section a reader takes at face value — nothing
+    about it required checking an external artifact, only checking the prose against the code
+    it describes. A reader who trusted §3.1 as written would have formed an incorrect model of
+    the scoring mechanism itself, not merely mistrusted a citation.
+
+    Root cause chain, recorded because it explains why this survived review this long: the
+    field is named `luma_diff_weight`; a separate, genuine `luma_diff_energy` field exists on
+    frame records and is documented "diagnostic only; not consumed by scorer"
+    (`eval_results/packet_size_weight_C6.md`); and the §3.1 prose matched the field's name.
+    Every surface a reviewer would ordinarily check — the field name, the diagnostic field's
+    docstring, and the paper's own prose — agreed with each other, and all three disagreed with
+    what the code actually reads (`frame_features["packet_size"]`). See A.5.7's third failure
+    direction ("a field whose name misdescribes what it computes") for the general pattern, and
+    items 6 and 9 for the same field's provenance and consumption history.
+
+    RESOLVED (naming half only — see part (b) below). §3.1 now reads "a codec packet-size
+    residual, motion energy, and luma entropy" and names no luma-difference quantity; corrected
+    in this session per item 6's follow-up. Cite `eval_results/packet_size_weight_C6.md`.
+
+    (b) — RESOLVED AS A DISCLOSURE. `codec_conf` and the action score's first channel are
+    confirmed to be the same raw `packet_size` quantity under two different normalizations
+    (per-pict-type rank-percentile for one, ungrounded percentile-clipped min-max for the
+    other), traced in full in `eval_results/shared_signal_C35b.md`. The trace found a
+    second route this item did not originally name: `packet_size` re-enters the same
+    `nx.pagerank` call a second time through the edge weights (via `action_score` at the β
+    slot, under `motion_similarity_mode="action_score"`, the default), not only through the
+    `codec_conf`-seeded personalization vector — so retrieval mixes the two supposedly
+    separate mechanisms at two structural points, not one. §5.1 (note 4) and Appendix C
+    item 9's RESOLVED note were corrected accordingly: β is live on PPR, not bypassed. §6.1
+    now carries the caveat this finding requires — that its grounded/correct decomposition
+    reads two measurements off one shared retrieval event rather than two independent
+    mechanisms — stated precisely enough to say what it does and does not undermine (the
+    ~15-point gap stands; reading "grounded" as "retrieved for a query-semantic reason"
+    does not, unconditionally). No reported number changed: 0.350 × 0.476 = 0.167 and the
+    ~15-point gap are unaffected: shared upstream input explains *why* the two factors
+    might correlate beyond pure faithfulness, not the arithmetic that combines them, and
+    the residual-confound possibility this raises for §6.1 is disclosed there as
+    unaddressed rather than resolved. §4's construction-identity result is confirmed
+    unaffected — it is a structural byte-identity claim checked under
+    `graph_mode="scene_sparse"`, a different runtime path from §6.1's `graph_mode="flat"`,
+    and holds regardless of what any config field's value means or shares with another.
 
 
 **11_appendix_B_prereg.md**
 
 30. date
 
+RESOLVED. No in-document date exists for B.5's pre-registration. The verifiable date is its
+commit, `4591c72` (2026-07-24T15:34:44 UTC), which precedes the run's own `timestamp_utc`
+(2026-07-24T19:13:41 UTC) by 3h39m — one of four entries in Appendix B checked against an
+independent run timestamp rather than commit order alone. See B.5 and
+`eval_results/prereg_dates_C30_33.md`.
+
 31. date
+
+RESOLVED — PREMISE FALSE. This item asked for B.6's registration date on the assumption
+that one exists to recover. It does not. No document stating the kill criterion predates
+the run: `CLAIMS.md` — the only document anywhere in the repository containing it — was
+committed in the same commit as the run's own results (`a3d3e95`, 2026-08-16). There is no
+earlier commit, on any branch, that states this criterion. See B.6.
 
 32. recover the registration date, and state the realised outcome against the three-way rule.
 
+RESOLVED. Registration date: see item 30 (no in-document date; commit `4591c72` precedes
+the run by 3h39m). Realised outcome at top_k=8, from `P_funnel_result.md`: selection
+headroom 0.3363, 95% CI [0.2778, 0.3939]; CI lower ≥ 0.15 resolves rule A to **material
+headroom — in-pool caption reranking is the highest-value cheap experiment**. Also read:
+index_coverage 0.9925 ≥ 0.95 (rule B — do not cite this run as support for densification),
+and `best_gold_rank` concentrated at ranks 1–4 (rule C — a different query-conditional
+signal plausibly recovers those questions). Full three-way read now stated in B.5.
+
 33. registration date and the criterion's exact wording, from `Iris/r0_full/`. This artifact is not reachable from all authors' machines — see note 3.
+
+RESOLVED — PREMISE FALSE. `Iris/r0_full/` contains the run's output (`summary.md`,
+`results.csv`) but not the criterion, which lives only in `CLAIMS.md`, committed in the
+same commit as `r0_full/` itself (`a3d3e95`, 2026-08-16). The criterion's exact wording is
+quoted in B.6 above ("coverage metrics are uninformative without a budget-matched control
+... a saturating uniform arm would invalidate the coverage framing"); no registration date
+independent of the run exists to report. B.2's "standalone" label for B.6 was wrong and has
+been corrected to "criterion recorded, not registered." See B.6 and
+`eval_results/prereg_dates_C30_33.md`.
+
+36. RESOLVED, WITH A CORRECTION — the four registrations do not resolve the same way and
+    must not be reported as one group (`eval_results/missing_runs_C36.md`). Searched by
+    content, not just filename, across every branch on both remotes, every dangling
+    commit, four other local clones, and the working tree:
+
+    - **P_NOWA_sweep — FOUND, correcting the prior "no run found" claim.** Its result
+      exists under a non-matching filename, `eval_results/P_NOWA_grounding_result.md`
+      (commit `5e418dc`), corroborated by `DECISIONS.md`, `P_NOWA_split_declaration.md`,
+      and the sweep harness `scripts/pnowa_width_topk_sweep.py`. The prior audit
+      (`eval_results/prereg_dates_C30_33.md`) searched for this by filename glob
+      (`*NOWA_sweep*`) and missed it because the result file isn't named to match; that is
+      a methodological gap in the prior search, not a gap in the record. No per-cell raw
+      JSON survives — only the summary report — so exact CIs for cells other than
+      top_k=8 and the frozen test point cannot be independently re-derived, and that
+      narrower gap is what should be disclosed, not "no artifact."
+    - **P_dtedge — never ran.** The pre-registration commit (`98a5f18`) is the only commit
+      in this repository's entire history touching that file or mentioning
+      `dtedge`/directed temporal edges; no later commit wires the arm, runs it, or reports
+      a result. This is the cleanest of the four: no partial evidence of any kind.
+    - **P_scene_sparse — never ran; superseded by a differently-designed experiment.**
+      No result matches its specific design (N=64 `dev_100`, C:36/T:28 split,
+      `rep`/`t75`/`t90` crossscene arms). `P_scene_2x2x2`, registered one day later,
+      addresses a related hypothesis at VAL scale but explicitly self-registers as "a
+      fresh 2×2×2 mechanism test, not... the reporting artifact for" this standalone A/B —
+      it is a different design testing a related question, not this prediction's result
+      under another name.
+    - **P_width_topk — most likely superseded before execution.** Flagged as inference,
+      not a located artifact: no result matches this design's own scope (N=64 in-sample,
+      mIoU ≥ 0.179 floor), but a real precursor (`half_width_confirmation_report.md`,
+      three days earlier, narrower design) and a real successor (`P_NOWA_sweep`, one day
+      later, same `top_k`/`half_width` grid shape but at N=406 held-out scale) both exist.
+      The most likely reading is that the larger P_NOWA_sweep absorbed this design before
+      it was run at its original N=64 scope — plausible, not established.
+
+    B.1 and Appendix B have been corrected accordingly: P_NOWA_sweep moves out of the
+    "no run found" tier, and the remaining three are no longer collapsed into one
+    sentence.
+
+37. RESOLVED IN PART — one clip, one N. Per `eval_results/tiered_degree_C37.md`, one
+    `hierarchical_sparse` index cache was built (`Arson042`, N=613, 110 scenes) by
+    re-ingesting from the existing cached frame records and CLIP embeddings, changing only
+    `graph_edge_mode` from `fully_connected` to `hierarchical_sparse` on the identical
+    scene partition:
+
+    - 810 edges (309 `semantic_salient`, 260 `hierarchy_peak_salient`, 199 `temporal`, 42
+      `motion_neighbor`) against 3,855 for the `fully_connected` cache of the same clip;
+      per-node degree mean 2.64 vs 12.58, max 17 vs 33.
+    - **In-degree concentration is real, not just a code-level possibility.** Against a
+      top-4 per-source cap on `semantic_salient`, the highest-in-degree node observed
+      12 in-edges — 8 above the largest single per-source cap, so it cannot be one node's
+      own top-k selection; independent sources are converging on the same target. This is
+      the first measurement of the cap asymmetry §3.5 previously stated only as a property
+      of the code.
+    - **The two edge modes are bounded by different mechanisms, and §3.5 has been updated
+      to say so rather than imply one bound argument covers both.** `fully_connected`'s
+      degree ceiling comes from cross-scene pruning of an otherwise-complete per-scene
+      subgraph — every node already has degree scene_size−1 before pruning removes the
+      cross-scene excess. `hierarchical_sparse`'s ceiling is never approached by
+      construction: its four edge families (temporal, hierarchy, semantic_salient,
+      motion_neighbor) each independently produce far fewer edges per node than
+      scene_size−1 permits, with cross-scene pruning only removing the rare excess. Both
+      happen to respect the same numeric ceiling on this one clip, for different
+      structural reasons.
+
+    **Scoped hard, deliberately.** This is one clip at one N (613, within the corpus's
+    24–13,506 range) — it does not establish degree-vs-N behaviour for the tiered path,
+    only that concentration exists and stays bounded at this single point. §3.5's
+    disclosure that the scaling argument (§5.1, fitted on `fully_connected`/`block_diagonal`)
+    and the accuracy results (`hierarchical_sparse`) rest on different graph constructions
+    stands unchanged — this item narrows what is unmeasured, it does not close the gap
+    between the two configurations.
+
+38. UNRESOLVED. The MLVU long-video scripts (`mlvu_ablation_long.py`,
+    `mlvu_ablation_long_trimmed.py`) default their `--answerer-endpoint` to
+    `http://localhost:11434/v1` — Ollama's own OpenAI-compatible port — and the
+    surviving shard logs confirm that default ran unmodified. The other MLVU artifacts
+    (`MLVU_codec_baseline.json`, `MLVU_ablation.json`) instead recorded
+    `http://127.0.0.1:8091/v1`, a standalone llama-server process. This matters beyond
+    a mismatched port: the A1 determinism gate (`eval_results/mlvu_provenance_C26.md`,
+    citing `tuning/determinism_gate/final_report.md` at `origin/siddanth/ucf-vad-exp1`)
+    explicitly found that Ollama's bundled llama-server (`/usr/local/lib/ollama/
+    llama-server`) is the wrong build and drops `cache_prompt=false` — one of the three
+    conditions (temperature 0, `cache_prompt=false`, `--parallel 1`) A.2's determinism
+    assurance depends on, and that assurance was itself only ever demonstrated on
+    `worker-1` with `b10099`, not on this machine. Whether the long-video scripts'
+    default was actually exercised as an Ollama-served answerer on this machine, or
+    overridden at the CLI to point at the 8091 llama-server instead, is not established
+    here. This is a decision for the team, not resolved here: determine which server
+    actually served §7.1's long-video arm, whether `cache_prompt=false` held for that
+    run, and whether A.2's determinism claim must be scoped to exclude the long-video
+    arm as a result.
+
+RESOLVED — PREMISE TOO NARROW. This item asked which server served §7.1's long-video
+arm specifically, on the assumption that the other two MLVU artifacts used a different,
+verified path (8091). Checking each of the four MLVU harness scripts' own printed setup
+line, in every surviving stdout log, shows they are identical at the call site and all
+four ran through Ollama at `http://localhost:11434/v1` (`aria.LlamaBackend`) — no
+call-site override exists anywhere in the repository. The premise that
+`MLVU_codec_baseline.json` and `MLVU_ablation.json` used a standalone llama-server on
+8091 does not survive checking their own run logs: that 8091 figure came only from those
+two artifacts' `config` blocks, which A.5.7's fourth failure direction (dead-but-false
+provenance) establishes are `IRISConfig` defaults never wired to the real backend, proven
+by `MLVU_ablation_long_trimmed.json` carrying the identical false fields on a run
+independently confirmed to have used Ollama. So the question is not scoped to the
+long-video arm; it applies to all of §6.2 and §7.1 uniformly. On `cache_prompt=false`:
+it was never sent at all by `aria.LlamaBackend` in any of its three request branches —
+absent from the wire contract, not dropped by a bad build, regardless of which server
+received the (cache_prompt-free) request. On the other two conditions: temperature 0 was
+sent, hardcoded, for all four artifacts; `--parallel 1` has no Ollama equivalent and is
+undetermined for all four. No repeat-run evidence exists for any MLVU artifact — every
+question was checkpointed and answered exactly once, by design — and the A1 gate's
+639/639 result does not transfer (different backend class, different machine, different
+dataset, and it explicitly frames the Ollama route as the one to avoid). A.2 now states
+this scoping directly. Full evidence in `eval_results/long_arm_determinism_C38.md`.
+
+39. UNRESOLVED. A.5.7's fourth failure direction and item 38's resolution establish that
+    `answerer_backend`/`answerer_endpoint` fields inside an `asdict(config)`-style config
+    block can record false provenance for the MLVU family. Whether the same mechanism
+    affects other artifacts with a backend or endpoint field is not established here — it
+    would need to be checked, not assumed, precisely because A.2 now makes claims about
+    which backend served which runs. `eval_results/P_NOWA_accgqa_raw.json`, for instance,
+    records `"backend_class": "LlamaServerBackend"` and `endpoint: http://127.0.0.1:8091/v1`
+    inside a harness-written `provenance` block (`eval_results/machine_provenance_C22b.md`
+    §2) — structurally a different mechanism from the MLVU scripts' `config`-block dump
+    (a dedicated provenance record built by the harness itself, not a serialized
+    `IRISConfig`), but that distinction has not been independently verified for this or any
+    other artifact; it is asserted here from the field's shape, not confirmed by tracing
+    the code that populates it the way item 38 traced the MLVU scripts. This is a decision
+    for the team, not resolved here: read across every artifact in `eval_results/` that
+    carries a backend or endpoint field, trace each one to the code that actually set the
+    live answerer backend for that run (not merely to the field's presence or its
+    resemblance to a "real" provenance block), and report which fields are trustworthy
+    telemetry and which are `asdict(config)` defaults like the MLVU family's. Do not answer
+    this by inference from the MLVU finding — verify each artifact on its own.
+
+RESOLVED. Every artifact in `eval_results/` and the `tuning/` trees carrying a backend,
+endpoint, port, model, or server field was traced to its writer, not inferred from the
+field's shape. Three mechanisms exist, and the field names are identical across all
+three (A.5.7), so only the writer distinguishes them. §6.1's provenance
+(`A6_allminmax_raw.json`, `A6_mixed_raw.json`, the P1 λ-sweep artifacts,
+`P_NOWA_accgqa_raw.json`) is **verified clean**: `scripts/pillar2_grounded_qa.py`'s
+`preflight_backend()` (imported directly by `scripts/pnowa_test_accgqa_run.py`) checks
+`isinstance(backend, LlamaServerBackend)` and performs a live `GET {endpoint}/models`
+before any query, raising rather than proceeding if either fails, and the recorded
+`backend_class`/`endpoint`/`temperature`/`cache_prompt` fields are attributes read off
+that same preflight-checked live object — a structurally different, and reliable,
+mechanism from the MLVU family's `asdict(config)` dump. This is independent of item 22
+(resolved separately as PREMISE FALSE): item 22 established that no llama-server build
+is confirmed for the same run by a binary hash or `--version` capture; that disclosed
+gap persists for the §6.1 runs specifically and is neither reopened nor narrowed by this
+item — the two questions (which backend served the run; which build that backend was)
+are answered independently and do not trade off against each other.
+
+The MLVU family's provenance is false, as item 38 already established, and is not
+revisited here beyond confirming the mechanism (`asdict(config)` on an `IRISConfig`
+built for the ingest pipeline, never wired to the live answerer backend). The read
+surfaced one thing this item did not anticipate: a third affected family,
+**§5.3's two end-to-end runs and §5.4's caption-stage diagnosis**, which also ran on
+Ollama (`aria.LlamaBackend`, no CLI override path exists in any of the three scripts)
+rather than llama-server, despite A.2's prior wording implying only the MLVU family was
+the exception. Unlike the MLVU family, none of these three artifacts asserts
+llama-server falsely — two record no backend/endpoint field at all, and the third
+(`e2e_speedup.json`) correctly self-reports the Ollama override in prose — and none of
+their reported quantities (stage wall-clock medians, end-to-end ratios, cache-miss and
+frame counts) depends on answer content, so this widens A.2's per-section backend
+mapping without widening the determinism exclusion. Full accounting, including the OS-
+level introspection mechanism behind `tuning/determinism_gate/environment.json` (the
+gold standard, unaffected by any of this), in `eval_results/backend_provenance_C39.md`.
+A.2 now states the three mechanisms, their reliability, and the per-section backend
+mapping directly.
+
+
+**Appendix C status.** All 39 items above are now resolved or explicitly converted into
+a stated limitation, with the per-item disposition recorded inline above this line.
