@@ -16,7 +16,7 @@ construction rather than benchmark it. A block-diagonal construction that enumer
 within-scene node pairs is bit-identical to dense-then-prune construction (same nodes,
 edges, weights at zero tolerance, and PageRank) while visiting 0.2% of the pairs, making
 construction ~234× faster and ~6.8× smaller in peak memory at 4,892 nodes, on a
-complete-block edge configuration (our accuracy numbers use a sparser one). Query latency
+complete-block edge configuration (our accuracy numbers come from other configurations). Query latency
 separates with graph size — exponent 2.06 (95% CI [2.02, 2.13]) dense versus 0.83
 ([0.80, 0.88]) sparse — and past a certain size dense retrieval fails to return within
 3600 s. We also report where this does not help: a captioning stage dominates query time,
@@ -53,15 +53,14 @@ it.
 
 **Construction.** The scene-sparse graph keeps only within-scene edges, so the conventional
 construction — materialise the dense graph, then prune across scenes — spends almost all its
-work on edges it discards: at N=4,892 frames over 528 scenes it visits 11.96 million pairs
+work on edges it discards: at N=4,892 admitted frames over 528 scenes it visits 11.96 million pairs
 to keep 23,571. Building the diagonal blocks directly visits only the pairs it keeps, and
 yields the same graph rather than an approximation of it: identical nodes and edges, zero
 edge-attribute mismatches at tolerance 0.0, bit-identical PageRank, and identical
 personalised-PageRank output across five seeds [C2.1], with zero behavioural differences
 over 526 grounded-QA questions [C2.3]. Construction time falls from 49.71 s to 0.212 s
 (~234×) and peak memory from 6.33 GB to 0.93 GB (~6.8×) [C2.2]. This is measured on the
-complete-block edge configuration; our accuracy numbers use a sparser tiered configuration
-that shares the block structure but whose construction does not yet inherit the saving (§8).
+complete-block edge configuration; no accuracy number we report is measured on it (§8).
 
 **Scaling.** The same block structure changes how query cost grows. Over 31 clips under real
 text queries, dense retrieval latency scales with graph size at exponent 2.063 (95% CI
@@ -78,8 +77,8 @@ median (0.802×). Much recent work reports retrieval-side speedups without measu
 pipeline around them. We measure it, and we do not project a crossover, because our own
 data contradict the assumption such a projection needs (§5.3). Second, accuracy sits in the
 weakly-supervised band: held-out Acc@GQA on NExT-GQA is 0.1667 [0.088, 0.243] with a ~3.4B
-answerer on CPU [C4.1]. Our claim is that a 0.212 s graph does not push accuracy below that
-band, not that it advances it.
+answerer on CPU [C4.1]. Our claim is that the pipeline answers within that band, not that
+it advances it.
 
 **What does not matter.** We set kill criteria for two hypotheses we expected to confirm,
 and both triggered. Codec-derived scene boundaries do not beat content-blind ones at matched
@@ -92,7 +91,7 @@ policy.
 
 **Contributions.**
 
-1. A block-diagonal graph construction proven bit-identical to dense-then-prune, at ~234×
+1. A block-diagonal graph construction shown bit-identical to dense-then-prune, at ~234×
    lower build time and ~6.8× lower peak memory on the complete-block configuration (§4).
 2. Query-latency scaling exponents with bootstrap confidence intervals over 31 clips, and a
    tractability boundary where dense retrieval does not complete (§5.1–§5.2).
@@ -208,10 +207,10 @@ are a *cheap* source of structure, not an *informative* one.
 ### 2.4 Positioning
 
 Against EgoSG and its family we replace a frontier-model-generated symbolic graph with a
-structurally-constructed one: far cheaper, verifiable, parallel, locally runnable — and
-semantically poorer. Against grounded-QA baselines we land in the weakly-supervised band
+structurally-constructed one: built with no generative model, verifiable, parallel, locally
+runnable — and semantically poorer. Against grounded-QA baselines we land in the weakly-supervised band
 while training nothing and running on CPU; against the agentic frontier we are a band behind
-on accuracy and orders of magnitude ahead on construction cost. The claim is narrow: for
+on accuracy. The claim is narrow: for
 retrieval over long video, the intermediate graph does not have to be expensive, and does not
 have to be generated.
 
@@ -248,7 +247,7 @@ the zero-forward-pass claim excludes. Captioning is deferred entirely; `caption`
 | CLIP enrichment | 9.131 s | 0.501 s | 56.885 s |
 | **full ingest** | **11.976 s** | 0.814 s | 71.754 s |
 
-CLIP enrichment costs 26.56 ms per admitted frame, roughly three times the selection stage.
+CLIP enrichment, at 26.56 ms per admitted frame, costs roughly three times the selection stage.
 **The honest headline for construction is therefore ~12 s per video, not ~2.9 s.** Our ingest
 as a whole is *not* forward-pass-free; the smaller figure describes the forward-pass-free
 portion only, and any comparison against a system whose reported construction cost includes
@@ -341,7 +340,8 @@ block structure is common to all three.
 state rather than gloss.** On the same clip, `fully_connected` fills 23,571 intra-scene edges
 where `hierarchical_sparse` fills 6,284, roughly 3.75× sparser. First, **§4's construction
 saving is measured on the complete-block configuration, which produced no accuracy number in
-this paper** — §6 and §7.1 run `hierarchical_sparse` (§4.3 scopes this). Second,
+this paper** — §6.2 and §7.1 run `hierarchical_sparse` and §6.1 a flat dense graph (§4.3
+scopes this). Second,
 **`hierarchical_sparse` pays its own quadratic pass** that block-diagonal construction does
 not remove: motion-neighbour selection scans all N(N−1)/2 pairs to keep two per node, and the
 salient-semantic pass scans all pairs among salient nodes. The tiered mode is sparse in its
@@ -375,17 +375,17 @@ fraction of the cost. We establish the identity first and report the savings sec
 construction speedup is uninteresting if it silently changes what is built.
 
 One scope statement belongs here rather than in a footnote. This section concerns the
-**complete-block** configuration, in which every intra-scene pair carries an edge. Our
-evaluated configuration (`hierarchical_sparse`, §3) shares the block structure but populates
-each block sparsely — 6,284 edges against 23,571 on the same clip — and is not the
-configuration measured below. §4.3 states what follows from that.
+**complete-block** configuration, in which every intra-scene pair carries an edge. No accuracy
+number in this paper is measured on it: §6.2 and §7.1 use the tiered `hierarchical_sparse`
+configuration, which shares the block structure but populates each block sparsely (6,284
+edges against 23,571 on the same clip), and §6.1 a flat dense graph (§3.5). §4.3 states what follows from that.
 
 ### 4.1 The identity gate
 
 Two paths produce a scene-sparse graph: the reference path materialises the dense N×N graph
 and prunes cross-scene edges; the block-diagonal path materialises only the within-scene
 blocks. At N=4,892 admitted frames over 528 scenes (VIRAT) they agree exactly [C2.1]: edge
-count 23,571, matching both the theoretical prediction and both paths; identical node sets,
+count 23,571 on both paths, matching the theoretical prediction; identical node sets,
 with zero edges present in only one graph; zero mismatches on every edge attribute
 (`weight`, `semantic_weight`, `motion_weight`, `temporal_weight`, `edge_type`) at tolerance
 **0.0**, not at a floating-point epsilon; bit-identical PageRank across all 4,892 nodes; and
@@ -400,8 +400,7 @@ downstream behaviour.
 
 What the gate establishes is an equivalence between two construction paths, not a re-run of
 a committed result: no committed grounding number was produced under the complete-block
-configuration, since our accuracy arms use the tiered edge formula that the block-diagonal
-path does not target (§3).
+configuration, since none of our accuracy arms uses it (§3.5).
 
 This is an identity rather than an approximation because cross-scene edges are absent from
 the scene-sparse graph by definition. The reference path computes them and then discards
@@ -409,7 +408,7 @@ them; the block-diagonal path never computes them.
 
 ### 4.2 Savings
 
-| | reference (dense-then-prune) | block-diagonal | ratio |
+| | reference | block-diag. | ratio |
 |---|---:|---:|---:|
 | wall-clock (per build) | 49.71 s | 0.212 s | **234.4×** |
 | peak RSS | 6.33 GB | 0.93 GB | **6.80×** |
@@ -433,7 +432,7 @@ the loop, not over a build. Unlike the wall-clock ratio, this figure is not tied
 commit. An independently recorded post-dedup ratio (6.8039×) agrees to three significant
 figures, and every build in both runs produced exactly 23,571 edges.
 
-**Three caveats travel with the table; the first two make it conservative.** First, the fast
+**Three caveats travel with the table; the first makes it conservative.** First, the fast
 arm is timed over 50 consecutive in-process builds. This puts the timed quantity safely
 above timer resolution but charges each iteration roughly 0.09 s of fixed allocation
 overhead — negligible against a 50 s build, substantial against a 0.2 s one. A single cold
@@ -447,7 +446,8 @@ Second, this isolates the `_build_graph` stage with frames and embeddings alread
 it is not a full-ingest figure. The selection stage that produces those inputs costs 2.845 s
 mean wall time at 530 MB mean peak RSS over a 32-video stratified sample, CPU-only, with
 zero neural forward passes [C5.1, C5.2]; full ingest including CLIP enrichment costs
-11.976 s (§3).
+11.976 s (§3). A full-ingest ratio would therefore be far smaller than the build ratio; we do
+not compute one, because that sample and this clip differ.
 
 Third, the reported ratio is a within-session figure. The reference arm's wall time has
 varied across sessions running the same corrected code — 61.39 s and 48.57 s in two earlier
@@ -476,10 +476,11 @@ sense in which it is the more durable of our two efficiency results: §5.3 repor
 retrieval speedup of three orders of magnitude that nonetheless fails to reach the user.
 
 The limit, stated plainly. The saving is measured on the complete-block configuration, and
-our reported accuracy numbers come from the tiered one. The two share a block structure but
-not an edge set, and block-diagonal construction does not make the tiered configuration
-cheaper to build: that mode selects neighbours by scanning all pairs and then keeping a few,
-so it pays a quadratic pass of its own (§3). Carrying the result into the evaluated
+no reported accuracy number comes from it: MLVU and the segmentation ablation use the tiered
+configuration, and NExT-GQA a flat dense graph to which block-diagonal construction cannot
+apply at all. The tiered configuration shares the block structure but not the edge set, and
+block-diagonal construction does not make it cheaper to build: that mode selects neighbours by scanning all pairs and then keeping a few,
+so it pays a quadratic pass of its own (§3). Carrying the result into the tiered
 configuration means bounding those scans to the scene partition — a change the current
 implementation does not make, and one that would produce a *different* graph rather than an
 identically-constructed one, since global top-k followed by cross-scene pruning is not the
@@ -543,7 +544,7 @@ comparable to retention figures computed under the production configuration.
 subgraphs not growing with N. Checked against all cached indices, degree does not drift
 upward from N=24 to N=13,506 (r(N, deg_mean) = −0.155), because scene count grows with N
 (r=0.975) while scene size does not (r=0.135). This holds for the complete-block modes this
-corpus is built under. It is **not** established at scale for the tiered mode our accuracy
+corpus is built under. It is **not** established at scale for the tiered mode our MLVU
 results use: no cached index in this corpus was built under it, and the single tiered cache
 measured since (one clip, N=613) confirms bounded degree there without establishing
 degree-versus-N behaviour (§3).
@@ -652,10 +653,12 @@ construction budget; we have not implemented or measured that.
 
 ## 6. Correctness Floor
 
-This section does not claim competitive accuracy. It claims that a graph built in 0.212 s
-with no generative model in its construction path, queried by a ~3.4B answerer on CPU, does
-not degrade answer quality below the weakly-supervised band. A construction saving is
-uninteresting if the resulting system cannot answer anything.
+This section does not claim competitive accuracy. It claims that the pipeline, with no
+generative model in its construction path and a ~3.4B answerer on CPU, answers within the
+weakly-supervised band. It does not measure the 0.212 s construction of §4: §6.1 runs a flat
+dense graph and §6.2 the tiered one (§3.5). The link to §4 is the identity gate of §4.1,
+which shows the cheap build retrieves identically to dense-then-prune; no answer accuracy is
+measured on either (§8).
 
 ### 6.1 Grounded QA on NExT-GQA
 
@@ -759,7 +762,8 @@ related, and we claim no meaningful margin there.
 ### 6.3 What this section supports
 
 The system answers, in the band occupied by weakly-supervised methods with comparable or
-larger models, from a graph built in 0.212 s on CPU with no training and no frontier model.
+larger models, on CPU with no training and no generative model in construction — though not
+yet on the 0.212 s configuration of §4 (§8).
 Where it fails — directional temporal reasoning, exhaustive counting — the failure is in the
 answerer rather than the representation.
 
@@ -864,12 +868,12 @@ not an end-to-end speedup (0.802×, §5.3); sparse retrieval pays a caption-cach
 methods (§6.1). The construction result carries no equivalent end-to-end caveat.
 
 **The construction saving is not yet measured on the evaluated configuration.** This is the
-most substantive open item in the paper. Every accuracy number we report comes from the
-tiered configuration, which shares the complete-block configuration's block structure but not
-its edge set, and whose neighbour selection scans all pairs regardless of how sparse its
-output is (§3.5, §4.3). Bounding those scans to the scene partition would plausibly transfer
-the saving, but it yields a different graph, so it needs accuracy validation against the
-526-question grounding gate rather than an identity proof. Until then, §4 is a construction
+most substantive open item in the paper. No accuracy number we report is measured on the
+complete-block configuration: NExT-GQA uses a flat dense graph, to which block-diagonal
+construction cannot apply, and MLVU the tiered configuration, whose neighbour selection scans
+all pairs regardless of how sparse its output is (§3.5, §4.3). Bounding those scans to the
+scene partition would plausibly transfer the saving to the tiered configuration, but it yields
+a different graph, so it needs accuracy validation rather than an identity proof. Until then, §4 is a construction
 result about a configuration we do not evaluate.
 
 **Directional temporal reasoning fails, and not in the graph.** Action Order and Action Count
