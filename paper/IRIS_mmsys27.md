@@ -124,10 +124,9 @@ timestamped action hyperedges — each chunk's graph produced by prompting the m
 the previous one. On HD-EPIC VQA it improves over raw-video input by 3.22 points for Gemini
 itself and 5.60 for Qwen2.5-VL-14B.
 
-One non-difference first: EgoSG's graph is a symbolic reasoning substrate and ours an
-embedding retrieval structure, but that determines where description is produced, not which
-questions are reachable. Relational queries spanning a whole video do genuinely favour a
-serialized symbolic graph. We compare on construction cost, not representational power.
+EgoSG's graph is a symbolic reasoning substrate and ours an embedding retrieval structure;
+relational queries spanning a whole video genuinely favour the former, so we compare on
+construction cost, not representational power.
 
 Three properties of that construction matter. First, it is **model-metered and sequential**:
 roughly 5.7 s per one-minute clip against a proprietary API, scaling linearly with duration,
@@ -146,10 +145,6 @@ structural construction can instead be verified exactly, and is (§4.1) — thou
 reference, not as semantic correctness. It cannot hallucinate an object, but neither can it
 recognise one.
 
-Third, **the two efficiency arguments are not in the same units**: EgoSG's is in tokens and
-estimated FLOPs amortised over the ~22 questions per video in HD-EPIC, ours in wall-clock,
-resident memory and query latency against graph size.
-
 **Vgent** [Shen et al., NeurIPS 2025] is the closer foil. It partitions video into 64-frame
 clips, extracts entities per clip with an LVLM, and links clips sharing merged prototype
 entities. It rests on the same amortisation argument we make — construction is offline and
@@ -167,17 +162,12 @@ selection stage costs 2.845 s per video and full ingest 11.976 s, while Vgent's 
 per *minute of video* and includes LVLM extraction; the denominators do not match, so the
 honest claim is about the *class* of model each construction requires, not about seconds.
 
-Three further systems share the trait without sharing the mechanism: **EGAgent** [Rege et
-al., 2026] runs an LLM-based extractor over egocentric video for a planning agent to query;
-**MemDreamer** [Chen et al., 2026] uses Gemini-3.1-Pro to extract a three-tier hierarchical
-graph from streaming video; **GraphVideoAgent** [Chu et al., ACM MM 2025] parses captions
-into a graph by NER and dependency parsing, but those captions come from a captioning model,
-so a generative pass sits one step upstream. None reports a construction-cost figure, so no
-ratio comparison is available; the claim is about model class only. GraphVideoAgent also
-folds new captions in as the graph is extended during retrieval, so construction continues
-into what would elsewhere be query time; our separation is architectural rather than a
-scheduling choice, with construction running zero forward passes and leaving every caption
-field unset (§5.4).
+Three further systems — **EGAgent** [Rege et al., 2026], **MemDreamer** [Chen et al., 2026]
+and **GraphVideoAgent** [Chu et al., ACM MM 2025] — build their graphs with an LLM extractor,
+a Gemini-3.1-Pro extractor, or by parsing a captioning model's output, so each places a
+generative pass inside construction or one step upstream of it. None reports a
+construction-cost figure, so no ratio comparison is available; the claim is about model
+class only.
 
 ### 2.2 Grounded video QA, and the accuracy frontier
 
@@ -186,10 +176,8 @@ evidence, reporting Acc@GQA alongside mIoP, IoP@0.5 and mIoU. Its finding that s
 answerers often ground poorly — right for the wrong reasons — is why we report grounded
 accuracy rather than answer accuracy alone (§6). The weakly-supervised band there is occupied
 by Temp[CLIP] with NG+ (16.0 Acc@GQA), SeViLA as reproduced by the benchmark authors (16.6),
-LangRepo (17.1) and FrozenBiLM with NG+ (17.5). Two conventions govern comparability:
-published figures use the full 5,553-question test set where ours is a 120-question held-out
-carve of the validation split (§6), and IoP admits more than one definition, the union
-convention being biased upward relative to the benchmark's max-per-span convention.
+LangRepo (17.1) and FrozenBiLM with NG+ (17.5). Published figures use the full 5,553-question
+test set, where ours is a 120-question held-out carve of the validation split (§6).
 
 A more recent line attaches an explicit temporal grounder, often with cooperating agents:
 **MUPA** reports 28.7 Acc@GQA at 2B and 30.3 at 7B, **VideoMind** 25.2 at 2B. These define
@@ -214,13 +202,8 @@ then treat conventionally, training nothing. That codec-derived salience does no
 uniform sampling for *admission* (§7.2) says nothing about whether the same fields carry
 signal when *encoded*; we take no position on theirs.
 
-The signals are cheap here in marginal rather than absolute terms: codec edge weighting costs
-an order of magnitude less than pixel-difference or semantic weighting on identical topology
-(0.017 s against 0.119 s and 0.122 s at N=4,892), while extracting the statistics needs a
-demux pass that is not cheap in isolation — one ingest already performs for frame selection,
-so its cost attributable to construction is approximately zero. Our claim is correspondingly
-modest, and §7 constrains it: compressed-domain signals here are a *cheap* source of
-structure, not an *informative* one.
+Our claim is correspondingly modest, and §7 constrains it: compressed-domain signals here
+are a *cheap* source of structure, not an *informative* one.
 
 ### 2.4 Positioning
 
@@ -364,15 +347,6 @@ not remove: motion-neighbour selection scans all N(N−1)/2 pairs to keep two pe
 salient-semantic pass scans all pairs among salient nodes. The tiered mode is sparse in its
 *output*, not in its *construction* (§8).
 
-Two consequences of the prune-after-select order are worth recording. The tiered mode selects
-top-k neighbours *globally* and only then discards cross-scene edges, so a node whose two
-nearest motion neighbours both lie in other scenes ends with zero motion edges rather than
-its two best in-scene ones. And the per-source caps bound out-degree only, with no mutuality
-requirement: on one tiered cache built to check this (N=613, 110 scenes) the highest-in-degree
-node received 12 in-edges against a top-4 cap, from independent sources converging on one
-target. It stays bounded there, but that is one clip, and whether in-degree concentration
-grows with N is not established.
-
 **The scaling argument and the accuracy results therefore rest on different graph
 constructions, and that gap is open.** Every cached index behind §5.1 is built under
 `fully_connected` or `block_diagonal`; not one contains a `temporal`, `hierarchy_*`,
@@ -386,27 +360,13 @@ reproducibility anchor.
 
 ### 3.6 Edge weights
 
-Every edge carries three components: semantic, a ReLU-clamped cosine between CLIP embeddings
-(0 if either is absent or zero-norm); motion, a normalised action-score gap
-`max(0, 1 − |a_u − a_v| / R)` over the per-build range R; and temporal, `1/(1 + |t_u − t_v|)`
-in seconds. An optional six-dimensional kinematic motion mode exists and is unused here. The
-scalar weight is a per-family combination, floored at 1e-6:
-
-| edge family | weight |
-|---|---|
-| `temporal` | 0.7·temporal + 0.3·motion |
-| `semantic_salient` | 0.8·semantic + 0.2·temporal |
-| `motion_neighbor` | 0.8·motion + 0.2·temporal |
-| `hierarchy_peak_salient` | temporal · max(semantic, motion) |
-| `hierarchy_salient_candidate` | temporal · max(motion, 0.5·semantic) |
-| `fully_connected` | α·semantic + β·motion |
-| default | α·semantic + β·motion + 0.1·temporal |
-
-The `fully_connected` family is the only one that consults α and β, the only one that ignores
-the temporal component, and the only one returned without the 1e-6 floor, so a pair with zero
-semantic and zero motion similarity carries weight exactly 0. The tiered families use fixed
-coefficients. One consequence for §5.1: α and β affect the dense arm's edge weights and not
-the scene-sparse arm's at all.
+Every edge carries three components: semantic, a ReLU-clamped cosine between CLIP embeddings;
+motion, a normalised action-score gap `max(0, 1 − |a_u − a_v| / R)` over the per-build range
+R; and temporal, `1/(1 + |t_u − t_v|)` in seconds. Each edge family combines them with fixed
+coefficients, except `fully_connected`, which uses α·semantic + β·motion (α=0.4, β=0.3 in
+every cached index); the per-family formulas are listed with the released artifacts. One
+consequence for §5.1: α and β affect the dense arm's edge weights and not the scene-sparse
+arm's at all.
 
 ## 4. Construction Cost
 
@@ -763,11 +723,9 @@ answerer work this section identifies as the live target.
 We omit mIoP and IoP@0.5 from our row deliberately [C4.3]. They are measured and
 convention-checked, but this is a correctness floor rather than a grounding claim, and
 printing a grounding magnitude from 120 validation questions beside full-test figures would
-invite exactly the comparison we decline. On convention: the official scorer takes the maximum
-overlap over gold spans where an earlier version of our evaluation used a union convention.
-Measured against a vendored official scorer on the tuning half, where re-scoring costs no
-touch, the two agree closely (mIoP 0.3126 against 0.3113) and **IoP@0.5 is identical at
-0.3202** — so our Acc@GQA, keyed to IoP@0.5, is convention-invariant.
+invite exactly the comparison we decline. Our Acc@GQA is keyed to IoP@0.5, which is identical (0.3202 on
+the tuning half) under the benchmark's max-per-span convention and the union convention an
+earlier version of our evaluation used, so the reported figure is convention-invariant.
 
 ### 6.2 Multi-task long-video QA on MLVU
 
