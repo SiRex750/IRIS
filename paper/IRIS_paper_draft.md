@@ -33,8 +33,8 @@ One of our results is that an efficiency win can fail to matter, and we report i
 finding rather than a caveat. The retrieval speedup does not reach the user at the sizes we
 measure: a captioning stage that is O(top_k) rather than O(N) accounts for 85–93% of query
 time and dominates the total, so end-to-end latency does not improve despite a
-retrieval-mechanics speedup of three orders of magnitude, and the crossover into a material
-advantage sits near 12,000 nodes. Answer quality sits in the weakly-supervised band — Acc@GQA 0.167 on a held-out validation split, with a ~3.4B answerer on CPU — rather than at the agentic state of the art.
+retrieval-mechanics speedup of three orders of magnitude; we measure no end-to-end crossover
+and do not project one. Answer quality sits in the weakly-supervised band — Acc@GQA 0.167 on a held-out validation split, with a ~3.4B answerer on CPU — rather than at the agentic state of the art.
 We report both, and we set kill criteria for two hypotheses we expected to confirm: that
 codec-derived scene boundaries beat content-blind ones (pre-registered), and that codec-based
 frame admission beats uniform sampling (criterion recorded, but its precedence over the run
@@ -151,10 +151,11 @@ while leaving the largest term untouched.
 This is an Amdahl result, and we report it as one. A great deal of recent work reports
 retrieval-side speedups for long-video systems without measuring the pipeline those
 retrievals sit inside. Our own retrieval ratio is three orders of magnitude and buys
-nothing at the sizes we tested; the crossover into a material end-to-end advantage sits
-near N≈12,000. Anyone optimising retrieval for a captioner-fronted video pipeline should
-know where that line is before optimising further, and we would rather publish the number
-than the ratio that flatters us.
+nothing at the sizes we tested. We do not project an end-to-end crossover: the projection
+would assume the captioning stage costs the same in both arms, which our own measurement
+contradicts (§5.3, §5.4). Anyone optimising retrieval for a captioner-fronted video
+pipeline should measure that stage before optimising further, and we would rather publish
+that than the ratio that flatters us.
 
 **Accuracy sits in the weakly-supervised band, not at the state of the art.** On NExT-GQA
 our held-out Acc@GQA is 0.1667 [0.088, 0.243] with a ~3.4B answerer on CPU [C4.1] —
