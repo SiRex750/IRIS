@@ -61,7 +61,7 @@ to keep 23,571. Building the diagonal blocks directly visits only the pairs it k
 yields the same graph rather than an approximation of it: identical nodes and edges, zero
 edge-attribute mismatches at tolerance 0.0, bit-identical PageRank, and identical
 personalised-PageRank output across five seeds, with zero behavioural differences
-over 526 grounded-QA questions. Construction time falls from 49.71 s to 0.212 s
+over 406 grounded-QA questions. Construction time falls from 49.71 s to 0.212 s
 (\textasciitilde234\ensuremath{\times}) and peak memory from 6.33 GB to 0.93 GB (\textasciitilde6.8\ensuremath{\times}). This is measured on the
 complete-block edge configuration; no accuracy number we report is measured on it (§8).
 
@@ -428,10 +428,10 @@ with zero edges present in only one graph; zero mismatches on every edge attribu
 \textbf{0.0}, not at a floating-point epsilon; bit-identical PageRank across all 4,892 nodes; and
 identical personalised-PageRank top-20 ordering and scores across five seeds.
 
-The two paths are also indistinguishable at the end of the pipeline. Over 526 NExT-GQA
-validation questions they produce bit-identical retrieval --- same retrieved order, peak
-frame, predicted span, IoP and peak-in-gold on every question (peak-in-gold 0.3175, mIoP
-0.3140 under both) --- and both index caches were sha256-identical before and after the
+The two paths are also indistinguishable at the end of the pipeline. Over the 406 questions
+of our NExT-GQA tuning split they produce bit-identical retrieval --- same retrieved order,
+peak frame, predicted span, IoP and peak-in-gold on every question (peak-in-gold 0.3177, mIoP
+0.3160 under both) --- and both index caches were sha256-identical before and after the
 run. We run this second gate because graph identity does not by itself guarantee identical
 downstream behaviour.
 
@@ -504,15 +504,10 @@ drift together within a session; it does not establish that the reference arm's 
 cost is stable across sessions, and the 0.52\% agreement should be read as within-session
 precision.
 
-Two corrections belong on the record. An earlier version of this measurement reported \textasciitilde220\ensuremath{\times}
-and \textasciitilde6.7\ensuremath{\times}; both paths then performed a redundant edge-and-PageRank pass whose result was
-immediately discarded, and removing it changed the timing of both arms without changing what
-they build --- verified bit-identically on nodes, all five edge fields, per-node \texttt{scene\_id} and
-PageRank, and independently by §4.1. Intermediate point measurements of the corrected code
-ranged from 259.23\ensuremath{\times} (single fresh-process probe) to a 396.73\ensuremath{\times} five-repeat median, a spread
-dominated by the fast arm's cold-build noise (0.1203 s to 0.2164 s, \textasciitilde1.8\ensuremath{\times} on a
-sub-quarter-second operation, against under 1\% on the reference arm). That spread is why we
-report the looped, interleaved protocol rather than any point measurement.
+Two corrections: an earlier version reported \textasciitilde220\ensuremath{\times} and \textasciitilde6.7\ensuremath{\times}, before a redundant
+edge-and-PageRank pass was removed from both paths without changing what they build; and
+point measurements of the corrected code ranged from 259\ensuremath{\times} to 397\ensuremath{\times} with the fast arm's
+cold-build noise, which is why we report the looped, interleaved protocol instead.
 
 \subsection{What the construction claim covers}
 
@@ -802,7 +797,9 @@ to have beaten nothing in the table. A comparable number would require the offic
 split, which remains available to us precisely because we never touched it. The held-out val
 split, by contrast, is \textbf{burned}: both permitted touches are used, so no further measurement
 on those 27 videos is possible without a new split --- a constraint that binds the
-answerer work this section identifies as the live target.
+answerer work this section identifies as the live target. One measurement did touch them
+afterwards: an earlier run of §4.1's equivalence check scored grounding on all 86 videos.
+Nothing was tuned or selected from it, and §4.1 reports a tuning-only re-run.
 
 We omit mIoP and IoP@0.5 from our row deliberately. They are measured and
 convention-checked, but this is a correctness floor rather than a grounding claim, and
@@ -1011,7 +1008,8 @@ captured from a CPU-only torch wheel, plus circumstantial path evidence that ing
 Windows machine rather than the project's Linux GPU box; it establishes that no CUDA device
 was used, not that none was present. The zero-forward-pass claim (§3.1) is a property of the
 code path and is unaffected. The \textasciitilde6.8\ensuremath{\times} peak-memory ratio is not tied to a commit, unlike the
-wall-clock ratio, and the build-cost harness was committed after its run (§4.2).
+wall-clock ratio, and the build-cost harness was committed after its run (§4.2); the
+scaling exponents (§5.1) were likewise produced from an uncommitted working tree.
 
 \section{Conclusion}
 

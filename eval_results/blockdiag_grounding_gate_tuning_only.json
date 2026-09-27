@@ -1,0 +1,23 @@
+{
+  "outcome": "GATE_PASS",
+  "scope": "part (b) only, restricted to the tuning half (eval_results/val_videos.txt); no held-out video loaded or scored",
+  "supersedes_for_citation": "part (b) of eval_results/blockdiag_grounding_gate_result.json (which included the 27 held-out videos)",
+  "n_tuning_videos_in_split_list": 59,
+  "part_b_scene_sparse_equivalence_tuning_only": {
+    "n_questions": 406,
+    "n_videos": 59,
+    "peak_in_gold_rate_fully_connected": 0.31773399014778325,
+    "peak_in_gold_rate_block_diagonal": 0.31773399014778325,
+    "mIoP_fully_connected": 0.3160237077304346,
+    "mIoP_block_diagonal": 0.3160237077304346,
+    "n_mismatches": 0,
+    "mismatches_sample": [],
+    "bit_identical": true
+  },
+  "flat_cache_untouched": true,
+  "ssparse_cache_untouched": true,
+  "flat_cache_sha256_before": "f9c3ac8daa78942407ccf8dd7d815f09ddb663abc9837e3ad76c796b8225c81b",
+  "flat_cache_sha256_after": "f9c3ac8daa78942407ccf8dd7d815f09ddb663abc9837e3ad76c796b8225c81b",
+  "ssparse_cache_sha256_before": "b72ddccaf60c20a63190588b63679995cb313d30f2fda4ad45335bd3409bffaa",
+  "ssparse_cache_sha256_after": "b72ddccaf60c20a63190588b63679995cb313d30f2fda4ad45335bd3409bffaa"
+}
