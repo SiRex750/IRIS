@@ -1,0 +1,98 @@
+% refs.bib -- IRIS Paper 1 (MMSys 2027). Built incrementally; every entry records how it was verified.
+% VERIFIED-PRIMARY  = checked against the paper itself (title, authors, venue, and every figure we cite from it)
+% VERIFIED-CITATION = metadata taken from the reference list of a VERIFIED-PRIMARY paper
+% UNVERIFIED        = from memory; must be checked before submission
+
+% VERIFIED-PRIMARY (arXiv:2606.25842v2, 2 Jul 2026). The paper names its representation "EgoSG".
+% NOTE: a different, unrelated "EgoSG" exists (Zhang et al., CVPRW 2024, 3D scene graphs from RGB-D).
+% Figures we cite, all checked: 60 s chunks at 1 FPS, Gemini Flash 2.0; +3.22 (Gemini) and +5.60
+% (InternVL3-14B -- their prose says "Qwen2.5-VL 14B" but their Table 2 row is InternVL3-14B);
+% ~5.7 s per 1-min clip; ~22 questions/video; audit of 5 clips: ~5% node/relation errors,
+% 15.5% false action hyperedges, 16/117 (13.7%) objects missing; "does not focus on optimizing
+% scene graph generation quality"; open-source MLLMs "struggle to reliably produce accurate graphs".
+@misc{taluzzi2026egosg,
+  title         = {Graph it first! {E}nabling Reasoning on Long-form Egocentric Videos through Scene Graphs},
+  author        = {Taluzzi, Agnese and Santambrogio, Riccardo and Mentasti, Simone and Plizzari, Chiara and Matteucci, Matteo},
+  year          = {2026},
+  eprint        = {2606.25842},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CV}
+}
+
+% VERIFIED-PRIMARY (arXiv:2510.14032; NeurIPS 2025 per the paper's own footer).
+% Figures we cite, all checked against their Table 5 (normalised per minute of video): 20.13 s
+% query-independent, 3.93 s query-dependent; Video-RAG 20.81 s; 1.73x speedup on VideoMME; K=64-frame clips.
+@inproceedings{shen2025vgent,
+  title     = {{Vgent}: Graph-based Retrieval-Reasoning-Augmented Generation For Long Video Understanding},
+  author    = {Shen, Xiaoqian and Zhang, Wenxuan and Chen, Jun and Elhoseiny, Mohamed},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  year      = {2025}
+}
+
+% VERIFIED-CITATION (cited by taluzzi2026egosg)
+@inproceedings{perrett2025hdepic,
+  title     = {{HD-EPIC}: A Highly-Detailed Egocentric Video Dataset},
+  author    = {Perrett, Toby and Darkhalil, Ahmad and Sinha, Saptarshi and Emara, Omar and Pollard, Sam and Parida, Kranti Kumar and Liu, Kaiting and Gatti, Prajwal and Bansal, Siddhant and Flanagan, Kevin and others},
+  booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+  pages     = {23901--23913},
+  year      = {2025}
+}
+
+% VERIFIED-CITATION (cited by taluzzi2026egosg)
+@inproceedings{fu2025videomme,
+  title     = {{Video-MME}: The First-Ever Comprehensive Evaluation Benchmark of Multi-modal {LLMs} in Video Analysis},
+  author    = {Fu, Chaoyou and Dai, Yuhan and Luo, Yongdong and Li, Lei and Ren, Shuhuai and Zhang, Renrui and Wang, Zihan and Zhou, Chenyu and Shen, Yunhang and Zhang, Mengdan and others},
+  booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+  pages     = {24108--24118},
+  year      = {2025}
+}
+
+% VERIFIED-CITATION (cited by taluzzi2026egosg and shen2025vgent)
+@misc{bai2025qwen25vl,
+  title         = {{Qwen2.5-VL} Technical Report},
+  author        = {Bai, Shuai and Chen, Keqin and Liu, Xuejing and Wang, Jialin and Ge, Wenbin and Song, Sibo and Dang, Kai and Wang, Peng and Wang, Shijie and Tang, Jun and others},
+  year          = {2025},
+  eprint        = {2502.13923},
+  archivePrefix = {arXiv}
+}
+
+% VERIFIED-CITATION (cited by taluzzi2026egosg)
+@misc{zhang2025videollama3,
+  title         = {{VideoLLaMA} 3: Frontier Multimodal Foundation Models for Image and Video Understanding},
+  author        = {Zhang, Boqiang and Li, Kehan and Cheng, Zesen and Hu, Zhiqiang and Yuan, Yuqian and Chen, Guanzheng and Leng, Sicong and Jiang, Yuming and Zhang, Hang and Li, Xin and others},
+  year          = {2025},
+  eprint        = {2501.13106},
+  archivePrefix = {arXiv}
+}
+
+% VERIFIED-CITATION (cited by taluzzi2026egosg as a model page, not a paper)
+@misc{google2025gemini2flash,
+  title        = {Gemini 2.0 Flash},
+  author       = {{Google}},
+  year         = {2025},
+  howpublished = {\url{https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-0-flash}}
+}
+
+% VERIFIED-CITATION (cited by shen2025vgent)
+@inproceedings{radford2021clip,
+  title     = {Learning Transferable Visual Models From Natural Language Supervision},
+  author    = {Radford, Alec and Kim, Jong Wook and Hallacy, Chris and Ramesh, Aditya and Goh, Gabriel and Agarwal, Sandhini and Sastry, Girish and Askell, Amanda and Mishkin, Pamela and Clark, Jack and others},
+  booktitle = {Proceedings of the International Conference on Machine Learning (ICML)},
+  pages     = {8748--8763},
+  year      = {2021}
+}
+
+% VERIFIED-CITATION (cited by shen2025vgent as arXiv). Published venue NOT yet verified -- check before submission.
+@misc{zhou2024mlvu,
+  title         = {{MLVU}: A Comprehensive Benchmark for Multi-Task Long Video Understanding},
+  author        = {Zhou, Junjie and Shu, Yan and Zhao, Bo and Wu, Boya and Xiao, Shitao and Yang, Xi and Xiong, Yongping and Zhang, Bo and Huang, Tiejun and Liu, Zheng},
+  year          = {2024},
+  eprint        = {2406.04264},
+  archivePrefix = {arXiv}
+}
+
+% ---- STILL TO VERIFY (not yet added): EGAgent (Rege 2026), MemDreamer (Chen 2026),
+% GraphVideoAgent (Chu, ACM MM 2025), CoPE-VideoLM (Sarkar 2026), MUPA, VideoMind, NExT-GQA
+% (Xiao; Temp[CLIP] NG+ comes from it), SeViLA, LangRepo, FrozenBiLM, InternVL3, Video-RAG,
+% CoViAR, DMC-Net, Zhang et al. CVPR 2016 (MV-CNN), UCF-Crime, VIRAT, PageRank, personalised
+% PageRank, Granite 4.0 (granite4:micro).

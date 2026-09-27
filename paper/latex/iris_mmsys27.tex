@@ -65,7 +65,7 @@ over 526 grounded-QA questions. Construction time falls from 49.71 s to 0.212 s
 (\textasciitilde234\ensuremath{\times}) and peak memory from 6.33 GB to 0.93 GB (\textasciitilde6.8\ensuremath{\times}). This is measured on the
 complete-block edge configuration; no accuracy number we report is measured on it (§8).
 
-\textbf{Scaling.} The same block structure changes how query cost grows. Over 31 clips under real
+\textbf{Scaling.} The same block structure changes how query cost grows. Over 19 clips under real
 text queries, dense retrieval latency scales with graph size at exponent 2.063 (95\% CI
 {[}2.020, 2.125{]}) and scene-sparse at 0.834 ({[}0.801, 0.884{]}). Past a certain size
 this becomes a tractability boundary: under a 3600 s / 29 GB watchdog, dense retrieval never
@@ -80,8 +80,9 @@ median (0.802\ensuremath{\times}). Much recent work reports retrieval-side speed
 pipeline around them. We measure it, and we do not project a crossover, because our own
 data contradict the assumption such a projection needs (§5.3). Second, accuracy sits in the
 weakly-supervised band: held-out Acc@GQA on NExT-GQA is 0.1667 {[}0.088, 0.243{]} with a \textasciitilde3.4B
-answerer on CPU. Our claim is that the pipeline answers within that band, not that
-it advances it.
+answerer on CPU. Grounding there shows that the right evidence reached the answerer, not that
+the query found it: a codec signal steers the same retrieval (§6.1). Our claim is that the
+pipeline answers within that band, not that it advances it.
 
 \textbf{What does not matter.} We set kill criteria for two hypotheses we expected to confirm,
 and both triggered. Codec-derived scene boundaries do not beat content-blind ones at matched
@@ -101,7 +102,7 @@ policy.
   A block-diagonal graph construction shown bit-identical to dense-then-prune, at \textasciitilde234\ensuremath{\times}
   lower build time and \textasciitilde6.8\ensuremath{\times} lower peak memory on the complete-block configuration (§4).
 \item
-  Query-latency scaling exponents with bootstrap confidence intervals over 31 clips, and a
+  Query-latency scaling exponents with bootstrap confidence intervals over 19 clips, and a
   tractability boundary where dense retrieval does not complete (§5.1--§5.2).
 \item
   A construction path with no generative model: frame selection performs zero neural
@@ -131,7 +132,7 @@ reuse. We sit in the third family and borrow from the second at query time.
 Gemini Flash 2.0 to emit a symbolic scene graph per chunk --- objects, spatial relations,
 timestamped action hyperedges --- each chunk's graph produced by prompting the model to update
 the previous one. On HD-EPIC VQA it improves over raw-video input by 3.22 points for Gemini
-itself and 5.60 for Qwen2.5-VL-14B.
+itself and 5.60 for InternVL3-14B.
 
 EgoSG's graph is a symbolic reasoning substrate and ours an embedding retrieval structure;
 relational queries spanning a whole video genuinely favour the former, so we compare on
@@ -232,16 +233,16 @@ count in the container --- the distinction matters for every scaling figure we r
 
 \subsection{Ingest and frame admission}
 
-Ingest demuxes the video and computes per frame a scalar \textbf{action score} combining a codec
-packet-size residual, motion energy and luma entropy at weights 0.5 / 0.3 / 0.2. Packet size
-stands in for the residual signal because it is what the decoder API exposes: libavcodec
-exposes motion vectors as side data (\texttt{EXPORT\_MVS}) but no coefficient-level residual,
-per-block quantisation parameter or reconstruction-error signal, so a frame-level
-packet-size proxy is the only residual-shaped channel this tooling admits. Frames are
-assigned to tiers by thresholding that signal (\texttt{salient\_thresh} 0.35, \texttt{candidate\_thresh}
-0.08, adaptive per-video thresholding enabled), and local maxima are marked as peaks.
-Admitted frames --- the survivors --- are the input to everything downstream; production
-retention across the annotated corpus falls between 10.41\% and 11.14\%.
+Ingest demuxes the video and admits frames from the packet-size curve alone: I-frames and
+packet-curve peaks are always kept, and any other frame is kept when its packet size clears
+per-scene adaptive thresholds (\texttt{salient\_thresh} 0.35, \texttt{candidate\_thresh} 0.08 before
+adaptation). Packet size stands in for the residual signal because it is what the decoder API
+exposes: libavcodec exposes motion vectors as side data (\texttt{EXPORT\_MVS}) but no
+coefficient-level residual, per-block quantisation parameter or reconstruction-error signal.
+Admitted frames --- the survivors --- are the input to everything downstream; on the annotated
+corpus they are 10.41--11.14\% of frames. Each survivor then receives a scalar \textbf{action
+score} combining the packet-size residual, motion energy and luma entropy at weights 0.5 / 0.3 /
+0.2; the score enters edge weights (§3.6) but does not decide admission.
 
 \textbf{No neural network runs during frame selection.} We verify this by instrumentation rather
 than inspection: monkeypatching \texttt{torch.nn.Module.\_\_call\_\_} for the duration of every
@@ -536,14 +537,14 @@ identity gate, and we mark it as future work (§8).
 
 \subsection{Latency exponents}
 
-We fit log(latency) = k\ensuremath{\cdot}log(N) + c per arm over 31 UCF-Crime clips under \textbf{real CLIP text
-queries} (50 per clip), with clip-level bootstrap confidence intervals (seed 42, B=10,000,
+We fit log(latency) = k\ensuremath{\cdot}log(N) + c per arm over the 19 UCF-Crime clips of a 31-clip survivor census whose latency was measured (17 for the dense arm, whose two largest are censored; §5.2); the census's VIRAT clip is excluded as cross-dataset. All queries are \textbf{real CLIP text
+queries} (50 per clip); confidence intervals are clip-level bootstraps (seed 42, B=10,000,
 resampling clips within each N-bucket and refitting).
 
 \begin{table}[t]
 \footnotesize
 \setlength{\tabcolsep}{4pt}
-\caption{Query-latency scaling exponents (31 clips, real CLIP text queries).}
+\caption{Query-latency scaling exponents (19 UCF-Crime clips, real CLIP text queries).}
 \begin{tabular}{llrrlr}
 \toprule
 arm & fit range & n points & k & 95\% CI & \(R^2\) \\
@@ -569,9 +570,9 @@ The N \ensuremath{\geq} 1102 fit is both the regime this paper is about and the 
 
 \textbf{Four caveats travel with the table.}
 
-\emph{Thin support at large N.} Against a target of five clips per bin, N\ensuremath{\approx}1102 has 7, N\ensuremath{\approx}2963 has
+\emph{Thin support at large N.} Against a target of five census clips per bin, N\ensuremath{\approx}1102 has 7, N\ensuremath{\approx}2963 has
 2, N\ensuremath{\approx}6559 has 2 and N\ensuremath{\approx}13506 has 1; the survivor-N distribution is weighted toward small
-graphs (median N=333, with 24 of 31 clips below N=1000). The headline fits rest on 4 dense
+graphs (census median N=333, with 24 of 31 census clips below N=1000). The headline fits rest on 4 dense
 and 6 sparse points.
 
 \emph{A guard violation, mechanism identified.} Two small-N clips (Assault036, N=97; Abuse037,
@@ -591,8 +592,8 @@ from 0.497 to 0.503 --- under 2\%, in the direction unfavourable to us.
 per-clip from cached configuration snapshots. Despite its name, \texttt{luma\_diff\_weight} weights a
 codec \textbf{packet-size residual} (\texttt{frame\_features{[}"packet\_size"{]}}), not a luma-difference
 quantity; a genuine \texttt{luma\_diff\_energy} field exists on frame records and is diagnostic only,
-never consumed by the scorer. These are the shipped defaults, so survivor-N values here are
-comparable to retention figures computed under the production configuration.
+never consumed by the scorer. These are the shipped defaults, and they shape each survivor's
+action score, not which frames survive (§3.1), so survivor counts do not depend on them.
 
 \emph{Degree is flat against N, for this fit's edge mode only.} The exponent depends on per-scene
 subgraphs not growing with N. Checked against all cached indices, degree does not drift
@@ -985,7 +986,9 @@ evaluated.
 
 \textbf{Evaluation splits are constrained.} The NExT-GQA held-out \emph{validation} half is burned
 (§6.1), which binds future answerer work more than the results reported here. MLVU is 150
-questions across six tasks with videos capped at 600 s.
+questions across six tasks with videos capped at 600 s. Three further pre-registrations were
+either superseded by redesigned experiments before running or never run; we draw no
+evidence from them in either direction.
 
 \textbf{Answerer reproducibility is scoped.} §6.1's answerer ran on llama-server at temperature 0.
 A byte-identical re-query check (639/639) passed for that serving configuration, but on a
