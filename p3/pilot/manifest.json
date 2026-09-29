@@ -1,0 +1,37 @@
+{
+ "start_time": "2026-09-29T18:38:05+05:30",
+ "git_hash": "b0c66fdee55d491b36e1886fe14d3f1f05e226cc",
+ "git_branch": "sonu/p3",
+ "python": "3.13.3",
+ "pyav": "17.1.0",
+ "ffmpeg": "8.1.1",
+ "ffmpeg_libs": {
+  "libavutil": "60.26.101",
+  "libavcodec": "62.28.101",
+  "libavformat": "62.12.101",
+  "libavdevice": "62.3.101",
+  "libavfilter": "11.14.101",
+  "libswscale": "9.5.101",
+  "libswresample": "6.3.101"
+ },
+ "x264_build": "x264 - core 165",
+ "nvidia": "NVIDIA GeForce RTX 4050 Laptop GPU, 610.74",
+ "numpy": "2.2.6",
+ "sequences": [
+  "alley_1",
+  "ambush_5",
+  "ambush_7",
+  "bandage_2"
+ ],
+ "static_share": {
+  "alley_1": 0.001525,
+  "ambush_5": 0.005861,
+  "ambush_7": 0.793638,
+  "bandage_2": 0.555287
+ },
+ "pass": "final",
+ "gt": "lib/gt_grid.py forward splat onto frame t grid, 4x4 cells, gt_cover >= 0.5",
+ "end_time": "2026-09-29T18:46:01+0530",
+ "pilot_runtime_s": 306.1300504999999,
+ "n_failures": 0
+}

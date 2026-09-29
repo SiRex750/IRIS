@@ -1,0 +1,59 @@
+0a OK: p3/lib committed and clean at b0c66fdee55d491b36e1886fe14d3f1f05e226cc
+  ambush_7     0.7936  expected 0.794  diff 0.000362
+  bandage_2    0.5553  expected 0.555  diff 0.000287
+  market_2     0.4912  expected 0.491  diff 0.000197
+  bandage_1    0.4645  expected 0.465  diff 0.000499
+  shaman_2     0.4454  expected 0.445  diff 0.000397
+  bamboo_2     0.2402  expected None  diff None
+  sleeping_2   0.0300  expected None  diff None
+  mountain_1   0.0299  expected None  diff None
+  alley_2      0.0216  expected None  diff None
+  sleeping_1   0.0160  expected None  diff None
+  shaman_3     0.0105  expected None  diff None
+  ambush_5     0.0059  expected 0.0059  diff 3.9e-05
+  temple_2     0.0047  expected 0.0047  diff 3.8e-05
+  bamboo_1     0.0046  expected None  diff None
+  alley_1      0.0015  expected 0.0015  diff 2.5e-05
+  market_6     0.0010  expected None  diff None
+  temple_3     0.0007  expected None  diff None
+  market_5     0.0005  expected None  diff None
+  cave_2       0.0004  expected None  diff None
+  cave_4       0.0004  expected None  diff None
+  ambush_4     0.0002  expected None  diff None
+  ambush_6     0.0000  expected None  diff None
+  ambush_2     0.0000  expected None  diff None
+0d manifest: {
+ "start_time": "2026-09-29T18:38:05+05:30",
+ "git_hash": "b0c66fdee55d491b36e1886fe14d3f1f05e226cc",
+ "git_branch": "sonu/p3",
+ "python": "3.13.3",
+ "pyav": "17.1.0",
+ "ffmpeg": "8.1.1",
+ "ffmpeg_libs": {
+  "libavutil": "60.26.101",
+  "libavcodec": "62.28.101",
+  "libavformat": "62.12.101",
+  "libavdevice": "62.3.101",
+  "libavfilter": "11.14.101",
+  "libswscale": "9.5.101",
+  "libswresample": "6.3.101"
+ },
+ "x264_build": "x264 - core 165",
+ "nvidia": "NVIDIA GeForce RTX 4050 Laptop GPU, 610.74",
+ "numpy": "2.2.6",
+ "sequences": [
+  "alley_1",
+  "ambush_5",
+  "ambush_7",
+  "bandage_2"
+ ],
+ "static_share": {
+  "alley_1": 0.001525,
+  "ambush_5": 0.005861,
+  "ambush_7": 0.793638,
+  "bandage_2": 0.555287
+ },
+ "pass": "final",
+ "gt": "lib/gt_grid.py forward splat onto frame t grid, 4x4 cells, gt_cover >= 0.5"
+}
+SEQUENCES: alley_1 (0.0015), ambush_5 (0.0059), ambush_7 (0.7936), bandage_2 (0.5553)
