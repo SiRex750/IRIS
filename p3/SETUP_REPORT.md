@@ -175,6 +175,49 @@ These are single-run timings, so they vary by roughly ±30% between runs. Encode
 
 ---
 
+## 6. Validation D: GT on frame t's grid and B-frame reference structure (`val_D_gt_grid.py` → `results/val_D.json`)
+
+**Why this exists.** A P-frame block sits in frame t, but the flow file for frame t−1 (the t−1→t flow) and its occlusion/invalid masks are defined on frame t−1's pixels. `lib/gt_grid.py` moves the GT onto frame t's grid by forward splatting:
+- Each valid, non-occluded t−1 pixel (x, y) with flow (u, v) goes to the 4×4 cell containing `(floor((x+u+0.5)/4), floor((y+v+0.5)/4))`. Landings outside the image are dropped.
+- Each cell accumulates count, Σu, Σv and Σ(u²+v²).
+- Cell GT = sums / count, and `gt_cover` = count / 16.
+- Block GT = the sum over the cells the block covers. Every block is asserted to lie on the 4-px grid. `gt_cover` uses the full block area, so encoder-padding rows count as uncovered. `gt_std` is the spread of GT motion inside the block.
+
+`flo.py` and `compare.py` are unchanged.
+
+**a. Synthetic cases (must be exact): PASS**
+- (i) Constant flow (4, −3), no occlusion: cell column 0 has count 0, the bottom cell row has count 4, and every other cell has count 16 with GT exactly (4, −3). The bottom-row cells also have GT (4, −3).
+- (ii) Static background plus a 100×100 square at (400, 160) moving (+8, 0), with the 8-px background strip the square covers in frame t masked:
+  - 625 square cells: count 16, GT (8, 0).
+  - the 50-cell strip the square leaves behind: count 0.
+  - 27 233 background cells: count 16, GT (0, 0).
+
+**b. Real GT, x264 CRF 12, ref 1, bf 0, P-blocks. GT_grid vs compare.py's GT_src (sampled at the src position in t−1).**
+
+| sequence | blocks (kept by both) | median \|diff\| | p90 | p99 | EPE median, common blocks (src / grid) | EPE median, each rule's own kept set (src / grid) | area excluded (grid cover < 0.5 / src rule) |
+|---|---|---|---|---|---|---|---|
+| **alley_1** | 177 857 | **0.000** | **0.038** | 0.82 | 0.2240 / 0.2238 | 0.2259 / 0.2258 | 2.4% / 3.8% |
+| ambush_5 | 94 273 | 0.0086 | 0.244 | 4.28 | 0.612 / 0.609 | 0.664 / 0.667 | 4.1% / 5.4% |
+
+- alley_1 matches the independent prototype (0.000 / 0.038 / 0.82, EPE 0.224) and is well inside the stop rule (median ≤ 0.01, p90 ≤ 0.1). **PASS.**
+- ambush_5 has no pass rule. The two GT definitions disagree more there (p90 0.24, p99 4.3), which is what you'd expect: ambush_5 has more non-rigid, larger motion, and the two constructions differ exactly on blocks where motion varies inside the block.
+
+**c. B-frame reference structure: PASS**
+I parsed `slice_type` and `nal_ref_idc` from every slice NAL of the bitstream directly, without the decoder. 24 frames of alley_1:
+
+| encode | display order | slices (B slices) | B-slice nal_ref_idc | other slices | SEI |
+|---|---|---|---|---|---|
+| x264 CRF 23, bframes 2, `b-pyramid=none`, ref 1 | `IBBPBBPBBPBPBBPBBPBBPBBP` | 161 (105) | {0} | {2, 3} | `b_pyramid=0 bframes=2 ref=1` |
+| NVENC QP 28, bf 2, `b_ref_mode=disabled`, refs 1 | `IBBPBBPBBPBBPBBPBBPBBPBP` | 24 (15) | {0} | {3} | – |
+
+Every B slice is non-reference. With ref=1, a B-frame's past vectors therefore point to the previous I/P and its future vectors to the next I/P. x264's adaptive B placement (`b_adapt=1`) gives an irregular pattern (`…PBP…`), so reference distance d has to be read per frame from the actual display-order types, not assumed from a fixed GOP.
+
+The encoder knobs are additive in `encode.py`: `b_pyramid` (x264 → `x264-params b-pyramid=`) and `b_ref_mode` (NVENC). Both default to None, which keeps the previous behaviour.
+
+**D: PASS.**
+
+---
+
 ## Notes and deviations
 1. **VIRAT appeared during the session** (§1). The inventory reflects its state at 18:06.
 2. **mpeg4 fixed quantiser** is implemented as `qmin=qmax=q`, not `flags=+qscale/global_quality`. The latter is a no-op through PyAV (§2.2).

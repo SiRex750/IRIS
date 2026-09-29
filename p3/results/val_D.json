@@ -1,0 +1,109 @@
+{
+ "a_constant": {
+  "col0_count0": true,
+  "bottom_row_count4": true,
+  "other_cells_count16_gt(4,-3)": true,
+  "bottom_row_gt(4,-3)": true,
+  "count_unique": [
+   0,
+   4,
+   16
+  ],
+  "pass": true
+ },
+ "a_square": {
+  "square_cells_count16_gt(8,0)": true,
+  "left_strip_count0": true,
+  "background_cells_count16_gt(0,0)": true,
+  "n_cells": {
+   "square": 625,
+   "strip": 50,
+   "background": 27229
+  },
+  "pass": true
+ },
+ "b_alley_1": {
+  "options": {
+   "crf": "12",
+   "preset": "medium",
+   "x264-params": "bframes=0:keyint=250:min-keyint=250:scenecut=0:ref=1"
+  },
+  "n_blocks_both_kept": 177857,
+  "abs_diff_median": 0.0,
+  "abs_diff_p90": 0.03762652718603692,
+  "abs_diff_p99": 0.8213641536957272,
+  "abs_diff_mean": 0.03722392664894556,
+  "epe_median_src_common": 0.2239777210663085,
+  "epe_median_grid_common": 0.2237530601597799,
+  "epe_median_src_own_kept": 0.2258669783778698,
+  "epe_median_grid_own_kept": 0.22577836576169638,
+  "excluded_area_share_grid_cover_lt_0.5": 0.0243498322147651,
+  "excluded_area_share_src_rule": 0.03793744007670182
+ },
+ "b_ambush_5": {
+  "options": {
+   "crf": "12",
+   "preset": "medium",
+   "x264-params": "bframes=0:keyint=250:min-keyint=250:scenecut=0:ref=1"
+  },
+  "n_blocks_both_kept": 94273,
+  "abs_diff_median": 0.008637226562851074,
+  "abs_diff_p90": 0.24446128043881368,
+  "abs_diff_p99": 4.2836337831265885,
+  "abs_diff_mean": 0.21460458615245828,
+  "epe_median_src_common": 0.6123651143406346,
+  "epe_median_grid_common": 0.6085379517394756,
+  "epe_median_src_own_kept": 0.6640088033662606,
+  "epe_median_grid_own_kept": 0.6667906617431046,
+  "excluded_area_share_grid_cover_lt_0.5": 0.04093055361037194,
+  "excluded_area_share_src_rule": 0.05411556391428743
+ },
+ "b_stop": false,
+ "c": {
+  "x264_bf2_bpyr_none_ref1": {
+   "options": {
+    "crf": "23",
+    "preset": "medium",
+    "x264-params": "bframes=2:keyint=250:min-keyint=250:scenecut=0:ref=1:b-pyramid=none"
+   },
+   "display_types": "IBBPBBPBBPBPBBPBBPBBPBBP",
+   "n_slices": 161,
+   "n_B_slices": 105,
+   "B_slice_ref_idc_values": [
+    0
+   ],
+   "nonB_slice_ref_idc_values": [
+    2,
+    3
+   ],
+   "all_B_nonref": true,
+   "sei_b_pyramid": "0",
+   "sei_bframes": "2",
+   "sei_ref": "1",
+   "pass": true
+  },
+  "nvenc_bf2_bref_disabled_refs1": {
+   "options": {
+    "rc": "constqp",
+    "qp": "28",
+    "bf": "2",
+    "g": "250",
+    "preset": "p4",
+    "refs": "1",
+    "b_ref_mode": "disabled"
+   },
+   "display_types": "IBBPBBPBBPBBPBBPBBPBBPBP",
+   "n_slices": 24,
+   "n_B_slices": 15,
+   "B_slice_ref_idc_values": [
+    0
+   ],
+   "nonB_slice_ref_idc_values": [
+    3
+   ],
+   "all_B_nonref": true,
+   "pass": true
+  }
+ },
+ "PASS": true
+}

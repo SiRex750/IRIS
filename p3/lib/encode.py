@@ -1,8 +1,8 @@
 """Encode an RGB frame sequence with PyAV under explicit, recorded rate-control knobs.
 
 Supported encoders and knobs:
-  libx264     crf, preset, bframes, keyint, ref       (bframes/keyint/ref go through x264-params)
-  h264_nvenc  qp (constant QP), bframes, keyint, preset
+  libx264     crf, preset, bframes, keyint, ref, b_pyramid   (all but crf/preset go through x264-params)
+  h264_nvenc  qp (constant QP), bframes, keyint, preset, ref, b_ref_mode
   mpeg4       q  (fixed quantiser via qmin=qmax=q), bframes, keyint
 
 encode_sequence() returns a record with the exact option dict handed to avcodec, the
@@ -25,7 +25,8 @@ def _as_array(f):
     return np.asarray(Image.open(f).convert("RGB"))
 
 
-def build_options(codec, *, crf=None, qp=None, q=None, preset=None, bframes=0, keyint=250, ref=None):
+def build_options(codec, *, crf=None, qp=None, q=None, preset=None, bframes=0, keyint=250, ref=None,
+                  b_pyramid=None, b_ref_mode=None):
     """Return the avcodec option dict for one configuration (all values as strings)."""
     if codec == "libx264":
         if crf is None:
@@ -33,6 +34,8 @@ def build_options(codec, *, crf=None, qp=None, q=None, preset=None, bframes=0, k
         xp = [f"bframes={bframes}", f"keyint={keyint}", f"min-keyint={keyint}", "scenecut=0"]
         if ref is not None:
             xp.append(f"ref={ref}")
+        if b_pyramid is not None:
+            xp.append(f"b-pyramid={b_pyramid}")
         opts = {"crf": str(crf), "preset": preset or "medium", "x264-params": ":".join(xp)}
     elif codec == "h264_nvenc":
         if qp is None:
@@ -41,6 +44,8 @@ def build_options(codec, *, crf=None, qp=None, q=None, preset=None, bframes=0, k
                 "preset": preset or "p4"}
         if ref is not None:
             opts["refs"] = str(ref)
+        if b_ref_mode is not None:
+            opts["b_ref_mode"] = str(b_ref_mode)
     elif codec == "mpeg4":
         if q is None:
             raise ValueError("mpeg4 needs q")
