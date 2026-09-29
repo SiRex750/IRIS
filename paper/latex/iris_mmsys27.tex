@@ -1,6 +1,9 @@
 \documentclass[sigconf,review,anonymous]{acmart}
 \providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 \setcopyright{none}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{positioning,arrows.meta,calc}
 \acmConference[MMSys '27]{ACM Multimedia Systems Conference}{2027}{}
 \emergencystretch=3em
 \sloppy
@@ -19,8 +22,8 @@ edges, weights at zero tolerance, and PageRank) while visiting 0.2\% of the pair
 construction \textasciitilde234\ensuremath{\times} faster and \textasciitilde6.8\ensuremath{\times} smaller in peak memory at 4,892 nodes, on a
 complete-block edge configuration (our accuracy numbers come from other configurations). Query latency
 separates with graph size --- exponent 2.06 (95\% CI {[}2.02, 2.13{]}) dense versus 0.83
-({[}0.80, 0.88{]}) sparse --- and past a certain size dense retrieval fails to return within
-3600 s. We also report where this does not help: a captioning stage dominates query time,
+({[}0.80, 0.88{]}) sparse --- and at the largest sizes tested only the sparse arm completes
+within an hour. We also report where this does not help: a captioning stage dominates query time,
 so a three-orders-of-magnitude retrieval speedup yields no end-to-end gain, and accuracy
 sits in the weakly-supervised band (Acc@GQA 0.167 on a held-out validation split, \textasciitilde3.4B
 answerer on CPU). Two falsified hypotheses --- codec-derived scene boundaries and codec-based
@@ -67,10 +70,10 @@ complete-block edge configuration; no accuracy number we report is measured on i
 
 \textbf{Scaling.} The same block structure changes how query cost grows. Over 19 clips under real
 text queries, dense retrieval latency scales with graph size at exponent 2.063 (95\% CI
-{[}2.020, 2.125{]}) and scene-sparse at 0.834 ({[}0.801, 0.884{]}). Past a certain size
-this becomes a tractability boundary: under a 3600 s / 29 GB watchdog, dense retrieval never
-returned on clips of 6,559 and 13,506 admitted frames, while sparse retrieval answered them in
-0.010 s and 0.021 s.
+{[}2.020, 2.125{]}) and scene-sparse at 0.834 ({[}0.801, 0.884{]}). On the two largest clips
+(6,559 and 13,506 admitted frames) the dense arm could not complete its measurement within an
+hour, and at the larger its graph would not fit in this machine's memory, while sparse
+retrieval answered in 0.017 s and 0.029 s.
 
 \textbf{What does not improve.} We state two limits here because they are results, not
 concessions. First, the retrieval speedup does not reach the user. At N=4,892, retrieval
@@ -102,8 +105,8 @@ policy.
   A block-diagonal graph construction shown bit-identical to dense-then-prune, at \textasciitilde234\ensuremath{\times}
   lower build time and \textasciitilde6.8\ensuremath{\times} lower peak memory on the complete-block configuration (§4).
 \item
-  Query-latency scaling exponents with bootstrap confidence intervals over 19 clips, and a
-  tractability boundary where dense retrieval does not complete (§5.1--§5.2).
+  Query-latency scaling exponents with bootstrap confidence intervals over 19 clips, and
+  measurements at sizes where the dense arm no longer completes (§5.1--§5.2).
 \item
   A construction path with no generative model: frame selection performs zero neural
   forward passes, verified by instrumentation; full ingest costs 11.976 s per
@@ -120,18 +123,18 @@ policy.
 
 \textbf{The token bottleneck.} Multimodal LLMs are bounded by input token capacity, so applying
 them directly to long video forces aggressive subsampling: at 1 FPS, published per-question
-frame budgets run from 32 frames (InternVL3) and 180 (VideoLLaMA3) to 512 (Qwen2.5-VL) and
-3,900 (Gemini Flash 2.0), against the tens of thousands of frames in an hour of footage.
+frame budgets run from 32 frames (InternVL3~\cite{zhu2025internvl3}) and 180 (VideoLLaMA3~\cite{zhang2025videollama3}) to 512 (Qwen2.5-VL~\cite{bai2025qwen25vl}) and
+3,900 (Gemini Flash 2.0~\cite{google2025gemini2flash}), against the tens of thousands of frames in an hour of footage.
 Every approach is in some form a strategy for deciding what to discard: subsample and accept
 the loss, retrieve per query, or build an intermediate representation that later queries
 reuse. We sit in the third family and borrow from the second at query time.
 
 \subsection{Graph-structured intermediate representations}
 
-\textbf{EgoSG} {[}Taluzzi et al., 2026{]} partitions video into fixed 60 s chunks at 1 FPS and prompts
+\textbf{EgoSG}~\cite{taluzzi2026egosg} partitions video into fixed 60 s chunks at 1 FPS and prompts
 Gemini Flash 2.0 to emit a symbolic scene graph per chunk --- objects, spatial relations,
 timestamped action hyperedges --- each chunk's graph produced by prompting the model to update
-the previous one. On HD-EPIC VQA it improves over raw-video input by 3.22 points for Gemini
+the previous one. On HD-EPIC~\cite{perrett2025hdepic} VQA it improves over raw-video input by 3.22 points for Gemini
 itself and 5.60 for InternVL3-14B.
 
 EgoSG's graph is a symbolic reasoning substrate and ours an embedding retrieval structure;
@@ -146,22 +149,20 @@ accurate graphs reliably, and name that dependency as a limitation. Our scenes a
 independent, so the block structure is parallel by definition, and no model participates in
 construction.
 
-Second, \textbf{no correctness guarantee is available for the artifact}: a manual audit of five
-clips finds roughly 5\% of nodes and relations in error, 15.5\% false action hyperedges and
-13.7\% of objects missing, and the authors note that optimising generation quality is not
-their focus. That is the expected behaviour of a generative construction, not a criticism. A
-structural construction can instead be verified exactly, and is (§4.1) --- though only as a
-\emph{fidelity} guarantee that our block-diagonal path reproduces our own dense-then-prune
-reference, not as semantic correctness. It cannot hallucinate an object, but neither can it
-recognise one.
+Second, \textbf{no correctness guarantee is available for the artifact}: auditing five clips,
+the authors find about 5\% of nodes and relations in error, 15.5\% false action hyperedges and
+13.7\% of objects missing, and note that generation quality is not their focus --- expected of
+a generative construction, not a criticism. A structural construction can be verified exactly
+(§4.1), though only as \emph{fidelity} to our own dense-then-prune reference, not semantic
+correctness: it cannot hallucinate an object, but neither can it recognise one.
 
-\textbf{Vgent} {[}Shen et al., NeurIPS 2025{]} is the closer foil. It partitions video into 64-frame
+\textbf{Vgent}~\cite{shen2025vgent} is the closer foil. It partitions video into 64-frame
 clips, extracts entities per clip with an LVLM, and links clips sharing merged prototype
 entities. It rests on the same amortisation argument we make --- construction is offline and
 query-independent, so one build serves every question asked of that video --- and, unusually,
 reports the split explicitly: 20.13 s of query-independent construction and 3.93 s of
 query-dependent work per minute of video, against 20.81 s per minute for the query-dependent
-Video-RAG baseline, a claimed 1.73\ensuremath{\times} end-to-end speedup on VideoMME. We are therefore not the
+Video-RAG~\cite{luo2024videorag} baseline, a claimed 1.73\ensuremath{\times} end-to-end speedup on VideoMME~\cite{fu2025videomme}. We are therefore not the
 first to argue that construction cost deserves its own measurement, and do not claim to be.
 
 Where we differ is what construction costs. Vgent invokes an LVLM per clip as EgoSG invokes
@@ -172,25 +173,25 @@ selection stage costs 2.845 s per video and full ingest 11.976 s, while Vgent's 
 per \emph{minute of video} and includes LVLM extraction; the denominators do not match, so the
 honest claim is about the \emph{class} of model each construction requires, not about seconds.
 
-Three further systems --- \textbf{EGAgent} {[}Rege et al., 2026{]}, \textbf{MemDreamer} {[}Chen et al., 2026{]}
-and \textbf{GraphVideoAgent} {[}Chu et al., ACM MM 2025{]} --- build their graphs with an LLM extractor,
+Three further systems --- \textbf{EGAgent}~\cite{rege2026egagent}, \textbf{MemDreamer}~\cite{chen2026memdreamer}
+and \textbf{GraphVideoAgent}~\cite{chu2025graphvideoagent} --- build their graphs with an LLM extractor,
 a Gemini-3.1-Pro extractor, or by parsing a captioning model's output, so each places a
 generative pass inside construction or one step upstream of it. None reports a
-construction-cost figure, so no ratio comparison is available; the claim is about model
+construction cost in a form comparable to ours, so no ratio comparison is available; the claim is about model
 class only.
 
 \subsection{Grounded video QA, and the accuracy frontier}
 
-\textbf{NExT-GQA} {[}Xiao et al., 2023{]} requires that a system answer correctly \emph{and} point at its
+\textbf{NExT-GQA}~\cite{xiao2024nextgqa} requires that a system answer correctly \emph{and} point at its
 evidence, reporting Acc@GQA alongside mIoP, IoP@0.5 and mIoU. Its finding that strong
 answerers often ground poorly --- right for the wrong reasons --- is why we report grounded
 accuracy rather than answer accuracy alone (§6). The weakly-supervised band there is occupied
-by Temp{[}CLIP{]} with NG+ (16.0 Acc@GQA), SeViLA as reproduced by the benchmark authors (16.6),
-LangRepo (17.1) and FrozenBiLM with NG+ (17.5). Published figures use the full 5,553-question
+by Temp{[}CLIP{]} with NG+ (16.0 Acc@GQA)~\cite{xiao2024nextgqa}, SeViLA~\cite{yu2023sevila} as reproduced by the benchmark authors (16.6),
+LangRepo~\cite{kahatapitiya2024langrepo} (17.1) and FrozenBiLM~\cite{yang2022frozenbilm} with NG+ (17.5). Published figures use the full 5,553-question
 test set, where ours is a 120-question held-out carve of the validation split (§6).
 
 A more recent line attaches an explicit temporal grounder, often with cooperating agents:
-\textbf{MUPA} reports 28.7 Acc@GQA at 2B and 30.3 at 7B, \textbf{VideoMind} 25.2 at 2B. These define
+\textbf{MUPA}~\cite{dang2025mupa} reports 28.7 Acc@GQA at 2B and 30.3 at 7B, \textbf{VideoMind}~\cite{liu2025videomind} 25.2 at 2B. These define
 the current frontier. We do not compete with them on accuracy --- our contribution is
 construction cost and our answer quality sits a band below (§6) --- and cite them to situate
 that gap rather than to select a weaker comparison set.
@@ -198,9 +199,9 @@ that gap rather than to select a weaker comparison set.
 \subsection{Compressed-domain video analysis}
 
 Using bitstream signals --- motion vectors, residual energy, packet size --- to avoid full decode
-is long-standing, running from motion-vector surrogates for optical flow {[}Zhang et al., CVPR
-2016{]} through CoViAR and DMC-Net. It has recently reached video language models:
-\textbf{CoPE-VideoLM} {[}Sarkar et al., 2026{]} converts each P-frame into eight compact \ensuremath{\Delta}-tokens from
+is long-standing, running from motion-vector surrogates for optical flow~\cite{zhang2016mvcnn}
+through CoViAR~\cite{wu2018coviar} and DMC-Net~\cite{shou2019dmcnet}. It has recently reached video language models:
+\textbf{CoPE-VideoLM}~\cite{sarkar2026cope} converts each P-frame into eight compact \ensuremath{\Delta}-tokens from
 its motion vectors and residuals, reporting up to 86\% lower time-to-first-token and up to 93\%
 fewer visual tokens across 14 benchmarks.
 
@@ -227,8 +228,50 @@ have to be generated.
 
 \section{Method}
 
+\begin{figure*}[t]
+\centering
+\begin{tikzpicture}[font=\scriptsize,
+  box/.style={draw, rounded corners=1.5pt, align=center, minimum height=9mm, text width=19mm, inner sep=2pt, fill=gray!7},
+  hot/.style={box, fill=blue!12},
+  arr/.style={-{Stealth[length=1.6mm]}, semithick}]
+\node[box] (demux) {Demux\\(packet sizes)};
+\node[box, right=3.2mm of demux] (admit) {Admit frames\\(I-frames, peaks,\\adaptive thresholds)};
+\node[box, right=3.2mm of admit] (scenes) {Segment scenes\\(packet-curve\\valleys)};
+\node[box, right=3.2mm of scenes] (clip) {CLIP\\embeddings};
+\node[hot, right=3.2mm of clip] (graph) {Block-diagonal\\graph};
+\foreach \a/\b in {demux/admit, admit/scenes, scenes/clip, clip/graph} \draw[arr] (\a) -- (\b);
+\node[box, below=6mm of demux] (q) {Text query\\(CLIP)};
+\node[box, right=3.2mm of q] (short) {Scene shortlist\\$\max(4,\lceil\sqrt{S}\rceil)$};
+\node[box, right=3.2mm of short] (ppr) {PPR over short-\\listed blocks\\(or exact shortcut)};
+\node[box, right=3.2mm of ppr] (cap) {Caption top-$k$\\(lazy, cached)};
+\node[box, right=3.2mm of cap] (ans) {Answerer\\(3.4B, CPU)};
+\foreach \a/\b in {q/short, short/ppr, ppr/cap, cap/ans} \draw[arr] (\a) -- (\b);
+\draw[arr, dashed] (graph.south) -- ++(0,-2.2mm) -| (ppr.north);
+\node[anchor=south west, font=\scriptsize\itshape, inner sep=1pt] at (demux.north west) {Ingest, once per video};
+\node[anchor=north west, font=\scriptsize\itshape, inner sep=1pt] at (q.south west) {Query, per question};
+% adjacency matrices
+\def\s{0.155}
+\begin{scope}[shift={($(graph.east)+(6mm,-1.62)$)}]
+  \node[anchor=south west, font=\scriptsize, inner sep=0pt] at (0,1.95) {dense-then-prune};
+  \fill[red!18] (0,0) rectangle (12*\s,12*\s);
+  \foreach \o/\n in {0/3,3/2,5/4,9/3} \fill[blue!35] (\o*\s,12*\s-\o*\s) rectangle ({(\o+\n)*\s},{12*\s-(\o+\n)*\s});
+  \draw (0,0) rectangle (12*\s,12*\s);
+  \node[font=\tiny, align=center, anchor=north] at (6*\s,-0.05) {all $N(N{-}1)/2$ pairs\\computed; off-block\\pairs discarded};
+\end{scope}
+\begin{scope}[shift={($(graph.east)+(6mm+22mm,-1.62)$)}]
+  \node[anchor=south west, font=\scriptsize, inner sep=0pt] at (0,1.95) {block-diagonal};
+  \foreach \o/\n in {0/3,3/2,5/4,9/3} \fill[blue!35] (\o*\s,12*\s-\o*\s) rectangle ({(\o+\n)*\s},{12*\s-(\o+\n)*\s});
+  \draw (0,0) rectangle (12*\s,12*\s);
+  \node[font=\tiny, align=center, anchor=north] at (6*\s,-0.05) {only $\sum_i n_i(n_i{-}1)/2$\\within-scene pairs\\computed};
+\end{scope}
+\end{tikzpicture}
+\Description{Two rows of pipeline boxes. Ingest: demux packet sizes, admit frames, segment scenes, CLIP embeddings, block-diagonal graph. Query: text query, scene shortlist, personalised PageRank over shortlisted blocks or an exact shortcut, lazy captioning of the top k frames, answerer. At right, two 12-by-12 adjacency grids: dense-then-prune computes every cell and discards the off-diagonal ones; block-diagonal computes only the diagonal blocks.}
+\caption{IRIS in one view. Right: dense-then-prune computes every pair and discards those across scenes (red); block-diagonal construction computes only the within-scene blocks (blue), yielding the identical graph (\S4.1).}
+\label{fig:overview}
+\end{figure*}
+
 IRIS ingests a video once into a compact index, then answers arbitrary text queries against
-it. Throughout, \textbf{N} denotes the number of \emph{surviving} frames after admission, not the frame
+it (Figure~\ref{fig:overview}). Throughout, \textbf{N} denotes the number of \emph{surviving} frames after admission, not the frame
 count in the container --- the distinction matters for every scaling figure we report.
 
 \subsection{Ingest and frame admission}
@@ -248,7 +291,7 @@ score} combining the packet-size residual, motion energy and luma entropy at wei
 than inspection: monkeypatching \texttt{torch.nn.Module.\_\_call\_\_} for the duration of every
 \texttt{parse\_video()} call and counting invocations across 32 videos yields exactly zero.
 
-CLIP embeddings (ViT-B/32) are computed for admitted frames \emph{after} that stage, and are what
+CLIP~\cite{radford2021clip} embeddings (ViT-B/32) are computed for admitted frames \emph{after} that stage, and are what
 the zero-forward-pass claim excludes. Captioning is deferred entirely; \texttt{caption} remains
 \texttt{None} at ingest. Over the same frozen 32-video sample:
 
@@ -323,7 +366,7 @@ A text query is encoded with the same CLIP model used at ingest and resolved in 
   \textbf{Scene shortlist.} Each scene is represented by the centroid of its frame embeddings;
   only the top \texttt{w} scenes by query--centroid score proceed, with \(w = \max(4, \lceil\sqrt{S}\rceil)\).
 \item
-  \textbf{Descent.} Within shortlisted scenes, frames are ranked by personalised PageRank over
+  \textbf{Descent.} Within shortlisted scenes, frames are ranked by personalised PageRank~\cite{page1999pagerank,haveliwala2002topic} over
   the scene-sparse graph, seeded from the query, with damping 0.5 and a rank-space blend
   (\ensuremath{\lambda} = 0.5) between semantic and codec-derived rank.
 \item
@@ -334,7 +377,7 @@ A text query is encoded with the same CLIP model used at ingest and resolved in 
   deterministically.
 \item
   \textbf{Top-k, captioning, answering.} Retrieved frames are captioned and passed to the
-  answerer (\texttt{granite4:micro}, \textasciitilde3.4B, Q4\_K\_M, CPU).
+  answerer (\texttt{granite4:micro}~\cite{ibm2025granite4}, \textasciitilde3.4B, Q4\_K\_M, CPU).
 \end{enumerate}
 
 Two properties are load-bearing later. The \textbf{shortlist} makes retrieval sublinear by
@@ -359,7 +402,7 @@ which was used rather than describing a single frozen configuration:
 experiment & \texttt{graph\_mode} & \texttt{graph\_edge\_mode} \\
 \midrule
 §4.1 identity gate, §4.2 build savings & \texttt{scene\_sparse} & \texttt{fully\_connected} \ensuremath{\leftrightarrow} \texttt{block\_diagonal} \\
-§5.1--5.2 scaling, tractability & \texttt{flat} / \texttt{scene\_sparse} & \texttt{fully\_connected} \\
+§5.1--5.2 scaling, largest sizes & \texttt{flat} / \texttt{scene\_sparse} & \texttt{fully\_connected} \\
 §5.3--5.4 end-to-end, caption stage & \texttt{scene\_sparse} & \texttt{hierarchical\_sparse} \\
 §6.2 MLVU, §7.1 segmentation ablation & \texttt{scene\_sparse} & \texttt{hierarchical\_sparse} \\
 §6.1 NExT-GQA grounded QA & \texttt{flat} & --- \\
@@ -385,15 +428,11 @@ salient-semantic pass scans all pairs among salient nodes. The tiered mode is sp
 \emph{output}, not in its \emph{construction} (§8).
 
 \textbf{The scaling argument and the accuracy results therefore rest on different graph
-constructions, and that gap is open.} Every cached index behind §5.1 is built under
-\texttt{fully\_connected} or \texttt{block\_diagonal}; not one contains a \texttt{temporal}, \texttt{hierarchy\_*},
-\texttt{semantic\_salient} or \texttt{motion\_neighbor} edge. The degree bound §5.1 fits transfers to the
-tiered path only through the shared block structure, not within a scene. Under
-\texttt{graph\_mode="flat"} the block-diagonal path is unreachable, since the flat construction never
-partitions nodes into groups; §6.1's grounded-QA results are a dense-graph measurement,
-reported as a correctness floor rather than as a measurement of the sparse construction.
-Per-experiment configuration hashes recorded in the artifacts, not this table, are the
-reproducibility anchor.
+constructions, and that gap is open.} No cached index behind §5.1 contains a tiered edge, so the
+degree bound §5.1 fits transfers to the tiered path only through the shared block structure;
+and under \texttt{graph\_mode="flat"} the block-diagonal path is unreachable, so §6.1's results
+are a dense-graph correctness floor, not a measurement of the sparse construction.
+Per-experiment configuration hashes in the artifacts are the reproducibility anchor.
 
 \subsection{Edge weights}
 
@@ -421,7 +460,7 @@ edges against 23,571 on the same clip), and §6.1 a flat dense graph (§3.5). §
 
 Two paths produce a scene-sparse graph: the reference path materialises the dense N\ensuremath{\times}N graph
 and prunes cross-scene edges; the block-diagonal path materialises only the within-scene
-blocks. At N=4,892 admitted frames over 528 scenes (VIRAT) they agree exactly: edge
+blocks. At N=4,892 admitted frames over 528 scenes (VIRAT~\cite{oh2011virat}) they agree exactly: edge
 count 23,571 on both paths, matching the theoretical prediction; identical node sets,
 with zero edges present in only one graph; zero mismatches on every edge attribute
 (\texttt{weight}, \texttt{semantic\_weight}, \texttt{motion\_weight}, \texttt{temporal\_weight}, \texttt{edge\_type}) at tolerance
@@ -479,14 +518,11 @@ commit. An independently recorded post-dedup ratio (6.8039\ensuremath{\times}) a
 figures, and every build in both runs produced exactly 23,571 edges.
 
 \textbf{Three caveats travel with the table; the first makes it conservative.} First, the fast
-arm is timed over 50 consecutive in-process builds. This puts the timed quantity safely
-above timer resolution but charges each iteration roughly 0.09 s of fixed allocation
-overhead --- negligible against a 50 s build, substantial against a 0.2 s one. A single cold
-build in a fresh process, which is what production performs, measures faster (\ensuremath{\approx}0.12 s). We
-report the looped figure because it is the reproducible one, and the effect is to understate
-the ratio. This does leave a looped timing beside a cold-process memory figure; each
-protocol was chosen for the validity of its own quantity, and we have not measured which
-direction a looped memory figure would move the ratio.
+arm is timed over 50 consecutive in-process builds, which lifts it above timer resolution but
+adds about 0.09 s of fixed overhead per iteration; a single cold build, as production performs,
+measures \ensuremath{\approx}0.12 s, so the looped figure we report understates the ratio. It
+also leaves a looped timing beside a cold-process memory figure, each protocol chosen for its
+own quantity; we have not measured how a looped memory figure would move the ratio.
 
 Second, this isolates the \texttt{\_build\_graph} stage with frames and embeddings already cached, so
 it is not a full-ingest figure. The selection stage that produces those inputs costs 2.845 s
@@ -495,14 +531,11 @@ zero neural forward passes; full ingest including CLIP enrichment costs
 11.976 s (§3). A full-ingest ratio would therefore be far smaller than the build ratio; we do
 not compute one, because that sample and this clip differ.
 
-Third, the reported ratio is a within-session figure. The reference arm's wall time has
-varied across sessions running the same corrected code --- 61.39 s and 48.57 s in two earlier
-fresh-process runs, against 49.71 s here, a spread of roughly 20\% that the interleaved
-protocol neither explains nor reproduces, with machine state logged idle throughout
-(4.0--11.9\% CPU, 18.6--19.3 GB free of 33.5 GB). Interleaving establishes that the two arms
-drift together within a session; it does not establish that the reference arm's absolute
-cost is stable across sessions, and the 0.52\% agreement should be read as within-session
-precision.
+Third, the ratio is a within-session figure. The reference arm has varied across sessions on
+the same code (61.39 s and 48.57 s in two earlier fresh-process runs, against 49.71 s here,
+about 20\%) with the machine logged idle throughout; interleaving shows that the arms drift
+together within a session, so the 0.52\% agreement is within-session precision, not
+cross-session stability.
 
 Two corrections: an earlier version reported \textasciitilde220\ensuremath{\times} and \textasciitilde6.7\ensuremath{\times}, before a redundant
 edge-and-PageRank pass was removed from both paths without changing what they build; and
@@ -532,28 +565,42 @@ identity gate, and we mark it as future work (§8).
 
 \subsection{Latency exponents}
 
-We fit log(latency) = k\ensuremath{\cdot}log(N) + c per arm over the 19 UCF-Crime clips of a 31-clip survivor census whose latency was measured (17 for the dense arm, whose two largest are censored; §5.2); the census's VIRAT clip is excluded as cross-dataset. All queries are \textbf{real CLIP text
+We fit log(latency) = k\ensuremath{\cdot}log(N) + c per arm over the 19 UCF-Crime~\cite{sultani2018ucfcrime} clips of a 31-clip survivor census whose latency was measured (17 for the dense arm, whose two largest are censored; §5.2); the census's VIRAT clip is excluded as cross-dataset. All queries are \textbf{real CLIP text
 queries} (50 per clip); confidence intervals are clip-level bootstraps (seed 42, B=10,000,
 resampling clips within each N-bucket and refitting).
 
-\begin{table}[t]
-\footnotesize
-\setlength{\tabcolsep}{4pt}
-\caption{Query-latency scaling exponents (19 UCF-Crime clips, real CLIP text queries).}
-\begin{tabular}{llrrlr}
-\toprule
-arm & fit range & n points & k & 95\% CI & \(R^2\) \\
-\midrule
-dense (flat) & N \ensuremath{\geq} 1102 (headline) & 4 & 2.063 & {[}2.020, 2.125{]} & 0.9994 \\
-scene-sparse & N \ensuremath{\geq} 1102 (headline) & 6 & 0.834 & {[}0.801, 0.884{]} & 0.9830 \\
-dense (flat) & full range & 17 & 1.980 & {[}1.951, 2.006{]} & 0.9978 \\
-scene-sparse & full range & 19 & 0.497 & {[}0.461, 0.530{]} & 0.8980 \\
-\bottomrule
-\end{tabular}
-\end{table}
 
-Over the measured range, dense query cost grows with the square of graph size and
-scene-sparse cost grows sublinearly. The headline intervals are disjoint and the
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}
+\begin{loglogaxis}[width=\columnwidth, height=4.5cm, font=\scriptsize,
+  xlabel={graph size $N$ (admitted frames)}, ylabel={median retrieval time per query (s)},
+  xmin=70, xmax=20000, ymin=8e-4, ymax=300,
+  legend style={at={(0.02,0.98)}, anchor=north west, font=\tiny, draw=none, fill=white, fill opacity=0.8, text opacity=1},
+  legend cell align=left, grid=major, grid style={gray!20}]
+\addplot[only marks, mark=square*, mark size=1.4pt, red!70!black] coordinates {(91,0.0037804) (93,0.00323335) (97,0.0035986) (106,0.00405785) (131,0.0056776) (181,0.00950345) (188,0.00984055) (188,0.0104428) (194,0.0115663) (212,0.0156942) (806,0.20519) (903,0.256543) (936,0.27539) (1102,0.403426) (1648,0.881943) (2963,2.97617) (3747,5.05424)};
+\addlegendentry{dense (flat)}
+\addplot[only marks, mark=*, mark size=1.4pt, blue!70!black] coordinates {(91,0.00143485) (93,0.00178125) (97,0.00196115) (106,0.0014759) (131,0.0024339) (181,0.00176705) (188,0.00188595) (188,0.0021824) (194,0.00222335) (212,0.00388375) (806,0.00413525) (903,0.0031522) (936,0.00374655) (1102,0.0038955) (1648,0.0047096) (2963,0.007937) (3747,0.008328) (6559,0.0173718) (13506,0.0289635)};
+\addlegendentry{scene-sparse}
+\addplot[domain=1102:3747, samples=2, red!70!black, thick] {exp(-15.37917+2.062818*ln(x))};
+\addlegendentry{fit, $k=2.063$ [2.020, 2.125]}
+\addplot[domain=1102:13506, samples=2, blue!70!black, thick] {exp(-11.48851+0.833893*ln(x))};
+\addlegendentry{fit, $k=0.834$ [0.801, 0.884]}
+\addplot[domain=3747:13506, samples=2, red!70!black, dashed] {exp(-15.37917+2.062818*ln(x))};
+\addplot[only marks, mark=square, mark size=1.8pt, red!70!black] coordinates {(6559,15.6) (13506,69.4)};
+\node[font=\tiny, red!70!black, align=left, anchor=west] at (axis cs:4200,110) {did not complete\\within 1 h};
+\end{loglogaxis}
+\end{tikzpicture}
+\Description{Log-log scatter of median retrieval time per query against graph size for the dense and scene-sparse arms, with fitted lines over graph sizes of 1102 and above. Dense points rise steeply to about 5 seconds at 3747 frames; its fitted line is extrapolated with a dashed segment, ending in two hollow markers at 6559 and 13506 frames where the dense measurement did not complete. Scene-sparse points stay between about 1 and 30 milliseconds.}
+\caption{Query latency against graph size (19 UCF-Crime clips, real text queries), with the headline fits over $N\geq 1102$. Hollow markers are extrapolations where the dense measurement did not complete in an hour (\S5.2).}
+\label{fig:scaling}
+\end{figure}
+
+Over the measured range (Figure~\ref{fig:scaling}), dense query cost grows with the square of graph size and
+scene-sparse cost grows sublinearly. The headline fits (N \ensuremath{\geq} 1102) give k = 2.063 {[}2.020, 2.125{]} for dense
+(4 clips, $R^2$ 0.999) and 0.834 {[}0.801, 0.884{]} for scene-sparse (6 clips, $R^2$ 0.983); over the full
+range they give 1.980 {[}1.951, 2.006{]} (17 clips) and 0.497 {[}0.461, 0.530{]} (19 clips, $R^2$ 0.898).
+The headline intervals are disjoint and the
 scene-sparse upper bound lies below 1.0, the pre-registered bar for that separation.
 
 We report two scene-sparse exponents and take as headline the one \emph{less} favourable to us.
@@ -563,7 +610,7 @@ that small-N clips sit near a noise floor where fixed per-query overhead dominat
 not verified this directly, and no repeated small-N runs or fitted overhead constant exist.
 The N \ensuremath{\geq} 1102 fit is both the regime this paper is about and the conservative choice.
 
-\textbf{Four caveats travel with the table.}
+\textbf{Four caveats travel with the fit.}
 
 \emph{Thin support at large N.} Against a target of five census clips per bin, N\ensuremath{\approx}1102 has 7, N\ensuremath{\approx}2963 has
 2, N\ensuremath{\approx}6559 has 2 and N\ensuremath{\approx}13506 has 1; the survivor-N distribution is weighted toward small
@@ -571,16 +618,11 @@ graphs (census median N=333, with 24 of 31 census clips below N=1000). The headl
 and 6 sparse points.
 
 \emph{A guard violation, mechanism identified.} Two small-N clips (Assault036, N=97; Abuse037,
-N=188) took a scene-sparse shortcut on 20\% and 10\% of queries, violating a pre-registered
-guard that all timed queries traverse the PPR path. The mechanism is the margin test of §3:
-when the top two shortlisted scenes are separated by more than \ensuremath{\tau}=0.015, or only one scene is
-shortlisted, retrieval returns the anchor scene's exact top-k and skips subgraph PPR --- both
-more likely as scene count falls, consistent with the two smallest clips being the affected
-ones. The
-shortcut is exact rather than approximate, so no retrieved result is degraded; but it is
-also faster, so the affected queries bias the scene-sparse arm favourably. Both clips fall
-outside the headline range, and refitting the full range without them raises the exponent
-from 0.497 to 0.503 --- under 2\%, in the direction unfavourable to us.
+N=188) took the exact shortcut of §3.4 on 20\% and 10\% of queries, violating a pre-registered
+guard that every timed query traverse PPR; its triggers grow likelier as scene count falls,
+consistent with these being the two smallest clips. The shortcut degrades no result but is
+faster, biasing the sparse arm favourably; both clips lie outside the headline range, and
+excluding them raises the full-range exponent from 0.497 to 0.503, against us.
 
 \emph{Salience-weight provenance.} The corpus was built throughout at salience weights
 (\texttt{luma\_diff\_weight}, \texttt{motion\_weight}, \texttt{luma\_entropy\_weight}) = (0.5, 0.3, 0.2), verified
@@ -599,20 +641,24 @@ results use: no cached index in this corpus was built under it, and the single t
 measured since (one clip, N=613) confirms bounded degree there without establishing
 degree-versus-N behaviour (§3).
 
-\subsection{Tractability divergence}
+\subsection{Behaviour at the largest sizes}
 
-At the largest sizes we measured, the dense arm does not return at all --- a capability
-difference the exponent separation understates. Under a uniform 3600 s wall-clock and 29 GB
-memory watchdog, the dense arm was censored at N=6,559 (Arrest047) and N=13,506 (Arson019),
-with resident memory at 17.0 GB and 26.9 GB and still climbing at the cap; the scene-sparse
-arm completed the same clips in 0.0104 s and 0.0210 s. Unlike the latency results
-below, this is not subject to Amdahl dilution: a query that never returns cannot be rescued
-by a fast downstream stage.
+Each arm's measurement is one protocol under a uniform watchdog of 3600 s wall time and 29 GB
+memory: graph build, then 253 timed queries. At N=6,559 (Arrest047) and N=13,506 (Arson019)
+the dense arm exceeded the wall cap, with resident memory at 18.1 GB and 26.9 GB and still
+rising when stopped; the scene-sparse arm completed both, at medians of 0.017 s and 0.029 s
+per query.
 
-The censoring bounds what can be said. This is a tractability boundary, not a speedup ratio:
-any ratio computed against a censored measurement is a lower bound on an unknown quantity.
-Substituting the cap as a floor and refitting gives k \ensuremath{\geq} 2.597 for the dense arm --- a bound,
-with no confidence interval attached.
+The censoring is easy to overstate. The cap bounds the whole protocol, not one query, so these
+runs do not show that a single dense query fails to return: extrapolating the §5.1 fit gives
+roughly 16 s and 70 s per query, an extrapolation rather than a measurement. They do show cost
+at the level of the graph. The dense graph at N=6,559 has 21.5 million edges, which at the
+memory per edge measured at N=4,892 (about 690 bytes) accounts for the 18.1 GB observed, so it
+was built and was being queried; at N=13,506 it has 91 million edges and would need roughly
+64 GB, beyond this machine, consistent with a build still growing at the cap. We fit nothing to
+these two clips and do not substitute the cap as a latency, since it bounds the protocol rather
+than any query. (The scene-sparse arm's own peak here was 25.1 GB, because this run predates
+block-diagonal construction and built its graph dense-then-prune --- the cost §4 removes.)
 
 \subsection{End-to-end accounting: where the speedup goes}
 
@@ -626,25 +672,31 @@ ratio does not reach the user, and it is a retrieval-mechanics figure wherever i
 We measured the full query path --- query text to final answer --- at the same N with
 \texttt{granite4:micro} (\textasciitilde3.4B, Q4\_K\_M) on CPU, \texttt{l2\_retrieve\_top\_k=30}, five real CLIP-text queries
 per arm plus a discarded warm-up, and the caption cache reset before each arm. The primary
-run is instrumented on a clean checkout (pinned commit, zero tracked-dirty files):
+run is instrumented on a clean checkout (pinned commit, zero tracked-dirty files); Figure~\ref{fig:e2e}
+breaks it down by stage.
 
-\begin{table}[t]
-\footnotesize
-\setlength{\tabcolsep}{4pt}
-\caption{End-to-end query path at $N=4{,}892$ (per-stage medians).}
-\begin{tabular}{lrr}
-\toprule
-component (median, s) & dense & scene-sparse \\
-\midrule
-retrieval mechanics & 8.535 & 0.030 \\
-answerer (LLM) & 2.830 & 2.817 \\
-captioning & 37.269 & 62.132 \\
-L1 retrieval & 0.000 & 0.000 \\
-Cerberus verification & 6.408 & 4.418 \\
-\textbf{total} & \textbf{55.64} & \textbf{69.40} \\
-\bottomrule
-\end{tabular}
-\end{table}
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}
+\begin{axis}[xbar stacked, width=\columnwidth, height=3.1cm, font=\scriptsize, bar width=9pt,
+  xmin=0, xmax=78, xlabel={median seconds per query}, ytick=data,
+  symbolic y coords={scene-sparse,dense}, enlarge y limits=0.45,
+  legend style={at={(0.5,1.03)}, anchor=south, legend columns=4, font=\tiny, draw=none},
+  legend cell align=left, grid=major, grid style={gray!20}]
+\addplot[fill=blue!55, draw=black!60] coordinates {(8.535,dense) (0.030,scene-sparse)};
+\addplot[fill=orange!55, draw=black!60] coordinates {(37.269,dense) (62.132,scene-sparse)};
+\addplot[fill=gray!35, draw=black!60] coordinates {(6.408,dense) (4.418,scene-sparse)};
+\addplot[fill=white, draw=black!60] coordinates {(2.830,dense) (2.817,scene-sparse)};
+\legend{retrieval, captioning, verification, answerer}
+\node[anchor=west, font=\tiny] at (axis cs:56.0,dense) {55.64 s};
+\node[anchor=west, font=\tiny] at (axis cs:69.6,scene-sparse) {69.40 s};
+\node[anchor=west, font=\tiny] at (axis cs:0.3,scene-sparse) {0.030};
+\end{axis}
+\end{tikzpicture}
+\Description{Two horizontal stacked bars of per-stage median seconds per query. Dense: retrieval 8.535, captioning 37.269, verification 6.408, answerer 2.830; total 55.64 seconds. Scene-sparse: retrieval 0.030, captioning 62.132, verification 4.418, answerer 2.817; total 69.40 seconds.}
+\caption{End-to-end query path at $N=4{,}892$ (per-stage medians, five text queries per arm). Retrieval nearly vanishes, but captioning dominates both arms; stage medians need not sum to the totals shown.}
+\label{fig:e2e}
+\end{figure}
 
 Stage medians are taken independently, so they need not sum to the totals. \textbf{End-to-end
 ratio: 0.802\ensuremath{\times} --- the sparse arm is slower at the median.} Per-query caption cost spans
@@ -674,8 +726,8 @@ step negligible while leaving the largest term untouched.
 mechanics cost less than dense --- sits at N\ensuremath{\approx}24 from the §5.1 fits. We do not project an
 end-to-end crossover. Doing so requires assuming the constant stage cost is equal across
 arms, which this run's own data contradict (§5.4), and a projection built on that assumption
-returns \textasciitilde1.15\ensuremath{\times} at N=4,892 where we measure 0.802\ensuremath{\times}. The tractability boundary of §5.2 is the
-stronger statement and we rest on it.
+returns \textasciitilde1.15\ensuremath{\times} at N=4,892 where we measure 0.802\ensuremath{\times}. The large-N measurements of §5.2 are the
+stronger statement, and we rest on them.
 
 \subsection{Caption-cache locality (negative result)}
 
@@ -746,20 +798,16 @@ P(correct \textbar{} ungrounded) = 0.321, a \textasciitilde15-point gap that rep
 samples even though absolute levels fell between them. What replicates is the gap, not the
 levels.
 
-\textbf{But the two factors are readouts of one shared retrieval event, not independent
-measurements.} \texttt{packet\_size} enters that event's single PageRank call twice: through the
-personalization vector at weight (1\ensuremath{-}\ensuremath{\lambda})=0.5, and through the edge weights at the \ensuremath{\beta} slot under
-the default motion mode. Grounding and answering then read the identical retrieved-frame
-list. This does not undermine the gap: ``grounded'' means the correct region's frames were
-present in the answerer's context, a real causal channel however retrieval found them. What
-it narrows is the stronger reading of grounded as \emph{retrieved for a query-semantic reason} ---
-since up to half the seed is a codec artifact uncorrelated with the question text, a question
-can be grounded because \texttt{packet\_size} ranked the right region highly. This bears on §2.2's
-framing of grounding as the guard against being right for the wrong reasons: the guard
-establishes that the right evidence was present, not that it was found for the right reason.
-A residual confound, in which some codec characteristic correlated with favourable retrieval
-also correlates with question difficulty, cannot be ruled out from a code trace; no control
-analysis for it exists, and we disclose that as unaddressed.
+\textbf{But the two factors are readouts of one retrieval event, not independent
+measurements.} \texttt{packet\_size} enters its single PageRank call twice --- in the
+personalisation vector at weight (1\ensuremath{-}\ensuremath{\lambda})=0.5 and in the edge weights at the \ensuremath{\beta} slot ---
+and grounding and answering read the same retrieved frames. The gap stands, since ``grounded''
+means the right frames reached the answerer; what narrows is the reading of grounded as
+\emph{found for a query-semantic reason}, because up to half the seed is a codec signal
+uncorrelated with the question. §2.2's guard thus shows the right evidence was present, not
+that it was found for the right reason. A residual confound, in which a codec characteristic
+that favours retrieval also tracks question difficulty, cannot be ruled out from a code trace
+and is unaddressed.
 
 \textbf{Neither stage is negligible.} Perfect grounding would raise Acc@GQA to 0.476 (+0.31); a
 perfect answerer over current grounding would give 0.350 (+0.18).
@@ -780,7 +828,7 @@ method & params & Acc@GQA & mIoP & IoP@0.5 \\
 \midrule
 Temp{[}CLIP{]} NG+ & 130M & 16.0 & 25.7 & 25.5 \\
 SeViLA* & 4B & 16.6 & 29.5 & 22.9 \\
-LangRepo & 12B & 17.1 & 31.3 & 28.7 \\
+LangRepo & 8\ensuremath{\times}7B & 17.1 & 31.3 & 28.7 \\
 FrozenBiLM NG+ & 1B & 17.5 & 24.2 & 23.7 \\
 VideoMind-2B & 2B & 25.2 & 36.4 & 32.6 \\
 MUPA-2B & 2B & 28.7 & 39.1 & 38.7 \\
@@ -804,13 +852,14 @@ Nothing was tuned or selected from it, and §4.1 reports a tuning-only re-run.
 We omit mIoP and IoP@0.5 from our row deliberately. They are measured and
 convention-checked, but this is a correctness floor rather than a grounding claim, and
 printing a grounding magnitude from 120 validation questions beside full-test figures would
-invite exactly the comparison we decline. Our Acc@GQA is keyed to IoP@0.5, which is identical (0.3202 on
-the tuning half) under the benchmark's max-per-span convention and the union convention an
-earlier version of our evaluation used, so the reported figure is convention-invariant.
+invite exactly the comparison we decline. Our held-out Acc@GQA was scored under the union
+convention an earlier version of our evaluation used. On the tuning half, where re-scoring
+costs no touch, IoP@0.5 is identical under it and the benchmark's max-per-span convention
+(0.3202); we have not re-scored the held-out half, since that would itself be a further touch.
 
 \subsection{Multi-task long-video QA on MLVU}
 
-We also evaluate MLVU's multiple-choice tasks, restricted to the six third-person ones: the
+We also evaluate MLVU's~\cite{zhou2024mlvu} multiple-choice tasks, restricted to the six third-person ones: the
 egocentric task is excluded because our compressed-domain signals assume a largely static
 camera, and the generation tasks fall outside our multiple-choice harness. 150 questions, 25
 per task, videos capped at 600 s, codec segmentation, scene-sparse graph.
@@ -924,16 +973,13 @@ the paired differences on the two informative metrics are +0.256 pp (95\% CI {[}
 and +0.780 pp ({[}\ensuremath{-}0.005, +1.753{]}), both spanning zero; the admitted set sits at the
 label-blind identity, mean(M2 \ensuremath{-} retention) = +0.0017 (sd 0.0099).
 
-\textbf{Whether that tie is an artifact of a wasted budget is unresolved.} The score might clump
-its picks onto near-duplicate frames, in which case the tie would reflect poor temporal
-coverage rather than an uninformative signal. A post-hoc diagnostic --- explicitly not
-pre-registered --- measured dispersion at a matched budget of k=503: the codec top-k arm sampled
-42 distinct temporal locations (8.4\% of budget, mean run length 13.19) against uniform's 503
-(100\%, mean run 1.00), because the action score is hold-forward propagated from the retained
-tier and is therefore a step function of roughly 9.5 frames per plateau, so top-k degenerates
-into taking whole plateaus from their earliest frame. \textbf{This does not dispose of the
-objection}: the diagnostic cannot separate an uninformative signal from a budget spent on
-near-duplicates, and the plateau-dedup contrast that would is specified but not run.
+\textbf{Whether that tie reflects a wasted budget is unresolved.} A post-hoc diagnostic, not
+pre-registered, found the codec top-k arm at k=503 sampling 42 distinct temporal locations
+(8.4\% of budget) against uniform's 503, because the hold-forward-propagated action score is a
+step function of about 9.5 frames per plateau and top-k takes whole plateaus. \textbf{This does
+not dispose of the objection}: the diagnostic cannot separate an uninformative signal from a
+budget spent on near-duplicates, and the plateau-dedup contrast that would is specified but not
+run.
 
 \textbf{Shot geometry adds nothing either.} Segmenting each video into shots directly from the
 packet curve (zero decode) and sampling one frame per shot at its midpoint gives, against
@@ -956,8 +1002,7 @@ signal, our segmentation, or our admission policy.
 
 \section{Limitations}
 
-Negative results appear inline where they arose (§5.3, §5.4, §7). Four of the constraints
-that bound our claims are also stated there and only indexed here: the retrieval speedup is
+Four constraints stated where they arose are indexed here: the retrieval speedup is
 not an end-to-end speedup (0.802\ensuremath{\times}, §5.3); sparse retrieval pays a caption-cache penalty of
 +9.30 s per query (§5.4); the scaling fit rests on 4 dense and 6 sparse points at large N
 (§5.1); and accuracy sits in the weakly-supervised band, 8--14 points below current agentic
@@ -1003,35 +1048,35 @@ corpus is H.264. The salience channel (§3.1), the codec-derived scene boundarie
 and both negatives in §7 are conditioned on the profiles this corpus happens to carry. This
 is a scope statement, not a weakness we have evidence of.
 
-\textbf{Hardware and provenance.} The CPU-only claim rests on a \texttt{torch.cuda.is\_available()} flag
-captured from a CPU-only torch wheel, plus circumstantial path evidence that ingest ran on a
-Windows machine rather than the project's Linux GPU box; it establishes that no CUDA device
-was used, not that none was present. The zero-forward-pass claim (§3.1) is a property of the
-code path and is unaffected. The \textasciitilde6.8\ensuremath{\times} peak-memory ratio is not tied to a commit, unlike the
-wall-clock ratio, and the build-cost harness was committed after its run (§4.2); the
-scaling exponents (§5.1) were likewise produced from an uncommitted working tree.
+\textbf{Hardware and provenance.} The CPU-only claim rests on a \texttt{torch.cuda.is\_available()}
+flag from a CPU-only wheel plus circumstantial path evidence; it shows that no CUDA device was
+used, not that none was present. The zero-forward-pass claim (§3.1) is a property of the code
+path and is unaffected. The \textasciitilde6.8\ensuremath{\times} memory ratio and the §5.1 exponents are not tied to a
+clean commit, and the build-cost harness was committed after its run (§4.2).
 
 \section{Conclusion}
 
 We asked whether a long-video retrieval graph must be expensive to build. It need not be.
-Block-diagonal construction produces exactly the graph that dense construction produces and
-then prunes --- same nodes, edges, weights at zero tolerance, and PageRank --- while visiting
-only the pairs it keeps, making construction \textasciitilde234\ensuremath{\times} faster and \textasciitilde6.8\ensuremath{\times} smaller in memory on CPU,
+Block-diagonal construction produces exactly the graph that dense-then-prune produces while
+visiting only the pairs it keeps: \textasciitilde234\ensuremath{\times} faster and \textasciitilde6.8\ensuremath{\times} smaller in memory on CPU,
 with no generative model in the construction path. The same block structure separates query
-latency into quadratic and sublinear regimes, and at large sizes into a boundary where dense
-retrieval does not complete.
+latency into quadratic and sublinear regimes.
 
-We have been deliberate about what this does not establish: the retrieval speedup does not
-reach the user because captioning dominates the query path, sparse retrieval pays a
-caption-cache penalty, and accuracy sits in the weakly-supervised band. Our two falsified
-hypotheses --- codec-derived boundaries (pre-registered) and codec-based admission (criterion
-recorded, registration date unverifiable) --- show that neither where we cut nor which frames
-we keep does the work. \textbf{The block structure alone does}, which is what makes the result
-portable. For retrieval over long video, the intermediate graph does not have to be
-generated, and does not have to be expensive. It has to be structured.
+It does not make queries faster end to end, because captioning dominates, and accuracy sits in
+the weakly-supervised band. Our two falsified hypotheses, on codec-derived boundaries and codec-based
+admission (§7), show that neither where we cut nor which frames we keep does the work.
+\textbf{The block structure alone does}, which is what makes the result portable. For retrieval
+over long video, the intermediate graph does not have to be generated, and does not have to be
+expensive. It has to be structured.
 
 \begin{acks}
-% GenAI disclosure (ACM policy) -- wording to be agreed by all authors before submission.
+% DRAFT GenAI disclosure (ACM policy) -- all authors must approve the wording before submission.
+The authors used a large language model assistant (Anthropic's Claude) to help audit experiment
+provenance against code and artifacts, write analysis and run scripts, and draft and edit the
+manuscript. The authors designed the experiments, ran them, verified every reported number
+against its source artifact, and take full responsibility for the content.
 \end{acks}
-% REFERENCES: bibliography not yet built; inline citations are placeholders.
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{refs}
 \end{document}
