@@ -1,0 +1,44 @@
+P1 x264 CRF45-CRF12 not passing: []
+P1 NVENC QP45-QP18 not passing: []
+P1 mpeg4 q31-q2 (not kill) not passing: [('ambush_2', -0.0321), ('ambush_6', -0.0856), ('mountain_1', -0.0142), ('temple_3', -0.0461)]
+rho<0.8: []
+P2 x264 not passing: []
+P2 nvenc not passing: [('shaman_3', -0.0354)]
+CRF23->33 median |change| 0.01613; P3 threshold 0.00806
+
+MISSING cells: [] 0
+
+P1 x264 CRF45-CRF12                           23/23                        >= 18/23       PASS
+P1 NVENC QP45-QP18                            23/23                        >= 18/23       PASS
+P1 mpeg4 q31-q2 (not kill)                    19/23                        >= 16/23       PASS
+P1 Spearman(CRF, stale) >= 0.8                23/23                        >= 16/23       PASS
+P2 x264 QP24 B - bf0                          23/23                        >= 18/23       PASS
+P2 NVENC QP28 B=P - bf0                       22/23                        >= 16/23       PASS
+P2b x264 median |scaled-naive|                0.0009                       < 0.005        PASS
+P2b NVENC median |scaled-naive|               0.0005                       < 0.005        PASS
+P3 ref 2                                      0.00073                      < 0.00806      PASS
+P3 ref 3                                      0.00045                      < 0.00806      PASS
+P3 keyint 30                                  0.00012                      < 0.00806      PASS
+P3 umh 32                                     0.00029                      < 0.00806      PASS
+P3 umh 64                                     0.00023                      < 0.00806      PASS
+P2c median x264 B effect > every P3 median    0.03859 vs max 0.00073       >              PASS
+
+--- effect sizes (median over 23, stale/valid, final, tau=1)
+x264 CRF12 median 0.0015  CRF45 median 0.1313
+NVENC QP18 median 0.0042  QP45 0.2289
+x264 QP24 bf0 median 0.0055  B median 0.0445  CRF33 0.0246  CRF38 0.0585
+NVENC QP28 bf0 median 0.0328  B=P median 0.0697
+
+--- shaman_3 NVENC detail
+nvenc_qp28             d1       stale 0.2507 reuse 457080 valid 1358539 cov 88.22 zero 0.309 epe 1.634 nfr 49 psnr 43.08 kbps 909.58
+nvenc_qp28_bf2_bqeq    B_naive  stale 0.2152 reuse 266762 valid 887286 cov 96.15 zero 0.279 epe 3.051 nfr 32 psnr 43.38 kbps 900.90
+nvenc_qp28_bf2         B_naive  stale 0.2479 reuse 303181 valid 887286 cov 98.95 zero 0.321 epe 3.012 nfr 32 psnr 41.68 kbps 577.74
+x264_qp24              d1       stale 0.0179 reuse 62582 valid 1358539 cov 96.26 zero 0.017 epe 0.736 nfr 49 psnr 45.62 kbps 1412.1
+x264_qp24_bf2_pb1      B_naive  stale 0.2433 reuse 269961 valid 887286 cov 99.23 zero 0.251 epe 3.126 nfr 32 psnr 45.69 kbps 1335.6
+
+--- mpeg4 exceptions: coverage (share of valid area with a vector) and stale
+ambush_2   q2 stale 0.288 cov 72.74 | q31 stale 0.256 cov 57.10
+ambush_6   q2 stale 0.252 cov 76.65 | q31 stale 0.166 cov 55.85
+temple_3   q2 stale 0.422 cov 85.35 | q31 stale 0.376 cov 71.28
+mountain_1 q2 stale 0.217 cov 97.88 | q31 stale 0.203 cov 83.48
+alley_1    q2 stale 0.018 cov 99.56 | q31 stale 0.036 cov 96.58
