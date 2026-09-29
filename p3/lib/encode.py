@@ -1,9 +1,15 @@
 """Encode an RGB frame sequence with PyAV under explicit, recorded rate-control knobs.
 
 Supported encoders and knobs:
-  libx264     crf, preset, bframes, keyint, ref, b_pyramid   (all but crf/preset go through x264-params)
-  h264_nvenc  qp (constant QP), bframes, keyint, preset, ref, b_ref_mode
-  mpeg4       q  (fixed quantiser via qmin=qmax=q), bframes, keyint
+  libx264     crf (or qp for constant QP), preset, bframes, keyint, ref, b_pyramid, threads, b_adapt,
+              pbratio, me, merange   (all but crf/qp/preset go through x264-params)
+  h264_nvenc  qp (constant QP), bframes, keyint, preset, ref, b_ref_mode, b_qfactor, b_qoffset
+  mpeg4       q  (fixed quantiser via qmin=qmax=q), bframes, keyint, threads
+
+All knobs added after the first validation default to None = previous behaviour.
+threads: libx264 -> x264-params threads=N:sliced-threads=0 (PyAV's default is sliced threading with
+one slice per thread, so slice count depended on the CPU); mpeg4 -> avcodec threads=N (with more than
+one thread the mpegvideo encoder splits each frame into one video packet per thread).
 
 encode_sequence() returns a record with the exact option dict handed to avcodec, the
 output file size, and the summed packet payload bytes. For libx264 it also returns the
@@ -26,17 +32,29 @@ def _as_array(f):
 
 
 def build_options(codec, *, crf=None, qp=None, q=None, preset=None, bframes=0, keyint=250, ref=None,
-                  b_pyramid=None, b_ref_mode=None):
+                  b_pyramid=None, b_ref_mode=None, threads=None, b_adapt=None, pbratio=None, me=None,
+                  merange=None, b_qfactor=None, b_qoffset=None):
     """Return the avcodec option dict for one configuration (all values as strings)."""
     if codec == "libx264":
-        if crf is None:
-            raise ValueError("libx264 needs crf")
+        if (crf is None) == (qp is None):
+            raise ValueError("libx264 needs exactly one of crf / qp")
         xp = [f"bframes={bframes}", f"keyint={keyint}", f"min-keyint={keyint}", "scenecut=0"]
         if ref is not None:
             xp.append(f"ref={ref}")
         if b_pyramid is not None:
             xp.append(f"b-pyramid={b_pyramid}")
-        opts = {"crf": str(crf), "preset": preset or "medium", "x264-params": ":".join(xp)}
+        if threads is not None:
+            xp += [f"threads={threads}", "sliced-threads=0"]
+        if b_adapt is not None:
+            xp.append(f"b-adapt={b_adapt}")
+        if pbratio is not None:
+            xp.append(f"pbratio={pbratio}")
+        if me is not None:
+            xp.append(f"me={me}")
+        if merange is not None:
+            xp.append(f"merange={merange}")
+        rc = {"crf": str(crf)} if crf is not None else {"qp": str(qp)}
+        opts = {**rc, "preset": preset or "medium", "x264-params": ":".join(xp)}
     elif codec == "h264_nvenc":
         if qp is None:
             raise ValueError("h264_nvenc needs qp")
@@ -46,6 +64,10 @@ def build_options(codec, *, crf=None, qp=None, q=None, preset=None, bframes=0, k
             opts["refs"] = str(ref)
         if b_ref_mode is not None:
             opts["b_ref_mode"] = str(b_ref_mode)
+        if b_qfactor is not None:
+            opts["b_qfactor"] = str(b_qfactor)
+        if b_qoffset is not None:
+            opts["b_qoffset"] = str(b_qoffset)
     elif codec == "mpeg4":
         if q is None:
             raise ValueError("mpeg4 needs q")
@@ -53,6 +75,8 @@ def build_options(codec, *, crf=None, qp=None, q=None, preset=None, bframes=0, k
         # from each input AVFrame.quality, which PyAV cannot set (it stays 0 -> clamped to q=2
         # for every q; verified, sizes identical). Pinning qmin=qmax=q forces the quantiser.
         opts = {"qmin": str(q), "qmax": str(q), "bf": str(bframes), "g": str(keyint)}
+        if threads is not None:
+            opts["threads"] = str(threads)
     else:
         raise ValueError(f"unsupported codec {codec}")
     return opts
