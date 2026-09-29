@@ -1,0 +1,346 @@
+{
+ "flo": {
+  "shape": [
+   436,
+   1024,
+   2
+  ],
+  "dtype": "float32",
+  "flow_abs_max": 8.420413970947266,
+  "flow_mag_median": 1.557640790939331,
+  "occ_frac": 0.020167359518348624,
+  "photometric_L1_warp_I2(x+flow)_vs_I1": 3.1707100868225098,
+  "photometric_L1_zero_flow": 9.161314964294434,
+  "photometric_L1_negated_flow": 12.767721176147461,
+  "pass": true
+ },
+ "knobs": {
+  "libx264_crf": {
+   "rows": [
+    {
+     "crf": 12,
+     "file_bytes": 667471,
+     "options": {
+      "crf": "12",
+      "preset": "medium",
+      "x264-params": "bframes=0:keyint=250:min-keyint=250:scenecut=0"
+     },
+     "sei_crf": "12.0"
+    },
+    {
+     "crf": 18,
+     "file_bytes": 308204,
+     "options": {
+      "crf": "18",
+      "preset": "medium",
+      "x264-params": "bframes=0:keyint=250:min-keyint=250:scenecut=0"
+     },
+     "sei_crf": "18.0"
+    },
+    {
+     "crf": 24,
+     "file_bytes": 147550,
+     "options": {
+      "crf": "24",
+      "preset": "medium",
+      "x264-params": "bframes=0:keyint=250:min-keyint=250:scenecut=0"
+     },
+     "sei_crf": "24.0"
+    },
+    {
+     "crf": 30,
+     "file_bytes": 76841,
+     "options": {
+      "crf": "30",
+      "preset": "medium",
+      "x264-params": "bframes=0:keyint=250:min-keyint=250:scenecut=0"
+     },
+     "sei_crf": "30.0"
+    },
+    {
+     "crf": 36,
+     "file_bytes": 43602,
+     "options": {
+      "crf": "36",
+      "preset": "medium",
+      "x264-params": "bframes=0:keyint=250:min-keyint=250:scenecut=0"
+     },
+     "sei_crf": "36.0"
+    }
+   ],
+   "size_monotone_decreasing": true
+  },
+  "h264_nvenc_qp": {
+   "rows": [
+    {
+     "qp": 12,
+     "file_bytes": 916952,
+     "options": {
+      "rc": "constqp",
+      "qp": "12",
+      "bf": "0",
+      "g": "250",
+      "preset": "p4"
+     },
+     "decoded_mb_qp_unique": [
+      10,
+      12
+     ]
+    },
+    {
+     "qp": 18,
+     "file_bytes": 499474,
+     "options": {
+      "rc": "constqp",
+      "qp": "18",
+      "bf": "0",
+      "g": "250",
+      "preset": "p4"
+     },
+     "decoded_mb_qp_unique": [
+      14,
+      18
+     ]
+    },
+    {
+     "qp": 24,
+     "file_bytes": 232735,
+     "options": {
+      "rc": "constqp",
+      "qp": "24",
+      "bf": "0",
+      "g": "250",
+      "preset": "p4"
+     },
+     "decoded_mb_qp_unique": [
+      19,
+      24
+     ]
+    },
+    {
+     "qp": 30,
+     "file_bytes": 119607,
+     "options": {
+      "rc": "constqp",
+      "qp": "30",
+      "bf": "0",
+      "g": "250",
+      "preset": "p4"
+     },
+     "decoded_mb_qp_unique": [
+      24,
+      30
+     ]
+    },
+    {
+     "qp": 36,
+     "file_bytes": 62185,
+     "options": {
+      "rc": "constqp",
+      "qp": "36",
+      "bf": "0",
+      "g": "250",
+      "preset": "p4"
+     },
+     "decoded_mb_qp_unique": [
+      29,
+      36
+     ]
+    }
+   ],
+   "size_monotone_decreasing": true
+  },
+  "mpeg4_q": {
+   "rows": [
+    {
+     "q": 2,
+     "file_bytes": 691940,
+     "options": {
+      "qmin": "2",
+      "qmax": "2",
+      "bf": "0",
+      "g": "250"
+     }
+    },
+    {
+     "q": 4,
+     "file_bytes": 314072,
+     "options": {
+      "qmin": "4",
+      "qmax": "4",
+      "bf": "0",
+      "g": "250"
+     }
+    },
+    {
+     "q": 8,
+     "file_bytes": 143259,
+     "options": {
+      "qmin": "8",
+      "qmax": "8",
+      "bf": "0",
+      "g": "250"
+     }
+    },
+    {
+     "q": 16,
+     "file_bytes": 77235,
+     "options": {
+      "qmin": "16",
+      "qmax": "16",
+      "bf": "0",
+      "g": "250"
+     }
+    },
+    {
+     "q": 31,
+     "file_bytes": 59609,
+     "options": {
+      "qmin": "31",
+      "qmax": "31",
+      "bf": "0",
+      "g": "250"
+     }
+    }
+   ],
+   "size_monotone_decreasing": true
+  },
+  "bframes": {
+   "libx264_bf0": {
+    "options": {
+     "crf": "18",
+     "preset": "medium",
+     "x264-params": "bframes=0:keyint=250:min-keyint=250:scenecut=0"
+    },
+    "pict_counts": {
+     "I": 1,
+     "P": 23
+    },
+    "types": "IPPPPPPPPPPPPPPPPPPPPPPP",
+    "sei_bframes": "0"
+   },
+   "libx264_bf2": {
+    "options": {
+     "crf": "18",
+     "preset": "medium",
+     "x264-params": "bframes=2:keyint=250:min-keyint=250:scenecut=0"
+    },
+    "pict_counts": {
+     "B": 15,
+     "I": 1,
+     "P": 8
+    },
+    "types": "IBBPBBPBBPBBPBBPBBPBBPBP",
+    "sei_bframes": "2"
+   },
+   "h264_nvenc_bf0": {
+    "options": {
+     "rc": "constqp",
+     "qp": "24",
+     "bf": "0",
+     "g": "250",
+     "preset": "p4"
+    },
+    "pict_counts": {
+     "I": 1,
+     "P": 23
+    },
+    "types": "IPPPPPPPPPPPPPPPPPPPPPPP"
+   },
+   "h264_nvenc_bf2": {
+    "options": {
+     "rc": "constqp",
+     "qp": "24",
+     "bf": "2",
+     "g": "250",
+     "preset": "p4"
+    },
+    "pict_counts": {
+     "B": 15,
+     "I": 1,
+     "P": 8
+    },
+    "types": "IBBPBBPBBPBBPBBPBBPBBPBP"
+   },
+   "mpeg4_bf0": {
+    "options": {
+     "qmin": "4",
+     "qmax": "4",
+     "bf": "0",
+     "g": "250"
+    },
+    "pict_counts": {
+     "I": 1,
+     "P": 23
+    },
+    "types": "IPPPPPPPPPPPPPPPPPPPPPPP"
+   },
+   "mpeg4_bf2": {
+    "options": {
+     "qmin": "4",
+     "qmax": "4",
+     "bf": "2",
+     "g": "250"
+    },
+    "pict_counts": {
+     "B": 15,
+     "I": 1,
+     "P": 8
+    },
+    "types": "IBBPBBPBBPBBPBBPBBPBBPBP"
+   }
+  },
+  "bframes_pass": true,
+  "x264_keyint8": {
+   "options": {
+    "crf": "18",
+    "preset": "medium",
+    "x264-params": "bframes=0:keyint=8:min-keyint=8:scenecut=0"
+   },
+   "types": "IPPPPPPPIPPPPPPPIPPPPPPP",
+   "sei_keyint": "8",
+   "pass": true
+  },
+  "x264_ref1_sei_ref": "1",
+  "venc_params": {
+   "available": true,
+   "qp_map_shape": [
+    28,
+    64
+   ],
+   "example_frame": 1,
+   "example_pict_type": "P",
+   "example_qp_min_median_max": [
+    18,
+    26.0,
+    34
+   ],
+   "example_top_left_4x4": [
+    [
+     25,
+     25,
+     23,
+     23
+    ],
+    [
+     30,
+     24,
+     24,
+     24
+    ],
+    [
+     27,
+     27,
+     27,
+     27
+    ],
+    [
+     28,
+     28,
+     26,
+     26
+    ]
+   ]
+  }
+ }
+}

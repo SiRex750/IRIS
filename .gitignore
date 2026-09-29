@@ -24,3 +24,8 @@ data/
 benchmark_results/
 *_output.log
 *.npz
+
+# Paper 3 scratch / large outputs
+p3/work/
+p3/pilot/blocks/
+p3/pilot/encodes/

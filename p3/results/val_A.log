@@ -1,0 +1,17 @@
+x264_crf12_bf0_ref1 (4, 0) {'median_mv': [4.0, 0.0], 'median_err_px': 0.0, 'median_err_if_sign_flipped': 8.0, 'frac_mv_eq_k_times_shift': {1: 0.9997073170731707, 2: 0.0, 3: 0.0}, 'error': None}
+x264_crf12_bf0_ref1 (0, 3) {'median_mv': [0.0, 3.0], 'median_err_px': 0.0, 'median_err_if_sign_flipped': 6.0, 'frac_mv_eq_k_times_shift': {1: 0.9989154013015185, 2: 0.0, 3: 0.0}, 'error': None}
+x264_crf12_bf0_ref1 (-5, 2) {'median_mv': [-5.0, 2.0], 'median_err_px': 0.0, 'median_err_if_sign_flipped': 10.770329614269007, 'frac_mv_eq_k_times_shift': {1: 0.9981125292108575, 2: 0.0, 3: 0.0}, 'error': None}
+x264_crf12_bf0_ref1 (3, -4) {'median_mv': [3.0, -4.0], 'median_err_px': 0.0, 'median_err_if_sign_flipped': 10.0, 'frac_mv_eq_k_times_shift': {1: 0.9984708104704506, 2: 0.0, 3: 0.0}, 'error': None}
+x264_crf12_bf0_refdefault (4, 0) {'median_mv': [4.0, 0.0], 'median_err_px': 0.0, 'median_err_if_sign_flipped': 8.0, 'frac_mv_eq_k_times_shift': {1: 0.9996099463676256, 2: 0.0, 3: 0.0}, 'error': None}
+x264_crf12_bf0_refdefault (0, 3) {'median_mv': [0.0, 6.0], 'median_err_px': 3.0, 'median_err_if_sign_flipped': 9.0, 'frac_mv_eq_k_times_shift': {1: 0.3526378786483749, 2: 0.645520670288187, 3: 0.0005524353190313968}, 'error': None}
+x264_crf12_bf0_refdefault (-5, 2) {'median_mv': [-10.0, 4.0], 'median_err_px': 5.385164807134504, 'median_err_if_sign_flipped': 16.15549442140351, 'frac_mv_eq_k_times_shift': {1: 0.3581124757595346, 2: 0.6381937390340752, 3: 0.0005540677809585373}, 'error': None}
+x264_crf12_bf0_refdefault (3, -4) {'median_mv': [6.0, -8.0], 'median_err_px': 5.0, 'median_err_if_sign_flipped': 15.0, 'frac_mv_eq_k_times_shift': {1: 0.34294455776005933, 2: 0.6548303356202485, 3: 0.0007417022065640646}, 'error': None}
+nvenc_qp15_bf0_ref1 (4, 0) {'median_mv': [4.0, 0.0], 'median_err_px': 0.0, 'median_err_if_sign_flipped': 8.0, 'frac_mv_eq_k_times_shift': {1: 0.999900823167708, 2: 0.0, 3: 0.0}, 'error': None}
+nvenc_qp15_bf0_ref1 (0, 3) {'median_mv': [0.0, 3.0], 'median_err_px': 0.0, 'median_err_if_sign_flipped': 6.0, 'frac_mv_eq_k_times_shift': {1: 0.999801646335416, 2: 0.0, 3: 0.0}, 'error': None}
+nvenc_qp15_bf0_ref1 (-5, 2) {'median_mv': [-5.0, 2.0], 'median_err_px': 0.0, 'median_err_if_sign_flipped': 10.770329614269007, 'frac_mv_eq_k_times_shift': {1: 0.9992067426871591, 2: 0.0, 3: 0.0}, 'error': None}
+nvenc_qp15_bf0_ref1 (3, -4) {'median_mv': [3.0, -4.0], 'median_err_px': 0.0, 'median_err_if_sign_flipped': 10.0, 'frac_mv_eq_k_times_shift': {1: 0.999603489294211, 2: 0.0, 3: 0.0}, 'error': None}
+mpeg4_q2_bf0 (4, 0) {'median_mv': [4.0, 0.0], 'median_err_px': 0.0, 'median_err_if_sign_flipped': 8.0, 'frac_mv_eq_k_times_shift': {1: 0.9762896825396825, 2: 0.0, 3: 0.0}, 'error': None}
+mpeg4_q2_bf0 (0, 3) {'median_mv': [0.0, 3.0], 'median_err_px': 0.0, 'median_err_if_sign_flipped': 6.0, 'frac_mv_eq_k_times_shift': {1: 0.9765873015873016, 2: 0.0, 3: 0.0}, 'error': None}
+mpeg4_q2_bf0 (-5, 2) {'median_mv': [-5.0, 2.0], 'median_err_px': 0.0, 'median_err_if_sign_flipped': 10.770329614269007, 'frac_mv_eq_k_times_shift': {1: 0.9666633594602639, 2: 0.0, 3: 0.0}, 'error': None}
+mpeg4_q2_bf0 (3, -4) {'median_mv': [3.0, -4.0], 'median_err_px': 0.0, 'median_err_if_sign_flipped': 10.0, 'frac_mv_eq_k_times_shift': {1: 0.9396825396825397, 2: 0.0, 3: 0.0}, 'error': None}
+VALIDATION A: PASS

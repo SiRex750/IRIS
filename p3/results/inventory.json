@@ -1,0 +1,1460 @@
+{
+ "sintel": {
+  "root": "C:\\Users\\akash\\Documents\\datasets\\MPI-Sintel",
+  "training_subdirs": [
+   ".AppleDouble",
+   "albedo",
+   "clean",
+   "final",
+   "flow",
+   "flow_viz",
+   "invalid",
+   "occlusions"
+  ],
+  "n_sequences": 23,
+  "n_frames_final": 1064,
+  "n_flow": 1041,
+  "sizes": [
+   [
+    1024,
+    436
+   ]
+  ],
+  "count_rule_violations": [],
+  "per_sequence": {
+   "alley_1": {
+    "final": 50,
+    "clean": 50,
+    "flow": 49,
+    "occlusions": 49,
+    "invalid": 50,
+    "size": [
+     1024,
+     436
+    ]
+   },
+   "alley_2": {
+    "final": 50,
+    "clean": 50,
+    "flow": 49,
+    "occlusions": 49,
+    "invalid": 50,
+    "size": [
+     1024,
+     436
+    ]
+   },
+   "ambush_2": {
+    "final": 21,
+    "clean": 21,
+    "flow": 20,
+    "occlusions": 20,
+    "invalid": 21,
+    "size": [
+     1024,
+     436
+    ]
+   },
+   "ambush_4": {
+    "final": 33,
+    "clean": 33,
+    "flow": 32,
+    "occlusions": 32,
+    "invalid": 33,
+    "size": [
+     1024,
+     436
+    ]
+   },
+   "ambush_5": {
+    "final": 50,
+    "clean": 50,
+    "flow": 49,
+    "occlusions": 49,
+    "invalid": 50,
+    "size": [
+     1024,
+     436
+    ]
+   },
+   "ambush_6": {
+    "final": 20,
+    "clean": 20,
+    "flow": 19,
+    "occlusions": 19,
+    "invalid": 20,
+    "size": [
+     1024,
+     436
+    ]
+   },
+   "ambush_7": {
+    "final": 50,
+    "clean": 50,
+    "flow": 49,
+    "occlusions": 49,
+    "invalid": 50,
+    "size": [
+     1024,
+     436
+    ]
+   },
+   "bamboo_1": {
+    "final": 50,
+    "clean": 50,
+    "flow": 49,
+    "occlusions": 49,
+    "invalid": 50,
+    "size": [
+     1024,
+     436
+    ]
+   },
+   "bamboo_2": {
+    "final": 50,
+    "clean": 50,
+    "flow": 49,
+    "occlusions": 49,
+    "invalid": 50,
+    "size": [
+     1024,
+     436
+    ]
+   },
+   "bandage_1": {
+    "final": 50,
+    "clean": 50,
+    "flow": 49,
+    "occlusions": 49,
+    "invalid": 50,
+    "size": [
+     1024,
+     436
+    ]
+   },
+   "bandage_2": {
+    "final": 50,
+    "clean": 50,
+    "flow": 49,
+    "occlusions": 49,
+    "invalid": 50,
+    "size": [
+     1024,
+     436
+    ]
+   },
+   "cave_2": {
+    "final": 50,
+    "clean": 50,
+    "flow": 49,
+    "occlusions": 49,
+    "invalid": 50,
+    "size": [
+     1024,
+     436
+    ]
+   },
+   "cave_4": {
+    "final": 50,
+    "clean": 50,
+    "flow": 49,
+    "occlusions": 49,
+    "invalid": 50,
+    "size": [
+     1024,
+     436
+    ]
+   },
+   "market_2": {
+    "final": 50,
+    "clean": 50,
+    "flow": 49,
+    "occlusions": 49,
+    "invalid": 50,
+    "size": [
+     1024,
+     436
+    ]
+   },
+   "market_5": {
+    "final": 50,
+    "clean": 50,
+    "flow": 49,
+    "occlusions": 49,
+    "invalid": 50,
+    "size": [
+     1024,
+     436
+    ]
+   },
+   "market_6": {
+    "final": 40,
+    "clean": 40,
+    "flow": 39,
+    "occlusions": 39,
+    "invalid": 40,
+    "size": [
+     1024,
+     436
+    ]
+   },
+   "mountain_1": {
+    "final": 50,
+    "clean": 50,
+    "flow": 49,
+    "occlusions": 49,
+    "invalid": 50,
+    "size": [
+     1024,
+     436
+    ]
+   },
+   "shaman_2": {
+    "final": 50,
+    "clean": 50,
+    "flow": 49,
+    "occlusions": 49,
+    "invalid": 50,
+    "size": [
+     1024,
+     436
+    ]
+   },
+   "shaman_3": {
+    "final": 50,
+    "clean": 50,
+    "flow": 49,
+    "occlusions": 49,
+    "invalid": 50,
+    "size": [
+     1024,
+     436
+    ]
+   },
+   "sleeping_1": {
+    "final": 50,
+    "clean": 50,
+    "flow": 49,
+    "occlusions": 49,
+    "invalid": 50,
+    "size": [
+     1024,
+     436
+    ]
+   },
+   "sleeping_2": {
+    "final": 50,
+    "clean": 50,
+    "flow": 49,
+    "occlusions": 49,
+    "invalid": 50,
+    "size": [
+     1024,
+     436
+    ]
+   },
+   "temple_2": {
+    "final": 50,
+    "clean": 50,
+    "flow": 49,
+    "occlusions": 49,
+    "invalid": 50,
+    "size": [
+     1024,
+     436
+    ]
+   },
+   "temple_3": {
+    "final": 50,
+    "clean": 50,
+    "flow": 49,
+    "occlusions": 49,
+    "invalid": 50,
+    "size": [
+     1024,
+     436
+    ]
+   }
+  },
+  "test_sequences": 12
+ },
+ "virat": [
+  {
+   "root": "C:\\Users\\akash\\Documents\\datasets\\VIRAT",
+   "exists": true,
+   "n_files_any_type": 54,
+   "n_clips": 54,
+   "clips": {
+    "CCTV 01\\VIRAT_S_000002.mp4": {
+     "file_bytes": 641742821,
+     "codec": "h264",
+     "profile": "High",
+     "pix_fmt": "yuv420p",
+     "width": 1920,
+     "height": 1080,
+     "fps_avg": 29.97002997002997,
+     "duration_s": 302.8025,
+     "n_frames_header": 9075,
+     "bitrate_stream_bps": 16951526,
+     "bitrate_file_bps": 16954756.21238266,
+     "has_b_frames_header": true,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "B": 198,
+      "I": 2,
+      "P": 100
+     },
+     "b_frames_present": true
+    },
+    "CCTV 01\\VIRAT_S_000205_02_000409_000566.mp4": {
+     "file_bytes": 163610161,
+     "codec": "mpeg4",
+     "profile": "Simple Profile",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 30.0,
+     "duration_s": 156.33333333333334,
+     "n_frames_header": 4690,
+     "bitrate_stream_bps": 8370374,
+     "bitrate_file_bps": 8372374.976545841,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 10,
+      "P": 290
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_000206_07_001501_001600.mp4": {
+     "file_bytes": 95474104,
+     "codec": "mpeg4",
+     "profile": "Simple Profile",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 30.0,
+     "duration_s": 91.0,
+     "n_frames_header": 2730,
+     "bitrate_stream_bps": 8391292,
+     "bitrate_file_bps": 8393327.824175823,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 10,
+      "P": 290
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_000206_08_001618_001712.mp4": {
+     "file_bytes": 97934316,
+     "codec": "mpeg4",
+     "profile": "Simple Profile",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 30.0,
+     "duration_s": 93.63333333333334,
+     "n_frames_header": 2809,
+     "bitrate_stream_bps": 8365442,
+     "bitrate_file_bps": 8367474.489142043,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 10,
+      "P": 290
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_000207_00_000000_000045.mp4": {
+     "file_bytes": 47534720,
+     "codec": "mpeg4",
+     "profile": "Simple Profile",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 30.0,
+     "duration_s": 45.0,
+     "n_frames_header": 1350,
+     "bitrate_stream_bps": 8448496,
+     "bitrate_file_bps": 8450616.888888888,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 11,
+      "P": 289
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_000207_01_000094_000156.mp4": {
+     "file_bytes": 64667017,
+     "codec": "mpeg4",
+     "profile": "Simple Profile",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 30.0,
+     "duration_s": 61.6,
+     "n_frames_header": 1848,
+     "bitrate_stream_bps": 8396239,
+     "bitrate_file_bps": 8398313.896103896,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 10,
+      "P": 290
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_000207_03_000556_000590.mp4": {
+     "file_bytes": 35693383,
+     "codec": "mpeg4",
+     "profile": "Simple Profile",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 30.0,
+     "duration_s": 34.0,
+     "n_frames_header": 1020,
+     "bitrate_stream_bps": 8396268,
+     "bitrate_file_bps": 8398443.05882353,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 10,
+      "P": 290
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_000207_04_000902_000934.mp4": {
+     "file_bytes": 32929374,
+     "codec": "mpeg4",
+     "profile": "Simple Profile",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 30.0,
+     "duration_s": 31.266666666666666,
+     "n_frames_header": 938,
+     "bitrate_stream_bps": 8423234,
+     "bitrate_file_bps": 8425426.183368871,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 12,
+      "P": 288
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_000207_05_001125_001193.mp4": {
+     "file_bytes": 70865353,
+     "codec": "mpeg4",
+     "profile": "Simple Profile",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 30.0,
+     "duration_s": 67.73333333333333,
+     "n_frames_header": 2032,
+     "bitrate_stream_bps": 8367861,
+     "bitrate_file_bps": 8369923.582677165,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 11,
+      "P": 289
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010000_00_000000_000165.mp4": {
+     "file_bytes": 29989056,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 165.03963287442636,
+     "n_frames_header": 3956,
+     "bitrate_stream_bps": 1452091,
+     "bitrate_file_bps": 1453665.6669767443,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010000_01_000184_000324.mp4": {
+     "file_bytes": 24789774,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 136.29536921151438,
+     "n_frames_header": 3267,
+     "bitrate_stream_bps": 1453479,
+     "bitrate_file_bps": 1455061.8494765842,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010000_02_000388_000421.mp4": {
+     "file_bytes": 5142135,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 24.697538589904045,
+     "n_frames_header": 592,
+     "bitrate_stream_bps": 1663847,
+     "bitrate_file_bps": 1665634.8101351352,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010000_03_000442_000528.mp4": {
+     "file_bytes": 15327931,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 79.55778055903212,
+     "n_frames_header": 1907,
+     "bitrate_stream_bps": 1539698,
+     "bitrate_file_bps": 1541313.0826219192,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010000_04_000530_000605.mp4": {
+     "file_bytes": 13433959,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 73.09136420525657,
+     "n_frames_header": 1752,
+     "bitrate_stream_bps": 1468752,
+     "bitrate_file_bps": 1470374.4165753424,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010000_05_000638_000718.mp4": {
+     "file_bytes": 13335200,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 71.38089278264498,
+     "n_frames_header": 1711,
+     "bitrate_stream_bps": 1492916,
+     "bitrate_file_bps": 1494540.0070134422,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010000_06_000728_000762.mp4": {
+     "file_bytes": 7049131,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 31.956612432206924,
+     "n_frames_header": 766,
+     "bitrate_stream_bps": 1762944,
+     "bitrate_file_bps": 1764675.4054308094,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010000_07_000827_000860.mp4": {
+     "file_bytes": 4548337,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 25.657071339173967,
+     "n_frames_header": 615,
+     "bitrate_stream_bps": 1416416,
+     "bitrate_file_bps": 1418193.6636097562,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010000_08_000893_001024.mp4": {
+     "file_bytes": 25120257,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 117.52190237797247,
+     "n_frames_header": 2817,
+     "bitrate_stream_bps": 1708406,
+     "bitrate_file_bps": 1709996.621341853,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010001_00_000019_000065.mp4": {
+     "file_bytes": 8013521,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 44.180225281602006,
+     "n_frames_header": 1059,
+     "bitrate_stream_bps": 1449383,
+     "bitrate_file_bps": 1451060.233201133,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010001_01_000071_000167.mp4": {
+     "file_bytes": 19047167,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 93.99249061326658,
+     "n_frames_header": 2253,
+     "bitrate_stream_bps": 1619562,
+     "bitrate_file_bps": 1621164.9995206392,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010001_02_000195_000498.mp4": {
+     "file_bytes": 53341399,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 299.87484355444303,
+     "n_frames_header": 7188,
+     "bitrate_stream_bps": 1421473,
+     "bitrate_file_bps": 1423030.978330551,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010001_03_000537_000563.mp4": {
+     "file_bytes": 4264805,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 20.69253233208177,
+     "n_frames_header": 496,
+     "bitrate_stream_bps": 1646994,
+     "bitrate_file_bps": 1648828.6427419356,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010001_04_000583_000646.mp4": {
+     "file_bytes": 11550629,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 61.95244055068836,
+     "n_frames_header": 1485,
+     "bitrate_stream_bps": 1489911,
+     "bitrate_file_bps": 1491547.8902626263,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010001_05_000649_000684.mp4": {
+     "file_bytes": 4580044,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 26.95035460992908,
+     "n_frames_header": 646,
+     "bitrate_stream_bps": 1357783,
+     "bitrate_file_bps": 1359549.9031578947,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010001_06_000685_000722.mp4": {
+     "file_bytes": 6336229,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 33.66708385481852,
+     "n_frames_header": 807,
+     "bitrate_stream_bps": 1503899,
+     "bitrate_file_bps": 1505619.9170260224,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010001_07_000741_000810.mp4": {
+     "file_bytes": 11346143,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 59.073842302878596,
+     "n_frames_header": 1416,
+     "bitrate_stream_bps": 1534895,
+     "bitrate_file_bps": 1536536.9927118644,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010001_08_000826_000893.mp4": {
+     "file_bytes": 11705616,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 58.65665415102211,
+     "n_frames_header": 1406,
+     "bitrate_stream_bps": 1594850,
+     "bitrate_file_bps": 1596492.8336842107,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010001_09_000921_000952.mp4": {
+     "file_bytes": 5578948,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 23.779724655819773,
+     "n_frames_header": 570,
+     "bitrate_stream_bps": 1875078,
+     "bitrate_file_bps": 1876875.5587368421,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010001_10_000962_001005.mp4": {
+     "file_bytes": 6597108,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 35.04380475594493,
+     "n_frames_header": 840,
+     "bitrate_stream_bps": 1504312,
+     "bitrate_file_bps": 1506025.5119999999,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010002_00_000012_000120.mp4": {
+     "file_bytes": 18839268,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 99.16562369628703,
+     "n_frames_header": 2377,
+     "bitrate_stream_bps": 1518223,
+     "bitrate_file_bps": 1519822.4786201094,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010002_01_000123_000148.mp4": {
+     "file_bytes": 4403603,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 22.8619107217355,
+     "n_frames_header": 548,
+     "bitrate_stream_bps": 1539132,
+     "bitrate_file_bps": 1540939.6191240877,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010002_02_000174_000204.mp4": {
+     "file_bytes": 4936405,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 26.700041718815186,
+     "n_frames_header": 640,
+     "bitrate_stream_bps": 1477302,
+     "bitrate_file_bps": 1479070.348125,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010002_03_000236_000261.mp4": {
+     "file_bytes": 4594868,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 21.151439299123904,
+     "n_frames_header": 507,
+     "bitrate_stream_bps": 1736063,
+     "bitrate_file_bps": 1737893.269585799,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010002_04_000307_000350.mp4": {
+     "file_bytes": 6330372,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 37.12974551522737,
+     "n_frames_header": 890,
+     "bitrate_stream_bps": 1362243,
+     "bitrate_file_bps": 1363946.2187865167,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010002_05_000397_000420.mp4": {
+     "file_bytes": 3110525,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 13.266583229036295,
+     "n_frames_header": 318,
+     "bitrate_stream_bps": 1873702,
+     "bitrate_file_bps": 1875705.2641509436,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010002_06_000441_000467.mp4": {
+     "file_bytes": 3514838,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 18.523153942428035,
+     "n_frames_header": 444,
+     "bitrate_stream_bps": 1516160,
+     "bitrate_file_bps": 1518030.0335135136,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010002_07_000522_000547.mp4": {
+     "file_bytes": 3109986,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 15.10221109720484,
+     "n_frames_header": 362,
+     "bitrate_stream_bps": 1645487,
+     "bitrate_file_bps": 1647433.4678453037,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010003_00_000000_000108.mp4": {
+     "file_bytes": 7761191,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 108.01001251564456,
+     "n_frames_header": 2589,
+     "bitrate_stream_bps": 573255,
+     "bitrate_file_bps": 574849.7435921205,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010003_01_000111_000137.mp4": {
+     "file_bytes": 1959468,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 22.27784730913642,
+     "n_frames_header": 534,
+     "bitrate_stream_bps": 701832,
+     "bitrate_file_bps": 703647.1604494383,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010003_02_000165_000202.mp4": {
+     "file_bytes": 5100441,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 35.127242386316226,
+     "n_frames_header": 842,
+     "bitrate_stream_bps": 1159879,
+     "bitrate_file_bps": 1161592.1213301665,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010003_03_000219_000259.mp4": {
+     "file_bytes": 4070280,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 40.00834376303713,
+     "n_frames_header": 959,
+     "bitrate_stream_bps": 812195,
+     "bitrate_file_bps": 813886.2281543274,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010003_05_000499_000523.mp4": {
+     "file_bytes": 2509661,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 22.403003754693366,
+     "n_frames_header": 537,
+     "bitrate_stream_bps": 894374,
+     "bitrate_file_bps": 896187.3246927374,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010003_06_000526_000560.mp4": {
+     "file_bytes": 3727716,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 28.118481435127244,
+     "n_frames_header": 674,
+     "bitrate_stream_bps": 1058817,
+     "bitrate_file_bps": 1060573.9171513352,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010003_07_000608_000636.mp4": {
+     "file_bytes": 1618350,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 20.65081351689612,
+     "n_frames_header": 495,
+     "bitrate_stream_bps": 625103,
+     "bitrate_file_bps": 626938.9818181818,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010003_10_000901_000934.mp4": {
+     "file_bytes": 1785531,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 26.61660408844389,
+     "n_frames_header": 638,
+     "bitrate_stream_bps": 534897,
+     "bitrate_file_bps": 536666.8096551724,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010003_13_001066_001124.mp4": {
+     "file_bytes": 3138067,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 49.77054651647893,
+     "n_frames_header": 1193,
+     "bitrate_stream_bps": 502744,
+     "bitrate_file_bps": 504405.47185247275,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010004_03_000239_000277.mp4": {
+     "file_bytes": 3581354,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 37.12974551522737,
+     "n_frames_header": 890,
+     "bitrate_stream_bps": 769937,
+     "bitrate_file_bps": 771640.947235955,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010004_06_000547_000715.mp4": {
+     "file_bytes": 13910469,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 162.2444722569879,
+     "n_frames_header": 3889,
+     "bitrate_stream_bps": 684326,
+     "bitrate_file_bps": 685901.6547801491,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010004_07_000729_000809.mp4": {
+     "file_bytes": 6582102,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 78.9319983312474,
+     "n_frames_header": 1892,
+     "bitrate_stream_bps": 665500,
+     "bitrate_file_bps": 667116.2153911204,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010004_08_000811_000920.mp4": {
+     "file_bytes": 8734998,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 106.5081351689612,
+     "n_frames_header": 2553,
+     "bitrate_stream_bps": 654504,
+     "bitrate_file_bps": 656099.9672855464,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010005_00_000048_000075.mp4": {
+     "file_bytes": 2463250,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 22.8619107217355,
+     "n_frames_header": 548,
+     "bitrate_stream_bps": 860150,
+     "bitrate_file_bps": 861957.700729927,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010005_02_000177_000203.mp4": {
+     "file_bytes": 3676470,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 25.698790154359617,
+     "n_frames_header": 616,
+     "bitrate_stream_bps": 1142703,
+     "bitrate_file_bps": 1144480.3363636364,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010005_03_000215_000270.mp4": {
+     "file_bytes": 5923687,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 50.98039215686274,
+     "n_frames_header": 1222,
+     "bitrate_stream_bps": 927905,
+     "bitrate_file_bps": 929563.1907692308,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    },
+    "CCTV 01\\VIRAT_S_010005_04_000299_000323.mp4": {
+     "file_bytes": 2421029,
+     "codec": "h264",
+     "profile": "Main",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 23.97,
+     "duration_s": 20.56737588652482,
+     "n_frames_header": 493,
+     "bitrate_stream_bps": 939860,
+     "bitrate_file_bps": 941696.7972413794,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 2,
+      "P": 298
+     },
+     "b_frames_present": false
+    }
+   }
+  },
+  {
+   "root": "C:\\Users\\akash\\Documents\\Iris\\test_data\\Virat",
+   "exists": true,
+   "n_files_any_type": 4,
+   "n_clips": 4,
+   "clips": {
+    "VIRAT_S_000205_03_000860_000922.mp4": {
+     "file_bytes": 63976447,
+     "codec": "mpeg4",
+     "profile": "Simple Profile",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 30.0,
+     "duration_s": 61.2,
+     "n_frames_header": 1836,
+     "bitrate_stream_bps": 8360860,
+     "bitrate_file_bps": 8362934.248366012,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 11,
+      "P": 289
+     },
+     "b_frames_present": false
+    },
+    "VIRAT_S_000205_05_001092_001124.mp4": {
+     "file_bytes": 33529627,
+     "codec": "mpeg4",
+     "profile": "Simple Profile",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 30.0,
+     "duration_s": 31.933333333333334,
+     "n_frames_header": 958,
+     "bitrate_stream_bps": 8397719,
+     "bitrate_file_bps": 8399906.555323591,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 10,
+      "P": 290
+     },
+     "b_frames_present": false
+    },
+    "VIRAT_S_000206_09_001714_001851.mp4": {
+     "file_bytes": 133409530,
+     "codec": "mpeg4",
+     "profile": "Simple Profile",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 30.0,
+     "duration_s": 127.0,
+     "n_frames_header": 3810,
+     "bitrate_stream_bps": 8401737,
+     "bitrate_file_bps": 8403749.921259843,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 10,
+      "P": 290
+     },
+     "b_frames_present": false
+    },
+    "VIRAT_S_000207_02_000498_000530.mp4": {
+     "file_bytes": 32906093,
+     "codec": "mpeg4",
+     "profile": "Simple Profile",
+     "pix_fmt": "yuv420p",
+     "width": 1280,
+     "height": 720,
+     "fps_avg": 30.0,
+     "duration_s": 31.433333333333334,
+     "n_frames_header": 943,
+     "bitrate_stream_bps": 8372638,
+     "bitrate_file_bps": 8374827.486744433,
+     "has_b_frames_header": false,
+     "probe_frames": 300,
+     "pict_counts_first300": {
+      "I": 11,
+      "P": 289
+     },
+     "b_frames_present": false
+    }
+   }
+  }
+ ]
+}
