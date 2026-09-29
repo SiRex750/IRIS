@@ -1,0 +1,39 @@
+{
+ "python": "3.13.3",
+ "pyav": "17.1.0",
+ "ffmpeg": "8.1.1",
+ "ffmpeg_libs": {
+  "libavutil": "60.26.101",
+  "libavcodec": "62.28.101",
+  "libavformat": "62.12.101",
+  "libavdevice": "62.3.101",
+  "libavfilter": "11.14.101",
+  "libswscale": "9.5.101",
+  "libswresample": "6.3.101"
+ },
+ "x264_build": "x264 - core 165",
+ "nvidia": "NVIDIA GeForce RTX 4050 Laptop GPU, 610.74",
+ "numpy": "2.2.6",
+ "sequences": [
+  "alley_1",
+  "ambush_5",
+  "ambush_7",
+  "bandage_2"
+ ],
+ "static_share": {
+  "alley_1": 0.001525,
+  "ambush_5": 0.005861,
+  "ambush_7": 0.793638,
+  "bandage_2": 0.555287
+ },
+ "pass": "final",
+ "gt": "lib/gt_grid.py forward splat onto frame t grid, 4x4 cells, gt_cover >= 0.5",
+ "start_time": "2026-09-29T19:04:32+0530",
+ "git_hash": "b7392cb84508552204b0e999368dc12f939ad7ea",
+ "git_branch": "sonu/p3",
+ "uncommitted_lib_changes": "M p3/lib/encode.py",
+ "lib_encode_diff": "diff --git a/p3/lib/encode.py b/p3/lib/encode.py\nindex c8eb8f2..882f62a 100644\n--- a/p3/lib/encode.py\n+++ b/p3/lib/encode.py\n@@ -1,9 +1,15 @@\n \"\"\"Encode an RGB frame sequence with PyAV under explicit, recorded rate-control knobs.\n \n Supported encoders and knobs:\n-  libx264     crf, preset, bframes, keyint, ref, b_pyramid   (all but crf/preset go through x264-params)\n-  h264_nvenc  qp (constant QP), bframes, keyint, preset, ref, b_ref_mode\n-  mpeg4       q  (fixed quantiser via qmin=qmax=q), bframes, keyint\n+  libx264     crf (or qp for constant QP), preset, bframes, keyint, ref, b_pyramid, threads, b_adapt,\n+              pbratio, me, merange   (all but crf/qp/preset go through x264-params)\n+  h264_nvenc  qp (constant QP), bframes, keyint, preset, ref, b_ref_mode, b_qfactor, b_qoffset\n+  mpeg4       q  (fixed quantiser via qmin=qmax=q), bframes, keyint, threads\n+\n+All knobs added after the first validation default to None = previous behaviour.\n+threads: libx264 -> x264-params threads=N:sliced-threads=0 (PyAV's default is sliced threading with\n+one slice per thread, so slice count depended on the CPU); mpeg4 -> avcodec threads=N (with more than\n+one thread the mpegvideo encoder splits each frame into one video packet per thread).\n \n encode_sequence() returns a record with the exact option dict handed to avcodec, the\n output file size, and the summed packet payload bytes. For libx264 it also returns the\n@@ -26,17 +32,29 @@ def _as_array(f):\n \n \n def build_options(codec, *, crf=None, qp=None, q=None, preset=None, bframes=0, keyint=250, ref=None,\n-                  b_pyramid=None, b_ref_mode=None):\n+                  b_pyramid=None, b_ref_mode=None, threads=None, b_adapt=None, pbratio=None, me=None,\n+                  merange=None, b_qfactor=None, b_qoffset=None):\n     \"\"\"Return the avcodec option dict for one configuration (all values as strings).\"\"\"\n     if codec == \"libx264\":\n-        if crf is None:\n-            raise ValueError(\"libx264 needs crf\")\n+        if (crf is None) == (qp is None):\n+            raise ValueError(\"libx264 needs exactly one of crf / qp\")\n         xp = [f\"bframes={bframes}\", f\"keyint={keyint}\", f\"min-keyint={keyint}\", \"scenecut=0\"]\n         if ref is not None:\n             xp.append(f\"ref={ref}\")\n         if b_pyramid is not None:\n             xp.append(f\"b-pyramid={b_pyramid}\")\n-        opts = {\"crf\": str(crf), \"preset\": preset or \"medium\", \"x264-params\": \":\".join(xp)}\n+        if threads is not None:\n+            xp += [f\"threads={threads}\", \"sliced-threads=0\"]\n+        if b_adapt is not None:\n+            xp.append(f\"b-adapt={b_adapt}\")\n+        if pbratio is not None:\n+            xp.append(f\"pbratio={pbratio}\")\n+        if me is not None:\n+            xp.append(f\"me={me}\")\n+        if merange is not None:\n+            xp.append(f\"merange={merange}\")\n+        rc = {\"crf\": str(crf)} if crf is not None else {\"qp\": str(qp)}\n+        opts = {**rc, \"preset\": preset or \"medium\", \"x264-params\": \":\".join(xp)}\n     elif codec == \"h264_nvenc\":\n         if qp is None:\n             raise ValueError(\"h264_nvenc needs qp\")\n@@ -46,6 +64,10 @@ def build_options(codec, *, crf=None, qp=None, q=None, preset=None, bframes=0, k\n             opts[\"refs\"] = str(ref)\n         if b_ref_mode is not None:\n             opts[\"b_ref_mode\"] = str(b_ref_mode)\n+        if b_qfactor is not None:\n+            opts[\"b_qfactor\"] = str(b_qfactor)\n+        if b_qoffset is not None:\n+            opts[\"b_qoffset\"] = str(b_qoffset)\n     elif codec == \"mpeg4\":\n         if q is None:\n             raise ValueError(\"mpeg4 needs q\")\n@@ -53,6 +75,8 @@ def build_options(codec, *, crf=None, qp=None, q=None, preset=None, bframes=0, k\n         # from each input AVFrame.quality, which PyAV cannot set (it stays 0 -> clamped to q=2\n         # for every q; verified, sizes identical). Pinning qmin=qmax=q forces the quantiser.\n         opts = {\"qmin\": str(q), \"qmax\": str(q), \"bf\": str(bframes), \"g\": str(keyint)}\n+        if threads is not None:\n+            opts[\"threads\"] = str(threads)\n     else:\n         raise ValueError(f\"unsupported codec {codec}\")\n     return opts",
+ "end_time": "2026-09-29T19:12:59+0530",
+ "pilot_runtime_s": 507.14854770000056,
+ "n_failures": 0
+}
