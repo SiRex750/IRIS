@@ -1,0 +1,75 @@
+self-test on Sintel (alley_1) ...
+self-test: 264 counters checked, 0 mismatches
+VIRAT_S_000207_00_000000_000045 done in 35s
+VIRAT_S_000206_07_001501_001600 done in 35s
+VIRAT_S_000205_02_000409_000566 done in 35s
+VIRAT_S_000206_08_001618_001712 done in 35s
+VIRAT_S_000207_03_000556_000590 done in 33s
+VIRAT_S_000207_04_000902_000934 done in 33s
+VIRAT_S_000207_01_000094_000156 done in 34s
+VIRAT_S_000207_05_001125_001193 done in 33s
+VIRAT_S_000002 done in 76s
+VIRAT_S_010000_00_000000_000165 done in 32s
+VIRAT_S_010000_01_000184_000324 done in 33s
+VIRAT_S_010000_02_000388_000421 done in 33s
+VIRAT_S_010000_03_000442_000528 done in 33s
+VIRAT_S_010000_04_000530_000605 done in 33s
+VIRAT_S_010000_05_000638_000718 done in 40s
+VIRAT_S_010000_06_000728_000762 done in 40s
+VIRAT_S_010000_07_000827_000860 done in 41s
+VIRAT_S_010000_08_000893_001024 done in 41s
+VIRAT_S_010001_00_000019_000065 done in 43s
+VIRAT_S_010001_01_000071_000167 done in 46s
+VIRAT_S_010001_02_000195_000498 done in 46s
+VIRAT_S_010001_03_000537_000563 done in 46s
+VIRAT_S_010001_04_000583_000646 done in 46s
+VIRAT_S_010001_05_000649_000684 done in 42s
+VIRAT_S_010001_06_000685_000722 done in 34s
+VIRAT_S_010001_07_000741_000810 done in 34s
+VIRAT_S_010001_08_000826_000893 done in 34s
+VIRAT_S_010001_09_000921_000952 done in 34s
+VIRAT_S_010001_10_000962_001005 done in 34s
+VIRAT_S_010002_00_000012_000120 done in 44s
+VIRAT_S_010002_01_000123_000148 done in 44s
+VIRAT_S_010002_02_000174_000204 done in 45s
+VIRAT_S_010002_03_000236_000261 done in 44s
+VIRAT_S_010002_04_000307_000350 done in 43s
+VIRAT_S_010002_05_000397_000420 done in 40s
+VIRAT_S_010002_06_000441_000467 done in 40s
+VIRAT_S_010003_00_000000_000108 done in 40s
+VIRAT_S_010002_07_000522_000547 done in 40s
+VIRAT_S_010003_01_000111_000137 done in 42s
+VIRAT_S_010003_02_000165_000202 done in 39s
+VIRAT_S_010003_03_000219_000259 done in 39s
+VIRAT_S_010003_05_000499_000523 done in 39s
+VIRAT_S_010003_06_000526_000560 done in 39s
+VIRAT_S_010003_07_000608_000636 done in 37s
+VIRAT_S_010003_10_000901_000934 done in 38s
+VIRAT_S_010003_13_001066_001124 done in 38s
+VIRAT_S_010004_03_000239_000277 done in 38s
+VIRAT_S_010004_06_000547_000715 done in 39s
+VIRAT_S_010004_07_000729_000809 done in 38s
+VIRAT_S_010004_08_000811_000920 done in 46s
+VIRAT_S_010005_00_000048_000075 done in 46s
+VIRAT_S_010005_02_000177_000203 done in 45s
+VIRAT_S_010005_03_000215_000270 done in 45s
+VIRAT_S_010005_04_000299_000323 done in 43s
+                                                                                      prediction   n                                         value    threshold                           verdict
+0  V0 RAFT validity: median |MV - RAFT| < 1.5 px (x264 CRF 12, |RAFT| > 2, top-quartile texture)  10  10/10 clips (median of clip medians 0.40 px)   >= 75% (8)                              PASS
+1                                          V1-stale x264: STALE(CRF 45) - STALE(CRF 12) > 0.0005  10              4/10 clips (median diff 0.00039)   >= 75% (8)  descriptive only (< 20 eligible)
+2                                           V1-stale NVENC: STALE(QP 45) - STALE(QP 18) > 0.0005  10              1/10 clips (median diff 0.00009)   >= 75% (8)  descriptive only (< 20 eligible)
+3                                                      V1-flip x264: FLIP(CRF 45) > FLIP(CRF 18)  54              54/54 clips (median diff 0.0054)  >= 75% (41)                              PASS
+4                                       V1-flip x264: Spearman(CRF, FLIP) over CRF 18..45 >= 0.8  54                51/54 clips (median rho 1.000)  >= 70% (38)                              PASS
+5                                                       V1-flip NVENC: FLIP(QP 45) > FLIP(QP 18)  54             20/54 clips (median diff -0.0018)  >= 75% (41)                              FAIL
+6                                 V2 x264: STALE(B, QP 24 bf 2) - STALE(QP 24 bf 0, d1) > 0.0005  10              0/10 clips (median diff 0.00020)   >= 75% (8)  descriptive only (< 20 eligible)
+7                            V2 NVENC: STALE(B, QP 28 bf 2 B=P) - STALE(QP 28 bf 0, d1) > 0.0005  10              0/10 clips (median diff 0.00022)   >= 65% (7)  descriptive only (< 20 eligible)
+                                                                                      prediction   n                                         value    threshold                           verdict
+0  V0 RAFT validity: median |MV - RAFT| < 1.5 px (x264 CRF 12, |RAFT| > 2, top-quartile texture)  10  10/10 clips (median of clip medians 0.40 px)   >= 75% (8)                              PASS
+1                                          V1-stale x264: STALE(CRF 45) - STALE(CRF 12) > 0.0005  10              4/10 clips (median diff 0.00039)   >= 75% (8)  descriptive only (< 20 eligible)
+2                                           V1-stale NVENC: STALE(QP 45) - STALE(QP 18) > 0.0005  10              1/10 clips (median diff 0.00009)   >= 75% (8)  descriptive only (< 20 eligible)
+3                                                      V1-flip x264: FLIP(CRF 45) > FLIP(CRF 18)  53              53/53 clips (median diff 0.0054)  >= 75% (40)                              PASS
+4                                       V1-flip x264: Spearman(CRF, FLIP) over CRF 18..45 >= 0.8  53                50/53 clips (median rho 1.000)  >= 70% (38)                              PASS
+5                                                       V1-flip NVENC: FLIP(QP 45) > FLIP(QP 18)  53             20/53 clips (median diff -0.0017)  >= 75% (40)                              FAIL
+6                                 V2 x264: STALE(B, QP 24 bf 2) - STALE(QP 24 bf 0, d1) > 0.0005  10              0/10 clips (median diff 0.00020)   >= 75% (8)  descriptive only (< 20 eligible)
+7                            V2 NVENC: STALE(B, QP 28 bf 2 B=P) - STALE(QP 28 bf 0, d1) > 0.0005  10              0/10 clips (median diff 0.00022)   >= 65% (7)  descriptive only (< 20 eligible)
+done in 439s

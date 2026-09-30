@@ -1,0 +1,9 @@
+prediction,n,value,threshold,verdict
+"V0 RAFT validity: median |MV - RAFT| < 1.5 px (x264 CRF 12, |RAFT| > 2, top-quartile texture)",10,10/10 clips (median of clip medians 0.40 px),>= 75% (8),PASS
+V1-stale x264: STALE(CRF 45) - STALE(CRF 12) > 0.0005,10,4/10 clips (median diff 0.00039),>= 75% (8),descriptive only (< 20 eligible)
+V1-stale NVENC: STALE(QP 45) - STALE(QP 18) > 0.0005,10,1/10 clips (median diff 0.00009),>= 75% (8),descriptive only (< 20 eligible)
+V1-flip x264: FLIP(CRF 45) > FLIP(CRF 18),53,53/53 clips (median diff 0.0054),>= 75% (40),PASS
+"V1-flip x264: Spearman(CRF, FLIP) over CRF 18..45 >= 0.8",53,50/53 clips (median rho 1.000),>= 70% (38),PASS
+V1-flip NVENC: FLIP(QP 45) > FLIP(QP 18),53,20/53 clips (median diff -0.0017),>= 75% (40),FAIL
+"V2 x264: STALE(B, QP 24 bf 2) - STALE(QP 24 bf 0, d1) > 0.0005",10,0/10 clips (median diff 0.00020),>= 75% (8),descriptive only (< 20 eligible)
+"V2 NVENC: STALE(B, QP 28 bf 2 B=P) - STALE(QP 28 bf 0, d1) > 0.0005",10,0/10 clips (median diff 0.00022),>= 65% (7),descriptive only (< 20 eligible)
