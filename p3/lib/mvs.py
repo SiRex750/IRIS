@@ -30,8 +30,12 @@ def _pict_name(pt):
         return getattr(pt, "name", str(pt))
 
 
-def extract_mvs(path, want_qp=False, thread_type="AUTO", max_frames=None):
+def extract_mvs(path, want_qp=False, thread_type=None, max_frames=None):
     """Decode `path` and return (frames, seconds).
+
+    thread_type defaults to None: PyAV's default is kept (slice threading only, no frame threading; "single-threaded"
+    in the deviation notes). With "AUTO" (FFmpeg frame threading) the vectors exported for the last frame of a
+    B-frame stream can change from run to run (p3/sweep/DEVIATIONS.md 1).
 
     frames: list (display order) of dicts
       index      0-based display index

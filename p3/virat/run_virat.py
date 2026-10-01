@@ -133,7 +133,7 @@ def decode_source(path, n, fmt="yuv420p"):
     out = []
     with av.open(path) as c:
         st = c.streams.video[0]
-        st.thread_type = "AUTO"
+        # thread_type left at PyAV's default (no frame threading), as lib.mvs.extract_mvs (p3/sweep/DEVIATIONS.md 1)
         fps = st.average_rate
         for f in c.decode(st):
             if fmt == "yuv420p":
