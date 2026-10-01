@@ -20,25 +20,24 @@ dense-then-prune construction — identical nodes and edges, identical edge weig
 tolerance, and bit-identical PageRank across seeds — while visiting only the 0.2% of node
 pairs it retains rather than the 99.8% that pruning discards. This makes construction
 ~234× faster (49.71 s → 0.212 s, interleaved protocol over 159 builds) and ~6.8× smaller
-in peak memory (five fresh-process builds per arm) at a graph of 4,892 nodes [C2.1, C2.2] — on the
-complete-block edge configuration, which is not the sparser tiered configuration our
-accuracy numbers use. The same block structure separates query-latency scaling: over a
-31-clip corpus under real text queries, dense graphs scale with graph size at exponent
-2.06 (95% CI [2.02, 2.13]) and scene-sparse graphs at 0.83 ([0.80, 0.88]) — and past a
-certain size the separation becomes a tractability boundary, where dense *retrieval* fails
-to return within a 3600 s budget on graphs that the sparse path answers in hundredths of a
-second [C1.1, C1.3].
+in peak memory (five fresh-process builds per arm) at a graph of 4,892 nodes [C2.1, C2.2], on the complete-block edge configuration. On the
+official NExT-GQA test set the same graph shows no detected change in grounded accuracy
+against a dense graph (+0.36 points, 95% CI [−0.43, +1.17], 5,553 questions; §6.1). The same block structure separates query-latency scaling: over
+19 measured clips under real text queries, dense graphs scale with graph size at exponent
+2.06 (95% CI [2.02, 2.13]) and scene-sparse graphs at 0.83 ([0.80, 0.88]) — and on the
+two largest clips the dense arm could not complete its measurement within an hour, while
+the sparse path answered in hundredths of a second [C1.1, C1.3].
 
 One of our results is that an efficiency win can fail to matter, and we report it as a
 finding rather than a caveat. The retrieval speedup does not reach the user at the sizes we
 measure: a captioning stage that is O(top_k) rather than O(N) accounts for 85–93% of query
 time and dominates the total, so end-to-end latency does not improve despite a
 retrieval-mechanics speedup of three orders of magnitude; we measure no end-to-end crossover
-and do not project one. Answer quality sits in the weakly-supervised band — Acc@GQA 0.167 on a held-out validation split, with a ~3.4B answerer on CPU — rather than at the agentic state of the art.
+and do not project one. Answer quality sits just below the weakly-supervised band — Acc@GQA 0.138 on the official test set, with a ~3.4B answerer on CPU — and well below the agentic state of the art.
 We report both, and we set kill criteria for two hypotheses we expected to confirm: that
 codec-derived scene boundaries beat content-blind ones (pre-registered), and that codec-based
-frame admission beats uniform sampling (criterion recorded, but its precedence over the run
-cannot be verified). Both criteria triggered. Neither where the video is
+frame admission beats uniform sampling (criterion set in dated planning documents before
+any run). Both criteria triggered. Neither where the video is
 cut nor which frames are kept is doing the work — the block structure is — which is what
 makes the construction cheap, verifiable, and portable across segmentation policies.
 
@@ -51,13 +50,13 @@ embeddings, on CPU, with no generative model at ingest — rather
 than prompting a proprietary MLLM per chunk. A block-diagonal construction that enumerates
 only within-scene pairs is bit-identical to dense-then-prune construction (same nodes,
 edges, weights at zero tolerance, same PageRank) while visiting 0.2% of the pairs, giving
-~234× faster and ~6.8× smaller builds on the complete-block configuration, not the tiered
-one our accuracy numbers use. Query latency separates as
+~234× faster and ~6.8× smaller builds, with no detected change in grounded accuracy on the
+official NExT-GQA test set. Query latency separates as
 graph size grows —
-dense 2.06 (95% CI [2.02, 2.13]) versus sparse 0.83 ([0.80, 0.88]) — becoming a
-tractability boundary where dense retrieval does not return. We are explicit about the
+dense 2.06 (95% CI [2.02, 2.13]) versus sparse 0.83 ([0.80, 0.88]) — and at the
+largest sizes only the sparse arm completes within an hour. We are explicit about the
 limits: a captioning stage dominates end-to-end time, so the retrieval speedup is not
-user-facing, and accuracy sits in the weakly-supervised band. Two negatives under stated
+user-facing, and accuracy sits just below the weakly-supervised band. Two negatives under stated
 kill criteria show the block structure, not the codec signal, carries the result.
 
 ---
@@ -94,9 +93,8 @@ no generative model anywhere in the construction path — an image encoder over 
 frames is the only network involved. We prove, rather than assert, that a block-diagonal
 construction yields the bit-identical graph a dense-then-prune construction produces, and
 measure what that saves. We fit query-latency scaling exponents with confidence intervals
-and locate a tractability boundary where the dense arm stops returning at all. And we report
-two hypotheses that failed their kill criteria (one pre-registered, one whose registration
-date we cannot verify) and one efficiency result that does not survive a
+and measure the sizes at which the dense arm no longer completes within an hour. And we report
+two hypotheses that failed their kill criteria (both with criteria fixed before their runs) and one efficiency result that does not survive a
 full pipeline — which together constrain the claim more usefully than another benchmark row
 would.
 
@@ -119,22 +117,22 @@ The resulting graph is not an approximation of the pruned graph; it is the same 
 verify this with an identity gate rather than a similarity metric: identical node sets,
 identical edge sets, zero mismatches on every edge attribute at tolerance 0.0, bit-identical
 PageRank across all 4,892 nodes, and identical personalised-PageRank ordering and scores
-across five seeds [C2.1]. A downstream gate over 526 grounded-QA questions produces zero
+across five seeds [C2.1]. A downstream gate over the 406 grounded-QA questions of our tuning split produces zero
 behavioural differences [C2.3]. Construction costs 0.212 s instead of 49.71 s (~234×) and
 0.93 GB instead of 6.33 GB (~6.8×) [C2.2].
 
 ### The scaling result
 
 The same block structure changes how query cost grows. Fitting latency against graph size
-over 31 clips under real text queries, dense graphs scale with exponent 2.063 (95% CI
+over 19 clips under real text queries, dense graphs scale with exponent 2.063 (95% CI
 [2.020, 2.125]) while scene-sparse graphs scale at 0.834 ([0.801, 0.884]) — disjoint
 intervals, with the sparse bound below linear [C1.1, C1.5].
 
-Past a certain size this stops being a matter of speed. Under a uniform 3600 s and 29 GB
-watchdog, dense retrieval failed to return at all on clips of 6,559 and 13,506 survivors,
-with memory still climbing at the cap, while sparse retrieval completed the same clips in
-0.0104 s and 0.0210 s [C1.3]. We report this as a tractability boundary rather than a
-speedup ratio, because a censored measurement admits no ratio.
+At the largest sizes the dense arm could not complete its measurement. Under a uniform
+3600 s and 29 GB watchdog over graph build plus 253 timed queries, the dense arm exceeded the
+cap on clips of 6,559 and 13,506 survivors, while sparse retrieval answered them in 0.017 s
+and 0.029 s [C1.3]. The cap bounds the protocol rather than a single query, so we report
+censored measurements, not a speedup ratio and not queries that never return (§5.2).
 
 ### Where the speedup goes, and why that is a result
 
@@ -157,17 +155,19 @@ contradicts (§5.3, §5.4). Anyone optimising retrieval for a captioner-fronted 
 pipeline should measure that stage before optimising further, and we would rather publish
 that than the ratio that flatters us.
 
-**Accuracy sits in the weakly-supervised band, not at the state of the art.** On NExT-GQA
-our held-out Acc@GQA is 0.1667 [0.088, 0.243] with a ~3.4B answerer on CPU [C4.1] —
-comparable to weakly-supervised baselines and well below current agentic methods. This
-paper's claim is that a graph costing 0.212 s to build does not degrade answer quality
-below that band, not that it advances it.
+**Accuracy sits just below the weakly-supervised band, not at the state of the art.** On
+the official NExT-GQA test set, Acc@GQA is 0.1385 with a ~3.4B answerer on CPU — about 2
+points below the weakest weakly-supervised baseline and 11–16 below current agentic methods —
+and the graph that costs 0.212 s to build shows no detected change in grounded accuracy
+against a dense graph (+0.36 points, 95% CI [−0.43, +1.17]; §6.1). The claim is a
+correctness floor, not an advance.
 
 ### Negative results as contributions
 
-We set kill criteria for two hypotheses we expected to confirm, and both triggered. The
-segmentation criterion was pre-registered (B.8); the frame-admission criterion was recorded,
-but we cannot show it preceded its run (B.6), so we do not call it pre-registered. Codec-derived boundary placement does not beat content-blind placement at
+We set kill criteria for two hypotheses we expected to confirm, and both triggered. Both
+criteria were fixed before their runs, in dated records outside version control: the
+segmentation criterion in its commissioning task (B.8), the frame-admission criterion in
+planning documents written before any run (B.6, B.6a). Codec-derived boundary placement does not beat content-blind placement at
 matched segment count: across four segmentation strategies the differences fall within
 noise, and on long videos the codec-versus-matched-count difference is +0.088 M-Avg with a
 95% CI of [−0.009, +0.204]. Codec-based frame admission is statistically indistinguishable
@@ -182,13 +182,13 @@ adopting our codec signal, our segmentation, or our admission policy.
 ### Contributions
 
 1. **A block-diagonal graph construction proven bit-identical** to dense-then-prune under a
-   five-seed identity gate and a 526-question downstream gate, at ~234× lower wall-clock
-   and ~6.8× lower peak memory [C2.1–C2.3]. The result is measured on the complete-block
-   edge configuration; §3.5 and §4.3 state how it relates to the tiered configuration our
-   accuracy numbers use.
-2. **Query-latency scaling exponents with bootstrap confidence intervals** over a 31-clip
-   corpus, establishing quadratic-versus-sublinear separation, together with a tractability
-   boundary at which dense retrieval does not complete [C1.1, C1.5, C1.3].
+   five-seed identity gate and a 406-question downstream gate, at ~234× lower wall-clock
+   and ~6.8× lower peak memory [C2.1–C2.3], with no detected change in grounded accuracy on
+   the official NExT-GQA test set (§6.1); §3.5 and §4.3 relate it to the tiered
+   configuration our MLVU numbers use.
+2. **Query-latency scaling exponents with bootstrap confidence intervals** over 19
+   measured clips, establishing quadratic-versus-sublinear separation, together with
+   measurements at sizes where the dense arm no longer completes [C1.1, C1.5, C1.3].
 3. **A construction path with no generative model in it.** Frame selection performs zero
    neural forward passes, verified by instrumentation rather than asserted from source
    [C5.1, C5.2]; the only network in the path is a CLIP image encoder over admitted frames.
@@ -371,13 +371,14 @@ accuracy rather than answer accuracy alone (§6.1).
 
 The weakly-supervised band on that benchmark is occupied by Temp[CLIP] with NG+ (16.0
 Acc@GQA), SeViLA as reproduced by the benchmark authors (16.6), LangRepo (17.1), and
-FrozenBiLM with NG+ (17.5).
+FrozenBiLM with NG+ (17.5). Our §6.1 test rows use the same full 5,553-question test set.
 
 Two conventions matter for reading any of these numbers. First, published figures are
-computed on the full 5,553-question test set, whereas ours is a 120-question held-out
-split (§6.1). Second, IoP admits more than one definition, and the union convention is
-biased upward relative to the benchmark's max-per-span convention — a distinction we flag
-because it determines whether grounding figures are comparable at all.
+computed on the full 5,553-question test set; our official-test rows (§6.1) are too, while
+our earlier held-out validation figure is a 120-question carve. Second, IoP admits more than
+one definition, and the union convention is biased upward relative to the benchmark's
+max-per-span convention — a distinction we flag because it determines whether grounding
+figures are comparable at all. Our official-test figures use the benchmark's convention.
 
 ### 2.4 Agentic and grounder-based methods
 
@@ -444,7 +445,7 @@ we present them as such.
 
 Against EgoSG and its family, we replace a frontier-model-generated symbolic graph with a
 structurally-constructed embedding graph: far cheaper, verifiable, parallel, locally
-runnable — and semantically poorer. Against grounded-QA baselines, we land in the
+runnable — and semantically poorer. Against grounded-QA baselines, we land just below the
 weakly-supervised band while training nothing and running on CPU. Against the agentic
 frontier, we are a band behind on accuracy and orders of magnitude ahead on construction
 cost.
@@ -470,19 +471,21 @@ the container — the distinction matters for every scaling figure we report.
 **Figure 1.** The pipeline with measured per-stage cost. Construction runs once per video; query costs are medians over five real text queries at N=4,892 on the scene-sparse arm.
 
 
-Ingest demuxes the video and computes, per frame, a scalar **action score** combining
-a codec packet-size residual, motion energy, and luma entropy at weights 0.5 / 0.3 / 0.2.
-Packet size stands in for the residual signal here because it is what the decoder API
-makes available, not because we chose it over a finer-grained alternative: libavcodec
-exposes motion vectors as side data (`EXPORT_MVS`) but exposes no coefficient-level
-residual, no per-block quantisation parameter, and no reconstruction-error signal, so a
-frame-level packet-size proxy is the only route to a residual-shaped channel available
-through this tooling. Frames are
-assigned to tiers by thresholding this signal (`salient_thresh` 0.35, `candidate_thresh`
-0.08) with adaptive per-video thresholding enabled, and local maxima are marked as peaks
-via `argrelextrema` with a window of 3. Admitted frames — the survivors — are the input to
-everything downstream; production retention across the annotated corpus falls between
-10.41% and 11.14% [C3.4].
+Ingest demuxes the video and admits frames from the packet-size curve alone: I-frames and
+packet-curve peaks are always kept, and any other frame is kept when its packet size clears
+per-scene adaptive thresholds (`salient_thresh` 0.35, `candidate_thresh` 0.08 before
+adaptation; `iris/charon_v.py::parse_video`). Packet size stands in for the residual signal
+here because it is what the decoder API makes available, not because we chose it over a
+finer-grained alternative: libavcodec exposes motion vectors as side data (`EXPORT_MVS`) but
+exposes no coefficient-level residual, no per-block quantisation parameter, and no
+reconstruction-error signal, so a frame-level packet-size proxy is the only route to a
+residual-shaped channel available through this tooling. Admitted frames — the survivors —
+are the input to everything downstream; retention across the annotated corpus falls between
+10.41% and 11.14% [C3.4]. Each survivor then receives a scalar **action score** combining the
+packet-size residual, motion energy and luma entropy at weights 0.5 / 0.3 / 0.2
+(`iris/ingest.py`). The score enters edge weights (§3.6) but does not decide admission: under
+the default `retrieval_strategy="hybrid"` every survivor is indexed, so retention does not
+depend on the salience weights.
 
 **No neural network runs during ingest.** We verify this by instrumentation rather than
 inspection: monkeypatching `torch.nn.Module.__call__` for the duration of every
@@ -604,7 +607,7 @@ mechanism is exact.
 
 Retrieval ranks scenes by the best per-frame CLIP similarity within each, then computes
 `margin = anchor_sim − runner_up_sim` between the top two shortlisted scenes. If
-`margin > τ` (`scene_shortcut_margin`, default 0.05) the exact top-k from the anchor scene
+`margin > τ` (`scene_shortcut_margin`, default 0.015) the exact top-k from the anchor scene
 is returned directly and the union-subgraph PPR is skipped. Crucially, when only one scene
 is shortlisted the margin is set to infinity — there is nothing to descend across — so the
 shortcut fires deterministically. Both conditions become more likely as S falls, which is
@@ -621,10 +624,11 @@ per experiment which was used rather than describing a single "frozen configurat
 | experiment | `graph_mode` | `graph_edge_mode` |
 |---|---|---|
 | §4.1 identity gate, §4.2 build savings | `scene_sparse` | `fully_connected` ↔ `block_diagonal` |
-| §5.1–5.2 scaling exponents, tractability | `flat` / `scene_sparse` | `fully_connected` |
+| §5.1–5.2 scaling exponents, largest sizes | `flat` / `scene_sparse` | `fully_connected` |
 | §5.3 end-to-end, §5.4 caption stage | `scene_sparse` | `hierarchical_sparse` |
 | §6.2 MLVU, §7.1 segmentation ablation | `scene_sparse` | `hierarchical_sparse` |
-| §6.1 NExT-GQA grounded QA | `flat` | — (see below) |
+| §6.1 NExT-GQA official test, arms S / F | `scene_sparse` / `flat` | `block_diagonal` / — |
+| §6.1 NExT-GQA held-out validation (superseded) | `flat` | — (see below) |
 
 Two clarifications keep this from reading as an inconsistency.
 
@@ -674,11 +678,12 @@ sub-quadratic exponent depends on, now confirmed rather than assumed. **This is 
 of the `fully_connected`/`block_diagonal` graphs specifically, not a property claimed for
 the system as a whole**, and the next paragraph states why that scope matters.
 
-**The scaling argument and the accuracy results rest on different graph constructions, and
-that gap has not been closed.** §5.1's scaling corpus — all 33 cached indices this paper
+**For MLVU, the scaling argument and the accuracy results rest on different graph
+constructions, and that gap has not been closed.** (For NExT-GQA it is closed: §6.1's
+official test run measures accuracy on the complete-block graph.) §5.1's scaling corpus — all 33 cached indices this paper
 draws on — is built entirely under `graph_edge_mode ∈ {fully_connected, block_diagonal}`.
-The `hierarchical_sparse` tiered path is what actually produced every accuracy number in
-this paper (§5.3 end-to-end, §5.4 caption-stage, §6.2 MLVU, §7.1 segmentation ablation). No
+The `hierarchical_sparse` tiered path produced the §5.3–§5.4 timings and the §6.2 MLVU and
+§7.1 segmentation accuracy numbers. No
 cached index *in that 33-clip corpus* contains a single `temporal`, `hierarchy_*`,
 `semantic_salient`, or `motion_neighbor` edge — every cache in it was built under one of
 the two other modes. A single `hierarchical_sparse` cache has since been built and measured
@@ -790,10 +795,13 @@ they agree exactly [C2.1]:
 - **PageRank** bit-identical across all 4,892 nodes.
 - **Personalised PageRank** top-20 ordering and exact scores identical across five seeds.
 
-**The two paths are also indistinguishable at the end of the pipeline.** Over 526 NExT-GQA
-validation questions, the `fully_connected` and `block_diagonal` construction paths produce
+**The two paths are also indistinguishable at the end of the pipeline.** Over the 406
+questions of our NExT-GQA tuning split, the `fully_connected` and `block_diagonal` construction paths produce
 bit-identical retrieval — identical retrieved order, peak frame, predicted span, IoP, and
-peak-in-gold on every question (peak-in-gold 0.3175 and mIoP 0.3140 under both) [C2.3]. The
+peak-in-gold on every question (peak-in-gold 0.3177 and mIoP 0.3160 under both) [C2.3; `blockdiag_grounding_gate_tuning_only.json`].
+An earlier run of this gate, over all 526 pool questions, also touched the 27 held-out
+validation videos after that split had closed; nothing was tuned or selected from it, and
+the tuning-only re-run above (commit `7361be7`) is the one we cite. The
 gate left its inputs untouched: both NExT-GQA index caches were sha256-identical before and
 after the run. We run this second gate because graph identity does not by itself guarantee
 identical downstream behaviour.
@@ -940,8 +948,10 @@ configuration table in §3.5.
 **Figure 3.** Fitted query-latency exponents with clip-level bootstrap confidence intervals. The headline intervals are disjoint and the scene-sparse bound lies below linear.
 
 
-We fit log(latency) = k·log(N) + c per arm over a corpus of 31 measured clips drawn from
-UCF-Crime (Anomaly-Part-1 and Testing_Normal_Videos), under **real CLIP text queries**
+We fit log(latency) = k·log(N) + c per arm over the 19 UCF-Crime clips (Anomaly-Part-1 and
+Testing_Normal_Videos) of a 31-clip survivor census whose latency was measured — 17 for the
+dense arm, whose two largest are censored; the census's one VIRAT clip is excluded as
+cross-dataset — under **real CLIP text queries**
 (50 queries per clip), with clip-level bootstrap confidence intervals (seed 42,
 B=10,000, resampling clips within each N-bucket and refitting) [C1.1, C1.5].
 
@@ -972,13 +982,13 @@ graphs — and because it is the conservative choice.
 
 1. **Thin support at large N.** Bin occupancy against a target of five clips per bin:
    N≈1102 has 7, N≈2963 has 2, N≈6559 has 2, N≈13506 has 1. The measured survivor-N
-   distribution is heavily weighted toward small graphs (median N=333; 24 of 31 clips
-   below N=1000). The headline fits rest on 4 dense and 6 sparse points.
+   distribution is heavily weighted toward small graphs (census median N=333; 24 of 31 census
+   clips below N=1000). The headline fits rest on 4 dense and 6 sparse points.
 2. **A shortcut-branch guard violation, with the mechanism now identified.** Two small-N
    clips (Assault036, N=97; Abuse037, N=188) took a scene-sparse shortcut path on 20% and
    10% of queries respectively, violating a pre-registered guard that all timed queries
    traverse the PPR path. The mechanism is the margin test of §3.4: when the top two
-   shortlisted scenes are separated by more than τ=0.05, or when only one scene is
+   shortlisted scenes are separated by more than τ=0.015, or when only one scene is
    shortlisted at all, retrieval returns the anchor scene's exact top-k and skips the
    subgraph PPR. Both conditions become more likely as scene count falls, which is why the
    corpus's two smallest clips are the two affected.
@@ -997,8 +1007,8 @@ graphs — and because it is the conservative choice.
    quantity — a genuine `luma_diff_energy` field exists on frame records and is diagnostic
    only, never consumed by the scorer (`eval_results/packet_size_weight_C6.md`). These are the shipped defaults:
    `IRISConfig` declares them and `configs/default_iris_config.json` overrides none of the
-   three, so survivor-N values here are directly comparable to retention figures computed
-   under the production configuration.
+   three. Admission does not read these weights (§3.1), so survivor-N values do not depend
+   on them.
 
    An earlier draft described this as a *deviation* from a frozen production default of
    (0.8, 0.1, 0.1). That triple does exist, but not as an IRIS default: it appears in the
@@ -1036,21 +1046,29 @@ graphs — and because it is the conservative choice.
    degree there but does not establish degree-vs-N behaviour for the tiered path (§3.5;
    item 37, RESOLVED IN PART).
 
-### 5.2 Tractability divergence
+### 5.2 Behaviour at the largest sizes
 
-**At the largest sizes we measured, the dense arm does not return at all** — a capability
-difference that the exponent separation understates. Under a uniform 3600 s wall-clock and
-29 GB memory watchdog, the dense arm was censored at N=6,559 (Arrest047) and N=13,506
-(Arson019), with resident memory at 17.0 GB and 26.9 GB respectively and still climbing at
-the cap. The scene-sparse arm completed the same two clips in 0.0104 s and 0.0210 s [C1.3].
-Unlike the latency results below, this is not subject to Amdahl dilution: a query that never
-returns cannot be rescued by a fast downstream stage.
+Each arm's measurement is one protocol under a uniform watchdog of 3600 s wall time and
+29 GB memory: index load and graph build, then 3 warm-up and 250 timed queries. At N=6,559
+(Arrest047) and N=13,506 (Arson019) the dense arm exceeded the wall cap, with resident memory
+at 18.1 GB and 26.9 GB and still rising when stopped; the scene-sparse arm completed both, at
+medians of 0.017 s and 0.029 s per query (v2 text-query run, carried into
+`scaling_curve_v3.json`) [C1.3].
 
-The censoring bounds what can be said quantitatively, and we say only that much. This is a
-**tractability boundary, not a speedup ratio**: the dense measurements are censored, so any
-ratio computed against them is a lower bound on an unknown quantity. Substituting the cap as
-a floor value and refitting gives k ≥ 2.597 for the dense arm — a bound, not an estimate,
-and we attach no confidence interval to it.
+**The censoring is easy to overstate.** The cap bounds the whole protocol, not one query, so
+these runs do not show that a single dense query fails to return: extrapolating the §5.1 fit
+gives roughly 16 s and 70 s per query, an extrapolation rather than a measurement. They do
+show cost at the level of the graph. The dense graph at N=6,559 has 21.5 million edges, which
+at the memory per edge measured at N=4,892 (about 690 bytes) accounts for the 18.1 GB
+observed, so it was built and was being queried; at N=13,506 it has 91 million edges and
+would need roughly 64 GB, beyond this machine, consistent with a build still growing at the
+cap. We fit nothing to these two clips and do not substitute the cap as a latency, since it
+bounds the protocol rather than any query; the artifact's lower-bound variant (k ≥ 2.597)
+makes exactly that substitution and is withdrawn (`eval_results/scaling_curve_v3_ERRATA.md`).
+The scene-sparse arm's own peak here was 25.1 GB, because this run predates block-diagonal
+construction and built its graph dense-then-prune — the cost §4 removes. Earlier drafts
+quoted 0.0104 s and 0.0210 s and 17.0 GB; those figures come from the superseded v2
+synthetic-query run.
 
 ### 5.3 End-to-end accounting: where the speedup goes
 
@@ -1162,7 +1180,7 @@ retrieval mechanics cost less than dense — sits at N≈24 from the §5.1 fits.
 project an end-to-end crossover. Doing so requires assuming the constant stage cost L is
 equal across arms, which this run's own data contradicts (39.9 s vs 62.8 s; see §5.4), and
 a projection built on that assumption returns ~1.15× at N=4,892 against a measured 0.778×.
-The measured tractability boundary in §5.2 is the stronger statement and we rest on it.
+The large-N measurements of §5.2 are the stronger statement, and we rest on them.
 
 ### 5.4 Caption-cache locality (negative result)
 
@@ -1201,8 +1219,8 @@ cache is a production mechanism that persists across a session — so the honest
 of our efficiency claim is that the sparse graph retrieves far more cheaply *and*
 benefits less from cross-query caption reuse.
 
-A build-time caption prefetch over high-centrality nodes would plausibly eliminate this
-cost, given a construction budget of 0.212 s. We have not implemented or measured it.
+Captioning central frames before queries arrive could reduce this cost, at the price of
+running a generative model ahead of query time. We have not implemented or measured it.
 
 ---
 
@@ -1210,21 +1228,63 @@ cost, given a construction budget of 0.212 s. We have not implemented or measure
 
 ## 6. Correctness Floor
 
-This section does not claim competitive accuracy. It claims that a graph costing 0.212 s
-to build, with no generative model in its construction path, and queried by a ~3.4B answerer on CPU,
-does not degrade answer quality below the weakly-supervised band. That is the relevant
-question for an efficiency contribution: a construction saving is uninteresting if the
-resulting system cannot answer anything.
+This section does not claim competitive accuracy. It establishes that the pipeline, with no
+generative model in its construction path and a ~3.4B answerer on CPU, answers just below
+the weakly-supervised band, and that the graph costing 0.212 s to build costs no detectable
+grounded accuracy. That is the relevant question for an efficiency contribution: a
+construction saving is uninteresting if it degrades what the system can answer.
 
 ### 6.1 Grounded QA on NExT-GQA
+
+**Official test set: a registered run (2026-09-27 to 2026-10-01).** We evaluated all 5,553
+questions over 990 videos of the official test split, untouched by any earlier experiment of
+ours, under a pre-registration committed before any test video was downloaded
+(`eval_results/NEXTGQA_official_test_prereg.md`, commit `546d392`; run script `64a3451`;
+results `c590f78`; B.12). Three arms share one ingest, captioner (MiniCPM-V 4.6, 1B, via
+Ollama) and answerer (`granite4:micro`, temperature 0, llama-server b10099 on CPU): **S**, the
+complete-block scene-sparse graph of §4; **F**, the flat graph of the validation result below;
+and **U**, twelve uniformly spaced frames. S and F retrieve twelve frames; scoring uses the
+benchmark's official max-over-gold-spans convention. The run spanned six sessions; each began
+by re-answering 20 questions byte-identically, and every stop came from a guard before any
+answer was affected (`eval_results/NEXTGQA_official_test_sessions.md`).
+
+| arm | Acc@GQA | Acc@QA | mIoP | IoP@0.5 | mIoU |
+|---|---:|---:|---:|---:|---:|
+| S scene-sparse, complete-block | **0.1385** | 0.4021 | 0.2992 | 0.3074 | 0.1724 |
+| F flat | 0.1349 | 0.4018 | 0.2890 | 0.2971 | 0.1653 |
+| U uniform frames | 0.0522 | 0.4322 | 0.2168 | 0.0927 | 0.2128 |
+
+**The cheap construction costs no detectable accuracy.** Paired over the same questions with a
+video-clustered bootstrap (B=10,000, seed 20260927), S−F is +0.0036 in Acc@GQA, 95% CI
+[−0.0043, +0.0117], and +0.0004 in Acc@QA, [−0.0096, +0.0101]. We report this as no detected
+change at n=5,553, not as equivalence; the interval bounds any loss at 0.43 points.
+
+**Two of three predictions failed.** Acc@GQA(S) was predicted in 0.14–0.19 and is 0.1385. Retrieval
+was predicted to beat uniform sampling on answer accuracy; uniform is better, Acc@QA S−U =
+−0.0301, 95% CI [−0.0409, −0.0192]. Uniform frames give the answerer broader context but
+rarely the evidence moment (IoP@0.5 0.093 against 0.307), so U's grounded accuracy is 0.052
+against 0.139: retrieval contributes grounding, not answers. Temporal questions fare worse
+than causal ones (Acc@GQA 0.096 against 0.169 for S).
+
+**Grounding is the larger loss.** Acc@GQA(S) is P(grounded) = 0.307 times P(correct | grounded)
+= 0.450; ungrounded questions are answered at 0.381, a 7-point gap against 15 on the
+validation carve below. Perfect grounding would give 0.450 (+0.31); a perfect answerer over
+current grounding 0.307 (+0.17). F, which has no scene shortlist, grounds no better (0.297).
+
+**Placement.** Against the full-test figures in the table below, S sits about 2 points below
+the weakest weakly-supervised row and 11–16 below the agentic frontier; we claim to beat
+nothing in it.
+
+**The rest of this subsection is the earlier held-out validation result, now superseded by the
+test run above but kept as recorded.**
 
 **Split provenance.** Our evaluation pool is drawn entirely from NExT-GQA's *validation*
 grounding subset (`gsub_val`), intersected with our cached videos: 526 questions over 86
 videos. We partitioned this at the video level into a 59-video tuning half (406 questions)
 and a **27-video held-out validation half** (120 questions). We call the latter a
 *held-out val split* rather than a test split, because it is not the official NExT-GQA
-test set — that set (5,553 questions over 990 videos) is untouched by any experiment in
-this paper.
+test set — that set (5,553 questions over 990 videos) was untouched until the registered
+run above.
 
 On the held-out val split of 120 questions over 27 videos, **Acc@GQA is 0.1667, 95% CI
 [0.088, 0.243]**, with Acc@QA 0.375 [0.275, 0.477] [C4.1]. The answerer is
@@ -1304,9 +1364,8 @@ FrozenBiLM+NG+ (0.175), while running a ~3.4B answerer on CPU with no training.
 figure is n=120 from a held-out *validation* split with an ~8-point interval; every
 published figure in the table is computed on the full 5,553-question **test** set. These
 are not the same measurement, and we place our row to situate the system rather than to
-rank it. We do not claim to have beaten any method in the table, and a genuinely
-comparable number would require running the official test split — which remains available
-to us precisely because we never touched it.
+rank it. We do not claim to have beaten any method in the table; the comparable number is the
+official test run at the start of this subsection.
 
 **The held-out val split is burned.** Both permitted touches have been used, so no further
 measurement on those 27 videos is possible without a new split [C4.6] — a constraint that
@@ -1375,9 +1434,9 @@ not claim a meaningful margin there.
 
 ### 6.3 What this section supports
 
-The system answers. It answers in the band occupied by weakly-supervised methods with
-comparable or larger models, using a graph built in 0.212 s on CPU with no training and
-no frontier model. It does not answer as well as current agentic methods, and where it
+The system answers. It answers just below the band occupied by weakly-supervised methods
+with comparable or larger models, on CPU with no training and no frontier model, and the
+graph built in 0.212 s costs it no detectable grounded accuracy on the official test set. It does not answer as well as current agentic methods, and where it
 fails — directional temporal reasoning, exhaustive counting — the failure is located in
 the answerer rather than in the representation.
 
@@ -1391,10 +1450,10 @@ the answerer rather than in the representation.
 The results in this section are negative. We report them because each was tested
 against a stated kill criterion, each criterion triggered, and together they constrain what a practitioner should spend effort on. They
 also delimit our own contribution: they are the reason §4 claims cheap construction
-rather than better construction. The two criteria differ in standing: §7.1's was
-pre-registered (B.8); §7.2's was recorded, but it entered version control alongside the
-run it governs, so its precedence cannot be verified and we do not describe it as
-pre-registered (B.6).
+rather than better construction. Both criteria were fixed before their runs, in dated
+records outside version control: §7.1's in the task that commissioned the run (B.8), §7.2's
+in planning documents written before any run (B.6a). §7.2's scenario rule was tightened
+after a pilot, which we report where it matters.
 
 ### 7.1 Segmentation placement, once the budget is fixed
 
@@ -1464,6 +1523,9 @@ appears to mean.
 retention, the paired differences are +0.256 pp (95% CI [−0.236, +0.710]) and +0.780 pp
 ([−0.005, +1.753]) on the two informative metrics; both span zero [C3.2]. The admitted
 set sits at the label-blind identity: mean(M2 − retention) = +0.0017 (sd 0.0099) [C3.3].
+Under the scenario rule as first written, these positive point estimates would have counted
+as a win; a margin requirement added after an n=8 pilot does not, and our claim rests on
+the intervals, which span zero either way (B.6a).
 
 **Whether the tie is an artifact of the score wasting its budget is unresolved.** A natural
 objection is that the score might clump its picks onto near-duplicate frames, so that a tie
@@ -1539,24 +1601,24 @@ dense and 6 sparse points. The confidence intervals are tight because the fits a
 not because the support is dense, and additional large-N clips are the obvious way to
 strengthen this — a matter of ingestion effort rather than method.
 
-**8.4 A guard violation in the sparse arm is unexplained.** Two small-N clips took a
-shortcut path on 10–20% of queries, violating a pre-registered guard (§5.1). Both lie
-outside the headline range and excluding them moves the fit by under 2%, but we do not yet
-have a confirmed mechanism. Our working hypothesis — that the shortcut fires more readily
-at small scene counts, where scene-centroid margins are wider — is stated in §3.4 and
-untested.
+**8.4 A guard violation in the sparse arm.** Two small-N clips took the exact shortcut on
+10–20% of queries, violating a pre-registered guard (§5.1). Both lie outside the headline
+range, and excluding them moves the full-range fit from 0.497 to 0.503, against us. The
+mechanism is the §3.4 margin test; that the two smallest clips are the two affected is
+consistent with it but not independently confirmed.
 
-**8.5 Accuracy sits in the weakly-supervised band.** Held-out Acc@GQA is 0.1667
-[0.088, 0.243], comparable to weakly-supervised baselines and roughly 12 points below
-current agentic methods (§6.1). Our claim is that cheap construction does not degrade
-answer quality below that band, not that it advances the state of the art.
+**8.5 Accuracy sits just below the weakly-supervised band.** On the official test set
+Acc@GQA is 0.1385, about 2 points below the weakest weakly-supervised baseline and 11–16
+below current agentic methods, and uniform frame sampling answers more questions correctly
+than retrieval while grounding far fewer (§6.1). Our claim is a correctness floor, not an
+advance.
 
-**8.6 The evaluation splits are constrained.** The NExT-GQA test half is burned: both
-permitted touches are used, and no further test-half measurement is possible without a new
-split. This binds future work on the answerer — which §6.1 identifies as a live target with
-+0.18 of headroom — more than it binds the results reported here. Our MLVU evaluation is
-150 questions across six tasks with videos capped at 600 s, and against uniform frame
-sampling our retrieval advantage is positive but not statistically separated at n=120.
+**8.6 The evaluation splits are constrained.** The NExT-GQA held-out *validation* half is
+burned: both permitted touches are used, and no further measurement on it is possible
+without a new split. The official test split has now been used once (§6.1); any further run
+on it is a second touch. This binds future work on the answerer — a live target with +0.17
+of headroom on the test set — more than it binds the results reported here. Our MLVU evaluation is
+150 questions across six tasks with videos capped at 600 s.
 
 **8.7 Directional temporal reasoning fails, and the failure is not in the graph.** On MLVU,
 Action Order and Action Count fall below chance with parse-failure rates of 4% and 0%, so
@@ -1594,11 +1656,12 @@ alongside the efficiency run is the fix, and it was not done. None of this affec
 §3.1 frame-selection claim itself: 0 neural forward passes is a property of the code path taken,
 not of the hardware it ran on.
 
-**8.10 The construction saving is not yet measured on the evaluated configuration.**
+**8.10 The construction saving is measured on an evaluated configuration only for NExT-GQA.**
 Our construction result (§4) is measured on the complete-block edge configuration, in which
-every intra-scene pair carries an edge. Every accuracy number we report (§6, §7.1) comes
-from the tiered configuration, which shares the block structure but populates each block
-sparsely — 6,284 edges against 23,571 at N=4,892 / S=528.
+every intra-scene pair carries an edge; §6.1's official test run measures grounded accuracy
+on it and detects no change against a dense graph. MLVU (§6.2) and the segmentation
+ablation (§7.1) use the tiered configuration, which shares the block structure but populates
+each block sparsely — 6,284 edges against 23,571 at N=4,892 / S=528.
 
 Block-diagonal construction does not close that gap on its own. The tiered mode selects its
 motion and semantic neighbours by scanning all pairs and retaining a small top-k, so it pays
@@ -1606,25 +1669,22 @@ a quadratic construction pass irrespective of how sparse its output is. Bounding
 to the scene partition would plausibly transfer the saving, but it does not produce the same
 graph: selecting top-k globally and then pruning cross-scene edges is not equivalent to
 selecting top-k within scene, because a node whose best neighbours all lie in other scenes
-currently retains none. The change therefore needs accuracy validation against the
-526-question grounding gate, not a bit-identity proof.
+currently retains none. The change therefore needs accuracy validation, not a bit-identity proof.
 
-We flag this as the most substantive open item in the paper rather than a minor extension.
-It is the difference between a construction result about a configuration we evaluate and one
-about a configuration we do not.
+For MLVU this remains the most substantive open item in the paper.
 
-**8.11 The corpus's encoding profiles are uncharacterised.** UCF-Crime is redistributed web
-video, already compressed before it reached us, so every codec-derived signal we read —
-packet size, motion vectors, the salience channel built from them — is a second-generation
-measurement of an encoding history we did not observe and do not control. Part of our corpus
-is additionally x264-transcoded on top of that. Nor is the corpus codec-homogeneous: the
-flagship VIRAT efficiency clip carries an `mpeg4` codec tag (§4.1, A.5.2), while the UCF-Crime
-accuracy corpus is H.264. We make no claim about how any codec-derived result here would
-behave under a different encoding profile. This is a scope statement, not a weakness we
-believe we have found evidence of: the §3.1 salience channel, §4's construction result
-(built over scene boundaries themselves derived from the codec), §7.1's segmentation null,
-and §7.2's frame-admission negative are all conditioned on the encoding profiles this
-particular corpus happens to carry.
+**8.11 The corpus's encoding profiles are narrow.** A census of 200 UCF-Crime files finds
+198 encoded with one x264 setting — one-pass ABR at 2000 kbps, keyframe interval 250,
+minimum keyframe interval 25, no B-frames, two reference frames — and two MJPEG files
+mislabelled `_x264`, which are outside our sets (`_census/summary.md`). The corpus is
+effectively a single encoder profile: about 73% of files carry I-frames only at frames 0, 250
+and 500 within their first 600 frames, so "always keep I-frames" (§3.1) amounts to periodic
+sampling there. Every codec-derived signal we read is a second-generation measurement of an
+encoding history we did not observe or control. The VIRAT efficiency clip carries an `mpeg4`
+tag (§4.1, A.5.2), and NExT-GQA's videos come from other, uncharacterised sources. The §3.1
+salience channel, §4's construction result (built over codec-derived scene boundaries), §7.1's
+segmentation null and §7.2's admission negative are all conditioned on these profiles; we
+make no claim about others.
 
 **8.12 Some artifacts are not fully traceable.** Appendix A.5 lists each known provenance
 gap and what it limits. The one that bears on a headline figure: the ~6.8× peak-memory
@@ -1641,20 +1701,21 @@ weights at zero tolerance, the same PageRank — while visiting only the pairs i
 rather than the 99.8% it would discard. That makes construction ~234× faster and ~6.8×
 smaller in memory, on CPU, with no neural forward pass during frame selection and no
 generative or proprietary model anywhere in the construction path. The same block structure separates query latency
-into quadratic and sublinear regimes, and at large graph sizes into a boundary where dense
-retrieval does not complete at all.
+into quadratic and sublinear regimes, and at the largest sizes we tested only the sparse arm
+completed within an hour.
 
 We have been deliberate about what this does not establish. The retrieval speedup does not
 reach the user at the sizes we measured, because a constant-cost captioning stage dominates
 the end-to-end path; our sparse retrieval pays a caption-cache penalty that dense retrieval
-avoids precisely because dense retrieval ignores the query; and our answer accuracy sits in
-the weakly-supervised band rather than at the frontier. We report each of these where it
+avoids precisely because dense retrieval ignores the query; and our answer accuracy sits just
+below the weakly-supervised band rather than at the frontier, though on the official test
+set the cheap graph costs no detectable grounded accuracy. We report each of these where it
 arose.
 
 The negative results proved the most useful part of the work. We set kill
 criteria for two hypotheses we expected to confirm — that codec-derived boundary placement
 beats content-blind placement (pre-registered), and that codec-based admission beats uniform
-sampling (criterion recorded; registration date unverifiable, B.6) — and both criteria
+sampling (criterion set in dated planning documents before any run, B.6a) — and both criteria
 triggered. Neither where we cut the video nor which frames we keep is doing
 the work. **What is doing the work is the block structure alone**, which is also what makes
 the result portable: a pipeline can adopt this construction without adopting our
@@ -1867,7 +1928,7 @@ HEAD before the dedup change `90ef59b` on `siddanth/peak-source-a6-p1`.
 
 <!-- open item 23 -> Appendix C -->
 
-| grounding gate: 526 questions, 0 mismatches | `blockdiag_grounding_gate_result.{json,md}` | commit `3d83b2c` on `origin/siddanth/peak-source-a6-p1`, present in the working tree **(verified)**; outcome `GATE_PASS`; all §4.1 figures checked and matching (526 questions across 86 videos, 0 mismatches, peak-in-gold 0.31749 and mIoP 0.31403 identical under both paths); the artifact also reconfirms the frozen flat cell (406 questions, 59 videos, peak-in-gold 0.32266, matching the committed 0.3227) and records both index caches sha256-unchanged across the run |
+| grounding gate: 526 questions, 0 mismatches (superseded for citation by the tuning-only re-run, 406 questions, 0 mismatches, `blockdiag_grounding_gate_tuning_only.{json,md}`, commit `7361be7`) | `blockdiag_grounding_gate_result.{json,md}` | commit `3d83b2c` on `origin/siddanth/peak-source-a6-p1`, present in the working tree **(verified)**; outcome `GATE_PASS`; all §4.1 figures checked and matching (526 questions across 86 videos, 0 mismatches, peak-in-gold 0.31749 and mIoP 0.31403 identical under both paths); the artifact also reconfirms the frozen flat cell (406 questions, 59 videos, peak-in-gold 0.32266, matching the committed 0.3227) and records both index caches sha256-unchanged across the run |
 | pair-visit counts: 11,963,386 dense vs 23,571 block-diagonal | `virat_smoke_N4892_{flat,scenesparse}.json` | `flat_edge_count: 11963386`, `edge_count_matches_theoretical: true`; `scene_sparse_edge_count: 23571`, `block_diagonal_exact: true` |
 | ingest: 0 neural forward passes; 2.945 s / 530 MB over 32 videos | `Iris-ucfvad/tuning/ucfcrime_vad_exp1/efficiency_measurements.json` | **(ledger)**; `tuning/ucfcrime_vad_exp1/efficiency_measurements.json` at `origin/siddanth/ucf-vad-exp1` |
 
@@ -1877,8 +1938,8 @@ HEAD before the dedup change `90ef59b` on `siddanth/peak-source-a6-p1`.
 |---|---|---|
 | exponents: dense 2.063 [2.020, 2.125]; sparse 0.834 [0.801, 0.884] | `scaling_curve_v3.{json,md}` | git HEAD `9c66393d…` (dirty, 94 changed files); committed at `90ef59b`; text queries, 50/clip; bootstrap seed 42, B=10,000, clip-level within-bucket resample + refit |
 | full-range fits: dense 1.980 [1.951, 2.006]; sparse 0.497 [0.461, 0.530] | same | same |
-| censoring: dense timed out at N=6,559 and N=13,506 under 3600 s / 29 GB | same | censoring table in artifact; lower-bound fit k ≥ 2.597 |
-| survivor census: 31 clips, median N=333, bins of 7/2/2/1 | `_ci_survivor_census.json`, `scaling_curve_ci_census.json` | harness `scripts/_ci_survivor_census.py` |
+| censoring: dense protocol (build + 253 queries) exceeded 3600 s at N=6,559 and N=13,506 | same | censoring table in artifact; rows carried from the v2 text-query run; the artifact's lower-bound fit (k ≥ 2.597) is invalid — `scaling_curve_v3_ERRATA.md` |
+| survivor census: 31 clips (30 UCF-Crime + 1 VIRAT), median N=333, bins of 7/2/2/1; the fits use the 19 (dense: 17) clips with measured latency | `_ci_survivor_census.json`, `scaling_curve_ci_census.json` | harness `scripts/_ci_survivor_census.py` |
 | **α/β resolved: `alpha=0.4`, `beta=0.3` in every cache, no variation** | 33 `index_cache/*.npz` manifests, all read directly | `eval_results/beta_provenance_C9.md`; verified via per-clip `config_snapshot`, the same path used for the §5.1 salience-weight check (§5.1, note 3); values are `IRISConfig` dataclass defaults, not either shipped JSON — `configs/default_iris_config.json` (`beta=0.6`, `captioner_backend="minicpm"`) and the `ucf-vad-exp1` worktree config (`beta=0.3`, `captioner_backend="minicpm"`) are both ruled out by the recorded `captioner_backend="moondream"`, supplied only by the dataclass, confirming `ConfigManager` was bypassed for a directly-constructed `IRISConfig`; `Normal_Videos_924`/`935` are excluded from the §5.1 fit for a different field, `graph_edge_mode="block_diagonal"` |
 | shortcut guard violations: Assault036 20%, Abuse037 10% | `scaling_curve_v3.md` guards section | — |
 | retrieval mechanics 7.9448 s vs 0.0072 s (1,104×) | `virat_latency_N4892_{raw.json,result.md}` | run 2026-07-27; 50 **synthetic** queries, `query_seed=20260726`; shortcut fired 0/50; **see A.5.1, A.5.2**; measured under synthetic sampled embeddings, not real CLIP text encoding — real text queries give ≈291× (§5.3) |
@@ -1895,6 +1956,7 @@ HEAD before the dedup change `90ef59b` on `siddanth/peak-source-a6-p1`.
 | P(correct \| grounded) 0.476 vs 0.321 | `P_NOWA_accgqa_result.md` | — |
 | vs uniform +0.120 [0.000, 0.248]; vs random +0.127 [+0.036, +0.229] | same | all three arms run together to avoid a third touch |
 | MLVU M-Avg 0.340, per-task table | `MLVU_codec_baseline.{json,md}` | config hash `e67562fb00850bd1`; seed 42; **commit not recorded — see A.5.3** |
+| official test run: S 0.1385 / F 0.1349 / U 0.0522 Acc@GQA; S−F +0.0036 [−0.0043, +0.0117] | `NEXTGQA_official_test_result.md`, `NEXTGQA_official_test_raw.json`, `NEXTGQA_official_test_sessions.md` | prereg `546d392`; run script `64a3451`; final session at `4fe50e2` (paper-only commit since the script); results committed `c590f78`; captioner `minicpm-v4.6:1b`; llama-server `b10099-1a064ab09`; model blob `6c02683…`; every figure re-derived from the raw rows |
 | competitor figures | primary sources | Xiao et al. Table 3; MUPA Table 1 (**not** its abstract); LangRepo Table 5; SeViLA grounding via the benchmark paper's reproduction |
 
 ### §7 — Negative results
@@ -1903,7 +1965,7 @@ HEAD before the dedup change `90ef59b` on `siddanth/peak-source-a6-p1`.
 |---|---|---|
 | 4-arm segmentation, ≤600 s: 0.340 / 0.393 / 0.320 / 0.353 | `MLVU_ablation.{json,md}` | seed 42, 150 questions, 145 videos |
 | long-video: +0.088 [−0.009, +0.204]; AR +0.176 [0.000, 0.353]; PQA +0.000 | `MLVU_ablation_long_trimmed.{json,md}` | repo HEAD `9c66393d…` (dirty); question-set hash `67647a0ca98f73f6`; video-clustered bootstrap seed 42, B=10,000; premise guard median 581 scenes/video |
-| R0: uniform saturates coverage at 5%; matched-budget nulls | `Iris/r0_full/summary.md` | **verified against artifact** — `r0_full/summary.md` at `origin/sonu/audit-docs`; §7.2 figures checked: M1 = 1.0000 for uniform at every swept budget down to 5%, dM2 +0.256 [−0.236, +0.710], dM3 +0.780 [−0.005, +1.753], mean(M2 − retention) = +0.0017 (sd 0.0099) — all match; contrast is Arm A (production, `is_retained_tier`) vs Arm C (uniform) at Arm A's natural retention of 10.54% |
+| R0: uniform saturates coverage at 5%; matched-budget nulls | `r0_full/summary.md` at `origin/sonu/audit-docs` (Sonu's local checkout is named `Iris/`) | **verified against artifact** — `r0_full/summary.md` at `origin/sonu/audit-docs`; §7.2 figures checked: M1 = 1.0000 for uniform at every swept budget down to 5%, dM2 +0.256 [−0.236, +0.710], dM3 +0.780 [−0.005, +1.753], mean(M2 − retention) = +0.0017 (sd 0.0099) — all match; contrast is Arm A (production, `is_retained_tier`) vs Arm C (uniform) at Arm A's natural retention of 10.54% |
 | T5 shot geometry null; post-hoc dispersion diagnostic (R0 arm 8.4% distinct/mean run 13.19 vs uniform 100%/1.00) | `_shotbucket/run/summary.md` @ `origin/sonu/t5-shotbucket` | verified against artifact |
 
 ### A.4 Determinism and seeds
@@ -2520,6 +2582,51 @@ contrast (shot geometry alone, no score) landed as a **properly powered null**, 
 half-widths excluding a one-point effect. The registration's own guidance — do not re-run
 at new seeds or budgets to hunt for significance, and do not report the positive lean of an
 underpowered contrast as a result — was followed.
+
+### B.12 Official NExT-GQA test set (registered 2026-09-27, commit `546d392`) — *two of three predictions failed*
+
+Registered before any test video was downloaded, and enforced by the run script, which refused
+to start unless the registration commit was an ancestor of `HEAD` and the tracked tree was
+clean. The registration fixed the configuration of three arms (S scene-sparse complete-block,
+F flat, U uniform), the metrics, three predictions and how each outcome would be reported,
+and declared that no configuration change, re-run or subset selection would follow results.
+
+| registered prediction | outcome |
+|---|---|
+| Acc@GQA(S) in 0.14–0.19 | **missed**: 0.1385 |
+| S−F Acc@GQA CI includes zero | **held**: +0.0036 [−0.0043, +0.0117]; reported with the registered wording, "no detected change", not "equivalent" |
+| Acc@QA(S) > Acc@QA(U), CI excluding zero | **failed, opposite direction**: S−U −0.0301 [−0.0409, −0.0192] |
+
+Deviations recorded by the run itself: the official `test.csv` stores answers as option text
+(gold letter derived by exact match; one question with duplicate options accepts either
+letter); the `captioner_backend` field is not read by the caption path, so MiniCPM was
+enforced by asserting the resolved captioner class; the run resumed from its checkpoint.
+Recorded outside the run: the registered answerer binary (b10099, built on a machine that no
+longer exists) was replaced by the official b10099 Windows CPU release of the same source
+revision, confirmed by the server's own `build_info`; the model file is the local
+`granite4:micro` blob `6c02683…`; captioning ran on GPU. Six sessions in all — three stopped
+by the captioner guard (root cause: a third-party application exhausting Windows commit
+memory), one killed when its launching process exited, one ending on an Ollama runner crash —
+none of which let a fallback caption reach an answer (`NEXTGQA_official_test_sessions.md`).
+Every reported figure was re-derived independently from the raw rows. Any further run on
+this split is a second touch.
+
+### B.6a R0 registration record (added 2026-10-01)
+
+B.6 recorded that R0's criterion entered version control alongside its results (`a3d3e95`),
+so git cannot show precedence. The dated planning record outside git can. The scenario rules
+(A: IRIS beats uniform by more than 5 pp on M2, or matches M1 at half budget or less; B and C
+as in `r0_full/summary.md`) and the M1 kill rule ("if uniform's M1 ≥ 0.99 at the matched
+budget, M1 must not lead any paper") were set out in `IRIS_Strategic_Reset_2026-08-02.md` and
+`IRIS_Session_Handoff_2026-08-04.md`, the latter opening "Nothing has been run yet". The V1
+rules were hard-coded in `scripts/r0_gate_smoke.py` at 00:17 on 5 Aug, about a minute before
+the n=8 results; the V2 margin requirement was added at 00:29, after that pilot, and
+`r0_full/summary.md` reports both verdicts. **Under V1 as written, Scenario B fired on the
+point estimates (+0.26 / +0.78 pp); under V2 no scenario matched.** The paper's §7.2 claim
+rests on the confidence intervals, which span zero under either rule. Under the same
+dated-record standard that B.7 and B.8 meet, R0's criteria were specified in advance; the
+dated screenshots of the planning conversations are to be archived alongside
+`r0_full/summary.md`.
 
 ---
 
@@ -3212,3 +3319,39 @@ mapping directly.
 
 **Appendix C status.** All 39 items above are now resolved or explicitly converted into
 a stated limitation, with the per-item disposition recorded inline above this line.
+
+
+### C.40 Corrections, 27 September – 1 October 2026
+
+Appended after the items above were closed; each correction was checked against code, an
+artifact, or a primary source, and the condensed paper (`paper/latex/iris_mmsys27.tex`)
+carries all of them.
+
+1. **§5.2 overstated the censoring.** The 3600 s cap bounded a 253-query protocol, not one
+   query; "dense retrieval does not return" is withdrawn, and so is the k ≥ 2.597 bound, which
+   used the cap as a per-query latency. The sparse figures 0.0104 s / 0.0210 s and the dense
+   17.0 GB came from the superseded v2 synthetic-query run; the text-query figures are
+   0.017 s / 0.029 s and 18.1 GB. See `eval_results/scaling_curve_v3_ERRATA.md`.
+2. **§5.1's corpus is 19 measured clips (17 dense), not 31.** The 31 is the survivor census
+   (30 UCF-Crime + 1 VIRAT); 10 census clips were never latency-measured, and none was
+   measured and dropped. Item 29's "31-clip fit support" describes the census, and its
+   harness attribution should read `scaling_curve_ci.py` driving `scaling_curve_v2.py`.
+3. **§3.1 misdescribed admission.** Admission thresholds packet size in
+   `charon_v.parse_video`; the weighted action score is computed afterwards and does not gate
+   it. Retention therefore does not depend on the salience weights, which narrows item 6's
+   caveat to the action score.
+4. **τ is 0.015**, not 0.05, in §3.4 and §5.1 (`iris_config.py`).
+5. **§8.4 and §8.6 were stale**: the shortcut mechanism is the margin test, and the burned
+   split is the held-out *validation* half.
+6. **§4.1's grounding gate** is cited from the tuning-only re-run (406 questions, `7361be7`);
+   the earlier 526-question run touched the held-out videos after that split closed.
+7. **§6.1 now leads with the official test run (B.12)**, which closes the accuracy gap for
+   NExT-GQA, places accuracy just below the weakly-supervised band, and reverses the
+   validation carve's retrieval-over-uniform direction on answer accuracy.
+8. **§7 and §9**: R0's criteria are described as specified in advance (B.6a), with the V1/V2
+   distinction stated.
+9. **§8.11** now characterises the UCF-Crime encoding profile from Sonu's census.
+10. **Appendix A**: R0's artifact path is `r0_full/summary.md` at `origin/sonu/audit-docs`
+    (the `Iris/` prefix is a local checkout name); the test run and the gate re-run are indexed.
+11. **Bibliography**: MLVU is CVPR 2025 (pp. 13691–13701, twelve authors) and Video-RAG is
+    NeurIPS 2025 with its final author list; unverifiable page numbers were removed.

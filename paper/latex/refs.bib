@@ -82,13 +82,14 @@
   year      = {2021}
 }
 
-% VERIFIED-CITATION (cited by shen2025vgent as arXiv). Published venue NOT verified -- check before camera-ready.
-@misc{zhou2024mlvu,
-  title         = {{MLVU}: A Comprehensive Benchmark for Multi-Task Long Video Understanding},
-  author        = {Zhou, Junjie and Shu, Yan and Zhao, Bo and Wu, Boya and Xiao, Shitao and Yang, Xi and Xiong, Yongping and Zhang, Bo and Huang, Tiejun and Liu, Zheng},
-  year          = {2024},
-  eprint        = {2406.04264},
-  archivePrefix = {arXiv}
+% VERIFIED-PRIMARY (CVF open access + CVPR 2025 proceedings page): published title, 12 authors, pp. 13691-13701.
+% The arXiv v1 title was "MLVU: A Comprehensive Benchmark for Multi-Task Long Video Understanding".
+@inproceedings{zhou2024mlvu,
+  title     = {{MLVU}: Benchmarking Multi-task Long Video Understanding},
+  author    = {Zhou, Junjie and Shu, Yan and Zhao, Bo and Wu, Boya and Liang, Zhengyang and Xiao, Shitao and Qin, Minghao and Yang, Xi and Xiong, Yongping and Zhang, Bo and Huang, Tiejun and Liu, Zheng},
+  booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+  pages     = {13691--13701},
+  year      = {2025}
 }
 
 % VERIFIED-PRIMARY (arXiv:2506.18071v2). Table 1 (NExT-GQA, zero-shot) figures we use, all checked:
@@ -192,8 +193,8 @@
   year      = {2025}
 }
 
-% ---- STANDARD: well-known works; metadata from the authors' knowledge, not re-fetched in this pass.
-% ---- Spot-check each against its publisher page before camera-ready.
+% ---- STANDARD: well-known works; titles, authors and venues are long-established. Spot-checked
+% ---- 2026-10-01: page numbers that could not be confirmed against a source were removed rather than guessed.
 
 @misc{zhu2025internvl3,
   title         = {{InternVL3}: Exploring Advanced Training and Test-Time Recipes for Open-Source Multimodal Models},
@@ -203,19 +204,19 @@
   archivePrefix = {arXiv}
 }
 
-@misc{luo2024videorag,
-  title         = {{Video-RAG}: Visually-aligned Retrieval-Augmented Long Video Comprehension},
-  author        = {Luo, Yongdong and Zheng, Xiawu and Yang, Xiao and Li, Guilin and Lin, Haojia and Huang, Jinfa and Ji, Jiayi and Chao, Fei and Luo, Jiebo and Ji, Rongrong},
-  year          = {2024},
-  eprint        = {2411.13093},
-  archivePrefix = {arXiv}
+% VERIFIED-PRIMARY (arXiv v4 abstract page + NeurIPS 2025 proceedings page): accepted at NeurIPS 2025;
+% final 11-author list (differs from v1, which listed Xiao Yang and omitted Yin and Fu).
+@inproceedings{luo2024videorag,
+  title     = {{Video-RAG}: Visually-aligned Retrieval-Augmented Long Video Comprehension},
+  author    = {Luo, Yongdong and Zheng, Xiawu and Li, Guilin and Yin, Shukang and Lin, Haojia and Fu, Chaoyou and Huang, Jinfa and Ji, Jiayi and Chao, Fei and Luo, Jiebo and Ji, Rongrong},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  year      = {2025}
 }
 
 @inproceedings{zhang2016mvcnn,
   title     = {Real-time Action Recognition with Enhanced Motion Vector {CNNs}},
   author    = {Zhang, Bowen and Wang, Limin and Wang, Zhe and Qiao, Yu and Wang, Hanli},
   booktitle = {Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
-  pages     = {2718--2726},
   year      = {2016}
 }
 
@@ -223,15 +224,15 @@
   title     = {Compressed Video Action Recognition},
   author    = {Wu, Chao-Yuan and Zaheer, Manzil and Hu, Hexiang and Manmatha, R. and Smola, Alexander J. and Kr{\"a}henb{\"u}hl, Philipp},
   booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
-  pages     = {6026--6035},
   year      = {2018}
 }
 
+% VERIFIED-PRIMARY (CVF open access + mlanthology): authors, CVPR 2019, DOI. Pages not shown by either source; omitted.
 @inproceedings{shou2019dmcnet,
   title     = {{DMC-Net}: Generating Discriminative Motion Cues for Fast Compressed Video Action Recognition},
   author    = {Shou, Zheng and Lin, Xudong and Kalantidis, Yannis and Sevilla-Lara, Laura and Rohrbach, Marcus and Chang, Shih-Fu and Yan, Zhicheng},
   booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
-  pages     = {1268--1277},
+  doi       = {10.1109/CVPR.2019.00136},
   year      = {2019}
 }
 
@@ -239,7 +240,6 @@
   title     = {Real-World Anomaly Detection in Surveillance Videos},
   author    = {Sultani, Waqas and Chen, Chen and Shah, Mubarak},
   booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
-  pages     = {6479--6488},
   year      = {2018}
 }
 
@@ -247,7 +247,6 @@
   title     = {A Large-Scale Benchmark Dataset for Event Recognition in Surveillance Video},
   author    = {Oh, Sangmin and Hoogs, Anthony and Perera, Amitha and Cuntoor, Naresh and Chen, Chia-Chih and Lee, Jong Taek and Mukherjee, Saurajit and Aggarwal, J. K. and Lee, Hyungtae and Davis, Larry and others},
   booktitle = {Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
-  pages     = {3153--3160},
   year      = {2011}
 }
 
@@ -263,7 +262,6 @@
   title     = {Topic-Sensitive {PageRank}},
   author    = {Haveliwala, Taher H.},
   booktitle = {Proceedings of the International Conference on World Wide Web (WWW)},
-  pages     = {517--526},
   year      = {2002}
 }
 
