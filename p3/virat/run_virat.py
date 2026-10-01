@@ -128,14 +128,19 @@ def clip_dirs(clip):
 
 
 # --------------------------------------------------------------------------- source
-def decode_source(path, n, fmt="yuv420p"):
-    """First n frames in display order as ndarrays (yuv420p: (1.5H, W) planes; rgb24: (H, W, 3))."""
+def decode_source(path, n, fmt="yuv420p", start=0, min_n=None):
+    """Frames start..start+n-1 in display order as ndarrays (yuv420p: (1.5H, W) planes; rgb24: (H, W, 3)).
+    Fewer than n frames left after `start` is an error unless at least min_n are (then all of them are returned)."""
     out = []
+    seen = 0
     with av.open(path) as c:
         st = c.streams.video[0]
         # thread_type left at PyAV's default (no frame threading), as lib.mvs.extract_mvs (p3/sweep/DEVIATIONS.md 1)
         fps = st.average_rate
         for f in c.decode(st):
+            seen += 1
+            if seen <= start:
+                continue
             if fmt == "yuv420p":
                 if f.format.name != "yuv420p":
                     f = f.reformat(format="yuv420p")
@@ -144,9 +149,21 @@ def decode_source(path, n, fmt="yuv420p"):
                 out.append(f.to_ndarray(format=fmt))
             if len(out) == n:
                 break
-    if len(out) < n:
-        raise RuntimeError(f"source has {len(out)} frames < {n}")
+    need = n if min_n is None else min(n, min_n)
+    if len(out) < need:
+        raise RuntimeError(f"source has {len(out)} frames after frame {start - 1} < {need}")
     return out, fps
+
+
+def count_frames(path, limit):
+    """Decoded frame count, stopping at `limit`."""
+    k = 0
+    with av.open(path) as c:
+        for _ in c.decode(c.streams.video[0]):
+            k += 1
+            if k >= limit:
+                break
+    return k
 
 
 def _se(bits, pos):
@@ -496,7 +513,7 @@ def run_native(clip, path, meta, n, Hc, Wc):
 def _load_clip(path, n):
     clip = os.path.splitext(os.path.basename(path))[0]
     t0 = time.perf_counter()
-    src, fps = decode_source(path, n)
+    src, fps = decode_source(path, n, start=_CFG["start"], min_n=_CFG["min_frames"])
     H, W = src[0].shape[0] * 2 // 3, src[0].shape[1]
     return clip, src, fps, H, W, -(-H // C), -(-W // C), time.perf_counter() - t0
 
@@ -508,9 +525,10 @@ def cpu_clip(path):
     try:
         meta = source_meta(path)
         clip, src, fps, H, W, Hc, Wc, t_dec = _load_clip(path, _CFG["frames"])
-        emit("clip", (clip, {**meta, "decoded_frames": len(src), "fps_used": str(fps), "H": H, "W": W,
+        emit("clip", (clip, {**meta, "start_frame": _CFG["start"], "decoded_frames": len(src), "fps_used": str(fps),
+                             "H": H, "W": W,
                              "Hc": Hc, "Wc": Wc, "decoded_yuv_sha256_cpu": frames_sha256(src)}))
-        log(f"{clip} loaded {len(src)} frames {W}x{H} @ {fps} ({meta['group']}) in {t_dec:.1f}s")
+        log(f"{clip} loaded {len(src)} frames from {_CFG['start']} {W}x{H} @ {fps} ({meta['group']}) in {t_dec:.1f}s")
         d_dir, _ = clip_dirs(clip)
         sp = os.path.join(d_dir, "source.npz")
         if (_CFG["overwrite"] or not os.path.exists(sp)) and disk_ok():
@@ -541,7 +559,7 @@ def gpu_worker(paths, q, cfg):
             break
         try:
             clip, src, fps, H, W, Hc, Wc, t_dec = _load_clip(path, cfg["frames"])
-            emit("clip", (clip, {"decoded_yuv_sha256_nvenc": frames_sha256(src)}))
+            emit("clip", (clip, {"decoded_yuv_sha256_nvenc": frames_sha256(src), "decoded_frames_nvenc": len(src)}))
             for enc in arms:
                 emit("rec", run_arm(enc, clip, src, fps, H, W, Hc, Wc))
             del src
@@ -572,7 +590,6 @@ def raft_all(paths, man, lock):
         log(f"RAFT: model/weights failed, skipping RAFT: {e!r}")
         return
     info["status"] = "running"
-    n = _CFG["raft_frames"]
     for path in paths:
         clip = os.path.splitext(os.path.basename(path))[0]
         out = os.path.join(_CFG["out"], "data", clip, "raft.npz")
@@ -586,7 +603,9 @@ def raft_all(paths, man, lock):
             return
         t0 = time.perf_counter()
         try:
-            rgb, _ = decode_source(path, n, fmt="rgb24")
+            rgb, _ = decode_source(path, _CFG["raft_frames"], fmt="rgb24", start=_CFG["start"],
+                                   min_n=_CFG["min_frames"])
+            n = len(rgb)
             H, W = rgb[0].shape[:2]
             Hc, Wc = -(-H // C), -(-W // C)
             flow_tm1 = np.empty((n - 1, Hc, Wc, 2), np.float16)
@@ -612,7 +631,8 @@ def raft_all(paths, man, lock):
                     scount[t - 1] = np.minimum(g.count, 255).astype(np.uint8)
             del rgb
             save_npz(out, flow_tm1=flow_tm1, splat_t=splat, splat_count=scount, t=np.arange(1, n, dtype=np.int16),
-                     meta=np.array(json.dumps({"clip": clip, "H": H, "W": W, "Hc": Hc, "Wc": Wc, "cell": C,
+                     meta=np.array(json.dumps({"clip": clip, "start_frame": _CFG["start"], "H": H, "W": W, "Hc": Hc,
+                                               "Wc": Wc, "cell": C,
                                                "weights": info["weights"],
                                                "flow_tm1": "flow t-1 -> t (u, v) px, mean over each 4x4 cell of "
                                                            "frame t-1's grid; row i is t = i + 1",
@@ -677,7 +697,11 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=HERE)
     ap.add_argument("--clips", default="", help="comma list of clip stems (default: all)")
-    ap.add_argument("--frames", type=int, default=N_FRAMES)
+    ap.add_argument("--frames", type=int, default=N_FRAMES, help="frames per clip (max if --min-frames is set)")
+    ap.add_argument("--start", type=int, default=0, help="first source frame (display index) to use")
+    ap.add_argument("--min-frames", type=int, default=None,
+                    help="accept clips with at least this many frames from --start (fewer: clip excluded)")
+    ap.add_argument("--exclude", default="", help="comma list of clip stems to exclude")
     ap.add_argument("--raft-frames", type=int, default=None)
     ap.add_argument("--arms", default="", help="comma list of arm ids (default: all)")
     ap.add_argument("--workers", type=int, default=7)
@@ -694,11 +718,24 @@ def main():
     if a.clips:
         want = a.clips.split(",")
         paths = [p for p in paths if os.path.splitext(os.path.basename(p))[0] in want]
+    excluded = {c: "--exclude" for c in a.exclude.split(",") if c}
+    paths = [p for p in paths if os.path.splitext(os.path.basename(p))[0] not in excluded]
+    if a.min_frames is not None:  # exclusion from frame counts only, before anything is encoded
+        keep = []
+        for p in paths:
+            k = count_frames(p, a.start + a.min_frames) - a.start
+            if k < a.min_frames:
+                excluded[os.path.splitext(os.path.basename(p))[0]] = f"{max(k, 0)} frames from {a.start} < {a.min_frames}"
+            else:
+                keep.append(p)
+        paths = keep
     paths.sort(key=lambda p: os.path.splitext(os.path.basename(p))[0] != OUTLIER)  # biggest clip first
     arms = a.arms.split(",") if a.arms else ALL_ARM_IDS
     unknown = set(arms) - set(ALL_ARM_IDS)
     assert not unknown, unknown
+    assert not (a.start and NATIVE in arms), "native arm reads the camera stream from frame 0; not with --start"
     cfg = {"out": a.out, "frames": a.frames, "raft_frames": a.raft_frames or a.frames, "arms": arms,
+           "start": a.start, "min_frames": a.min_frames,
            "overwrite": a.overwrite, "stop_file": os.path.join(a.out, "STOP_DISK")}
     q = mp.get_context("spawn").Queue()
     _init(q, cfg)
@@ -730,10 +767,11 @@ def main():
                       "arm_knobs": {e["id"]: {"codec": e["codec"], "knobs": e["knobs"],
                                               "options": build_options(e["codec"], **e["knobs"])}
                                     for e in CPU_ARMS + GPU_ARMS if e["id"] in arms}},
-           "clips": {}, "runs": [], "raft": {"status": "pending", "clips": {}},
+           "excluded_clips": excluded, "clips": {}, "runs": [], "raft": {"status": "pending", "clips": {}},
            "disk": {"free_start_gb": free0 / 1e9}, "health_summary": {}}
     write_manifest(man)
-    log(f"VIRAT run: {len(paths)} clips, {len(arms)} arms, {a.frames} frames, {a.workers} CPU workers, "
+    log(f"VIRAT run: {len(paths)} clips ({len(excluded)} excluded), {len(arms)} arms, frames {a.start}.."
+        f"{a.start + a.frames - 1}{f' (min {a.min_frames})' if a.min_frames is not None else ''}, {a.workers} CPU workers, "
         f"free disk {free0 / 1e9:.1f} GB, runner commit {man['runner_commit'][:7]}"
         + (f"  UNCOMMITTED: {man['runner_uncommitted_changes']}" if man["runner_uncommitted_changes"] else ""))
 
