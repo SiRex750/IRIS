@@ -1,0 +1,14 @@
+eligible 10 of 54
+PRE-REGISTERED (recomputed):
+ V1-flip x264 CRF45>CRF18 (54, 54)
+ V1-flip NVENC QP45>QP18 (20, 54)
+ V1-stale x264 diff>0.0005 (4, 10)
+ V1-stale NVENC diff>0.0005 (1, 10)
+ V2 x264 diff>0.0005 (0, 10)
+ V2 NVENC diff>0.0005 (0, 10)
+
+EXPLORATORY, NOT PRE-REGISTERED: stale / moving cells, eligible clips, tau=1
+ x264 CRF12->45         increases in 10/10 clips; median 0.036 -> 0.252
+ NVENC QP18->45         increases in 10/10 clips; median 0.036 -> 0.081
+ x264 QP24 bf0->B       increases in 10/10 clips; median 0.022 -> 0.140
+ NVENC QP28 bf0->B=P    increases in 10/10 clips; median 0.022 -> 0.145

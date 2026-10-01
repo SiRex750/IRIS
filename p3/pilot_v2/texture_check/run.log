@@ -1,0 +1,108 @@
+{
+ "quartile_edges_final": [
+  0.3535533905932738,
+  0.6196383476483185,
+  2.023434574884501
+ ],
+ "quartile_edges_clean_own": [
+  0.9378271757109892,
+  2.45940635288052,
+  5.436875661572017
+ ],
+ "encodes": {
+  "x264_crf12": {
+   "final_types": "IPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP",
+   "clean_types": "IPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP",
+   "clean_options": {
+    "crf": "12",
+    "preset": "medium",
+    "x264-params": "bframes=0:keyint=250:min-keyint=250:scenecut=0:ref=1:threads=1:sliced-threads=0"
+   },
+   "clean_kbps": 11878.49856,
+   "clean_sei_threads": "1",
+   "clean_sei_sliced": "0",
+   "clean_slices_per_frame": [
+    1,
+    1
+   ]
+  },
+  "x264_crf23": {
+   "final_types": "IPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP",
+   "clean_types": "IPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP",
+   "clean_options": {
+    "crf": "23",
+    "preset": "medium",
+    "x264-params": "bframes=0:keyint=250:min-keyint=250:scenecut=0:ref=1:threads=1:sliced-threads=0"
+   },
+   "clean_kbps": 2514.88512,
+   "clean_sei_threads": "1",
+   "clean_sei_sliced": "0",
+   "clean_slices_per_frame": [
+    1,
+    1
+   ]
+  },
+  "x264_crf45": {
+   "final_types": "IPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP",
+   "clean_types": "IPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP",
+   "clean_options": {
+    "crf": "45",
+    "preset": "medium",
+    "x264-params": "bframes=0:keyint=250:min-keyint=250:scenecut=0:ref=1:threads=1:sliced-threads=0"
+   },
+   "clean_kbps": 75.77472,
+   "clean_sei_threads": "1",
+   "clean_sei_sliced": "0",
+   "clean_slices_per_frame": [
+    1,
+    1
+   ]
+  }
+ }
+}
+ pass  crf         edges quartile  valid_cells  gt_static_cells  gt_static_share_of_valid  missed_of_valid  stale_of_valid  static_with_mv_ge1  static_no_vector  static_mv_0_to_1
+final   12         final       Q1       333598           323301                    0.9691           0.7024          0.0010              0.4184            0.3063            0.2753
+final   12         final       Q2       333200           317523                    0.9530           0.6478          0.0003              0.3871            0.2928            0.3202
+final   12         final       Q3       334226           246393                    0.7372           0.4166          0.0009              0.2784            0.2867            0.4349
+final   12         final       Q4       333675           171130                    0.5129           0.0605          0.0006              0.0743            0.0436            0.8820
+final   12         final      all      1334699          1058347                    0.7929           0.4567          0.0007              0.3208            0.2552            0.4240
+clean   12 final (fixed)       Q1        97712            94980                    0.9720           0.2181          0.0001              0.1043            0.1201            0.7756
+clean   12 final (fixed)       Q2       130017           124468                    0.9573           0.1938          0.0002              0.0989            0.1036            0.7975
+clean   12 final (fixed)       Q3       359080           306797                    0.8544           0.1347          0.0007              0.0689            0.0888            0.8423
+clean   12 final (fixed)       Q4       747890           532102                    0.7115           0.0463          0.0009              0.0199            0.0451            0.9350
+clean   12 final (fixed)      all      1334699          1058347                    0.7929           0.0970          0.0007              0.0510            0.0714            0.8776
+clean   12   clean (own)       Q1       333674           317304                    0.9509           0.1953          0.0003              0.0970            0.1084            0.7946
+clean   12   clean (own)       Q2       333675           269063                    0.8064           0.1085          0.0008              0.0556            0.0790            0.8654
+clean   12   clean (own)       Q3       333675           238112                    0.7136           0.0563          0.0008              0.0242            0.0547            0.9211
+clean   12   clean (own)       Q4       333675           233868                    0.7009           0.0279          0.0012              0.0104            0.0294            0.9602
+clean   12   clean (own)      all      1334699          1058347                    0.7929           0.0970          0.0007              0.0510            0.0714            0.8776
+final   23         final       Q1       333598           323301                    0.9691           0.6741          0.0008              0.5519            0.1437            0.3044
+final   23         final       Q2       333200           317523                    0.9530           0.6356          0.0007              0.5461            0.1209            0.3330
+final   23         final       Q3       334226           246393                    0.7372           0.4241          0.0014              0.4526            0.1227            0.4247
+final   23         final       Q4       333675           171130                    0.5129           0.0614          0.0009              0.0857            0.0340            0.8803
+final   23         final      all      1334699          1058347                    0.7929           0.4487          0.0010              0.4516            0.1143            0.4341
+clean   23 final (fixed)       Q1        97712            94980                    0.9720           0.1495          0.0003              0.1036            0.0503            0.8462
+clean   23 final (fixed)       Q2       130017           124468                    0.9573           0.1429          0.0010              0.1097            0.0396            0.8507
+clean   23 final (fixed)       Q3       359080           306797                    0.8544           0.1123          0.0015              0.0999            0.0315            0.8686
+clean   23 final (fixed)       Q4       747890           532102                    0.7115           0.0392          0.0014              0.0355            0.0195            0.9449
+clean   23 final (fixed)      all      1334699          1058347                    0.7929           0.0770          0.0013              0.0690            0.0281            0.9029
+clean   23   clean (own)       Q1       333674           317304                    0.9509           0.1442          0.0009              0.1102            0.0415            0.8483
+clean   23   clean (own)       Q2       333675           269063                    0.8064           0.0927          0.0015              0.0862            0.0288            0.8850
+clean   23   clean (own)       Q3       333675           238112                    0.7136           0.0479          0.0013              0.0445            0.0226            0.9329
+clean   23   clean (own)       Q4       333675           233868                    0.7009           0.0233          0.0014              0.0184            0.0148            0.9668
+clean   23   clean (own)      all      1334699          1058347                    0.7929           0.0770          0.0013              0.0690            0.0281            0.9029
+final   45         final       Q1       333598           323301                    0.9691           0.2678          0.0073              0.1537            0.1226            0.7237
+final   45         final       Q2       333200           317523                    0.9530           0.2845          0.0094              0.1758            0.1228            0.7015
+final   45         final       Q3       334226           246393                    0.7372           0.2441          0.0411              0.2151            0.1159            0.6689
+final   45         final       Q4       333675           171130                    0.5129           0.0510          0.0658              0.0759            0.0236            0.9005
+final   45         final      all      1334699          1058347                    0.7929           0.2118          0.0309              0.1621            0.1051            0.7329
+clean   45 final (fixed)       Q1        97712            94980                    0.9720           0.2592          0.0080              0.2283            0.0383            0.7334
+clean   45 final (fixed)       Q2       130017           124468                    0.9573           0.2655          0.0088              0.2409            0.0364            0.7227
+clean   45 final (fixed)       Q3       359080           306797                    0.8544           0.2265          0.0235              0.2331            0.0320            0.7349
+clean   45 final (fixed)       Q4       747890           532102                    0.7115           0.1573          0.0530              0.1991            0.0219            0.7790
+clean   45 final (fixed)      all      1334699          1058347                    0.7929           0.1939          0.0374              0.2165            0.0280            0.7555
+clean   45   clean (own)       Q1       333674           317304                    0.9509           0.2631          0.0095              0.2399            0.0367            0.7234
+clean   45   clean (own)       Q2       333675           269063                    0.8064           0.2036          0.0323              0.2230            0.0295            0.7475
+clean   45   clean (own)       Q3       333675           238112                    0.7136           0.1682          0.0588              0.2111            0.0247            0.7642
+clean   45   clean (own)       Q4       333675           233868                    0.7009           0.1407          0.0492              0.1828            0.0179            0.7993
+clean   45   clean (own)      all      1334699          1058347                    0.7929           0.1939          0.0374              0.2165            0.0280            0.7555

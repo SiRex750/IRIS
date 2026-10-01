@@ -1,0 +1,62 @@
+{
+ "quartile_edges_final": [
+  0.3535533905932738,
+  0.6196383476483185,
+  2.023434574884501
+ ],
+ "quartile_edges_clean_own": [
+  0.9378271757109892,
+  2.45940635288052,
+  5.436875661572017
+ ],
+ "encodes": {
+  "x264_crf12": {
+   "final_types": "IPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP",
+   "clean_types": "IPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP",
+   "clean_options": {
+    "crf": "12",
+    "preset": "medium",
+    "x264-params": "bframes=0:keyint=250:min-keyint=250:scenecut=0:ref=1:threads=1:sliced-threads=0"
+   },
+   "clean_kbps": 11878.49856,
+   "clean_sei_threads": "1",
+   "clean_sei_sliced": "0",
+   "clean_slices_per_frame": [
+    1,
+    1
+   ]
+  },
+  "x264_crf23": {
+   "final_types": "IPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP",
+   "clean_types": "IPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP",
+   "clean_options": {
+    "crf": "23",
+    "preset": "medium",
+    "x264-params": "bframes=0:keyint=250:min-keyint=250:scenecut=0:ref=1:threads=1:sliced-threads=0"
+   },
+   "clean_kbps": 2514.88512,
+   "clean_sei_threads": "1",
+   "clean_sei_sliced": "0",
+   "clean_slices_per_frame": [
+    1,
+    1
+   ]
+  },
+  "x264_crf45": {
+   "final_types": "IPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP",
+   "clean_types": "IPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP",
+   "clean_options": {
+    "crf": "45",
+    "preset": "medium",
+    "x264-params": "bframes=0:keyint=250:min-keyint=250:scenecut=0:ref=1:threads=1:sliced-threads=0"
+   },
+   "clean_kbps": 75.77472,
+   "clean_sei_threads": "1",
+   "clean_sei_sliced": "0",
+   "clean_slices_per_frame": [
+    1,
+    1
+   ]
+  }
+ }
+}
