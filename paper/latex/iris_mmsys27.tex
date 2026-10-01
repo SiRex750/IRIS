@@ -791,8 +791,8 @@ predictions and how each outcome would be reported. Three arms share one
 ingest, captioner (MiniCPM-V 4.6, 1B) and answerer (\texttt{granite4:micro}, temperature 0, CPU):
 \textbf{S}, the complete-block scene-sparse graph of §4; \textbf{F}, the flat graph; and \textbf{U},
 twelve uniformly spaced frames. S and F retrieve twelve frames, and scoring uses the
-benchmark's official convention. The run spanned six sessions; each began by re-answering 20
-questions byte-identically, and every stop came from a guard before any answer was affected.
+benchmark's official convention. The run spanned six sessions, and every stop came from a guard
+before any answer was affected (§8).
 
 \begin{table}[t]
 \footnotesize
@@ -817,7 +817,35 @@ U, uniform frames & \textasciitilde3.4B, CPU & 5.2 & 21.7 & 9.3 \\
 \end{tabular}
 \end{table}
 
-\textbf{The cheap construction costs no detectable accuracy.} Paired over the same questions with a
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}
+\begin{axis}[width=0.64\columnwidth, height=3.6cm, font=\scriptsize,
+  xmin=-5, xmax=12, ymin=0.4, ymax=7.6, xtick={-4,0,4,8,12}, xlabel={paired difference (percentage points)},
+  ytick={1,...,7}, yticklabel style={font=\tiny, align=right},
+  yticklabels={{shot geometry $-$ uniform, M2 (\S7.2)},{codec $-$ uniform, M3 (\S7.2)},{codec $-$ uniform, M2 (\S7.2)},{codec $-$ equal-count, M-Avg (\S7.1)},{S $-$ U, Acc@QA (\S6.1)},{S $-$ F, Acc@QA (\S6.1)},{S $-$ F, Acc@GQA (\S6.1)}},
+  xmajorgrids, grid style={gray!20}, axis y line*=left, axis x line*=bottom]
+\draw[gray!70, dashed] (axis cs:0,0.4) -- (axis cs:0,7.6);
+\draw[-{Stealth[length=1.3mm]}, line width=0.7pt] (axis cs:8.8,4) -- (axis cs:12,4);
+\node[font=\tiny, anchor=south east, inner sep=1pt] at (axis cs:12,4) {to +20.4};
+\addplot+[only marks, mark=*, mark size=1.5pt, black, error bars/.cd, x dir=both, x explicit, error bar style={line width=0.7pt}]
+  coordinates {
+  (0.36,7) += (0.81,0) -= (0.79,0)
+  (0.04,6) += (0.97,0) -= (1.00,0)
+  (-3.01,5) += (1.09,0) -= (1.08,0)
+  (8.8,4) += (0,0) -= (9.7,0)
+  (0.256,3) += (0.454,0) -= (0.492,0)
+  (0.780,2) += (0.973,0) -= (0.785,0)
+  (0.001,1) += (0.420,0) -= (0.417,0)
+  };
+\end{axis}
+\end{tikzpicture}
+\Description{Forest plot of seven paired differences with 95 percent confidence intervals, in percentage points, against a dashed zero line. Scene-sparse minus flat in grounded accuracy: plus 0.36, from minus 0.43 to plus 1.17. Scene-sparse minus flat in answer accuracy: plus 0.04, from minus 0.96 to plus 1.01. Scene-sparse minus uniform in answer accuracy: minus 3.01, from minus 4.09 to minus 1.92, the only interval excluding zero. Codec minus equal-count segmentation in M-Avg on long videos: plus 8.8, from minus 0.9 to plus 20.4. Codec admission minus uniform: M2 plus 0.256, from minus 0.236 to plus 0.710; M3 plus 0.780, from minus 0.005 to plus 1.753. Shot geometry minus uniform, M2: plus 0.001, from minus 0.416 to plus 0.421.}
+\caption{All paired comparisons, with 95\% bootstrap intervals; only uniform's answer-accuracy lead excludes zero.}
+\label{fig:forest}
+\end{figure}
+
+\textbf{The cheap construction costs no detectable accuracy (Figure~\ref{fig:forest}).} Paired over the same questions with a
 video-clustered bootstrap (B=10,000), S\ensuremath{-}F is +0.0036 in Acc@GQA, 95\% CI {[}\ensuremath{-}0.0043, +0.0117{]},
 and +0.0004 in Acc@QA, {[}\ensuremath{-}0.0096, +0.0101{]}. We report this as no detected change at
 n=5,553, not as equivalence; the interval bounds any loss at 0.43 points of grounded accuracy.
@@ -925,21 +953,8 @@ matter; a long-video run (600--1800 s, AR and PQA, 45 videos) tests the regime w
 and the premise holds: codec produced a median of 581 scenes per video (range 174--1319)
 against single digits on short videos.
 
-\begin{table}[t]
-\footnotesize
-\setlength{\tabcolsep}{4pt}
-\caption{Long-video segmentation ablation (600--1800\,s).}
-\begin{tabular}{lrrr}
-\toprule
-arm & AR (n=17) & PQA (n=91) & M-Avg \\
-\midrule
-codec & 0.412 & 0.451 & \textbf{0.431} \\
-equal-count & 0.235 & 0.451 & \textbf{0.343} \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-The codec-minus-equal-count difference is \textbf{+0.088 M-Avg, 95\% CI {[}\ensuremath{-}0.009, +0.204{]}}
+Codec scores M-Avg 0.431 against equal-count's 0.343 (anomaly recognition 0.412 against 0.235,
+n=17; plot QA 0.451 for both, n=91). The difference is \textbf{+0.088 M-Avg, 95\% CI {[}\ensuremath{-}0.009, +0.204{]}}
 (video-clustered bootstrap, seed 42, B=10,000). The interval includes zero, the criterion
 required it to exclude zero, and a tie was registered as failure. The difference did move in
 the predicted direction (\ensuremath{-}0.053 on short videos to +0.088 on long), but all of it is carried
@@ -1026,8 +1041,7 @@ evaluated.
 (§6.1), which binds future answerer work more than the results reported here. MLVU is 150
 questions across six tasks with videos capped at 600 s. The official NExT-GQA test split has now
 been used once (§6.1); any further run on it is a second touch. Three further pre-registrations were
-either superseded by redesigned experiments before running or never run; we draw no
-evidence from them in either direction.
+superseded before running or never run; we draw no evidence from them.
 
 \textbf{Answerer reproducibility is scoped.} §6.1's test run re-answered 20 questions
 byte-identically at the start of each of its six sessions, on its own llama-server build; the
@@ -1060,9 +1074,8 @@ visiting only the pairs it keeps: \textasciitilde234\ensuremath{\times} faster a
 with no generative model in the construction path. The same block structure separates query
 latency into quadratic and sublinear regimes.
 
-It does not make queries faster end to end, because captioning dominates, and accuracy sits
-just below the weakly-supervised band --- though on the official test set the cheap graph costs
-no detectable grounded accuracy. Our two falsified hypotheses, on codec-derived boundaries and codec-based
+It does not make queries faster end to end, and accuracy sits just below the weakly-supervised
+band, though the cheap graph costs no detectable grounded accuracy. Our two falsified hypotheses, on codec-derived boundaries and codec-based
 admission (§7), show that neither where we cut nor which frames we keep does the work.
 \textbf{The block structure alone does}, which is what makes the result portable. For retrieval
 over long video, the intermediate graph does not have to be generated, and does not have to be
