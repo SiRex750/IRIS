@@ -19,14 +19,15 @@ CLIP embeddings, on CPU, with no generative model in the construction path --- a
 construction rather than benchmark it. A block-diagonal construction that enumerates only
 within-scene node pairs is bit-identical to dense-then-prune construction (same nodes,
 edges, weights at zero tolerance, and PageRank) while visiting 0.2\% of the pairs, making
-construction \textasciitilde234\ensuremath{\times} faster and \textasciitilde6.8\ensuremath{\times} smaller in peak memory at 4,892 nodes, on a
-complete-block edge configuration (our accuracy numbers come from other configurations). Query latency
+construction \textasciitilde234\ensuremath{\times} faster and \textasciitilde6.8\ensuremath{\times} smaller in peak memory at 4,892 nodes. On the official
+NExT-GQA test set the cheap graph shows no detected change in grounded accuracy against a dense
+graph (+0.4 points, 95\% CI {[}\ensuremath{-}0.4, +1.2{]}, 5,553 questions). Query latency
 separates with graph size --- exponent 2.06 (95\% CI {[}2.02, 2.13{]}) dense versus 0.83
 ({[}0.80, 0.88{]}) sparse --- and at the largest sizes tested only the sparse arm completes
 within an hour. We also report where this does not help: a captioning stage dominates query time,
-so a three-orders-of-magnitude retrieval speedup yields no end-to-end gain, and accuracy
-sits in the weakly-supervised band (Acc@GQA 0.167 on a held-out validation split, \textasciitilde3.4B
-answerer on CPU). Two falsified hypotheses --- codec-derived scene boundaries and codec-based
+so a three-orders-of-magnitude retrieval speedup yields no end-to-end gain, and grounded
+accuracy sits just below the weakly-supervised band (Acc@GQA 0.138 on the official test set,
+\textasciitilde3.4B answerer on CPU). Two falsified hypotheses --- codec-derived scene boundaries and codec-based
 frame admission, each tested against a stated kill criterion --- show that the block
 structure, not the codec signal, carries the result.
 \end{abstract}
@@ -65,14 +66,15 @@ yields the same graph rather than an approximation of it: identical nodes and ed
 edge-attribute mismatches at tolerance 0.0, bit-identical PageRank, and identical
 personalised-PageRank output across five seeds, with zero behavioural differences
 over 406 grounded-QA questions. Construction time falls from 49.71 s to 0.212 s
-(\textasciitilde234\ensuremath{\times}) and peak memory from 6.33 GB to 0.93 GB (\textasciitilde6.8\ensuremath{\times}). This is measured on the
-complete-block edge configuration; no accuracy number we report is measured on it (§8).
+(\textasciitilde234\ensuremath{\times}) and peak memory from 6.33 GB to 0.93 GB (\textasciitilde6.8\ensuremath{\times}). On the official NExT-GQA test
+set, grounded accuracy on this graph shows no detected change against the flat graph: +0.36
+points, 95\% CI {[}\ensuremath{-}0.43, +1.17{]}, over 5,553 questions (§6.1).
 
 \textbf{Scaling.} The same block structure changes how query cost grows. Over 19 clips under real
 text queries, dense retrieval latency scales with graph size at exponent 2.063 (95\% CI
 {[}2.020, 2.125{]}) and scene-sparse at 0.834 ({[}0.801, 0.884{]}). On the two largest clips
 (6,559 and 13,506 admitted frames) the dense arm could not complete its measurement within an
-hour, and at the larger its graph would not fit in this machine's memory, while sparse
+hour, and at the larger its graph would, by extrapolation, exceed this machine's memory, while sparse
 retrieval answered in 0.017 s and 0.029 s.
 
 \textbf{What does not improve.} We state two limits here because they are results, not
@@ -81,17 +83,18 @@ mechanics fall from 8.535 s to 0.030 s, but a captioning-and-verification stage 
 O(top\_k) rather than O(N), dominates the query; end to end, the sparse arm is slower at the
 median (0.802\ensuremath{\times}). Much recent work reports retrieval-side speedups without measuring the
 pipeline around them. We measure it, and we do not project a crossover, because our own
-data contradict the assumption such a projection needs (§5.3). Second, accuracy sits in the
-weakly-supervised band: held-out Acc@GQA on NExT-GQA is 0.1667 {[}0.088, 0.243{]} with a \textasciitilde3.4B
-answerer on CPU. Grounding there shows that the right evidence reached the answerer, not that
-the query found it: a codec signal steers the same retrieval (§6.1). Our claim is that the
-pipeline answers within that band, not that it advances it.
+data contradict the assumption such a projection needs (§5.3). Second, accuracy sits just below
+the weakly-supervised band: on the official NExT-GQA test set, Acc@GQA is 0.138 with a
+\textasciitilde3.4B answerer on CPU, about 2 points under the weakest baseline, and uniform frame
+sampling answers more questions correctly than retrieval while rarely grounding them (§6.1).
+Grounding shows that the right evidence reached the answerer, not that the query found it: a
+codec signal steers the same retrieval. We claim a correctness floor, not an advance.
 
 \textbf{What does not matter.} We set kill criteria for two hypotheses we expected to confirm,
 and both triggered. Codec-derived scene boundaries do not beat content-blind ones at matched
 segment count (pre-registered; +0.088 M-Avg, 95\% CI {[}\ensuremath{-}0.009, +0.204{]} on long videos), and
 codec-based frame admission is indistinguishable from uniform sampling at matched budget
-(criterion recorded, though we cannot show it preceded the run). Neither where the
+(criterion set before any run). Neither where the
 video is cut nor which frames are kept does the work; the block structure does. A pipeline
 can therefore adopt the construction without our codec signal, segmentation, or admission
 policy.
@@ -103,7 +106,8 @@ policy.
 \tightlist
 \item
   A block-diagonal graph construction shown bit-identical to dense-then-prune, at \textasciitilde234\ensuremath{\times}
-  lower build time and \textasciitilde6.8\ensuremath{\times} lower peak memory on the complete-block configuration (§4).
+  lower build time and \textasciitilde6.8\ensuremath{\times} lower peak memory, with no detected change in grounded accuracy
+  on the official NExT-GQA test set (§4, §6.1).
 \item
   Query-latency scaling exponents with bootstrap confidence intervals over 19 clips, and
   measurements at sizes where the dense arm no longer completes (§5.1--§5.2).
@@ -187,8 +191,8 @@ evidence, reporting Acc@GQA alongside mIoP, IoP@0.5 and mIoU. Its finding that s
 answerers often ground poorly --- right for the wrong reasons --- is why we report grounded
 accuracy rather than answer accuracy alone (§6). The weakly-supervised band there is occupied
 by Temp{[}CLIP{]} with NG+ (16.0 Acc@GQA)~\cite{xiao2024nextgqa}, SeViLA~\cite{yu2023sevila} as reproduced by the benchmark authors (16.6),
-LangRepo~\cite{kahatapitiya2024langrepo} (17.1) and FrozenBiLM~\cite{yang2022frozenbilm} with NG+ (17.5). Published figures use the full 5,553-question
-test set, where ours is a 120-question held-out carve of the validation split (§6).
+LangRepo~\cite{kahatapitiya2024langrepo} (17.1) and FrozenBiLM~\cite{yang2022frozenbilm} with NG+ (17.5). Our §6.1 rows use the same full
+5,553-question test set.
 
 A more recent line attaches an explicit temporal grounder, often with cooperating agents:
 \textbf{MUPA}~\cite{dang2025mupa} reports 28.7 Acc@GQA at 2B and 30.3 at 7B, \textbf{VideoMind}~\cite{liu2025videomind} 25.2 at 2B. These define
@@ -220,7 +224,7 @@ are a \emph{cheap} source of structure, not an \emph{informative} one.
 
 Against EgoSG and its family we replace a frontier-model-generated symbolic graph with a
 structurally-constructed one: built with no generative model, verifiable, parallel, locally
-runnable --- and semantically poorer. Against grounded-QA baselines we land in the weakly-supervised band
+runnable --- and semantically poorer. Against grounded-QA baselines we land just below the weakly-supervised band
 while training nothing and running on CPU; against the agentic frontier we are a band behind
 on accuracy. The claim is narrow: for
 retrieval over long video, the intermediate graph does not have to be expensive, and does not
@@ -405,7 +409,7 @@ experiment & \texttt{graph\_mode} & \texttt{graph\_edge\_mode} \\
 §5.1--5.2 scaling, largest sizes & \texttt{flat} / \texttt{scene\_sparse} & \texttt{fully\_connected} \\
 §5.3--5.4 end-to-end, caption stage & \texttt{scene\_sparse} & \texttt{hierarchical\_sparse} \\
 §6.2 MLVU, §7.1 segmentation ablation & \texttt{scene\_sparse} & \texttt{hierarchical\_sparse} \\
-§6.1 NExT-GQA grounded QA & \texttt{flat} & --- \\
+§6.1 NExT-GQA, arms S / F & \texttt{scene\_sparse} / \texttt{flat} & \texttt{block\_diagonal} / --- \\
 \bottomrule
 \end{tabular}
 \end{table*}
@@ -419,19 +423,17 @@ block structure is common to all three.
 \textbf{They do not produce the same graph within the blocks, and two consequences follow that we
 state rather than gloss.} On the same clip, \texttt{fully\_connected} fills 23,571 intra-scene edges
 where \texttt{hierarchical\_sparse} fills 6,284, roughly 3.75\ensuremath{\times} sparser. First, \textbf{§4's construction
-saving is measured on the complete-block configuration, which produced no accuracy number in
-this paper} --- §6.2 and §7.1 run \texttt{hierarchical\_sparse} and §6.1 a flat dense graph (§4.3
-scopes this). Second,
+saving is measured on the complete-block configuration, on which only §6.1 measures
+accuracy} --- §6.2 and §7.1 run \texttt{hierarchical\_sparse} (§4.3 scopes this). Second,
 \textbf{\texttt{hierarchical\_sparse} pays its own quadratic pass} that block-diagonal construction does
 not remove: motion-neighbour selection scans all N(N\ensuremath{-}1)/2 pairs to keep two per node, and the
 salient-semantic pass scans all pairs among salient nodes. The tiered mode is sparse in its
 \emph{output}, not in its \emph{construction} (§8).
 
-\textbf{The scaling argument and the accuracy results therefore rest on different graph
-constructions, and that gap is open.} No cached index behind §5.1 contains a tiered edge, so the
-degree bound §5.1 fits transfers to the tiered path only through the shared block structure;
-and under \texttt{graph\_mode="flat"} the block-diagonal path is unreachable, so §6.1's results
-are a dense-graph correctness floor, not a measurement of the sparse construction.
+\textbf{For MLVU, the scaling argument and the accuracy results therefore rest on different
+graph constructions, and that gap is open.} No cached index behind §5.1 contains a tiered edge,
+so the degree bound §5.1 fits transfers to the tiered path only through the shared block
+structure. For NExT-GQA the gap is closed: §6.1 measures accuracy on the complete-block graph.
 Per-experiment configuration hashes in the artifacts are the reproducibility anchor.
 
 \subsection{Edge weights}
@@ -451,10 +453,10 @@ fraction of the cost. We establish the identity first and report the savings sec
 construction speedup is uninteresting if it silently changes what is built.
 
 One scope statement belongs here rather than in a footnote. This section concerns the
-\textbf{complete-block} configuration, in which every intra-scene pair carries an edge. No accuracy
-number in this paper is measured on it: §6.2 and §7.1 use the tiered \texttt{hierarchical\_sparse}
+\textbf{complete-block} configuration, in which every intra-scene pair carries an edge. Accuracy is
+measured on it only for NExT-GQA (§6.1): §6.2 and §7.1 use the tiered \texttt{hierarchical\_sparse}
 configuration, which shares the block structure but populates each block sparsely (6,284
-edges against 23,571 on the same clip), and §6.1 a flat dense graph (§3.5). §4.3 states what follows from that.
+edges against 23,571 on the same clip). §4.3 states what follows from that.
 
 \subsection{The identity gate}
 
@@ -474,9 +476,8 @@ peak frame, predicted span, IoP and peak-in-gold on every question (peak-in-gold
 run. We run this second gate because graph identity does not by itself guarantee identical
 downstream behaviour.
 
-What the gate establishes is an equivalence between two construction paths, not a re-run of
-a committed result: no committed grounding number was produced under the complete-block
-configuration, since none of our accuracy arms uses it (§3.5).
+What the gate establishes is an equivalence between two construction paths; §6.1 then
+measures grounded accuracy on the complete-block graph directly, on the official test set.
 
 This is an identity rather than an approximation because cross-scene edges are absent from
 the scene-sparse graph by definition. The reference path computes them and then discards
@@ -549,10 +550,9 @@ downstream stage, because there is no downstream stage inside construction. That
 sense in which it is the more durable of our two efficiency results: §5.3 reports a
 retrieval speedup of three orders of magnitude that nonetheless fails to reach the user.
 
-The limit, stated plainly. The saving is measured on the complete-block configuration, and
-no reported accuracy number comes from it: MLVU and the segmentation ablation use the tiered
-configuration, and NExT-GQA a flat dense graph to which block-diagonal construction cannot
-apply at all. The tiered configuration shares the block structure but not the edge set, and
+The limit, stated plainly. The saving is measured on the complete-block configuration, and on
+NExT-GQA so is accuracy (§6.1); MLVU and the segmentation ablation use the tiered
+configuration. The tiered configuration shares the block structure but not the edge set, and
 block-diagonal construction does not make it cheaper to build: that mode selects neighbours by scanning all pairs and then keeping a few,
 so it pays a quadratic pass of its own (§3). Carrying the result into the tiered
 configuration means bounding those scans to the scene partition --- a change the current
@@ -609,6 +609,9 @@ shape alone --- shallower small-N slope, poorer explanatory power (\(R^2\) 0.898
 that small-N clips sit near a noise floor where fixed per-query overhead dominates; we have
 not verified this directly, and no repeated small-N runs or fitted overhead constant exist.
 The N \ensuremath{\geq} 1102 fit is both the regime this paper is about and the conservative choice.
+The dense arm is the complete graph the scene-sparse graph is pruned from, so the comparison
+measures what the block structure buys over that graph; approximate nearest-neighbour indexes
+are also sublinear, and we make no latency claim against them.
 
 \textbf{Four caveats travel with the fit.}
 
@@ -767,61 +770,34 @@ The double edge is worth stating: the dense arm's caching advantage is a consequ
 retrieval being \emph{less responsive to the query}. The same property that makes it cheap to
 cache makes it a worse retriever. That does not make the cost imaginary --- the caption cache
 persists across a session in production --- so the honest statement is that the sparse graph
-retrieves far more cheaply \emph{and} benefits less from cross-query caption reuse. A build-time
-caption prefetch over high-centrality nodes would plausibly eliminate it, given a 0.212 s
-construction budget; we have not implemented or measured that.
+retrieves far more cheaply \emph{and} benefits less from cross-query caption reuse. Captioning
+central frames before queries arrive could reduce it, at the cost of running a generative model
+ahead of query time; we have not implemented or measured that.
 
 \section{Correctness Floor}
 
-This section does not claim competitive accuracy. It claims that the pipeline, with no
-generative model in its construction path and a \textasciitilde3.4B answerer on CPU, answers within the
-weakly-supervised band. It does not measure the 0.212 s construction of §4: §6.1 runs a flat
-dense graph and §6.2 the tiered one (§3.5). The link to §4 is the identity gate of §4.1,
-which shows the cheap build retrieves identically to dense-then-prune; no answer accuracy is
-measured on either (§8).
+This section does not claim competitive accuracy. It establishes two things: that the pipeline,
+with no generative model in its construction path and a \textasciitilde3.4B answerer on CPU, answers
+just below the weakly-supervised band; and that the cheap construction of §4 costs no
+detectable grounded accuracy. §6.1 measures both on the official NExT-GQA test set; §6.2 uses
+the tiered graph (§3.5).
 
 \subsection{Grounded QA on NExT-GQA}
 
-\textbf{Split provenance.} Our pool is drawn entirely from NExT-GQA's \emph{validation} grounding
-subset (\texttt{gsub\_val}) intersected with our cached videos: 526 questions over 86 videos,
-partitioned at video level into a 59-video tuning half (406 questions) and a \textbf{27-video
-held-out validation half} (120 questions). We call the latter a held-out \emph{val} split, not a
-test split: the official test set (5,553 questions over 990 videos) is untouched by any
-experiment in this paper.
-
-On that split, \textbf{Acc@GQA is 0.1667, 95\% CI {[}0.088, 0.243{]}}, with Acc@QA 0.375 {[}0.275, 0.477{]}; the answerer is \texttt{granite4:micro} at temperature 0 on CPU, and the option parser
-succeeded on 120/120 questions. The result decomposes cleanly: 42 of 120 questions are
-correctly grounded, 45 answered correctly, 20 both --- 0.350 \ensuremath{\times} 0.476 = 0.167.
-
-\textbf{Grounding and correctness are coupled.} P(correct \textbar{} grounded) = 0.476 against
-P(correct \textbar{} ungrounded) = 0.321, a \textasciitilde15-point gap that replicated across two independent
-samples even though absolute levels fell between them. What replicates is the gap, not the
-levels.
-
-\textbf{But the two factors are readouts of one retrieval event, not independent
-measurements.} \texttt{packet\_size} enters its single PageRank call twice --- in the
-personalisation vector at weight (1\ensuremath{-}\ensuremath{\lambda})=0.5 and in the edge weights at the \ensuremath{\beta} slot ---
-and grounding and answering read the same retrieved frames. The gap stands, since ``grounded''
-means the right frames reached the answerer; what narrows is the reading of grounded as
-\emph{found for a query-semantic reason}, because up to half the seed is a codec signal
-uncorrelated with the question. §2.2's guard thus shows the right evidence was present, not
-that it was found for the right reason. A residual confound, in which a codec characteristic
-that favours retrieval also tracks question difficulty, cannot be ruled out from a code trace
-and is unaddressed.
-
-\textbf{Neither stage is negligible.} Perfect grounding would raise Acc@GQA to 0.476 (+0.31); a
-perfect answerer over current grounding would give 0.350 (+0.18).
-
-\textbf{Against baselines.} Our held-out advantage over uniform frame sampling in answer accuracy
-is +0.120, 95\% CI {[}0.000, 0.248{]} --- the interval touches zero. Against \emph{random} sampling it is
-+0.127 {[}+0.036, +0.229{]}, which separates. The honest statement: retrieval beats random frame
-sampling; against uniform sampling the advantage is positive but not statistically separated
-at n=120.
+\textbf{A registered run on the official test set.} We evaluated all 5,553 questions over 990
+videos of the official test split, which no earlier experiment of ours had touched, under a
+pre-registration committed before any test video was downloaded, which fixed three
+predictions and how each outcome would be reported. Three arms share one
+ingest, captioner (MiniCPM-V 4.6, 1B) and answerer (\texttt{granite4:micro}, temperature 0, CPU):
+\textbf{S}, the complete-block scene-sparse graph of §4; \textbf{F}, the flat graph; and \textbf{U},
+twelve uniformly spaced frames. S and F retrieve twelve frames, and scoring uses the
+benchmark's official convention. The run spanned six sessions; each began by re-answering 20
+questions byte-identically, and every stop came from a guard before any answer was affected.
 
 \begin{table}[t]
 \footnotesize
 \setlength{\tabcolsep}{4pt}
-\caption{NExT-GQA placement. Published rows use the full 5,553-question test set; ours is a 120-question held-out validation split.}
+\caption{NExT-GQA official test set (5,553 questions). Our three rows share one captioner and answerer; their Acc@QA is 40.2 (S), 40.2 (F) and 43.2 (U).}
 \begin{tabular}{llrrr}
 \toprule
 method & params & Acc@GQA & mIoP & IoP@0.5 \\
@@ -833,29 +809,49 @@ FrozenBiLM NG+ & 1B & 17.5 & 24.2 & 23.7 \\
 VideoMind-2B & 2B & 25.2 & 36.4 & 32.6 \\
 MUPA-2B & 2B & 28.7 & 39.1 & 38.7 \\
 MUPA-7B & 7B & 30.3 & 41.4 & 39.4 \\
-\textbf{IRIS (ours)} & \textasciitilde3.4B, CPU & \textbf{16.7} & --- & --- \\
+\midrule
+\textbf{IRIS-S}, scene-sparse & \textasciitilde3.4B, CPU & \textbf{13.8} & 29.9 & 30.7 \\
+IRIS-F, flat & \textasciitilde3.4B, CPU & 13.5 & 28.9 & 29.7 \\
+U, uniform frames & \textasciitilde3.4B, CPU & 5.2 & 21.7 & 9.3 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\textbf{This is indicative, not a leaderboard entry, and the splits differ.} Ours is n=120 from a
-held-out validation split with an \textasciitilde8-point interval; every published row is the full
-5,553-question \emph{test} set. We place the row to situate the system, not to rank it, and claim
-to have beaten nothing in the table. A comparable number would require the official test
-split, which remains available to us precisely because we never touched it. The held-out val
-split, by contrast, is \textbf{burned}: both permitted touches are used, so no further measurement
-on those 27 videos is possible without a new split --- a constraint that binds the
-answerer work this section identifies as the live target. One measurement did touch them
-afterwards: an earlier run of §4.1's equivalence check scored grounding on all 86 videos.
-Nothing was tuned or selected from it, and §4.1 reports a tuning-only re-run.
+\textbf{The cheap construction costs no detectable accuracy.} Paired over the same questions with a
+video-clustered bootstrap (B=10,000), S\ensuremath{-}F is +0.0036 in Acc@GQA, 95\% CI {[}\ensuremath{-}0.0043, +0.0117{]},
+and +0.0004 in Acc@QA, {[}\ensuremath{-}0.0096, +0.0101{]}. We report this as no detected change at
+n=5,553, not as equivalence; the interval bounds any loss at 0.43 points of grounded accuracy.
+This is the accuracy measurement §4's construction lacked.
 
-We omit mIoP and IoP@0.5 from our row deliberately. They are measured and
-convention-checked, but this is a correctness floor rather than a grounding claim, and
-printing a grounding magnitude from 120 validation questions beside full-test figures would
-invite exactly the comparison we decline. Our held-out Acc@GQA was scored under the union
-convention an earlier version of our evaluation used. On the tuning half, where re-scoring
-costs no touch, IoP@0.5 is identical under it and the benchmark's max-per-span convention
-(0.3202); we have not re-scored the held-out half, since that would itself be a further touch.
+\textbf{Two predictions failed.} We predicted Acc@GQA(S) between 0.14 and 0.19; it is 0.1385, just
+below. We predicted retrieval would beat uniform sampling on answer accuracy; uniform is
+better, Acc@QA S\ensuremath{-}U = \ensuremath{-}0.0301, 95\% CI {[}\ensuremath{-}0.0409, \ensuremath{-}0.0192{]}. Frames spread across the whole
+video give the answerer broader context but rarely the evidence moment: U's IoP@0.5 is 0.093
+against 0.307, so its grounded accuracy is 0.052 against 0.139. What retrieval contributes here
+is grounding, not answers. Temporal questions fare worse than causal ones (Acc@GQA 0.096
+against 0.169 for S).
+
+\textbf{Grounding is the larger loss.} Acc@GQA(S) is P(grounded) = 0.307 times
+P(correct \textbar{} grounded) = 0.450, and ungrounded questions are answered at 0.381 --- a 7-point
+gap, against 15 on our validation carve. Perfect grounding would raise Acc@GQA to 0.450 (+0.31);
+a perfect answerer over current grounding would give 0.307 (+0.17). F, which has no scene
+shortlist, grounds no better (0.297), so the shortlist is not what limits grounding here.
+
+\textbf{Both factors read one retrieval event.} \texttt{packet\_size} enters each arm's PageRank call
+twice --- in the personalisation vector at weight (1\ensuremath{-}\ensuremath{\lambda})=0.5 and in the edge weights ---
+and grounding and answering read the same retrieved frames. Grounding therefore shows that the
+right evidence reached the answerer, not that the query found it for a semantic reason, and a
+codec characteristic that favours retrieval while tracking question difficulty is not ruled out.
+
+\textbf{Placement, and the earlier validation result.} Our rows use the published split and
+scorer: S sits about 2 points below the weakest weakly-supervised row and 11--16 below the
+agentic frontier, and we claim to beat nothing in the table. Before this run, a 120-question
+held-out carve of the validation split (flat graph, union-convention scoring) gave Acc@GQA
+0.1667, 95\% CI {[}0.088, 0.243{]}, consistent with the test result; there, retrieval led uniform
+sampling in answer accuracy by +0.120 {[}0.000, 0.248{]}, a direction the test set reverses. That
+carve is burned. One measurement touched it after it closed: an earlier run of §4.1's
+equivalence check scored grounding on all 86 pool videos; nothing was tuned or selected from
+it, and §4.1 reports a tuning-only re-run.
 
 \subsection{Multi-task long-video QA on MLVU}
 
@@ -897,9 +893,9 @@ related, and we claim no meaningful margin there.
 
 \subsection{What this section supports}
 
-The system answers, in the band occupied by weakly-supervised methods with comparable or
-larger models, on CPU with no training and no generative model in construction --- though not
-yet on the 0.212 s configuration of §4 (§8).
+The system answers just below the band occupied by weakly-supervised methods with comparable
+or larger models, on CPU with no training and no generative model in construction, and the
+0.212 s construction of §4 costs it no detectable grounded accuracy.
 Where it fails --- directional temporal reasoning, exhaustive counting --- the failure is in the
 answerer rather than the representation.
 
@@ -908,9 +904,9 @@ answerer rather than the representation.
 The results in this section are negative. We report them because each was tested against a
 stated kill criterion, each criterion triggered, and together they delimit our own
 contribution: they are why §4 claims \emph{cheap} construction rather than \emph{better} construction.
-The two criteria differ in standing. §7.1's was pre-registered. §7.2's was recorded, but it
-entered version control alongside the run it governs, so its precedence cannot be verified
-and we do not describe it as pre-registered.
+Both criteria were fixed before their runs, in dated records outside version control: §7.1's
+in the task that commissioned the run, §7.2's in planning documents written before any run.
+§7.2's scenario rule was tightened after a pilot, which we report where it matters.
 
 \subsection{Segmentation placement, once the budget is fixed}
 
@@ -971,7 +967,10 @@ not selection quality. We flag this because we previously reported such a figure
 \textbf{At matched budget, codec admission is indistinguishable from uniform.} At 10.5\% retention
 the paired differences on the two informative metrics are +0.256 pp (95\% CI {[}\ensuremath{-}0.236, +0.710{]})
 and +0.780 pp ({[}\ensuremath{-}0.005, +1.753{]}), both spanning zero; the admitted set sits at the
-label-blind identity, mean(M2 \ensuremath{-} retention) = +0.0017 (sd 0.0099).
+label-blind identity, mean(M2 \ensuremath{-} retention) = +0.0017 (sd 0.0099). Under the scenario rule as
+first written, these positive point estimates would have counted as a win; a margin
+requirement added after an n=8 pilot does not, and our claim rests on the intervals, which
+span zero either way.
 
 \textbf{Whether that tie reflects a wasted budget is unresolved.} A post-hoc diagnostic, not
 pre-registered, found the codec top-k arm at k=503 sampling 42 distinct temporal locations
@@ -1005,21 +1004,18 @@ signal, our segmentation, or our admission policy.
 Four constraints stated where they arose are indexed here: the retrieval speedup is
 not an end-to-end speedup (0.802\ensuremath{\times}, §5.3); sparse retrieval pays a caption-cache penalty of
 +9.30 s per query (§5.4); the scaling fit rests on 4 dense and 6 sparse points at large N
-(§5.1); and accuracy sits in the weakly-supervised band, 8--14 points below current agentic
-methods (§6.1). The construction result carries no equivalent end-to-end caveat.
+(§5.1); and accuracy sits just below the weakly-supervised band, 11--16 points below current
+agentic methods (§6.1). The construction result carries no equivalent end-to-end caveat.
 
-\textbf{The construction saving is not yet measured on the evaluated configuration.} This is the
-most substantive open item in the paper. No accuracy number we report is measured on the
-complete-block configuration: NExT-GQA uses a flat dense graph, to which block-diagonal
-construction cannot apply, and MLVU the tiered configuration, whose neighbour selection scans
-all pairs regardless of how sparse its output is (§3.5, §4.3). Bounding those scans to the
-scene partition would plausibly transfer the saving to the tiered configuration, but it yields
-a different graph, so it needs accuracy validation rather than an identity proof. Until then, §4 is a construction
-result about a configuration we do not evaluate.
+\textbf{The construction saving is measured on an evaluated configuration only for NExT-GQA.}
+There, §6.1 detects no change in grounded accuracy. MLVU uses the tiered configuration, whose
+neighbour selection scans all pairs regardless of how sparse its output is (§3.5, §4.3).
+Bounding those scans to the scene partition would plausibly transfer the saving, but it yields
+a different graph, so it needs accuracy validation rather than an identity proof.
 
 \textbf{Directional temporal reasoning fails, and not in the graph.} Action Order and Action Count
 fall below chance with near-zero parse failure, and NExT-GQA's before/after questions show the
-same pattern (§6.2). Both need relative temporal ordering or exhaustive coverage, which top-k
+same pattern (§6.1--§6.2). Both need relative temporal ordering or exhaustive coverage, which top-k
 retrieval does not supply and which no change to graph construction addresses.
 
 \textbf{Scene shortlisting bounds recall.} A scene excluded by the \(\lceil\sqrt{S}\rceil\)-width shortlist cannot
@@ -1028,25 +1024,27 @@ evaluated.
 
 \textbf{Evaluation splits are constrained.} The NExT-GQA held-out \emph{validation} half is burned
 (§6.1), which binds future answerer work more than the results reported here. MLVU is 150
-questions across six tasks with videos capped at 600 s. Three further pre-registrations were
+questions across six tasks with videos capped at 600 s. The official NExT-GQA test split has now
+been used once (§6.1); any further run on it is a second touch. Three further pre-registrations were
 either superseded by redesigned experiments before running or never run; we draw no
 evidence from them in either direction.
 
-\textbf{Answerer reproducibility is scoped.} §6.1's answerer ran on llama-server at temperature 0.
-A byte-identical re-query check (639/639) passed for that serving configuration, but on a
-different build and machine, so it corroborates rather than establishes §6.1's determinism.
+\textbf{Answerer reproducibility is scoped.} §6.1's test run re-answered 20 questions
+byte-identically at the start of each of its six sessions, on its own llama-server build; the
+earlier validation result is corroborated only by a 639/639 check on a different build and machine.
 The MLVU results (§6.2, §7.1) ran through Ollama, whose client never sent the prompt-cache
 disable flag and has no equivalent to single-slot serving, and every MLVU question was
 answered exactly once, so \textbf{their reproducibility under re-query is undetermined}. §5.3--§5.4
 also ran through Ollama, but report only timings and counts, which this does not affect.
 
-\textbf{Encoding profiles are uncharacterised.} UCF-Crime is redistributed web video, already
-compressed before it reached us, so every codec-derived signal we read is a second-generation
-measurement of an encoding history we neither observed nor control; part of the corpus is
-further x264-transcoded, and the flagship VIRAT efficiency clip is \texttt{mpeg4} where the accuracy
-corpus is H.264. The salience channel (§3.1), the codec-derived scene boundaries behind §4,
-and both negatives in §7 are conditioned on the profiles this corpus happens to carry. This
-is a scope statement, not a weakness we have evidence of.
+\textbf{Encoding profiles are narrow.} A census of 200 UCF-Crime files finds 198 encoded with one
+x264 setting --- one-pass ABR at 2000 kbps, keyframe interval 250, no B-frames --- and two
+mislabelled MJPEG files outside our sets. On this corpus, then, ``always keep I-frames'' (§3.1)
+amounts to periodic sampling every 250 frames, and every codec signal we read is a
+second-generation measurement of an encoding history we did not control. The VIRAT efficiency
+clip is \texttt{mpeg4}, and NExT-GQA's videos come from other, uncharacterised sources. The salience
+channel, the codec-derived boundaries behind §4 and both negatives in §7 are conditioned on
+these profiles; others are untested.
 
 \textbf{Hardware and provenance.} The CPU-only claim rests on a \texttt{torch.cuda.is\_available()}
 flag from a CPU-only wheel plus circumstantial path evidence; it shows that no CUDA device was
@@ -1062,8 +1060,9 @@ visiting only the pairs it keeps: \textasciitilde234\ensuremath{\times} faster a
 with no generative model in the construction path. The same block structure separates query
 latency into quadratic and sublinear regimes.
 
-It does not make queries faster end to end, because captioning dominates, and accuracy sits in
-the weakly-supervised band. Our two falsified hypotheses, on codec-derived boundaries and codec-based
+It does not make queries faster end to end, because captioning dominates, and accuracy sits
+just below the weakly-supervised band --- though on the official test set the cheap graph costs
+no detectable grounded accuracy. Our two falsified hypotheses, on codec-derived boundaries and codec-based
 admission (§7), show that neither where we cut nor which frames we keep does the work.
 \textbf{The block structure alone does}, which is what makes the result portable. For retrieval
 over long video, the intermediate graph does not have to be generated, and does not have to be
