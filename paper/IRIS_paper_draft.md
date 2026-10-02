@@ -473,8 +473,8 @@ the container — the distinction matters for every scaling figure we report.
 
 Ingest demuxes the video and admits frames from the packet-size curve alone: I-frames and
 packet-curve peaks are always kept, and any other frame is kept when its packet size clears
-per-scene adaptive thresholds (`salient_thresh` 0.35, `candidate_thresh` 0.08 before
-adaptation; `iris/charon_v.py::parse_video`). Packet size stands in for the residual signal
+adaptive thresholds set per keyframe interval (`salient_thresh` 0.35, `candidate_thresh` 0.08
+before adaptation; `iris/charon_v.py::parse_video`). Packet size stands in for the residual signal
 here because it is what the decoder API makes available, not because we chose it over a
 finer-grained alternative: libavcodec exposes motion vectors as side data (`EXPORT_MVS`) but
 exposes no coefficient-level residual, no per-block quantisation parameter, and no
