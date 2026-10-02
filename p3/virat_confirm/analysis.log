@@ -1,0 +1,61 @@
+self-test on Sintel (alley_1) ...
+self-test: 264 counters checked, 0 unexplained mismatches
+VIRAT_S_000206_08_001618_001712 done in 58s
+VIRAT_S_000207_01_000094_000156 done in 58s
+VIRAT_S_000207_00_000000_000045 done in 58s
+VIRAT_S_000206_07_001501_001600 done in 58s
+VIRAT_S_000205_02_000409_000566 done in 58s
+VIRAT_S_010000_00_000000_000165 done in 50s
+VIRAT_S_010000_01_000184_000324 done in 51s
+VIRAT_S_000207_04_000902_000934 done in 53s
+VIRAT_S_000207_03_000556_000590 done in 54s
+VIRAT_S_000207_05_001125_001193 done in 54s
+VIRAT_S_010000_02_000388_000421 done in 51s
+VIRAT_S_010000_03_000442_000528 done in 52s
+VIRAT_S_010000_04_000530_000605 done in 53s
+VIRAT_S_010000_05_000638_000718 done in 53s
+VIRAT_S_010000_06_000728_000762 done in 53s
+VIRAT_S_010000_07_000827_000860 done in 52s
+VIRAT_S_010000_08_000893_001024 done in 52s
+VIRAT_S_010001_00_000019_000065 done in 52s
+VIRAT_S_010001_01_000071_000167 done in 52s
+VIRAT_S_010001_02_000195_000498 done in 52s
+VIRAT_S_010001_03_000537_000563 done in 34s
+VIRAT_S_010001_04_000583_000646 done in 51s
+VIRAT_S_010001_06_000685_000722 done in 52s
+VIRAT_S_010001_05_000649_000684 done in 52s
+VIRAT_S_010001_07_000741_000810 done in 52s
+VIRAT_S_010001_08_000826_000893 done in 50s
+VIRAT_S_010002_01_000123_000148 done in 42s
+VIRAT_S_010001_09_000921_000952 done in 46s
+VIRAT_S_010001_10_000962_001005 done in 50s
+VIRAT_S_010002_00_000012_000120 done in 51s
+VIRAT_S_010002_02_000174_000204 done in 50s
+VIRAT_S_010002_03_000236_000261 done in 35s
+VIRAT_S_010003_01_000111_000137 done in 40s
+VIRAT_S_010002_04_000307_000350 done in 51s
+VIRAT_S_010003_00_000000_000108 done in 50s
+VIRAT_S_010003_02_000165_000202 done in 50s
+VIRAT_S_010003_03_000219_000259 done in 50s
+VIRAT_S_010003_05_000499_000523 done in 40s
+VIRAT_S_010003_07_000608_000636 done in 32s
+VIRAT_S_010003_06_000526_000560 done in 50s
+VIRAT_S_010003_10_000901_000934 done in 50s
+VIRAT_S_010003_13_001066_001124 done in 49s
+VIRAT_S_010004_03_000239_000277 done in 51s
+VIRAT_S_010004_06_000547_000715 done in 50s
+VIRAT_S_010004_07_000729_000809 done in 49s
+VIRAT_S_010005_00_000048_000075 done in 41s
+VIRAT_S_010004_08_000811_000920 done in 49s
+VIRAT_S_010005_04_000299_000323 done in 32s
+VIRAT_S_010005_02_000177_000203 done in 49s
+VIRAT_S_010005_03_000215_000270 done in 48s
+  key                                                                                                 prediction   n                                                 value    threshold verdict
+0  V0  V0 RAFT validity (45f3e98): median |MV - RAFT| < 1.5 px, x264 CRF 12, |RAFT| > 2 px, top-quartile texture  27                                  26/27 eligible clips  >= 75% (21)    PASS
+1  C1                                                      C1 x264: STALE_MOV(CRF 45) - STALE_MOV(CRF 12) > 0.01  27             27/27 eligible clips (median diff 0.1504)  >= 80% (22)    PASS
+2  C2                                                       C2 NVENC: STALE_MOV(QP 45) - STALE_MOV(QP 18) > 0.01  27             27/27 eligible clips (median diff 0.0441)  >= 75% (21)    PASS
+3  C3                                        C3 x264 B-frames: STALE_MOV(QP 24 B) - STALE_MOV(QP 24 bf 0) > 0.01  27             27/27 eligible clips (median diff 0.1196)  >= 80% (22)    PASS
+4  C4                                     C4 NVENC B-frames: STALE_MOV(QP 28 B=P) - STALE_MOV(QP 28 bf 0) > 0.01  27             27/27 eligible clips (median diff 0.1281)  >= 75% (21)    PASS
+5  C5                                              C5 NVENC flip vs QP 18 (all clips): FLIP(QP 45) > FLIP(QP 23)  50  48/50 clips (median FLIP QP 23 0.0103, QP 45 0.0145)  >= 75% (38)    PASS
+recount {'C1': 27, 'C2': 27, 'C3': 27, 'C4': 27, 'C5': 48} agrees: True
+done in 511s

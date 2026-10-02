@@ -1,0 +1,7 @@
+key,prediction,n,value,threshold,verdict,missing
+V0,"V0 RAFT validity (45f3e98): median |MV - RAFT| < 1.5 px, x264 CRF 12, |RAFT| > 2 px, top-quartile texture",27,26/27 eligible clips,>= 75% (21),PASS,
+C1,C1 x264: STALE_MOV(CRF 45) - STALE_MOV(CRF 12) > 0.01,27,27/27 eligible clips (median diff 0.1504),>= 80% (22),PASS,
+C2,C2 NVENC: STALE_MOV(QP 45) - STALE_MOV(QP 18) > 0.01,27,27/27 eligible clips (median diff 0.0441),>= 75% (21),PASS,
+C3,C3 x264 B-frames: STALE_MOV(QP 24 B) - STALE_MOV(QP 24 bf 0) > 0.01,27,27/27 eligible clips (median diff 0.1196),>= 80% (22),PASS,
+C4,C4 NVENC B-frames: STALE_MOV(QP 28 B=P) - STALE_MOV(QP 28 bf 0) > 0.01,27,27/27 eligible clips (median diff 0.1281),>= 75% (21),PASS,
+C5,C5 NVENC flip vs QP 18 (all clips): FLIP(QP 45) > FLIP(QP 23),50,"48/50 clips (median FLIP QP 23 0.0103, QP 45 0.0145)",>= 75% (38),PASS,
