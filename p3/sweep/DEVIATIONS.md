@@ -51,3 +51,17 @@ Rerun: the pre-registration's rule ("fix it, record it in p3/sweep/DEVIATIONS.md
 runs") has not been followed for this bug. The sweep was not rerun, and results.csv is as collected.
 
 From now on, all MV extraction in Paper 3 is single-threaded (`thread_type=None`).
+
+### Rerun (2026-10-02): see p3/sweep_rerun/COMPARISON.md
+
+The whole sweep was rerun as the pre-registration requires, with single-threaded MV extraction (commit fa981d9) and
+nothing else changed, into p3/sweep_rerun/ (results.csv, summary.md, independent_verdicts.txt). Both runs are reported.
+Full comparison: **p3/sweep_rerun/COMPARISON.md** (written by p3/sweep_rerun/compare.py).
+- Every verdict is identical in both runs (summarize_sweep.py and independent_verdicts.py, 14/14 each). For every
+  arm/group/sequence any prediction uses, the change in stale/valid is exactly 0.
+- All 1081 encodes are byte-identical (sha256). The block records differ in 112 files, only at the last frame of B-frame
+  streams (as found above).
+- results.csv: 741/4845 rows differ, all in the 4 B-frame arms: the `d1` / `dgt1` rows listed above, plus the
+  encode-level column `mean_p_qp`. In the two arms whose B QP is not fixed (x264_crf23_bf2, nvenc_qp28_bf2), the
+  threaded export also changed the exported QP of the last P-frame, so `mean_p_qp` differs on every row of those
+  encodes, including `B_naive` / `B_scaled`. No B-frame gate metric changed in any arm.
