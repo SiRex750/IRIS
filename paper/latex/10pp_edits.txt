@@ -1,0 +1,293 @@
+<<<<OLD
+
+Increasingly, that graph is written by a large multimodal model. EgoSG prompts a proprietary
+model once per fixed-duration chunk to emit a symbolic scene description; Vgent extracts
+entities per clip with an LVLM and links clips that share them. Both produce richer
+representations than ours, but both make construction a model-metered operation whose cost
+scales with duration, and the symbolic line places a proprietary dependency at the base of
+the pipeline that its own authors report does not transfer to open-source substitutes. For a
+surveillance archive, or any footage that cannot leave the premises, that is a poor
+foundation.
+
+====NEW
+
+Increasingly, that graph is written by a large multimodal model: EgoSG prompts a proprietary
+model per fixed-duration chunk, and Vgent extracts entities per clip with an LVLM. Both yield
+richer representations than ours, but make construction model-metered and duration-scaled,
+and the symbolic line rests on a proprietary model its authors report open models cannot
+replace --- a poor foundation for footage that cannot leave the premises.
+
+>>>>END
+<<<<OLD
+
+\textbf{Construction.} The scene-sparse graph keeps only within-scene edges, so the conventional
+construction --- materialise the dense graph, then prune across scenes --- spends almost all its
+work on edges it discards: at N=4,892 admitted frames over 528 scenes it visits 11.96 million pairs
+to keep 23,571. Building the diagonal blocks directly visits only the pairs it keeps, and
+yields the same graph rather than an approximation of it: identical nodes and edges, zero
+edge-attribute mismatches at tolerance 0.0, bit-identical PageRank, and identical
+personalised-PageRank output across five seeds, with zero behavioural differences
+over 406 grounded-QA questions. Construction time falls from 49.71 s to 0.212 s
+(\textasciitilde234\ensuremath{\times}) and peak memory from 6.33 GB to 0.93 GB (\textasciitilde6.8\ensuremath{\times}). On the official NExT-GQA test
+set, grounded accuracy on this graph shows no detected change against the flat graph: +0.36
+points, 95\% CI {[}\ensuremath{-}0.43, +1.17{]}, over 5,553 questions (§6.1).
+
+====NEW
+
+\textbf{Construction.} The scene-sparse graph keeps only within-scene edges, yet the conventional
+construction materialises the dense graph and prunes it: at N=4,892 admitted frames over 528
+scenes it visits 11.96 million pairs to keep 23,571. Building the diagonal blocks directly
+visits only the kept pairs and yields the same graph --- identical edges at tolerance 0.0,
+bit-identical PageRank, identical retrieval on 406 questions --- in 0.212 s instead of 49.71 s
+(\textasciitilde234\ensuremath{\times}) and 0.93 GB instead of 6.33 GB (\textasciitilde6.8\ensuremath{\times}). On the official NExT-GQA test set
+it shows no detected change in grounded accuracy against the flat graph: +0.36 points,
+95\% CI {[}\ensuremath{-}0.43, +1.17{]}, over 5,553 questions (§6.1).
+
+>>>>END
+<<<<OLD
+
+\textbf{What does not improve.} We state two limits here because they are results, not
+concessions. First, the retrieval speedup does not reach the user. At N=4,892, retrieval
+mechanics fall from 8.535 s to 0.030 s, but a captioning-and-verification stage of 44--67 s,
+O(top\_k) rather than O(N), dominates the query; end to end, the sparse arm is slower at the
+median (0.802\ensuremath{\times}). Much recent work reports retrieval-side speedups without measuring the
+pipeline around them. We measure it, and we do not project a crossover, because our own
+data contradict the assumption such a projection needs (§5.3). Second, accuracy sits just below
+the weakly-supervised band: on the official NExT-GQA test set, Acc@GQA is 0.138 with a
+\textasciitilde3.4B answerer on CPU, about 2 points under the weakest baseline, and uniform frame
+sampling answers more questions correctly than retrieval while rarely grounding them (§6.1).
+Grounding shows that the right evidence reached the answerer, not that the query found it: a
+codec signal steers the same retrieval. We claim a correctness floor, not an advance.
+
+====NEW
+
+\textbf{What does not improve.} First, the retrieval speedup does not reach the user: at
+N=4,892, retrieval falls from 8.535 s to 0.030 s, but captioning and verification, O(top\_k)
+rather than O(N), take 44--67 s, and end to end the sparse arm is slower at the median
+(0.802\ensuremath{\times}); we measure this rather than project a crossover (§5.3). Second, accuracy sits just
+below the weakly-supervised band: on the official NExT-GQA test set, Acc@GQA is 0.138 with a
+\textasciitilde3.4B answerer on CPU, and uniform sampling answers more questions correctly while rarely
+grounding them (§6.1). We claim a correctness floor, not an advance.
+
+>>>>END
+<<<<OLD
+
+\textbf{The token bottleneck.} Multimodal LLMs are bounded by input token capacity, so applying
+them directly to long video forces aggressive subsampling: at 1 FPS, published per-question
+frame budgets run from 32 frames (InternVL3~\cite{zhu2025internvl3}) and 180 (VideoLLaMA3~\cite{zhang2025videollama3}) to 512 (Qwen2.5-VL~\cite{bai2025qwen25vl}) and
+3,900 (Gemini Flash 2.0~\cite{google2025gemini2flash}), against the tens of thousands of frames in an hour of footage.
+Every approach is in some form a strategy for deciding what to discard: subsample and accept
+the loss, retrieve per query, or build an intermediate representation that later queries
+reuse. We sit in the third family and borrow from the second at query time.
+
+====NEW
+
+\textbf{The token bottleneck.} At 1 FPS, published per-question frame budgets run from 32
+(InternVL3~\cite{zhu2025internvl3}) and 180 (VideoLLaMA3~\cite{zhang2025videollama3}) to 512 (Qwen2.5-VL~\cite{bai2025qwen25vl}) and 3,900 frames (Gemini Flash
+2.0~\cite{google2025gemini2flash}), against tens of thousands in an hour of footage. We build an intermediate
+representation that later queries reuse, and retrieve per query against it.
+
+>>>>END
+<<<<OLD
+
+\textbf{Vgent}~\cite{shen2025vgent} is the closer foil. It partitions video into 64-frame
+clips, extracts entities per clip with an LVLM, and links clips sharing merged prototype
+entities. It rests on the same amortisation argument we make --- construction is offline and
+query-independent, so one build serves every question asked of that video --- and, unusually,
+reports the split explicitly: 20.13 s of query-independent construction and 3.93 s of
+query-dependent work per minute of video, against 20.81 s per minute for the query-dependent
+Video-RAG~\cite{luo2024videorag} baseline, a claimed 1.73\ensuremath{\times} end-to-end speedup on VideoMME~\cite{fu2025videomme}. We are therefore not the
+first to argue that construction cost deserves its own measurement, and do not claim to be.
+
+====NEW
+
+\textbf{Vgent}~\cite{shen2025vgent} is the closer foil. It extracts entities per 64-frame clip with an LVLM and
+links clips sharing them, on the same amortisation argument we make, and reports the split:
+20.13 s of query-independent construction and 3.93 s of query-dependent work per minute of
+video, against 20.81 s for Video-RAG~\cite{luo2024videorag}, a claimed 1.73\ensuremath{\times} speedup on VideoMME~\cite{fu2025videomme}. We are
+not the first to measure construction cost separately.
+
+>>>>END
+<<<<OLD
+
+Where we differ is what construction costs. Vgent invokes an LVLM per clip as EgoSG invokes
+Gemini per chunk; our frame selection runs on CPU with zero neural forward passes, and our
+only construction-time network is CLIP ViT-B/32 over admitted frames --- an image encoder, not
+a generative model (§3). \textbf{We draw no cost ratio against any of these systems.} Our
+selection stage costs 2.845 s per video and full ingest 11.976 s, while Vgent's 20.13 s is
+per \emph{minute of video} and includes LVLM extraction; the denominators do not match, so the
+honest claim is about the \emph{class} of model each construction requires, not about seconds.
+
+====NEW
+
+Where we differ is what construction costs: our selection runs on CPU with zero neural forward
+passes, and our only construction-time network is an image encoder (§3). \textbf{We draw no cost
+ratio against these systems}: Vgent's 20.13 s is per \emph{minute of video} and includes LVLM
+extraction, our 11.976 s is per video, and the honest claim concerns the \emph{class} of model.
+
+>>>>END
+<<<<OLD
+the zero-forward-pass claim excludes. Captioning is deferred entirely; \texttt{caption} remains
+\texttt{None} at ingest. Over the same frozen 32-video sample:
+
+\begin{table}[t]
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\caption{Ingest stage wall time over the frozen 32-video sample.}
+\begin{tabular}{lrrr}
+\toprule
+stage & mean wall & min & max \\
+\midrule
+\texttt{parse\_video} (selection) & 2.845 s & 0.314 s & 14.870 s \\
+CLIP enrichment & 9.131 s & 0.501 s & 56.885 s \\
+\textbf{full ingest} & \textbf{11.976 s} & 0.814 s & 71.754 s \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+====NEW
+the zero-forward-pass claim excludes. Captioning is deferred entirely; \texttt{caption} remains
+\texttt{None} at ingest. Over the same frozen 32-video sample, selection (\texttt{parse\_video}) takes
+2.845 s per video (range 0.314--14.870 s), CLIP enrichment 9.131 s (0.501--56.885 s), and full
+ingest \textbf{11.976 s} (0.814--71.754 s).
+
+>>>>END
+<<<<OLD
+
+Two properties are load-bearing later. The \textbf{shortlist} makes retrieval sublinear by
+construction --- it is why §5.1's exponent is below 1 --- but it is also a hard recall gate: a
+scene excluded here cannot contribute a frame downstream (§8). The \textbf{shortcut} bypasses the
+graph entirely and is the mechanism behind the guard violations in §5.1; both of its trigger
+conditions become more likely as S falls, consistent with the two smallest clips in the
+corpus being the two that trip it. It is exact rather than approximate --- it returns the same top-k the
+full path would --- so no retrieved result is degraded by it.
+
+====NEW
+
+The \textbf{shortlist} makes retrieval sublinear (§5.1) but is a hard recall gate (§8). The
+\textbf{shortcut} bypasses the graph, is exact rather than approximate, and fires more readily as
+S falls --- the mechanism behind §5.1's guard violations.
+
+>>>>END
+<<<<OLD
+
+Results are produced under three settings of \texttt{graph\_edge\_mode}, and we state per experiment
+which was used rather than describing a single frozen configuration:
+
+\begin{table*}[t]
+\small
+\setlength{\tabcolsep}{4pt}
+\caption{Graph configuration used by each experiment.}
+\begin{tabular}{lll}
+\toprule
+experiment & \texttt{graph\_mode} & \texttt{graph\_edge\_mode} \\
+\midrule
+§4.1 identity gate, §4.2 build savings & \texttt{scene\_sparse} & \texttt{fully\_connected} \ensuremath{\leftrightarrow} \texttt{block\_diagonal} \\
+§5.1--5.2 scaling, largest sizes & \texttt{flat} / \texttt{scene\_sparse} & \texttt{fully\_connected} \\
+§5.3--5.4 end-to-end, caption stage & \texttt{scene\_sparse} & \texttt{hierarchical\_sparse} \\
+§6.2 MLVU, §7.1 segmentation ablation & \texttt{scene\_sparse} & \texttt{hierarchical\_sparse} \\
+§6.1 NExT-GQA, arms S / F & \texttt{scene\_sparse} / \texttt{flat} & \texttt{block\_diagonal} / --- \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+====NEW
+
+Results are produced under three settings of \texttt{graph\_edge\_mode}: §4 and §5.1--5.2 use
+complete blocks (\texttt{fully\_connected} \ensuremath{\leftrightarrow} \texttt{block\_diagonal}; §5.1--5.2 against \texttt{flat}),
+§5.3--5.4, §6.2 and §7.1 the tiered \texttt{hierarchical\_sparse}, and §6.1 compares complete-block
+scene-sparse (S) with \texttt{flat} (F).
+
+>>>>END
+<<<<OLD
+
+The limit, stated plainly. The saving is measured on the complete-block configuration, and on
+NExT-GQA so is accuracy (§6.1); MLVU and the segmentation ablation use the tiered
+configuration. The tiered configuration shares the block structure but not the edge set, and
+block-diagonal construction does not make it cheaper to build: that mode selects neighbours by scanning all pairs and then keeping a few,
+so it pays a quadratic pass of its own (§3). Carrying the result into the tiered
+configuration means bounding those scans to the scene partition --- a change the current
+implementation does not make, and one that would produce a \emph{different} graph rather than an
+identically-constructed one, since global top-k followed by cross-scene pruning is not the
+same as within-scene top-k. It therefore requires accuracy validation rather than an
+identity gate, and we mark it as future work (§8).
+
+====NEW
+
+The limit, stated plainly. The saving and, on NExT-GQA, the accuracy are measured on the
+complete-block configuration; MLVU and the segmentation ablation use the tiered one, which
+selects neighbours by scanning all pairs and so pays its own quadratic pass (§3). Bounding
+those scans to the scene partition would change the graph (global top-k then pruning is not
+within-scene top-k), so it needs accuracy validation rather than an identity gate (§8).
+
+>>>>END
+<<<<OLD
+
+We report two scene-sparse exponents and take as headline the one \emph{less} favourable to us.
+The full-range fit (0.497) gives a larger separation than we report. We infer from the fit's
+shape alone --- shallower small-N slope, poorer explanatory power (\(R^2\) 0.898 against 0.983) ---
+that small-N clips sit near a noise floor where fixed per-query overhead dominates; we have
+not verified this directly, and no repeated small-N runs or fitted overhead constant exist.
+The N \ensuremath{\geq} 1102 fit is both the regime this paper is about and the conservative choice.
+The dense arm is the complete graph the scene-sparse graph is pruned from, so the comparison
+measures what the block structure buys over that graph; approximate nearest-neighbour indexes
+are also sublinear, and we make no latency claim against them.
+
+====NEW
+
+We take as headline the less favourable sparse fit: the full-range 0.497 separates further,
+but its poorer fit ($R^2$ 0.898 against 0.983) suggests a small-N noise floor, which we have not
+verified directly. The dense arm is the complete graph the sparse one is pruned from; approximate
+nearest-neighbour indexes are also sublinear, and we make no latency claim against them.
+
+>>>>END
+<<<<OLD
+per arm plus a discarded warm-up, and the caption cache reset before each arm. The primary
+run is instrumented on a clean checkout (pinned commit, zero tracked-dirty files); Figure~\ref{fig:e2e}
+breaks it down by stage.
+
+====NEW
+per arm plus a discarded warm-up, and the caption cache reset before each arm. The primary
+run is instrumented on a clean checkout (pinned commit, zero tracked-dirty files). Stage medians,
+dense against sparse: retrieval 8.535 against 0.030 s, captioning 37.27 against 62.13 s,
+verification 6.41 against 4.42 s, answerer 2.83 s in both; totals 55.64 against 69.40 s.
+
+>>>>END
+<<<<OLD
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}
+\begin{axis}[xbar stacked, width=\columnwidth, height=3.1cm, font=\scriptsize, bar width=9pt,
+  xmin=0, xmax=78, xlabel={median seconds per query}, ytick=data,
+  symbolic y coords={scene-sparse,dense}, enlarge y limits=0.45,
+  legend style={at={(0.5,1.03)}, anchor=south, legend columns=4, font=\tiny, draw=none},
+  legend cell align=left, grid=major, grid style={gray!20}]
+\addplot[fill=blue!55, draw=black!60] coordinates {(8.535,dense) (0.030,scene-sparse)};
+\addplot[fill=orange!55, draw=black!60] coordinates {(37.269,dense) (62.132,scene-sparse)};
+\addplot[fill=gray!35, draw=black!60] coordinates {(6.408,dense) (4.418,scene-sparse)};
+\addplot[fill=white, draw=black!60] coordinates {(2.830,dense) (2.817,scene-sparse)};
+\legend{retrieval, captioning, verification, answerer}
+\node[anchor=west, font=\tiny] at (axis cs:56.0,dense) {55.64 s};
+\node[anchor=west, font=\tiny] at (axis cs:69.6,scene-sparse) {69.40 s};
+\node[anchor=west, font=\tiny] at (axis cs:0.3,scene-sparse) {0.030};
+\end{axis}
+\end{tikzpicture}
+\Description{Two horizontal stacked bars of per-stage median seconds per query. Dense: retrieval 8.535, captioning 37.269, verification 6.408, answerer 2.830; total 55.64 seconds. Scene-sparse: retrieval 0.030, captioning 62.132, verification 4.418, answerer 2.817; total 69.40 seconds.}
+\caption{End-to-end query path at $N=4{,}892$ (per-stage medians, five text queries per arm). Retrieval nearly vanishes, but captioning dominates both arms; stage medians need not sum to the totals shown.}
+\label{fig:e2e}
+\end{figure}
+
+====NEW
+
+
+>>>>END
+<<<<OLD
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{refs}
+\end{document}
+====NEW
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{refs_10pp}
+\end{document}
+>>>>END
