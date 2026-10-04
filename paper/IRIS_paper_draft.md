@@ -37,7 +37,7 @@ and do not project one. Answer quality sits just below the weakly-supervised ban
 We report both, and we set kill criteria for two hypotheses we expected to confirm: that
 codec-derived scene boundaries beat content-blind ones (pre-registered), and that codec-based
 frame admission beats uniform sampling (criterion set in dated planning documents before
-any run). Both criteria triggered. Neither where the video is
+any run; its scenario rule was tightened after a pilot). Both criteria triggered. Neither where the video is
 cut nor which frames are kept is doing the work — the block structure is — which is what
 makes the construction cheap, verifiable, and portable across segmentation policies.
 
@@ -167,7 +167,8 @@ correctness floor, not an advance.
 We set kill criteria for two hypotheses we expected to confirm, and both triggered. Both
 criteria were fixed before their runs, in dated records outside version control: the
 segmentation criterion in its commissioning task (B.8), the frame-admission criterion in
-planning documents written before any run (B.6, B.6a). Codec-derived boundary placement does not beat content-blind placement at
+planning documents written before any run (B.6, B.6a), with its scenario rule tightened
+after a pilot (§7.2). Codec-derived boundary placement does not beat content-blind placement at
 matched segment count: across four segmentation strategies the differences fall within
 noise, and on long videos the codec-versus-matched-count difference is +0.088 M-Avg with a
 95% CI of [−0.009, +0.204]. Codec-based frame admission is statistically indistinguishable
@@ -1715,7 +1716,8 @@ arose.
 The negative results proved the most useful part of the work. We set kill
 criteria for two hypotheses we expected to confirm — that codec-derived boundary placement
 beats content-blind placement (pre-registered), and that codec-based admission beats uniform
-sampling (criterion set in dated planning documents before any run, B.6a) — and both criteria
+sampling (criterion set in dated planning documents before any run, scenario rule
+tightened after a pilot, B.6a) — and both criteria
 triggered. Neither where we cut the video nor which frames we keep is doing
 the work. **What is doing the work is the block structure alone**, which is also what makes
 the result portable: a pipeline can adopt this construction without adopting our
