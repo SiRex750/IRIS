@@ -701,12 +701,9 @@ block-diagonal construction and built its graph dense-then-prune --- the cost §
 
 \subsection{End-to-end accounting: where the speedup goes}
 
-Our own headline retrieval ratio buys nothing at the sizes we tested. We report it because
-the literature reports retrieval-side speedups routinely and end-to-end accountings rarely.
-
 Retrieval-\textbf{mechanics} measurements at N=4,892 show a 1,104\ensuremath{\times} ratio between arms (7.9448 s
-dense against 0.0072 s scene-sparse) under synthetic sampled query embeddings. That
-ratio does not reach the user, and it is a retrieval-mechanics figure wherever it appears.
+dense against 0.0072 s scene-sparse) under synthetic query embeddings, and about 291\ensuremath{\times} with the
+real text queries below; the two must not be conflated, and neither reaches the user.
 
 We measured the full query path --- query text to final answer --- at the same N with
 \texttt{granite4:micro} (\textasciitilde3.4B, Q4\_K\_M) on CPU, \texttt{l2\_retrieve\_top\_k=30}, five real CLIP-text queries
@@ -737,33 +734,30 @@ breaks it down by stage.
 \label{fig:e2e}
 \end{figure}
 
-Stage medians are taken independently, so they need not sum to the totals. \textbf{End-to-end
-ratio: 0.802\ensuremath{\times} --- the sparse arm is slower at the median.} Per-query caption cost spans
+\textbf{End-to-end ratio: 0.802\ensuremath{\times} --- the sparse arm is slower at the median.} Per-query caption cost spans
 2.6--69.3 s depending on cache misses, so at five queries per arm these medians are
 directionally indicative rather than precise. An earlier measurement under a different
 captioner gives 0.778\ensuremath{\times}; because captioning is 85--93\% of the dominant stage, the two runs
 corroborate \textbf{direction only, not magnitude}.
 
-Captioning is 85\% of the dominant stage in the dense arm and 93\% in the sparse arm. L1
-retrieval costs exactly zero on every query in both arms --- it populates an in-memory
-dictionary over already-retrieved frames --- so the stage is in practice a two-way split
-between captioning and verification. Within it, frame access is not the cost: on one
-cold-cache query at the same N (30 misses, 272 frames decoded, 27 distinct GOPs), the decode
-loop cost 0.815 s against 114.6 s of captioning, under 1\% of the stage.
-
-The retrieval ratio in this run is approximately 291\ensuremath{\times}, against the 1,104\ensuremath{\times} above. The two are
-measured under different query types --- real CLIP text encoding here, synthetic embeddings
-there --- and must not be conflated.
+L1 retrieval costs zero in both arms (it only indexes already-retrieved frames), so the stage
+splits between captioning and verification, and frame access is not the cost: on one cold-cache
+query (30 misses, 272 frames decoded, 27 GOPs) decoding took 0.815 s against 114.6 s of captioning.
 
 \textbf{The LLM is not the bottleneck:} the answerer costs 2.83 s in both arms. Captioning is
 O(top\_k), not O(N), so sparsifying removes the retrieval term and leaves the largest untouched.
+The end-to-end ratio is therefore a property of this pipeline rather than of the graph: retrieval
+is about 15\% of a dense query at this N, so with the other stages unchanged even an unbounded
+retrieval speedup could improve it by at most roughly 1.18\ensuremath{\times}. Designs that shrink per-query
+captioning (fewer retrieved frames, a faster captioner, a vision-language answerer, or captions
+computed at ingest) raise retrieval's share, as do longer videos, where dense retrieval grows
+quadratically; we measure none of these.
 
 \textbf{Crossover.} The retrieval-only crossover --- the size past which scene-sparse retrieval
 mechanics cost less than dense --- sits at N\ensuremath{\approx}24 from the §5.1 fits. We do not project an
-end-to-end crossover. Doing so requires assuming the constant stage cost is equal across
-arms, which this run's own data contradict (§5.4), and a projection built on that assumption
-returns \textasciitilde1.15\ensuremath{\times} at N=4,892 where we measure 0.802\ensuremath{\times}. The large-N measurements of §5.2 are the
-stronger statement, and we rest on them.
+end-to-end crossover: that requires equal constant stage costs across arms, which §5.4
+contradicts (such a projection returns \textasciitilde1.15\ensuremath{\times} at N=4,892 where we measure 0.802\ensuremath{\times}). The
+large-N measurements of §5.2 are the stronger statement, and we rest on them.
 
 \subsection{Caption-cache locality (negative result)}
 

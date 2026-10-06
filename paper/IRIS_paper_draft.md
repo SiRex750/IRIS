@@ -1176,6 +1176,8 @@ bucket covering captioning, L1 retrieval, and Cerberus verification. It is O(top
 than O(N) and therefore does not shrink as the graph sparsifies. Sparsifying the graph makes the
 retrieval step negligible while leaving the largest term untouched.
 
+**The end-to-end ratio is a property of this pipeline, not of the graph.** Retrieval is about 15% of a dense query at this N, so with the other stages unchanged even an unbounded retrieval speedup could improve the end-to-end ratio by at most roughly 1.18×. Designs that shrink per-query captioning — fewer retrieved frames, a faster captioner, a vision-language answerer, or captions computed at ingest — raise retrieval's share, as do longer videos, where dense retrieval grows quadratically. We measure none of these.
+
 **Crossover.** The retrieval-only crossover — the graph size past which scene-sparse
 retrieval mechanics cost less than dense — sits at N≈24 from the §5.1 fits. We do not
 project an end-to-end crossover. Doing so requires assuming the constant stage cost L is
