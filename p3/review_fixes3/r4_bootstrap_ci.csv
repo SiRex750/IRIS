@@ -1,0 +1,29 @@
+data,comparison,metric,method,estimate,ci_low,ci_high,excludes_0,reference,excludes_reference
+Sintel,P1 x264 CRF 45 - CRF 12,"median per-seq diff, stale/valid",sequence bootstrap (23),0.1263068084193232,0.030211306069757998,0.2502650610973234,True,0.0,True
+Sintel,P1 NVENC QP 45 - QP 18,"median per-seq diff, stale/valid",sequence bootstrap (23),0.2176219801042161,0.0510871739620693,0.3440558213016194,True,0.0,True
+Sintel,"P1 MPEG-4 q31 - q2 (reported, not kill)","median per-seq diff, stale/valid",sequence bootstrap (23),0.025024771055397105,0.015232551885693103,0.04722210032035812,True,0.0,True
+Sintel,P2 x264 QP 24 B - bf 0,"median per-seq diff, stale/valid",sequence bootstrap (23),0.0385889819778334,0.0269267963080696,0.0452548726518385,True,0.0,True
+Sintel,P2 NVENC QP 28 B=P - bf 0,"median per-seq diff, stale/valid",sequence bootstrap (23),0.022227427933678198,0.012490571132139198,0.0318464441062788,True,0.0,True
+Sintel,"P1 Spearman(CRF, stale/valid), 7 x264 CRF levels",median per-seq rho (verdict counts rho >= 0.8),sequence bootstrap (23),1.0,1.0,1.0,,0.8,True
+Sintel,P2b x264 QP 24 |B_scaled - B_naive|,median per-seq |diff| (verdict: < 0.005),sequence bootstrap (23),0.0009361783820714953,0.0006860559697769025,0.001122773222805594,,0.005,True
+Sintel,P2b NVENC QP 28 B=P |B_scaled - B_naive|,median per-seq |diff| (verdict: < 0.005),sequence bootstrap (23),0.0005398484817747962,0.00041250191026299954,0.0008093273525938,,0.005,True
+Sintel,P3 reference |CRF 33 - CRF 23|,median per-seq |diff|,sequence bootstrap (23),0.0161250592136428,0.0038604270373314,0.027200810964263897,,0.0,True
+Sintel,P3 ref 2 |change|,median per-seq |diff|,sequence bootstrap (23),0.0007309838133980999,0.00018185029696,0.0011229399885313,,0.0,True
+Sintel,P3 ref 2 margin: 0.5 x ref - median |change|,difference of medians (> 0 = P3 holds),sequence bootstrap (23),0.007331545793423299,0.0012736122481908,0.012654393329514249,True,0.0,True
+Sintel,P3 ref 3 |change|,median per-seq |diff|,sequence bootstrap (23),0.00044564308837580224,0.00017851355057470035,0.0012259885185478964,,0.0,True
+Sintel,P3 ref 3 margin: 0.5 x ref - median |change|,difference of medians (> 0 = P3 holds),sequence bootstrap (23),0.007616886518445597,0.0011552420387173,0.01332117112581365,True,0.0,True
+Sintel,P3 keyint 30 |change|,median per-seq |diff|,sequence bootstrap (23),0.00011771797162249994,0.00010537143642419999,0.0005618540792109994,,0.0,True
+Sintel,P3 keyint 30 margin: 0.5 x ref - median |change|,difference of medians (> 0 = P3 holds),sequence bootstrap (23),0.0079448116351989,0.0013683594394547007,0.013495034045707748,True,0.0,True
+Sintel,P3 umh 32 |change|,median per-seq |diff|,sequence bootstrap (23),0.0002920717824297001,7.784715388270066e-05,0.0007012907141293011,,0.0,True
+Sintel,P3 umh 32 margin: 0.5 x ref - median |change|,difference of medians (> 0 = P3 holds),sequence bootstrap (23),0.007770457824391699,0.001638141736236,0.013515274835625857,True,0.0,True
+Sintel,P3 umh 64 |change|,median per-seq |diff|,sequence bootstrap (23),0.00023332016793199987,0.00013444098030315042,0.00047469840574100065,,0.0,True
+Sintel,P3 umh 64 margin: 0.5 x ref - median |change|,difference of medians (> 0 = P3 holds),sequence bootstrap (23),0.007829209438889399,0.0017848623945546,0.013320839538246247,True,0.0,True
+Sintel,P2c median x264 B effect - max P3 median |change|,difference of medians (> 0 = P2c holds),sequence bootstrap (23),0.0378579981644353,0.0261958124946715,0.0443392080098816,True,0.0,True
+CCTV confirmatory,C1 x264 CRF 12 -> 45,"median per-clip diff, STALE_MOV","scene-cluster bootstrap (7 scenes, 27 clips)",0.15036452004860262,0.1124575860397479,0.2557070629692049,True,0.0,True
+CCTV confirmatory,C1 x264 CRF 12 -> 45,"median per-clip diff, STALE_MOV",clip-level bootstrap (27 clips),0.15036452004860262,0.1219533970181234,0.22002612402034918,True,0.0,True
+CCTV confirmatory,C2 NVENC QP 18 -> 45,"median per-clip diff, STALE_MOV","scene-cluster bootstrap (7 scenes, 27 clips)",0.044060884130799,0.0329851566794943,0.0860344137655062,True,0.0,True
+CCTV confirmatory,C2 NVENC QP 18 -> 45,"median per-clip diff, STALE_MOV",clip-level bootstrap (27 clips),0.044060884130799,0.0307440886573719,0.0860344137655062,True,0.0,True
+CCTV confirmatory,C3 x264 QP 24: bf 0 -> B,"median per-clip diff, STALE_MOV","scene-cluster bootstrap (7 scenes, 27 clips)",0.1196444822654801,0.10751248899184501,0.1715538665401435,True,0.0,True
+CCTV confirmatory,C3 x264 QP 24: bf 0 -> B,"median per-clip diff, STALE_MOV",clip-level bootstrap (27 clips),0.1196444822654801,0.10751248899184501,0.1607574741544852,True,0.0,True
+CCTV confirmatory,C4 NVENC QP 28: bf 0 -> B=P,"median per-clip diff, STALE_MOV","scene-cluster bootstrap (7 scenes, 27 clips)",0.128143453552972,0.1199687270267023,0.17419703396533348,True,0.0,True
+CCTV confirmatory,C4 NVENC QP 28: bf 0 -> B=P,"median per-clip diff, STALE_MOV",clip-level bootstrap (27 clips),0.128143453552972,0.1182070149310516,0.162174002974783,True,0.0,True

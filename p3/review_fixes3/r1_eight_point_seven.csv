@@ -1,0 +1,6 @@
+source,metric,arm,encode_id,group,n,median,n_diff_gt_0.01,n_diff_gt_0.001,n_diff_gt_0,median_diff
+"p3/sweep/results.csv (final, tau=1)",stale_of_valid,NVENC QP 28 bf 0,nvenc_qp28,d1,23,0.0327697202594934,,,,
+"p3/sweep/results.csv (final, tau=1)",stale_of_valid,"NVENC QP 28 bf 2, default B QP",nvenc_qp28_bf2,B_naive,23,0.0867121830473268,19.0,22.0,22.0,0.027054583891238396
+"p3/sweep/results.csv (final, tau=1)",stale_of_valid,"NVENC QP 28 bf 2, B=P (pre-registered P2 arm)",nvenc_qp28_bf2_bqeq,B_naive,23,0.0697070017962399,16.0,22.0,22.0,0.022227427933678198
+p3/review_fixes/sintel_stale_mov.csv,STALE_MOV,NVENC QP 28 bf 0,nvenc_qp28,d1,23,0.0403489056563386,,,,
+p3/review_fixes/sintel_stale_mov.csv,STALE_MOV,"NVENC QP 28 bf 2, B=P (pre-registered P2 arm)",nvenc_qp28_bf2_bqeq,B_naive,23,0.0873979941443966,21.0,22.0,22.0,0.0393979904217492

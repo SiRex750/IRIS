@@ -1,0 +1,4 @@
+prediction,rule,threshold,count,verdict,kill_rule_row,recorded_count,recorded_verdict,recount_matches_record,median_diff,sequences_not_passing
+P1 x264 CRF 45 vs 12,stale/valid(x264_crf45) - stale/valid(x264_crf12) > 0.001,>= 18/23,23/23,PASS,True,23/23,PASS,True,0.1263068084193232,none
+P1 NVENC QP 45 vs 18,stale/valid(nvenc_qp45) - stale/valid(nvenc_qp18) > 0.001,>= 18/23,23/23,PASS,True,23/23,PASS,True,0.2176219801042161,none
+P1 MPEG-4 q 31 vs 2,stale/valid(mpeg4_q31) - stale/valid(mpeg4_q2) > 0.001,>= 16/23,19/23,PASS,False,19/23,PASS,True,0.025024771055397105,"ambush_2 (-0.0321), ambush_6 (-0.0856), mountain_1 (-0.0142), temple_3 (-0.0461)"
