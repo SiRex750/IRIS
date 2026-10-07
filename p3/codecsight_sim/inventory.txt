@@ -1,0 +1,108 @@
+CodecSight policy simulation: data inventory (no metric computed)
+
+== Sintel final: 23 units x 17 arms = 391 encodes; missing files: 0
+   fps: {'24': np.int64(391)}
+   frames per encode: min 20, median 50, max 50
+   encodes whose frame count != source frame count: 0
+   encodes whose GT frame count != n_frames - 1: 0
+   distinct I-frame position patterns (count of encodes):
+     I at [0]  -> refresh at [0,16]   (34)
+     I at [0]  -> refresh at [0..32/16]   (33)
+     I at [0]  -> refresh at [0..48/16]   (323)
+     I at [0,3,4]  -> refresh at [0,3,4,20]   (1)
+   frame types per arm (sum over units): 
+     x264_crf12             I   23  P   1041  B      0  refreshes    86  short windows (<16) 23
+     x264_crf18             I   23  P   1041  B      0  refreshes    86  short windows (<16) 23
+     x264_crf23             I   23  P   1041  B      0  refreshes    86  short windows (<16) 23
+     x264_crf28             I   23  P   1041  B      0  refreshes    86  short windows (<16) 23
+     x264_crf33             I   23  P   1041  B      0  refreshes    86  short windows (<16) 23
+     x264_crf38             I   23  P   1041  B      0  refreshes    86  short windows (<16) 23
+     x264_crf45             I   23  P   1041  B      0  refreshes    86  short windows (<16) 23
+     nvenc_qp18             I   23  P   1041  B      0  refreshes    86  short windows (<16) 23
+     nvenc_qp23             I   23  P   1041  B      0  refreshes    86  short windows (<16) 23
+     nvenc_qp28             I   23  P   1041  B      0  refreshes    86  short windows (<16) 23
+     nvenc_qp33             I   23  P   1041  B      0  refreshes    86  short windows (<16) 23
+     nvenc_qp38             I   23  P   1041  B      0  refreshes    86  short windows (<16) 23
+     nvenc_qp45             I   23  P   1041  B      0  refreshes    86  short windows (<16) 23
+     x264_qp24              I   23  P   1041  B      0  refreshes    86  short windows (<16) 23
+     x264_qp24_bf2_pb1      I   23  P    361  B    680  refreshes    86  short windows (<16) 23
+     nvenc_qp28_bf2_bqeq    I   23  P    361  B    680  refreshes    86  short windows (<16) 23
+     mpeg4_q4               I   25  P   1039  B      0  refreshes    87  short windows (<16) 25
+
+== CCTV confirmatory: 27 units x 9 arms = 243 encodes; missing files: 0
+   fps: {'2397/100': np.int64(180), '30': np.int64(63)}
+   frames per encode: min 193, median 300, max 300
+   encodes whose frame count != source frame count: 0
+   encodes whose GT frame count != n_frames - 1: 0
+   distinct I-frame position patterns (count of encodes):
+     I at [0]  -> refresh at [0..192/16]   (18)
+     I at [0]  -> refresh at [0..224/16]   (18)
+     I at [0]  -> refresh at [0..240/16]   (9)
+     I at [0,250]  -> refresh at [0..240/16,250..298/16]   (198)
+   frame types per arm (sum over units): 
+     x264_crf12             I   49  P   7658  B      0  refreshes   512  short windows (<16) 49
+     x264_crf45             I   49  P   7658  B      0  refreshes   512  short windows (<16) 49
+     x264_qp24              I   49  P   7658  B      0  refreshes   512  short windows (<16) 49
+     x264_qp24_bf2_pb1      I   49  P   2569  B   5089  refreshes   512  short windows (<16) 49
+     nvenc_qp18             I   49  P   7658  B      0  refreshes   512  short windows (<16) 49
+     nvenc_qp23             I   49  P   7658  B      0  refreshes   512  short windows (<16) 49
+     nvenc_qp45             I   49  P   7658  B      0  refreshes   512  short windows (<16) 49
+     nvenc_qp28             I   49  P   7658  B      0  refreshes   512  short windows (<16) 49
+     nvenc_qp28_bf2_bqeq    I   49  P   2569  B   5089  refreshes   512  short windows (<16) 49
+   2 FPS exploratory arm: sampling step by fps: {'2397/100': np.float64(12.0), '30': np.float64(15.0)}; sampled frames per encode {25.0: np.int64(135), 20.0: np.int64(81), 17.0: np.int64(18), 21.0: np.int64(9)}; refresh patterns:
+     [0,192]  (45)
+     [0,192,252]  (135)
+     [0,240,255]  (63)
+
+Per-unit rows (one per sequence/clip; arms with an identical pattern collapsed):
+  Sintel alley_1                            n= 50 I=[0]  arms: all
+  Sintel alley_2                            n= 50 I=[0]  arms: all
+  Sintel ambush_2                           n= 21 I=[0]  arms: all
+  Sintel ambush_4                           n= 33 I=[0]  arms: x264_crf12,x264_crf18,x264_crf23,x264_crf28,x264_crf33,x264_crf38,x264_crf45,nvenc_qp18,nvenc_qp23,nvenc_qp28,nvenc_qp33,nvenc_qp38,nvenc_qp45,x264_qp24,x264_qp24_bf2_pb1,nvenc_qp28_bf2_bqeq
+  Sintel ambush_4                           n= 33 I=[0,3,4]  arms: mpeg4_q4
+  Sintel ambush_5                           n= 50 I=[0]  arms: all
+  Sintel ambush_6                           n= 20 I=[0]  arms: all
+  Sintel ambush_7                           n= 50 I=[0]  arms: all
+  Sintel bamboo_1                           n= 50 I=[0]  arms: all
+  Sintel bamboo_2                           n= 50 I=[0]  arms: all
+  Sintel bandage_1                          n= 50 I=[0]  arms: all
+  Sintel bandage_2                          n= 50 I=[0]  arms: all
+  Sintel cave_2                             n= 50 I=[0]  arms: all
+  Sintel cave_4                             n= 50 I=[0]  arms: all
+  Sintel market_2                           n= 50 I=[0]  arms: all
+  Sintel market_5                           n= 50 I=[0]  arms: all
+  Sintel market_6                           n= 40 I=[0]  arms: all
+  Sintel mountain_1                         n= 50 I=[0]  arms: all
+  Sintel shaman_2                           n= 50 I=[0]  arms: all
+  Sintel shaman_3                           n= 50 I=[0]  arms: all
+  Sintel sleeping_1                         n= 50 I=[0]  arms: all
+  Sintel sleeping_2                         n= 50 I=[0]  arms: all
+  Sintel temple_2                           n= 50 I=[0]  arms: all
+  Sintel temple_3                           n= 50 I=[0]  arms: all
+  CCTV c VIRAT_S_000206_07_001501_001600    n=300 I=[0,250]  arms: all
+  CCTV c VIRAT_S_000206_08_001618_001712    n=300 I=[0,250]  arms: all
+  CCTV c VIRAT_S_000207_00_000000_000045    n=300 I=[0,250]  arms: all
+  CCTV c VIRAT_S_000207_01_000094_000156    n=300 I=[0,250]  arms: all
+  CCTV c VIRAT_S_000207_03_000556_000590    n=300 I=[0,250]  arms: all
+  CCTV c VIRAT_S_000207_04_000902_000934    n=300 I=[0,250]  arms: all
+  CCTV c VIRAT_S_000207_05_001125_001193    n=300 I=[0,250]  arms: all
+  CCTV c VIRAT_S_010000_00_000000_000165    n=300 I=[0,250]  arms: all
+  CCTV c VIRAT_S_010000_01_000184_000324    n=300 I=[0,250]  arms: all
+  CCTV c VIRAT_S_010000_06_000728_000762    n=300 I=[0,250]  arms: all
+  CCTV c VIRAT_S_010000_07_000827_000860    n=300 I=[0,250]  arms: all
+  CCTV c VIRAT_S_010002_02_000174_000204    n=300 I=[0,250]  arms: all
+  CCTV c VIRAT_S_010003_00_000000_000108    n=300 I=[0,250]  arms: all
+  CCTV c VIRAT_S_010003_01_000111_000137    n=234 I=[0]  arms: all
+  CCTV c VIRAT_S_010003_02_000165_000202    n=300 I=[0,250]  arms: all
+  CCTV c VIRAT_S_010003_03_000219_000259    n=300 I=[0,250]  arms: all
+  CCTV c VIRAT_S_010003_05_000499_000523    n=237 I=[0]  arms: all
+  CCTV c VIRAT_S_010003_06_000526_000560    n=300 I=[0,250]  arms: all
+  CCTV c VIRAT_S_010003_07_000608_000636    n=195 I=[0]  arms: all
+  CCTV c VIRAT_S_010003_10_000901_000934    n=300 I=[0,250]  arms: all
+  CCTV c VIRAT_S_010003_13_001066_001124    n=300 I=[0,250]  arms: all
+  CCTV c VIRAT_S_010004_03_000239_000277    n=300 I=[0,250]  arms: all
+  CCTV c VIRAT_S_010004_07_000729_000809    n=300 I=[0,250]  arms: all
+  CCTV c VIRAT_S_010004_08_000811_000920    n=300 I=[0,250]  arms: all
+  CCTV c VIRAT_S_010005_00_000048_000075    n=248 I=[0]  arms: all
+  CCTV c VIRAT_S_010005_02_000177_000203    n=300 I=[0,250]  arms: all
+  CCTV c VIRAT_S_010005_04_000299_000323    n=193 I=[0]  arms: all
