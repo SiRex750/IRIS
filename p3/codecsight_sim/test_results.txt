@@ -1,0 +1,28 @@
+# Validation 2a: synthetic unit tests
+prereg 9f5b5a3 (file unchanged: True); code sha256 c536bf62b2b66ea394c71ac8c8dcdc25b353e2611317ce1a60d5a7e728b1bfe0
+
+PASS  static: every token reused at every non-refresh frame   [reused token-frames 288 of 288]
+PASS  static: nothing reused at refresh frames 0 and 16
+PASS  static: nothing stale   [stale 0]
+PASS  static: REUSE = 18/19   [REUSE 0.947368]
+PASS  one cell: token active from frame 3 to 15 (the frame before the next refresh)   [active frames [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]]
+PASS  one cell: token reused again after refresh 16 (frames 17-31)
+PASS  one cell: no other token ever active
+PASS  no-vector cell is dynamic (Sintel form)
+PASS  no-vector cell is dynamic (CCTV form, q = 255)
+PASS  no-vector cell: its token not reused at frame 5
+PASS  refresh at every I-frame and 16 frames after the previous refresh (counter restarts)   [refresh [0, 5, 21, 30, 46]]
+PASS  refresh with I-frame at 0 only   [refresh [0, 16, 32, 48]]
+PASS  CCTV schedule I at 0, 250   [refresh [0, 16, 32, 48, 64, 80, 96, 112, 128, 144, 160, 176, 192, 208, 224, 240, 250, 266, 282, 298]]
+PASS  2 FPS schedule (step 12, I at 0 and 250)   [refresh [0, 192, 252], sampled 25]
+PASS  truth: 0.3 px/frame cell first 'truly moved' where the sum first exceeds 2 px   [first moved frame 7, expected 7 (sum 2.1)]
+PASS  truth: stays moved until refresh 16, cleared at 16
+PASS  finite rule: a missing term invalidates the cell until the next refresh
+PASS  27.25-px boundary: cell row 6 (y 24-28 px) is in token rows 0 and 1   [[0, 16]]
+PASS  cell rows 5 and 7 are in one token row each   [[0] [16]]
+PASS  cell row 13 (y 52-56, boundary 54.5) shared by token rows 1 and 2   [[16, 32]]
+PASS  64-px columns: cell col 16 only in token col 1   [[1]]
+PASS  every cell in >= 1 token; 256 tokens   [cells per token min 112 max 128]
+PASS  CCTV derived: 80 x 45 px tokens -> 20 cols x 12 rows of cells (240) for every token   [{np.float32(240.0)}]
+
+23/23 passed

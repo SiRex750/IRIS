@@ -1,0 +1,21 @@
+config,key,data,metric,comparison,margin,count,N,required,verdict,missing,role,prereg_commit,prereg_unchanged,code_sha256
+primary,S1x,Sintel,STALE,STALE(x264_crf45) - STALE(x264_crf12),> 0.001,21,23,18,PASS,,verdict,9f5b5a3,True,c536bf62b2b66ea394c71ac8c8dcdc25b353e2611317ce1a60d5a7e728b1bfe0
+primary,S1n,Sintel,STALE,STALE(nvenc_qp45) - STALE(nvenc_qp18),> 0.001,21,23,18,PASS,,verdict,9f5b5a3,True,c536bf62b2b66ea394c71ac8c8dcdc25b353e2611317ce1a60d5a7e728b1bfe0
+primary,S1r,Sintel,STALE,"Spearman(CRF, STALE), 7 x264 CRF levels",>= 0.8,18,23,16,PASS,alley_1;bamboo_1,verdict,9f5b5a3,True,c536bf62b2b66ea394c71ac8c8dcdc25b353e2611317ce1a60d5a7e728b1bfe0
+primary,S2x,Sintel,STALE,STALE(x264_qp24_bf2_pb1) - STALE(x264_qp24),> 0.001,5,23,18,FAIL,,verdict,9f5b5a3,True,c536bf62b2b66ea394c71ac8c8dcdc25b353e2611317ce1a60d5a7e728b1bfe0
+primary,S2n,Sintel,STALE,STALE(nvenc_qp28_bf2_bqeq) - STALE(nvenc_qp28),> 0.001,1,23,16,FAIL,,verdict,9f5b5a3,True,c536bf62b2b66ea394c71ac8c8dcdc25b353e2611317ce1a60d5a7e728b1bfe0
+primary,K1,CCTV,STALE_MOV,STALE_MOV(x264_crf45) - STALE_MOV(x264_crf12),> 0.01,21,27,22,FAIL,,verdict,9f5b5a3,True,c536bf62b2b66ea394c71ac8c8dcdc25b353e2611317ce1a60d5a7e728b1bfe0
+primary,K2,CCTV,STALE_MOV,STALE_MOV(nvenc_qp45) - STALE_MOV(nvenc_qp18),> 0.01,16,27,21,FAIL,,verdict,9f5b5a3,True,c536bf62b2b66ea394c71ac8c8dcdc25b353e2611317ce1a60d5a7e728b1bfe0
+primary,K3,CCTV,STALE_MOV,STALE_MOV(x264_qp24_bf2_pb1) - STALE_MOV(x264_qp24),> 0.01,0,27,22,FAIL,,verdict,9f5b5a3,True,c536bf62b2b66ea394c71ac8c8dcdc25b353e2611317ce1a60d5a7e728b1bfe0
+primary,K4,CCTV,STALE_MOV,STALE_MOV(nvenc_qp28_bf2_bqeq) - STALE_MOV(nvenc_qp28),> 0.01,0,27,21,FAIL,,verdict,9f5b5a3,True,c536bf62b2b66ea394c71ac8c8dcdc25b353e2611317ce1a60d5a7e728b1bfe0
+tau1,S1x,Sintel,STALE,STALE(x264_crf45) - STALE(x264_crf12),> 0.001,18,23,18,PASS,,secondary,9f5b5a3,True,c536bf62b2b66ea394c71ac8c8dcdc25b353e2611317ce1a60d5a7e728b1bfe0
+tau1,S1n,Sintel,STALE,STALE(nvenc_qp45) - STALE(nvenc_qp18),> 0.001,20,23,18,PASS,,secondary,9f5b5a3,True,c536bf62b2b66ea394c71ac8c8dcdc25b353e2611317ce1a60d5a7e728b1bfe0
+tau1,S1r,Sintel,STALE,"Spearman(CRF, STALE), 7 x264 CRF levels",>= 0.8,13,23,16,FAIL,,secondary,9f5b5a3,True,c536bf62b2b66ea394c71ac8c8dcdc25b353e2611317ce1a60d5a7e728b1bfe0
+tau1,S2x,Sintel,STALE,STALE(x264_qp24_bf2_pb1) - STALE(x264_qp24),> 0.001,5,23,18,FAIL,,secondary,9f5b5a3,True,c536bf62b2b66ea394c71ac8c8dcdc25b353e2611317ce1a60d5a7e728b1bfe0
+tau1,S2n,Sintel,STALE,STALE(nvenc_qp28_bf2_bqeq) - STALE(nvenc_qp28),> 0.001,2,23,16,FAIL,,secondary,9f5b5a3,True,c536bf62b2b66ea394c71ac8c8dcdc25b353e2611317ce1a60d5a7e728b1bfe0
+tau1,K1,CCTV,STALE_MOV,STALE_MOV(x264_crf45) - STALE_MOV(x264_crf12),> 0.01,22,27,22,PASS,,secondary,9f5b5a3,True,c536bf62b2b66ea394c71ac8c8dcdc25b353e2611317ce1a60d5a7e728b1bfe0
+tau1,K2,CCTV,STALE_MOV,STALE_MOV(nvenc_qp45) - STALE_MOV(nvenc_qp18),> 0.01,11,27,21,FAIL,,secondary,9f5b5a3,True,c536bf62b2b66ea394c71ac8c8dcdc25b353e2611317ce1a60d5a7e728b1bfe0
+tau1,K3,CCTV,STALE_MOV,STALE_MOV(x264_qp24_bf2_pb1) - STALE_MOV(x264_qp24),> 0.01,0,27,22,FAIL,,secondary,9f5b5a3,True,c536bf62b2b66ea394c71ac8c8dcdc25b353e2611317ce1a60d5a7e728b1bfe0
+tau1,K4,CCTV,STALE_MOV,STALE_MOV(nvenc_qp28_bf2_bqeq) - STALE_MOV(nvenc_qp28),> 0.01,0,27,21,FAIL,,secondary,9f5b5a3,True,c536bf62b2b66ea394c71ac8c8dcdc25b353e2611317ce1a60d5a7e728b1bfe0
+primary,KILL-A,both,"median STALE_MOV, median REUSE",every arm: median STALE_MOV < 0.01 and median REUSE > 0.20,see §6,7,26,26,DOES NOT FIRE,,verdict,9f5b5a3,True,c536bf62b2b66ea394c71ac8c8dcdc25b353e2611317ce1a60d5a7e728b1bfe0
+tau1,KILL-A,both,"median STALE_MOV, median REUSE",every arm: median STALE_MOV < 0.01 and median REUSE > 0.20,see §6,2,26,26,DOES NOT FIRE,,secondary,9f5b5a3,True,c536bf62b2b66ea394c71ac8c8dcdc25b353e2611317ce1a60d5a7e728b1bfe0

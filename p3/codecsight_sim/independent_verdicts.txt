@@ -1,0 +1,105 @@
+# Independent recomputation of the verdicts (independent_verdicts.py)
+prereg 9f5b5a3 (file unchanged: True); code sha256 c536bf62b2b66ea394c71ac8c8dcdc25b353e2611317ce1a60d5a7e728b1bfe0; per_unit.csv code sha256 c536bf62b2b66ea394c71ac8c8dcdc25b353e2611317ce1a60d5a7e728b1bfe0
+
+## primary
+S1x    STALE(x264_crf45) - STALE(x264_crf12) > 0.001: 21/23, need 18 -> PASS
+S1n    STALE(nvenc_qp45) - STALE(nvenc_qp18) > 0.001: 21/23, need 18 -> PASS
+S2x    STALE(x264_qp24_bf2_pb1) - STALE(x264_qp24) > 0.001: 5/23, need 18 -> FAIL
+S2n    STALE(nvenc_qp28_bf2_bqeq) - STALE(nvenc_qp28) > 0.001: 1/23, need 16 -> FAIL
+K1     STALE_MOV(x264_crf45) - STALE_MOV(x264_crf12) > 0.01: 21/27, need 22 -> FAIL
+K2     STALE_MOV(nvenc_qp45) - STALE_MOV(nvenc_qp18) > 0.01: 16/27, need 21 -> FAIL
+K3     STALE_MOV(x264_qp24_bf2_pb1) - STALE_MOV(x264_qp24) > 0.01: 0/27, need 22 -> FAIL
+K4     STALE_MOV(nvenc_qp28_bf2_bqeq) - STALE_MOV(nvenc_qp28) > 0.01: 0/27, need 21 -> FAIL
+S1r    Spearman(CRF, STALE) >= 0.8: 18/23, need 16 -> PASS; missing ['alley_1', 'bamboo_1']
+KILL-A arm medians (REUSE, STALE_MOV, units with STALE_MOV missing):
+  Sintel mpeg4_q4             REUSE 0.020385  STALE_MOV 0.015323  missing 0  does not meet
+  Sintel nvenc_qp18           REUSE 0.000000  STALE_MOV 0.000000  missing 0  does not meet
+  Sintel nvenc_qp23           REUSE 0.001222  STALE_MOV 0.000090  missing 0  does not meet
+  Sintel nvenc_qp28           REUSE 0.002812  STALE_MOV 0.000861  missing 0  does not meet
+  Sintel nvenc_qp28_bf2_bqeq  REUSE 0.004057  STALE_MOV 0.000775  missing 0  does not meet
+  Sintel nvenc_qp33           REUSE 0.008680  STALE_MOV 0.005156  missing 0  does not meet
+  Sintel nvenc_qp38           REUSE 0.017823  STALE_MOV 0.014767  missing 0  does not meet
+  Sintel nvenc_qp45           REUSE 0.056486  STALE_MOV 0.045969  missing 0  does not meet
+  Sintel x264_crf12           REUSE 0.000000  STALE_MOV 0.000000  missing 0  does not meet
+  Sintel x264_crf18           REUSE 0.000000  STALE_MOV 0.000000  missing 0  does not meet
+  Sintel x264_crf23           REUSE 0.000000  STALE_MOV 0.000000  missing 0  does not meet
+  Sintel x264_crf28           REUSE 0.000312  STALE_MOV 0.000000  missing 0  does not meet
+  Sintel x264_crf33           REUSE 0.001726  STALE_MOV 0.000155  missing 0  does not meet
+  Sintel x264_crf38           REUSE 0.004657  STALE_MOV 0.001543  missing 0  does not meet
+  Sintel x264_crf45           REUSE 0.023501  STALE_MOV 0.012784  missing 0  does not meet
+  Sintel x264_qp24            REUSE 0.000161  STALE_MOV 0.000000  missing 0  does not meet
+  Sintel x264_qp24_bf2_pb1    REUSE 0.001145  STALE_MOV 0.000251  missing 0  does not meet
+  CCTV   nvenc_qp18           REUSE 0.576544  STALE_MOV 0.003906  missing 0  meets both
+  CCTV   nvenc_qp23           REUSE 0.604019  STALE_MOV 0.002914  missing 0  meets both
+  CCTV   nvenc_qp28           REUSE 0.657898  STALE_MOV 0.002107  missing 0  meets both
+  CCTV   nvenc_qp28_bf2_bqeq  REUSE 0.572037  STALE_MOV 0.001374  missing 0  meets both
+  CCTV   nvenc_qp45           REUSE 0.855586  STALE_MOV 0.018880  missing 0  does not meet
+  CCTV   x264_crf12           REUSE 0.610917  STALE_MOV 0.008018  missing 0  meets both
+  CCTV   x264_crf45           REUSE 0.787286  STALE_MOV 0.048413  missing 0  does not meet
+  CCTV   x264_qp24            REUSE 0.592104  STALE_MOV 0.003264  missing 0  meets both
+  CCTV   x264_qp24_bf2_pb1    REUSE 0.558372  STALE_MOV 0.003757  missing 0  meets both
+KILL-A: 7/26 arm-medians meet both -> DOES NOT FIRE
+
+## tau1
+S1x    STALE(x264_crf45) - STALE(x264_crf12) > 0.001: 18/23, need 18 -> PASS
+S1n    STALE(nvenc_qp45) - STALE(nvenc_qp18) > 0.001: 20/23, need 18 -> PASS
+S2x    STALE(x264_qp24_bf2_pb1) - STALE(x264_qp24) > 0.001: 5/23, need 18 -> FAIL
+S2n    STALE(nvenc_qp28_bf2_bqeq) - STALE(nvenc_qp28) > 0.001: 2/23, need 16 -> FAIL
+K1     STALE_MOV(x264_crf45) - STALE_MOV(x264_crf12) > 0.01: 22/27, need 22 -> PASS
+K2     STALE_MOV(nvenc_qp45) - STALE_MOV(nvenc_qp18) > 0.01: 11/27, need 21 -> FAIL
+K3     STALE_MOV(x264_qp24_bf2_pb1) - STALE_MOV(x264_qp24) > 0.01: 0/27, need 22 -> FAIL
+K4     STALE_MOV(nvenc_qp28_bf2_bqeq) - STALE_MOV(nvenc_qp28) > 0.01: 0/27, need 21 -> FAIL
+S1r    Spearman(CRF, STALE) >= 0.8: 13/23, need 16 -> FAIL
+KILL-A arm medians (REUSE, STALE_MOV, units with STALE_MOV missing):
+  Sintel mpeg4_q4             REUSE 0.025430  STALE_MOV 0.022451  missing 0  does not meet
+  Sintel nvenc_qp18           REUSE 0.001562  STALE_MOV 0.000587  missing 0  does not meet
+  Sintel nvenc_qp23           REUSE 0.002532  STALE_MOV 0.001585  missing 0  does not meet
+  Sintel nvenc_qp28           REUSE 0.008450  STALE_MOV 0.003463  missing 0  does not meet
+  Sintel nvenc_qp28_bf2_bqeq  REUSE 0.004061  STALE_MOV 0.001335  missing 0  does not meet
+  Sintel nvenc_qp33           REUSE 0.011246  STALE_MOV 0.009370  missing 0  does not meet
+  Sintel nvenc_qp38           REUSE 0.023792  STALE_MOV 0.018139  missing 0  does not meet
+  Sintel nvenc_qp45           REUSE 0.062793  STALE_MOV 0.045969  missing 0  does not meet
+  Sintel x264_crf12           REUSE 0.000409  STALE_MOV 0.000000  missing 0  does not meet
+  Sintel x264_crf18           REUSE 0.000409  STALE_MOV 0.000000  missing 0  does not meet
+  Sintel x264_crf23           REUSE 0.000901  STALE_MOV 0.000000  missing 0  does not meet
+  Sintel x264_crf28           REUSE 0.001515  STALE_MOV 0.000376  missing 0  does not meet
+  Sintel x264_crf33           REUSE 0.003779  STALE_MOV 0.002138  missing 0  does not meet
+  Sintel x264_crf38           REUSE 0.011623  STALE_MOV 0.003437  missing 0  does not meet
+  Sintel x264_crf45           REUSE 0.029170  STALE_MOV 0.018394  missing 0  does not meet
+  Sintel x264_qp24            REUSE 0.000817  STALE_MOV 0.000407  missing 0  does not meet
+  Sintel x264_qp24_bf2_pb1    REUSE 0.002647  STALE_MOV 0.001120  missing 0  does not meet
+  CCTV   nvenc_qp18           REUSE 0.708272  STALE_MOV 0.014981  missing 0  does not meet
+  CCTV   nvenc_qp23           REUSE 0.742044  STALE_MOV 0.014311  missing 0  does not meet
+  CCTV   nvenc_qp28           REUSE 0.789951  STALE_MOV 0.014146  missing 0  does not meet
+  CCTV   nvenc_qp28_bf2_bqeq  REUSE 0.753449  STALE_MOV 0.004152  missing 0  meets both
+  CCTV   nvenc_qp45           REUSE 0.881114  STALE_MOV 0.021796  missing 0  does not meet
+  CCTV   x264_crf12           REUSE 0.754520  STALE_MOV 0.024628  missing 0  does not meet
+  CCTV   x264_crf45           REUSE 0.855456  STALE_MOV 0.072373  missing 0  does not meet
+  CCTV   x264_qp24            REUSE 0.746982  STALE_MOV 0.018287  missing 0  does not meet
+  CCTV   x264_qp24_bf2_pb1    REUSE 0.737419  STALE_MOV 0.008714  missing 0  meets both
+KILL-A: 2/26 arm-medians meet both -> DOES NOT FIRE
+
+## Agreement with analyze.py (verdicts.csv, arm_medians.csv)
+primary  S1x     independent PASS            21 | analyze.py PASS            21 | agree
+primary  S1n     independent PASS            21 | analyze.py PASS            21 | agree
+primary  S2x     independent FAIL             5 | analyze.py FAIL             5 | agree
+primary  S2n     independent FAIL             1 | analyze.py FAIL             1 | agree
+primary  K1      independent FAIL            21 | analyze.py FAIL            21 | agree
+primary  K2      independent FAIL            16 | analyze.py FAIL            16 | agree
+primary  K3      independent FAIL             0 | analyze.py FAIL             0 | agree
+primary  K4      independent FAIL             0 | analyze.py FAIL             0 | agree
+primary  S1r     independent PASS            18 | analyze.py PASS            18 | agree
+primary  KILL-A  independent DOES NOT FIRE    7 | analyze.py DOES NOT FIRE    7 | agree
+tau1     S1x     independent PASS            18 | analyze.py PASS            18 | agree
+tau1     S1n     independent PASS            20 | analyze.py PASS            20 | agree
+tau1     S2x     independent FAIL             5 | analyze.py FAIL             5 | agree
+tau1     S2n     independent FAIL             2 | analyze.py FAIL             2 | agree
+tau1     K1      independent PASS            22 | analyze.py PASS            22 | agree
+tau1     K2      independent FAIL            11 | analyze.py FAIL            11 | agree
+tau1     K3      independent FAIL             0 | analyze.py FAIL             0 | agree
+tau1     K4      independent FAIL             0 | analyze.py FAIL             0 | agree
+tau1     S1r     independent FAIL            13 | analyze.py FAIL            13 | agree
+tau1     KILL-A  independent DOES NOT FIRE    2 | analyze.py DOES NOT FIRE    2 | agree
+KILL-A arm medians vs arm_medians.csv: max |diff| 9.975e-17 -> agree
+
+ALL AGREE: True

@@ -1,0 +1,18 @@
+# Validation 2b: reproduction of the main bare gate (tau = 1 px)
+prereg 9f5b5a3 (file unchanged: True); code sha256 c536bf62b2b66ea394c71ac8c8dcdc25b353e2611317ce1a60d5a7e728b1bfe0
+
+  data                            unit               arm   group      metric  this_code  saved_results  match_6dp
+Sintel                         alley_1        x264_crf12      d1 stale/valid 0.00055353     0.00055353       True
+Sintel                          cave_2        x264_crf12      d1 stale/valid 0.00051630     0.00051630       True
+Sintel                        temple_3        x264_crf12      d1 stale/valid 0.02175868     0.02175868       True
+Sintel                         alley_1        x264_crf45      d1 stale/valid 0.01406239     0.01406239       True
+Sintel                          cave_2        x264_crf45      d1 stale/valid 0.37477032     0.37477032       True
+Sintel                        temple_3        x264_crf45      d1 stale/valid 0.44768347     0.44768347       True
+Sintel                         alley_1        nvenc_qp45      d1 stale/valid 0.04471565     0.04471565       True
+Sintel                          cave_2        nvenc_qp45      d1 stale/valid 0.45322803     0.45322803       True
+Sintel                        temple_3        nvenc_qp45      d1 stale/valid 0.49406292     0.49406292       True
+Sintel                        market_5 x264_qp24_bf2_pb1 B_naive stale/valid 0.05860023     0.05860023       True
+  CCTV VIRAT_S_000206_07_001501_001600        x264_crf45      d1   STALE_MOV 0.20768307     0.20768307       True
+  CCTV VIRAT_S_000206_08_001618_001712        x264_crf45      d1   STALE_MOV 0.15820702     0.15820702       True
+
+ALL MATCH: True
