@@ -31,3 +31,9 @@ computed before them, so there is no earlier run to report beside the final one.
   values: it reproduces all 13 intervals of `p3/review_fixes3/r4_bootstrap_ci.csv` exactly (same seed and draws).
 - Validation 2a (23/23) and 2b (12/12, ALL MATCH) were re-run with the final code (sha256 c536bf62…). The results
   are identical to the earlier runs; only the hash line changed. The full run used the same code hash.
+
+## 4. Commit and code-hash notes (no code or result changed)
+- On branch `sonu/p3-clean` the pre-registration commit is `b523bca`. Its content is identical to `9f5b5a3`, the
+  commit cited in the outputs; only the commit hash differs.
+- The code hash (sha256 c536bf62…) is computed over the files' LF bytes. On a CRLF checkout (e.g. Windows with
+  `core.autocrlf=true`), convert the files to LF before hashing, or the hash will not match.

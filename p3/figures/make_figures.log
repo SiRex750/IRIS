@@ -1,0 +1,19 @@
+Assertions: plotted medians vs the paper's quoted values
+  OK   Sintel x264 QP 24 bf 0           n=23  median   0.5499%  -> 0.55%  (paper 0.55%)
+  OK   Sintel x264 QP 24 B (naive)      n=23  median   4.4492%  -> 4.4%  (paper 4.4%)
+  OK   Sintel NVENC QP 28 bf 0          n=23  median   3.2770%  -> 3.3%  (paper 3.3%)
+  OK   Sintel NVENC QP 28 B=P (naive)   n=23  median   6.9707%  -> 7.0%  (paper 7.0%)
+  OK   CCTV x264 CRF 12                 n=27  median   5.4716%  -> 5.5%  (paper 5.5%)
+  OK   CCTV x264 CRF 45                 n=27  median  24.8667%  -> 24.9%  (paper 24.9%)
+  OK   CCTV NVENC QP 18                 n=27  median   4.8716%  -> 4.9%  (paper 4.9%)
+  OK   CCTV NVENC QP 45                 n=27  median  10.0509%  -> 10.1%  (paper 10.1%)
+  all 8 quoted medians match
+
+B3: sequence shaman_2 (x264 CRF 45 stale/valid 0.1313 = median of 23)
+  rebuild check x264_crf12: {'stale': 1985, 'tp': 457763, 'reuse': 527875, 'valid': 1343395} vs results.csv {'stale': 1985, 'tp': 457763, 'reuse': 527875, 'valid': 1343395}
+  rebuild check x264_crf45: {'stale': 176445, 'tp': 535461, 'reuse': 865003, 'valid': 1343395} vs results.csv {'stale': 176445, 'tp': 535461, 'reuse': 865003, 'valid': 1343395}
+  frame rule: 49 d1 P-frames; median stale count 3572 -> display frame 39 (Sintel frame_0040.png)
+  x264_crf12 frame 39: stale 0, correctly reused 6990, reused 9155, valid 27774
+  x264_crf45 frame 39: stale 3572, correctly reused 9264, reused 18861, valid 27774
+
+wrote fig_b1_bframes_matched_qp, fig_b2_cctv_quality, fig_b3_example_frame (.pdf, .png)
