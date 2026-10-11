@@ -1,0 +1,54 @@
+# POST HOC (not pre-registered; changes no verdict). Plan: p3/codecsight_sim/posthoc_matched/PLAN.md (e311c83).
+# Validation (PLAN §7)
+
+## (a) G1, per-frame truth, I-frame refresh: vs per_unit.csv g_ columns
+  data                            unit    count  checks  matches
+  CCTV VIRAT_S_000206_07_001501_001600  g_moved      27       27
+  CCTV VIRAT_S_000206_07_001501_001600 g_reused      27       27
+  CCTV VIRAT_S_000206_07_001501_001600  g_stale      27       27
+  CCTV VIRAT_S_000206_07_001501_001600  g_valid      27       27
+  CCTV VIRAT_S_000206_08_001618_001712  g_moved      27       27
+  CCTV VIRAT_S_000206_08_001618_001712 g_reused      27       27
+  CCTV VIRAT_S_000206_08_001618_001712  g_stale      27       27
+  CCTV VIRAT_S_000206_08_001618_001712  g_valid      27       27
+  CCTV VIRAT_S_000207_00_000000_000045  g_moved      27       27
+  CCTV VIRAT_S_000207_00_000000_000045 g_reused      27       27
+  CCTV VIRAT_S_000207_00_000000_000045  g_stale      27       27
+  CCTV VIRAT_S_000207_00_000000_000045  g_valid      27       27
+Sintel                         alley_1  g_moved      51       51
+Sintel                         alley_1 g_reused      51       51
+Sintel                         alley_1  g_stale      51       51
+Sintel                         alley_1  g_valid      51       51
+Sintel                         alley_2  g_moved      51       51
+Sintel                         alley_2 g_reused      51       51
+Sintel                         alley_2  g_stale      51       51
+Sintel                         alley_2  g_valid      51       51
+Sintel                        ambush_2  g_moved      51       51
+Sintel                        ambush_2 g_reused      51       51
+Sintel                        ambush_2  g_stale      51       51
+Sintel                        ambush_2  g_valid      51       51
+
+ALL MATCH (a): True (936/936)
+
+## (b) P derived / tau 0.5, token level, pre-registered truth: vs per_unit.csv primary
+  data                            unit     count  checks  matches
+  CCTV VIRAT_S_000206_07_001501_001600 reused_tf       9        9
+  CCTV VIRAT_S_000206_07_001501_001600  stale_tf       9        9
+  CCTV VIRAT_S_000206_07_001501_001600  valid_tf       9        9
+  CCTV VIRAT_S_000206_08_001618_001712 reused_tf       9        9
+  CCTV VIRAT_S_000206_08_001618_001712  stale_tf       9        9
+  CCTV VIRAT_S_000206_08_001618_001712  valid_tf       9        9
+  CCTV VIRAT_S_000207_00_000000_000045 reused_tf       9        9
+  CCTV VIRAT_S_000207_00_000000_000045  stale_tf       9        9
+  CCTV VIRAT_S_000207_00_000000_000045  valid_tf       9        9
+Sintel                         alley_1 reused_tf      17       17
+Sintel                         alley_1  stale_tf      17       17
+Sintel                         alley_1  valid_tf      17       17
+Sintel                         alley_2 reused_tf      17       17
+Sintel                         alley_2  stale_tf      17       17
+Sintel                         alley_2  valid_tf      17       17
+Sintel                        ambush_2 reused_tf      17       17
+Sintel                        ambush_2  stale_tf      17       17
+Sintel                        ambush_2  valid_tf      17       17
+
+ALL MATCH (b): True (234/234)
