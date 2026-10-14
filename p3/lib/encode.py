@@ -3,7 +3,7 @@
 Supported encoders and knobs:
   libx264     crf (or qp for constant QP), preset, bframes, keyint, ref, b_pyramid, threads, b_adapt,
               pbratio, me, merange   (all but crf/qp/preset go through x264-params)
-  h264_nvenc  qp (constant QP), bframes, keyint, preset, ref, b_ref_mode, b_qfactor, b_qoffset
+  h264_nvenc  qp (constant QP), bframes, keyint, preset, ref, b_ref_mode, b_qfactor, b_qoffset, no_scenecut
   mpeg4       q  (fixed quantiser via qmin=qmax=q), bframes, keyint, threads
 
 All knobs added after the first validation default to None = previous behaviour.
@@ -33,7 +33,7 @@ def _as_array(f):
 
 def build_options(codec, *, crf=None, qp=None, q=None, preset=None, bframes=0, keyint=250, ref=None,
                   b_pyramid=None, b_ref_mode=None, threads=None, b_adapt=None, pbratio=None, me=None,
-                  merange=None, b_qfactor=None, b_qoffset=None):
+                  merange=None, b_qfactor=None, b_qoffset=None, no_scenecut=None):
     """Return the avcodec option dict for one configuration (all values as strings)."""
     if codec == "libx264":
         if (crf is None) == (qp is None):
@@ -68,6 +68,8 @@ def build_options(codec, *, crf=None, qp=None, q=None, preset=None, bframes=0, k
             opts["b_qfactor"] = str(b_qfactor)
         if b_qoffset is not None:
             opts["b_qoffset"] = str(b_qoffset)
+        if no_scenecut is not None:
+            opts["no-scenecut"] = str(no_scenecut)
     elif codec == "mpeg4":
         if q is None:
             raise ValueError("mpeg4 needs q")

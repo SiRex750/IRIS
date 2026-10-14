@@ -1,0 +1,720 @@
+{
+ "purpose": "CodecSight-matched 2 fps arm, data collection only; no metric computed",
+ "prereg_commit": "cc2eaf9",
+ "code_sha256": "8133c6cf5082299c62949e0d2ae39172e45d92d538c5355e84bc7e6b9dbafbe4",
+ "head": "cc2eaf93cc4c7b5cca0dca5a780bd697ea27b9e5",
+ "uncommitted": "M p3/lib/encode.py\n?? p3/codecsight_2fps/collect.py",
+ "argv": [
+  "p3/codecsight_2fps/collect.py",
+  "--clips",
+  "VIRAT_S_000207_01_000094_000156",
+  "--out",
+  "p3/codecsight_2fps/pilot",
+  "--workers",
+  "4"
+ ],
+ "start_time": "2026-10-14T14:01:46+0530",
+ "versions": {
+  "python": "3.13.3",
+  "pyav": "17.1.0",
+  "numpy": "2.2.6",
+  "torch": "2.8.0+cu128",
+  "torchvision": "0.23.0+cu128"
+ },
+ "arms": {
+  "x264_crf12": {
+   "codec": "libx264",
+   "knobs": {
+    "crf": 12,
+    "preset": "medium",
+    "bframes": 0,
+    "keyint": 16,
+    "ref": 1,
+    "threads": 1
+   },
+   "options": {
+    "crf": "12",
+    "preset": "medium",
+    "x264-params": "bframes=0:keyint=16:min-keyint=16:scenecut=0:ref=1:threads=1:sliced-threads=0"
+   }
+  },
+  "x264_crf45": {
+   "codec": "libx264",
+   "knobs": {
+    "crf": 45,
+    "preset": "medium",
+    "bframes": 0,
+    "keyint": 16,
+    "ref": 1,
+    "threads": 1
+   },
+   "options": {
+    "crf": "45",
+    "preset": "medium",
+    "x264-params": "bframes=0:keyint=16:min-keyint=16:scenecut=0:ref=1:threads=1:sliced-threads=0"
+   }
+  },
+  "x264_qp24": {
+   "codec": "libx264",
+   "knobs": {
+    "qp": 24,
+    "preset": "medium",
+    "bframes": 0,
+    "keyint": 16,
+    "ref": 1,
+    "threads": 1
+   },
+   "options": {
+    "qp": "24",
+    "preset": "medium",
+    "x264-params": "bframes=0:keyint=16:min-keyint=16:scenecut=0:ref=1:threads=1:sliced-threads=0"
+   }
+  },
+  "x264_qp24_bf2_pb1": {
+   "codec": "libx264",
+   "knobs": {
+    "qp": 24,
+    "pbratio": 1.0,
+    "preset": "medium",
+    "bframes": 2,
+    "keyint": 16,
+    "ref": 1,
+    "threads": 1,
+    "b_adapt": 0,
+    "b_pyramid": "none"
+   },
+   "options": {
+    "qp": "24",
+    "preset": "medium",
+    "x264-params": "bframes=2:keyint=16:min-keyint=16:scenecut=0:ref=1:b-pyramid=none:threads=1:sliced-threads=0:b-adapt=0:pbratio=1.0"
+   }
+  },
+  "nvenc_qp18": {
+   "codec": "h264_nvenc",
+   "knobs": {
+    "qp": 18,
+    "bframes": 0,
+    "keyint": 16,
+    "ref": 1,
+    "preset": "p4",
+    "no_scenecut": 1
+   },
+   "options": {
+    "rc": "constqp",
+    "qp": "18",
+    "bf": "0",
+    "g": "16",
+    "preset": "p4",
+    "refs": "1",
+    "no-scenecut": "1"
+   }
+  },
+  "nvenc_qp23": {
+   "codec": "h264_nvenc",
+   "knobs": {
+    "qp": 23,
+    "bframes": 0,
+    "keyint": 16,
+    "ref": 1,
+    "preset": "p4",
+    "no_scenecut": 1
+   },
+   "options": {
+    "rc": "constqp",
+    "qp": "23",
+    "bf": "0",
+    "g": "16",
+    "preset": "p4",
+    "refs": "1",
+    "no-scenecut": "1"
+   }
+  },
+  "nvenc_qp45": {
+   "codec": "h264_nvenc",
+   "knobs": {
+    "qp": 45,
+    "bframes": 0,
+    "keyint": 16,
+    "ref": 1,
+    "preset": "p4",
+    "no_scenecut": 1
+   },
+   "options": {
+    "rc": "constqp",
+    "qp": "45",
+    "bf": "0",
+    "g": "16",
+    "preset": "p4",
+    "refs": "1",
+    "no-scenecut": "1"
+   }
+  },
+  "nvenc_qp28": {
+   "codec": "h264_nvenc",
+   "knobs": {
+    "qp": 28,
+    "bframes": 0,
+    "keyint": 16,
+    "ref": 1,
+    "preset": "p4",
+    "no_scenecut": 1
+   },
+   "options": {
+    "rc": "constqp",
+    "qp": "28",
+    "bf": "0",
+    "g": "16",
+    "preset": "p4",
+    "refs": "1",
+    "no-scenecut": "1"
+   }
+  },
+  "nvenc_qp28_bf2_bqeq": {
+   "codec": "h264_nvenc",
+   "knobs": {
+    "qp": 28,
+    "b_qfactor": 1.0,
+    "b_qoffset": 0,
+    "bframes": 2,
+    "keyint": 16,
+    "ref": 1,
+    "preset": "p4",
+    "b_ref_mode": "disabled",
+    "no_scenecut": 1
+   },
+   "options": {
+    "rc": "constqp",
+    "qp": "28",
+    "bf": "2",
+    "g": "16",
+    "preset": "p4",
+    "refs": "1",
+    "b_ref_mode": "disabled",
+    "b_qfactor": "1.0",
+    "b_qoffset": "0",
+    "no-scenecut": "1"
+   }
+  }
+ },
+ "clips": {
+  "VIRAT_S_000207_01_000094_000156": {
+   "scene": "VIRAT_S_000207",
+   "k": 15,
+   "start": 600,
+   "gops": 5,
+   "n": 80,
+   "fps_src": "30"
+  }
+ },
+ "runs": [
+  {
+   "clip": "VIRAT_S_000207_01_000094_000156",
+   "arm": "nvenc_qp18",
+   "codec": "h264_nvenc",
+   "knobs": {
+    "qp": 18,
+    "bframes": 0,
+    "keyint": 16,
+    "ref": 1,
+    "preset": "p4",
+    "no_scenecut": 1
+   },
+   "status": "ok",
+   "options": {
+    "rc": "constqp",
+    "qp": "18",
+    "bf": "0",
+    "g": "16",
+    "preset": "p4",
+    "refs": "1",
+    "no-scenecut": "1"
+   },
+   "x264_sei": null,
+   "unused_options": {},
+   "frames_encoded": 80,
+   "frames_decoded": 80,
+   "file_bytes": 5052370,
+   "bitrate_kbps": 1010.234,
+   "psnr_y_mean": 45.03343905444482,
+   "psnr_y_min": 44.5960668231386,
+   "slices_min": 1,
+   "slices_max": 1,
+   "sei_keyint": null,
+   "sei_keyint_min": null,
+   "sei_scenecut": null,
+   "n_I": 5,
+   "n_P": 75,
+   "n_B": 0,
+   "iframes": [
+    0,
+    16,
+    32,
+    48,
+    64
+   ],
+   "ftypes": "IPPPPPPPPPPPPPPPIPPPPPPPPPPPPPPPIPPPPPPPPPPPPPPPIPPPPPPPPPPPPPPPIPPPPPPPPPPPPPPP",
+   "qp_frames_available": 80,
+   "mean_i_qp": 14.0,
+   "mean_p_qp": 18.0,
+   "mean_b_qp": null,
+   "encode_s": 4.387391800000017,
+   "mv_extract_s": 1.2598263000000145,
+   "run_s": 8.244510100000014,
+   "check_mismatches": []
+  },
+  {
+   "clip": "VIRAT_S_000207_01_000094_000156",
+   "arm": "nvenc_qp23",
+   "codec": "h264_nvenc",
+   "knobs": {
+    "qp": 23,
+    "bframes": 0,
+    "keyint": 16,
+    "ref": 1,
+    "preset": "p4",
+    "no_scenecut": 1
+   },
+   "status": "ok",
+   "options": {
+    "rc": "constqp",
+    "qp": "23",
+    "bf": "0",
+    "g": "16",
+    "preset": "p4",
+    "refs": "1",
+    "no-scenecut": "1"
+   },
+   "x264_sei": null,
+   "unused_options": {},
+   "frames_encoded": 80,
+   "frames_decoded": 80,
+   "file_bytes": 1382834,
+   "bitrate_kbps": 276.3268,
+   "psnr_y_mean": 41.72793370445261,
+   "psnr_y_min": 41.27583930488112,
+   "slices_min": 1,
+   "slices_max": 1,
+   "sei_keyint": null,
+   "sei_keyint_min": null,
+   "sei_scenecut": null,
+   "n_I": 5,
+   "n_P": 75,
+   "n_B": 0,
+   "iframes": [
+    0,
+    16,
+    32,
+    48,
+    64
+   ],
+   "ftypes": "IPPPPPPPPPPPPPPPIPPPPPPPPPPPPPPPIPPPPPPPPPPPPPPPIPPPPPPPPPPPPPPPIPPPPPPPPPPPPPPP",
+   "qp_frames_available": 80,
+   "mean_i_qp": 18.0,
+   "mean_p_qp": 23.0,
+   "mean_b_qp": null,
+   "encode_s": 0.3262964999999838,
+   "mv_extract_s": 0.633919700000007,
+   "run_s": 2.7161088999999947,
+   "check_mismatches": []
+  },
+  {
+   "clip": "VIRAT_S_000207_01_000094_000156",
+   "arm": "nvenc_qp45",
+   "codec": "h264_nvenc",
+   "knobs": {
+    "qp": 45,
+    "bframes": 0,
+    "keyint": 16,
+    "ref": 1,
+    "preset": "p4",
+    "no_scenecut": 1
+   },
+   "status": "ok",
+   "options": {
+    "rc": "constqp",
+    "qp": "45",
+    "bf": "0",
+    "g": "16",
+    "preset": "p4",
+    "refs": "1",
+    "no-scenecut": "1"
+   },
+   "x264_sei": null,
+   "unused_options": {},
+   "frames_encoded": 80,
+   "frames_decoded": 80,
+   "file_bytes": 158882,
+   "bitrate_kbps": 31.5396,
+   "psnr_y_mean": 33.64887695638175,
+   "psnr_y_min": 32.94461932593333,
+   "slices_min": 1,
+   "slices_max": 1,
+   "sei_keyint": null,
+   "sei_keyint_min": null,
+   "sei_scenecut": null,
+   "n_I": 5,
+   "n_P": 75,
+   "n_B": 0,
+   "iframes": [
+    0,
+    16,
+    32,
+    48,
+    64
+   ],
+   "ftypes": "IPPPPPPPPPPPPPPPIPPPPPPPPPPPPPPPIPPPPPPPPPPPPPPPIPPPPPPPPPPPPPPPIPPPPPPPPPPPPPPP",
+   "qp_frames_available": 80,
+   "mean_i_qp": 36.0,
+   "mean_p_qp": 45.0,
+   "mean_b_qp": null,
+   "encode_s": 0.35374840000000063,
+   "mv_extract_s": 0.47906120000001806,
+   "run_s": 2.2909270000000106,
+   "check_mismatches": []
+  },
+  {
+   "clip": "VIRAT_S_000207_01_000094_000156",
+   "arm": "nvenc_qp28",
+   "codec": "h264_nvenc",
+   "knobs": {
+    "qp": 28,
+    "bframes": 0,
+    "keyint": 16,
+    "ref": 1,
+    "preset": "p4",
+    "no_scenecut": 1
+   },
+   "status": "ok",
+   "options": {
+    "rc": "constqp",
+    "qp": "28",
+    "bf": "0",
+    "g": "16",
+    "preset": "p4",
+    "refs": "1",
+    "no-scenecut": "1"
+   },
+   "x264_sei": null,
+   "unused_options": {},
+   "frames_encoded": 80,
+   "frames_decoded": 80,
+   "file_bytes": 727143,
+   "bitrate_kbps": 145.1918,
+   "psnr_y_mean": 40.14691664879573,
+   "psnr_y_min": 39.61055961305527,
+   "slices_min": 1,
+   "slices_max": 1,
+   "sei_keyint": null,
+   "sei_keyint_min": null,
+   "sei_scenecut": null,
+   "n_I": 5,
+   "n_P": 75,
+   "n_B": 0,
+   "iframes": [
+    0,
+    16,
+    32,
+    48,
+    64
+   ],
+   "ftypes": "IPPPPPPPPPPPPPPPIPPPPPPPPPPPPPPPIPPPPPPPPPPPPPPPIPPPPPPPPPPPPPPPIPPPPPPPPPPPPPPP",
+   "qp_frames_available": 80,
+   "mean_i_qp": 22.0,
+   "mean_p_qp": 28.0,
+   "mean_b_qp": null,
+   "encode_s": 0.3215868000000057,
+   "mv_extract_s": 0.5378336999999931,
+   "run_s": 2.458071500000017,
+   "check_mismatches": []
+  },
+  {
+   "clip": "VIRAT_S_000207_01_000094_000156",
+   "arm": "nvenc_qp28_bf2_bqeq",
+   "codec": "h264_nvenc",
+   "knobs": {
+    "qp": 28,
+    "b_qfactor": 1.0,
+    "b_qoffset": 0,
+    "bframes": 2,
+    "keyint": 16,
+    "ref": 1,
+    "preset": "p4",
+    "b_ref_mode": "disabled",
+    "no_scenecut": 1
+   },
+   "status": "ok",
+   "options": {
+    "rc": "constqp",
+    "qp": "28",
+    "bf": "2",
+    "g": "16",
+    "preset": "p4",
+    "refs": "1",
+    "b_ref_mode": "disabled",
+    "b_qfactor": "1.0",
+    "b_qoffset": "0",
+    "no-scenecut": "1"
+   },
+   "x264_sei": null,
+   "unused_options": {},
+   "frames_encoded": 80,
+   "frames_decoded": 80,
+   "file_bytes": 748423,
+   "bitrate_kbps": 149.35660000000001,
+   "psnr_y_mean": 40.17898795852865,
+   "psnr_y_min": 39.631062784055764,
+   "slices_min": 1,
+   "slices_max": 1,
+   "sei_keyint": null,
+   "sei_keyint_min": null,
+   "sei_scenecut": null,
+   "n_I": 5,
+   "n_P": 25,
+   "n_B": 50,
+   "iframes": [
+    0,
+    16,
+    32,
+    48,
+    64
+   ],
+   "ftypes": "IBBPBBPBBPBBPBBPIBBPBBPBBPBBPBBPIBBPBBPBBPBBPBBPIBBPBBPBBPBBPBBPIBBPBBPBBPBBPBBP",
+   "qp_frames_available": 80,
+   "mean_i_qp": 22.0,
+   "mean_p_qp": 28.0,
+   "mean_b_qp": 28.0,
+   "encode_s": 0.3726737000000071,
+   "mv_extract_s": 0.5112466999999867,
+   "run_s": 2.7785214000000167,
+   "check_mismatches": []
+  },
+  {
+   "clip": "VIRAT_S_000207_01_000094_000156",
+   "arm": "x264_crf12",
+   "codec": "libx264",
+   "knobs": {
+    "crf": 12,
+    "preset": "medium",
+    "bframes": 0,
+    "keyint": 16,
+    "ref": 1,
+    "threads": 1
+   },
+   "status": "ok",
+   "options": {
+    "crf": "12",
+    "preset": "medium",
+    "x264-params": "bframes=0:keyint=16:min-keyint=16:scenecut=0:ref=1:threads=1:sliced-threads=0"
+   },
+   "x264_sei": "cabac=1 ref=1 deblock=1:0:0 analyse=0x3:0x113 me=hex subme=7 psy=1 psy_rd=1.00:0.00 mixed_ref=0 me_range=16 chroma_me=1 trellis=1 8x8dct=1 cqm=0 deadzone=21,11 fast_pskip=1 chroma_qp_offset=-2 threads=1 lookahead_threads=1 sliced_threads=0 nr=0 decimate=1 interlaced=0 bluray_compat=0 constrained_intra=0 bframes=0 weightp=2 keyint=16 keyint_min=9 scenecut=0 intra_refresh=0 rc_lookahead=16 rc=crf mbtree=1 crf=12.0 qcomp=0.60 qpmin=0 qpmax=69 qpstep=4 ip_ratio=1.40 aq=1:1.00",
+   "unused_options": {},
+   "frames_encoded": 80,
+   "frames_decoded": 80,
+   "file_bytes": 25555419,
+   "bitrate_kbps": 5110.804,
+   "psnr_y_mean": 56.144795406799005,
+   "psnr_y_min": 51.84797888590384,
+   "slices_min": 1,
+   "slices_max": 1,
+   "sei_keyint": "16",
+   "sei_keyint_min": "9",
+   "sei_scenecut": "0",
+   "n_I": 5,
+   "n_P": 75,
+   "n_B": 0,
+   "iframes": [
+    0,
+    16,
+    32,
+    48,
+    64
+   ],
+   "ftypes": "IPPPPPPPPPPPPPPPIPPPPPPPPPPPPPPPIPPPPPPPPPPPPPPPIPPPPPPPPPPPPPPPIPPPPPPPPPPPPPPP",
+   "qp_frames_available": 80,
+   "mean_i_qp": 2.408777777777778,
+   "mean_p_qp": 4.7911222222222225,
+   "mean_b_qp": null,
+   "encode_s": 16.7886139,
+   "mv_extract_s": 3.2311658999999793,
+   "run_s": 24.447070999999994,
+   "check_mismatches": []
+  },
+  {
+   "clip": "VIRAT_S_000207_01_000094_000156",
+   "arm": "x264_crf45",
+   "codec": "libx264",
+   "knobs": {
+    "crf": 45,
+    "preset": "medium",
+    "bframes": 0,
+    "keyint": 16,
+    "ref": 1,
+    "threads": 1
+   },
+   "status": "ok",
+   "options": {
+    "crf": "45",
+    "preset": "medium",
+    "x264-params": "bframes=0:keyint=16:min-keyint=16:scenecut=0:ref=1:threads=1:sliced-threads=0"
+   },
+   "x264_sei": "cabac=1 ref=1 deblock=1:0:0 analyse=0x3:0x113 me=hex subme=7 psy=1 psy_rd=1.00:0.00 mixed_ref=0 me_range=16 chroma_me=1 trellis=1 8x8dct=1 cqm=0 deadzone=21,11 fast_pskip=1 chroma_qp_offset=-2 threads=1 lookahead_threads=1 sliced_threads=0 nr=0 decimate=1 interlaced=0 bluray_compat=0 constrained_intra=0 bframes=0 weightp=2 keyint=16 keyint_min=9 scenecut=0 intra_refresh=0 rc_lookahead=16 rc=crf mbtree=1 crf=45.0 qcomp=0.60 qpmin=0 qpmax=69 qpstep=4 ip_ratio=1.40 aq=1:1.00",
+   "unused_options": {},
+   "frames_encoded": 80,
+   "frames_decoded": 80,
+   "file_bytes": 153713,
+   "bitrate_kbps": 30.5068,
+   "psnr_y_mean": 33.36621131641594,
+   "psnr_y_min": 32.083450814784996,
+   "slices_min": 1,
+   "slices_max": 1,
+   "sei_keyint": "16",
+   "sei_keyint_min": "9",
+   "sei_scenecut": "0",
+   "n_I": 5,
+   "n_P": 75,
+   "n_B": 0,
+   "iframes": [
+    0,
+    16,
+    32,
+    48,
+    64
+   ],
+   "ftypes": "IPPPPPPPPPPPPPPPIPPPPPPPPPPPPPPPIPPPPPPPPPPPPPPPIPPPPPPPPPPPPPPPIPPPPPPPPPPPPPPP",
+   "qp_frames_available": 80,
+   "mean_i_qp": 35.2875,
+   "mean_p_qp": 37.91605555555556,
+   "mean_b_qp": null,
+   "encode_s": 4.106909799999983,
+   "mv_extract_s": 0.4279757999999845,
+   "run_s": 5.901445499999994,
+   "check_mismatches": []
+  },
+  {
+   "clip": "VIRAT_S_000207_01_000094_000156",
+   "arm": "x264_qp24",
+   "codec": "libx264",
+   "knobs": {
+    "qp": 24,
+    "preset": "medium",
+    "bframes": 0,
+    "keyint": 16,
+    "ref": 1,
+    "threads": 1
+   },
+   "status": "ok",
+   "options": {
+    "qp": "24",
+    "preset": "medium",
+    "x264-params": "bframes=0:keyint=16:min-keyint=16:scenecut=0:ref=1:threads=1:sliced-threads=0"
+   },
+   "x264_sei": "cabac=1 ref=1 deblock=1:0:0 analyse=0x3:0x113 me=hex subme=7 psy=1 psy_rd=1.00:0.00 mixed_ref=0 me_range=16 chroma_me=1 trellis=1 8x8dct=1 cqm=0 deadzone=21,11 fast_pskip=1 chroma_qp_offset=-2 threads=1 lookahead_threads=1 sliced_threads=0 nr=0 decimate=1 interlaced=0 bluray_compat=0 constrained_intra=0 bframes=0 weightp=2 keyint=16 keyint_min=9 scenecut=0 intra_refresh=0 rc=cqp mbtree=0 qp=24 ip_ratio=1.40 aq=0",
+   "unused_options": {},
+   "frames_encoded": 80,
+   "frames_decoded": 80,
+   "file_bytes": 1127475,
+   "bitrate_kbps": 225.2562,
+   "psnr_y_mean": 41.147543736234546,
+   "psnr_y_min": 40.74184501559037,
+   "slices_min": 1,
+   "slices_max": 1,
+   "sei_keyint": "16",
+   "sei_keyint_min": "9",
+   "sei_scenecut": "0",
+   "n_I": 5,
+   "n_P": 75,
+   "n_B": 0,
+   "iframes": [
+    0,
+    16,
+    32,
+    48,
+    64
+   ],
+   "ftypes": "IPPPPPPPPPPPPPPPIPPPPPPPPPPPPPPPIPPPPPPPPPPPPPPPIPPPPPPPPPPPPPPPIPPPPPPPPPPPPPPP",
+   "qp_frames_available": 80,
+   "mean_i_qp": 21.0,
+   "mean_p_qp": 24.0,
+   "mean_b_qp": null,
+   "encode_s": 4.849528900000024,
+   "mv_extract_s": 0.5792976000000181,
+   "run_s": 7.195885400000009,
+   "check_mismatches": []
+  },
+  {
+   "clip": "VIRAT_S_000207_01_000094_000156",
+   "arm": "x264_qp24_bf2_pb1",
+   "codec": "libx264",
+   "knobs": {
+    "qp": 24,
+    "pbratio": 1.0,
+    "preset": "medium",
+    "bframes": 2,
+    "keyint": 16,
+    "ref": 1,
+    "threads": 1,
+    "b_adapt": 0,
+    "b_pyramid": "none"
+   },
+   "status": "ok",
+   "options": {
+    "qp": "24",
+    "preset": "medium",
+    "x264-params": "bframes=2:keyint=16:min-keyint=16:scenecut=0:ref=1:b-pyramid=none:threads=1:sliced-threads=0:b-adapt=0:pbratio=1.0"
+   },
+   "x264_sei": "cabac=1 ref=1 deblock=1:0:0 analyse=0x3:0x113 me=hex subme=7 psy=1 psy_rd=1.00:0.00 mixed_ref=0 me_range=16 chroma_me=1 trellis=1 8x8dct=1 cqm=0 deadzone=21,11 fast_pskip=1 chroma_qp_offset=-2 threads=1 lookahead_threads=1 sliced_threads=0 nr=0 decimate=1 interlaced=0 bluray_compat=0 constrained_intra=0 bframes=2 b_pyramid=0 b_adapt=0 b_bias=0 direct=1 weightb=1 open_gop=0 weightp=2 keyint=16 keyint_min=9 scenecut=0 intra_refresh=0 rc=cqp mbtree=0 qp=24 ip_ratio=1.40 pb_ratio=1.00 aq=0",
+   "unused_options": {},
+   "frames_encoded": 80,
+   "frames_decoded": 80,
+   "file_bytes": 1075413,
+   "bitrate_kbps": 214.7526,
+   "psnr_y_mean": 41.081605948937735,
+   "psnr_y_min": 40.60306393280767,
+   "slices_min": 1,
+   "slices_max": 1,
+   "sei_keyint": "16",
+   "sei_keyint_min": "9",
+   "sei_scenecut": "0",
+   "n_I": 5,
+   "n_P": 25,
+   "n_B": 50,
+   "iframes": [
+    0,
+    16,
+    32,
+    48,
+    64
+   ],
+   "ftypes": "IBBPBBPBBPBBPBBPIBBPBBPBBPBBPBBPIBBPBBPBBPBBPBBPIBBPBBPBBPBBPBBPIBBPBBPBBPBBPBBP",
+   "qp_frames_available": 80,
+   "mean_i_qp": 21.0,
+   "mean_p_qp": 24.0,
+   "mean_b_qp": 24.0,
+   "encode_s": 5.4461497000000065,
+   "mv_extract_s": 0.627230400000002,
+   "run_s": 8.00387169999999,
+   "check_mismatches": []
+  }
+ ],
+ "raft": {
+  "model": {
+   "weights": "Raft_Large_Weights.C_T_SKHT_V2",
+   "url": "https://download.pytorch.org/models/raft_large_C_T_SKHT_V2-ff5fadd5.pth",
+   "checkpoint_sha256": "ff5fadd56d26b40647388883af1547351ea17868b765c05b27231e72dd16a322",
+   "num_flow_updates": 12,
+   "dtype": "float32",
+   "batch": 1
+  },
+  "VIRAT_S_000207_01_000094_000156": {
+   "clip": "VIRAT_S_000207_01_000094_000156",
+   "status": "ok",
+   "pairs_2fps": 79,
+   "native_pairs": 300,
+   "chain_pairs": 20,
+   "run_s": 274.62953860000005,
+   "peak_vram_gb": 2.6904478073120117
+  }
+ },
+ "end_time": "2026-10-14T14:06:47+0530",
+ "runtime_s": 319.5980092
+}
