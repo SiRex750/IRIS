@@ -62,6 +62,31 @@ def drift_false_moves(T, ok, k, keyint):
     return n_quiet, n_false
 
 
+def drift_by_lag(T, cover, keyint, lags=(1, 12, 48, 96, 192, 239)):
+    """Descriptive drift report (§7): median and 95th percentile of |S| over valid cells, by native lag since the
+    last refresh. Valid as the policy truth (§5): cover at t and every term since the refresh finite. A lag that
+    reaches or passes the next refresh (e.g. 192 at keyint 192) has no cells (NaN)."""
+    L = T.shape[0] + 1
+    fin = np.isfinite(T).all(-1)
+    out = {lag: [] for lag in lags}
+    for r in range(0, L, keyint):
+        S = np.zeros(T.shape[1:], np.float64)
+        F = np.ones(T.shape[1], bool)
+        for i in range(r + 1, min(r + keyint - 1, L - 1) + 1):
+            S += np.where(fin[i - 1][:, None], T[i - 1], 0.0)
+            F &= fin[i - 1]
+            if i - r in out:
+                v = cover[i - 1] & F
+                out[i - r].append(np.hypot(S[v, 0], S[v, 1]))
+    res = {}
+    for lag, xs in out.items():
+        x = np.concatenate(xs) if xs else np.zeros(0)
+        res[f"lag{lag}_n"] = int(x.size)
+        res[f"lag{lag}_med"] = float(np.median(x)) if x.size else np.nan
+        res[f"lag{lag}_p95"] = float(np.percentile(x, 95)) if x.size else np.nan
+    return res
+
+
 def v0_clip(clip, root, win_first, L, ref_arm="x264_crf12"):
     """V0 inputs for one clip (§5, as analyze_confirm.do_clip): texture histogram of all cells of window frames
     1..L-1, and for every valid d1 cell with |RAFT| > 2 px and a vector in the CRF 12 encode: its texture and
