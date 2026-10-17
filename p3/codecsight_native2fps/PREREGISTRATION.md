@@ -1,20 +1,29 @@
 # Paper 3 — Pre-registration: CodecSight's regime, reading B (native-rate encode, 2 fps sampling), CCTV
-Date: 2026-10-17. Approved in review on 2026-10-17 (§5 counting rule on native pairs confirmed). Written before any encode, RAFT run or metric of this arm. The only script
+Date: 2026-10-17. Approved in review on 2026-10-17 (§6 counting rule on native pairs confirmed). Written before any encode, RAFT run or metric of this arm. The only script
 run so far is `inventory.py` (this directory), which reads `p3/codecsight_2fps/inventory.csv` and derives window
 lengths, I-frame positions and pair counts from frame counts. It decodes nothing and reads no pixel value, motion
 vector or flow value. Repository HEAD when written: e774ae8 (branch sonu/p3). Collection and analysis code are written
 after this file is committed; their commit hashes are recorded in the results.
+
+**Amendment 2026-10-17 (pre-data).** No encode, RAFT run or metric of this arm exists at the time of this amendment;
+collection code has not been written. Changes: (i) §1 quotes replaced by the exact v4 strings; (ii) new §3 "Drift
+gate", with later sections renumbered (old §3–§8 are now §4–§9); (iii) the drift report is kept; (iv) the decision
+rule (§7) and outcome list now also require the drift gate. Nothing else is changed.
 
 What this is: **a second reading of CodecSight's regime**, tested with the documented policy of
 `p3/codecsight_sim/PREREGISTRATION.md` (9f5b5a3). It is still not CodecSight: no VLM is run and no task accuracy is
 measured. Nothing here changes a verdict of any earlier pre-registration.
 
 ## 1. Source and the two readings
-Paper: Zou et al., "CodecSight", arXiv:2604.06036 (CC BY 4.0). v4 (15 Sep 2026, current) is followed. Quotes are v4:
-- §5: "Videos are reencoded with an 8 s GOP interval"
-- §5: "inference samples frames at 2 FPS"
-- §6: "16-frame GOP"
-- §6: "MV threshold of 0.5"
+Paper: Zou et al., "CodecSight", arXiv:2604.06036 (CC BY 4.0). v4 (15 Sep 2026, current) is followed. Quotes are v4,
+exact strings:
+- §5: "For controlled evaluation, videos are re-encoded with an 8 s GOP interval; inference samples frames at 2 FPS."
+- §6: "…the 8 s stride, 16-frame GOP, and MV threshold of 0.5 are selected from the sweeps…"
+- §4: "We use NVIDIA NVDEC via PyNvVideoCodec for hardware-accelerated decoding…"
+
+"For controlled evaluation" makes the re-encode part of the authors' test setup, not a property of the deployed
+system. The frame rate of the re-encode is not stated, so both readings below stay open. We decode with PyAV on the
+CPU (§5 below) and do not replicate NVDEC.
 
 The paper states an 8 s GOP interval and a 16-frame GOP, and says samples are taken at 2 FPS. It does not say at what
 frame rate the re-encode runs. Two readings fit the text:
@@ -52,7 +61,26 @@ and pre-registered verdicts for each variant.
   no verdict).
 - Window lengths differ (2, 3 or 5 GOPs); every metric is a per-clip ratio. The GOP count is reported per clip.
 
-## 3. Encodes (native frame rate, 8 s GOP)
+## 3. Drift gate (truth validity, RAFT only)
+Computed from RAFT truth alone, **after V0 and before any policy, gate or stale metric**. It asks whether the fixed-cell
+sum S (§5) can be trusted as "truly moved", given that it adds up to 239 separate RAFT estimates (§5 limitation).
+- **Definition.** Cell-frames are (sampled frame s_j, cell c) with j = 1..n−1, s_j not a refresh frame, and c valid at
+  every native step r+1..s_j since the last refresh r (cover rule, finite terms). A cell-frame is **quiet** if every
+  per-frame native step since the last refresh has |T_i(c)| < 0.5 px, i = r+1..s_j. A quiet cell-frame is a **false
+  move** if |S_j(c)| > 2 px (S as in §5). Each step is below τ = 0.5 px, yet the sum exceeds 2 px: this is read as
+  accumulated estimator drift (or a consistent sub-threshold drift of the content, which this gate cannot tell apart
+  and counts against the truth).
+- **False-move rate per clip** = (false-move cell-frames) / (quiet cell-frames). A clip with no quiet cell-frame has no
+  rate; it does not pass and is listed.
+- **Gate:** PASSES if the rate is ≤ 0.01 in at least ceil(0.75 N) of the counted clips (§6 rule, N as there). Both
+  variants share it.
+- **If it fails**, every number of this arm is descriptive under the heading **"truth drift too large"**, for both
+  variants, exactly as cc2eaf9's R-chain failure left that arm descriptive. If V0 and the drift gate both fail, both
+  headings are printed.
+- **Order and scope.** Counted clips (§6) are fixed first (RAFT only), then V0, then this gate; the gate uses RAFT
+  truth only and no policy or encode output. The existing descriptive drift-by-lag report (§7) is kept.
+
+## 4. Encodes (native frame rate, 8 s GOP)
 - **Input:** the native frames of the window as decoded yuv420p planes (`run_virat.decode_source`, display order, no
   RGB round trip), at the source frame rate (23.97 or 30 fps). Source indices and a sha256 are recorded.
 - **GOP:** keyint = 8 s = 16k frames (192 at k = 12, 240 at k = 15), min-keyint the same, no scene-cut I-frames.
@@ -70,7 +98,7 @@ and pre-registered verdicts for each variant.
   confirmatory CRF arms (the issue of `p3/codecsight_2fps/DEVIATIONS.md` 1 does not arise).
 - 27 × 9 = 243 encodes (108 x264, 135 NVENC), 152,226 encoded frames.
 
-## 4. Vectors, policy, truth
+## 5. Vectors, policy, truth
 **Vectors.** `lib/mvs.extract_mvs`, PyAV default threading (single-threaded, as the confirmatory test). Painting to the
 4×4 cell grid and q = floor(4|MV|) as `run_virat.cell_arrays`; the npz layout is the confirmatory one. B-frame vectors
 are used naively, as before. The policy at a sampled frame s_j uses the vectors of frame s_j itself (frame s_j − 1 →
@@ -105,8 +133,8 @@ so reading A's R-chain is not needed and is not run.
   8 s refresh period content moves far from the cell, so S can miss motion that leaves the cell, count motion that
   enters it, and cancel motion that reverses. It is also a sum of up to 239 separate RAFT estimates, so any small
   per-frame RAFT bias adds up. A token "truly moved" threshold of |S| > 2 px therefore may be crossed by estimator
-  drift. The 9f5b5a3 §7 arm used the same sum (at keyint 250). A drift report (§6) shows how |S| grows with lag, but
-  it gates nothing.
+  drift. The 9f5b5a3 §7 arm used the same sum (at keyint 250). A drift report (§7) shows how |S| grows with lag; the
+  drift gate (§3) is computed from RAFT truth only.
 - Validity: the per-frame cover rule plus the finite-terms rule (every term finite). A token is valid if ≥ half its
   cells are valid; it has truly moved if some valid cell has |S| > 2 px. Scored frames: the sampled frames j = 1..n−1.
   REUSE, STALE and STALE_MOV are defined as in 9f5b5a3 §4. B-frame-only ratios are reported for the bf 2 arms.
@@ -114,12 +142,12 @@ so reading A's R-chain is not needed and is not run.
 **Gate: V0 at native rate on these frames, exactly as d62753f** (V0 of 45f3e98). x264 CRF 12, every native P-frame
 (d = 1), cells valid, |RAFT| > 2 px, a vector present, texture ≥ the 75th percentile of cell texture
 (`analyze_virat.cell_texture`) over all cells of native frames 1..L−1 of all 27 windows. Per clip, the median
-|MV − RAFT| (float vectors re-extracted). **PASS if < 1.5 px in ≥ ceil(0.75 N) of the counted clips** (§5). A clip
+|MV − RAFT| (float vectors re-extracted). **PASS if < 1.5 px in ≥ ceil(0.75 N) of the counted clips** (§6). A clip
 with no V0 cell does not pass. **If V0 fails, every number of this arm is descriptive** under the heading "RAFT
 unreliable", for both variants. V0 is computed from RAFT, the source and the CRF 12 encode only, before any policy
 metric.
 
-## 5. Clips counted for verdicts
+## 6. Clips counted for verdicts
 - **Counting rule (RAFT only, before any policy or gate metric):** valid cell-frames with |T_i| > 2 px, over all native
   pairs i = 1..L−1 of the window. A clip is counted if this is ≥ 2,000, the confirmatory eligibility threshold. This
   is the same count as the confirmatory test, on these windows; it differs from cc2eaf9 §5, which counted on its
@@ -129,7 +157,7 @@ metric.
   still reported. N is the same for both variants.
 - A missing value (empty denominator) counts as not meeting a condition and is listed.
 
-## 6. Predictions (fixed before any number of this arm is seen)
+## 7. Predictions (fixed before any number of this arm is seen)
 Primary configuration: derived token grid, τ = 0.5 px, all scored (sampled) frames, verdict metric policy STALE_MOV.
 τ = 1 px is evaluated the same way and reported as secondary. The predictions below are evaluated **separately for
 variant (a) and variant (b)**; each variant has its own F1–F4, KILL-A and decision. Mirrors of K1–K4 and KILL-A of
@@ -149,7 +177,7 @@ With N = 27 the counts are 22, 21, 22, 21. "x% of N" means at least ceil(x·N).
 regime. Exactly one fails: the effect is encoder-specific. F3 or F4 fails: the B-frame claim does not hold in this
 regime for that encoder.
 
-**Decision rule, on the 9 arms at the primary configuration (only if V0 passes), per variant:**
+**Decision rule, on the 9 arms at the primary configuration (only if V0 passes and the drift gate (§3) passes), per variant:**
 - **"The policy stays fresh"** if KILL-A fires.
 - **"It leaks"** if, for at least one arm, median STALE_MOV > 0.01 and median REUSE > 0.20. The leaking arms are named.
 - **Neither:** no arm leaks, but some arm has median REUSE ≤ 0.20 ("policy reuses little"; its low STALE_MOV is not
@@ -170,6 +198,8 @@ more favourable one. The 16 verdict-bearing comparisons (2 variants × 4 + 2 KIL
 - **Neither.** Safe by reusing little for some arm: no evidence either way for that arm.
 - **V0 fails.** The regime could not be tested with RAFT truth even at native rate on these frames; all numbers are
   descriptive.
+- **Drift gate fails.** "Truth drift too large": the fixed-cell sum is not a trustworthy truth over 8 s; all numbers
+  are descriptive and no verdict is stated.
 - Reading A and reading B are reported side by side. Reading A has no verdict. Only reading B (if V0 passes) supports
   a verdict statement, and the paper says that it is a statement about reading B, not about CodecSight's deployment,
   whose encode frame rate the paper does not give.
@@ -182,13 +212,13 @@ more favourable one. The 16 verdict-bearing comparisons (2 variants × 4 + 2 KIL
 - B-frame-only ratios; the share of tokens active before each refresh; token-frames lost to the finite-terms rule;
 - bitrate and PSNR per arm;
 - **drift report:** the median and 95th percentile of |S| over valid cells, by lag since the last refresh (1, 12, 48, 96,
-  192, 239 native frames), per clip; a gate for nothing;
+  192, 239 native frames), per clip; descriptive, the gate is §3;
 - reading B against reading A at the same sampled source frames, per arm (medians only);
 - paired bootstrap CIs for F1–F4 as cc2eaf9 §4: rng 20261006, draws (1) scene indices (10000, n_scenes), (2) clip
   indices (10000, n_clips), over the counted clips, scene-cluster and clip-level, at τ 0.5 and 1.
 - Forward–backward consistency is not run in this arm (native-rate FB was reported earlier at 0.9995 / 0.82).
 
-## 7. Hardware and runtime estimate
+## 8. Hardware and runtime estimate
 RTX 4050 (6 GB; driver 610.74); RAFT at 1280×720 peaked at 2.6 GB. Counts from `inventory.txt`; unit costs from
 `p3/virat_confirm/manifest.json` and cc2eaf9 §7.
 
@@ -206,7 +236,7 @@ about 8 GB for the per-clip RAFT cell grids and 243 native encodes (never commit
 x264 cost per native frame (assumed 0.034 s, a quarter of cc2eaf9's 0.134 s per sampled frame over four arms); even at
 4× it adds under 40 min of CPU wall, mostly hidden behind RAFT.
 
-## 8. Rules
+## 9. Rules
 - Fixed by this file. No tuning after results.
 - Bugs: fix, record in `p3/codecsight_native2fps/DEVIATIONS.md`, rerun everything, report both runs.
 - Per-clip results are primary; per-scene results are also shown.
