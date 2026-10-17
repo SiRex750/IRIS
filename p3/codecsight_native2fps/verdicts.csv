@@ -1,0 +1,55 @@
+variant,config,subset,key,comparison,margin,count,units,required,share,result,median_diff,missing
+a,primary,counted,F1,STALE_MOV(x264_crf45) - STALE_MOV(x264_crf12),> 0.01,25.0,25.0,20.0,0.8,PASS,0.20449212202480727,none
+a,primary,counted,F2,STALE_MOV(nvenc_qp45) - STALE_MOV(nvenc_qp18),> 0.01,25.0,25.0,19.0,0.75,PASS,0.37680187730472675,none
+a,primary,counted,F3,STALE_MOV(x264_qp24_bf2_pb1) - STALE_MOV(x264_qp24),> 0.01,0.0,25.0,20.0,0.8,FAIL,-0.14675621606173192,none
+a,primary,counted,F4,STALE_MOV(nvenc_qp28_bf2_bqeq) - STALE_MOV(nvenc_qp28),> 0.01,2.0,25.0,19.0,0.75,FAIL,-0.11259241304084355,none
+a,primary,counted,KILL-A,,,0.0,9.0,9.0,,DOES NOT FIRE,,
+a,primary,counted,decision,,,,,,,"it leaks: x264_crf12, x264_crf45, x264_qp24, x264_qp24_bf2_pb1, nvenc_qp18, nvenc_qp23, nvenc_qp45, nvenc_qp28, nvenc_qp28_bf2_bqeq",,
+a,tau1,counted,F1,STALE_MOV(x264_crf45) - STALE_MOV(x264_crf12),> 0.01,25.0,25.0,20.0,0.8,PASS,0.18634333120612634,none
+a,tau1,counted,F2,STALE_MOV(nvenc_qp45) - STALE_MOV(nvenc_qp18),> 0.01,25.0,25.0,19.0,0.75,PASS,0.33995287781891614,none
+a,tau1,counted,F3,STALE_MOV(x264_qp24_bf2_pb1) - STALE_MOV(x264_qp24),> 0.01,0.0,25.0,20.0,0.8,FAIL,-0.21307823352116367,none
+a,tau1,counted,F4,STALE_MOV(nvenc_qp28_bf2_bqeq) - STALE_MOV(nvenc_qp28),> 0.01,1.0,25.0,19.0,0.75,FAIL,-0.1372424722662441,none
+a,tau1,counted,KILL-A,,,0.0,9.0,9.0,,DOES NOT FIRE,,
+a,tau1,counted,decision,,,,,,,"it leaks: x264_crf12, x264_crf45, x264_qp24, x264_qp24_bf2_pb1, nvenc_qp18, nvenc_qp23, nvenc_qp45, nvenc_qp28, nvenc_qp28_bf2_bqeq",,
+b,primary,counted,F1,STALE_MOV(x264_crf45) - STALE_MOV(x264_crf12),> 0.01,23.0,25.0,20.0,0.8,PASS,0.14304086881966277,none
+b,primary,counted,F2,STALE_MOV(nvenc_qp45) - STALE_MOV(nvenc_qp18),> 0.01,25.0,25.0,19.0,0.75,PASS,0.5931716656030631,none
+b,primary,counted,F3,STALE_MOV(x264_qp24_bf2_pb1) - STALE_MOV(x264_qp24),> 0.01,1.0,25.0,20.0,0.8,FAIL,0.0004012438559534556,none
+b,primary,counted,F4,STALE_MOV(nvenc_qp28_bf2_bqeq) - STALE_MOV(nvenc_qp28),> 0.01,0.0,25.0,19.0,0.75,FAIL,-0.014148622047244083,none
+b,primary,counted,KILL-A,,,0.0,9.0,9.0,,DOES NOT FIRE,,
+b,primary,counted,decision,,,,,,,"it leaks: x264_crf45, nvenc_qp45",,
+b,tau1,counted,F1,STALE_MOV(x264_crf45) - STALE_MOV(x264_crf12),> 0.01,25.0,25.0,20.0,0.8,PASS,0.3466125016380553,none
+b,tau1,counted,F2,STALE_MOV(nvenc_qp45) - STALE_MOV(nvenc_qp18),> 0.01,25.0,25.0,19.0,0.75,PASS,0.5772506879832263,none
+b,tau1,counted,F3,STALE_MOV(x264_qp24_bf2_pb1) - STALE_MOV(x264_qp24),> 0.01,7.0,25.0,20.0,0.8,FAIL,-0.0003257328990228013,none
+b,tau1,counted,F4,STALE_MOV(nvenc_qp28_bf2_bqeq) - STALE_MOV(nvenc_qp28),> 0.01,0.0,25.0,19.0,0.75,FAIL,-0.01465052395971106,none
+b,tau1,counted,KILL-A,,,0.0,9.0,9.0,,DOES NOT FIRE,,
+b,tau1,counted,decision,,,,,,,"it leaks: x264_crf12, x264_crf45, x264_qp24, x264_qp24_bf2_pb1, nvenc_qp18, nvenc_qp23, nvenc_qp45, nvenc_qp28, nvenc_qp28_bf2_bqeq",,
+a,primary,unseen,F1,STALE_MOV(x264_crf45) - STALE_MOV(x264_crf12),> 0.01,11.0,11.0,9.0,0.8,PASS,0.31579697747362423,none
+a,primary,unseen,F2,STALE_MOV(nvenc_qp45) - STALE_MOV(nvenc_qp18),> 0.01,11.0,11.0,9.0,0.75,PASS,0.4463929284288566,none
+a,primary,unseen,F3,STALE_MOV(x264_qp24_bf2_pb1) - STALE_MOV(x264_qp24),> 0.01,0.0,11.0,9.0,0.8,FAIL,-0.05246649558026803,none
+a,primary,unseen,F4,STALE_MOV(nvenc_qp28_bf2_bqeq) - STALE_MOV(nvenc_qp28),> 0.01,1.0,11.0,9.0,0.75,FAIL,-0.07444984281223205,none
+a,primary,unseen,decision,,,,,,,"it leaks: x264_crf12, x264_crf45, x264_qp24, x264_qp24_bf2_pb1, nvenc_qp18, nvenc_qp23, nvenc_qp45, nvenc_qp28, nvenc_qp28_bf2_bqeq",,
+a,tau1,unseen,F1,STALE_MOV(x264_crf45) - STALE_MOV(x264_crf12),> 0.01,11.0,11.0,9.0,0.8,PASS,0.3142286854861705,none
+a,tau1,unseen,F2,STALE_MOV(nvenc_qp45) - STALE_MOV(nvenc_qp18),> 0.01,11.0,11.0,9.0,0.75,PASS,0.3980610208155118,none
+a,tau1,unseen,F3,STALE_MOV(x264_qp24_bf2_pb1) - STALE_MOV(x264_qp24),> 0.01,0.0,11.0,9.0,0.8,FAIL,-0.08639863130881092,none
+a,tau1,unseen,F4,STALE_MOV(nvenc_qp28_bf2_bqeq) - STALE_MOV(nvenc_qp28),> 0.01,0.0,11.0,9.0,0.75,FAIL,-0.07930505876341343,none
+a,tau1,unseen,decision,,,,,,,"it leaks: x264_crf12, x264_crf45, x264_qp24, x264_qp24_bf2_pb1, nvenc_qp18, nvenc_qp23, nvenc_qp45, nvenc_qp28, nvenc_qp28_bf2_bqeq",,
+b,primary,unseen,F1,STALE_MOV(x264_crf45) - STALE_MOV(x264_crf12),> 0.01,11.0,11.0,9.0,0.8,PASS,0.22186657681940702,none
+b,primary,unseen,F2,STALE_MOV(nvenc_qp45) - STALE_MOV(nvenc_qp18),> 0.01,11.0,11.0,9.0,0.75,PASS,0.6613812082295898,none
+b,primary,unseen,F3,STALE_MOV(x264_qp24_bf2_pb1) - STALE_MOV(x264_qp24),> 0.01,0.0,11.0,9.0,0.8,FAIL,0.0004012438559534556,none
+b,primary,unseen,F4,STALE_MOV(nvenc_qp28_bf2_bqeq) - STALE_MOV(nvenc_qp28),> 0.01,0.0,11.0,9.0,0.75,FAIL,-0.014148622047244083,none
+b,primary,unseen,decision,,,,,,,"it leaks: x264_crf45, nvenc_qp45",,
+b,tau1,unseen,F1,STALE_MOV(x264_crf45) - STALE_MOV(x264_crf12),> 0.01,11.0,11.0,9.0,0.8,PASS,0.3466125016380553,none
+b,tau1,unseen,F2,STALE_MOV(nvenc_qp45) - STALE_MOV(nvenc_qp18),> 0.01,11.0,11.0,9.0,0.75,PASS,0.5772506879832263,none
+b,tau1,unseen,F3,STALE_MOV(x264_qp24_bf2_pb1) - STALE_MOV(x264_qp24),> 0.01,5.0,11.0,9.0,0.8,FAIL,0.0010907768755302333,none
+b,tau1,unseen,F4,STALE_MOV(nvenc_qp28_bf2_bqeq) - STALE_MOV(nvenc_qp28),> 0.01,0.0,11.0,9.0,0.75,FAIL,-0.01465052395971106,none
+b,tau1,unseen,decision,,,,,,,"it leaks: x264_crf12, x264_crf45, x264_qp24, x264_qp24_bf2_pb1, nvenc_qp18, nvenc_qp23, nvenc_qp45, nvenc_qp28, nvenc_qp28_bf2_bqeq",,
+a,tau0.25,counted,F1,STALE_MOV(x264_crf45) - STALE_MOV(x264_crf12),> 0.01,25.0,25.0,20.0,0.8,PASS,0.5215673361870267,none
+a,tau0.25,counted,F2,STALE_MOV(nvenc_qp45) - STALE_MOV(nvenc_qp18),> 0.01,25.0,25.0,19.0,0.75,PASS,0.6510350654837347,none
+a,tau0.25,counted,F3,STALE_MOV(x264_qp24_bf2_pb1) - STALE_MOV(x264_qp24),> 0.01,0.0,25.0,20.0,0.8,FAIL,-0.0845564773452457,none
+a,tau0.25,counted,F4,STALE_MOV(nvenc_qp28_bf2_bqeq) - STALE_MOV(nvenc_qp28),> 0.01,0.0,25.0,19.0,0.75,FAIL,-0.1064113440795055,none
+a,tau0.25,counted,decision,,,,,,,"it leaks: x264_crf45, nvenc_qp45, nvenc_qp28",,
+b,tau0.25,counted,F1,STALE_MOV(x264_crf45) - STALE_MOV(x264_crf12),> 0.01,23.0,25.0,20.0,0.8,PASS,0.13384660941664198,none
+b,tau0.25,counted,F2,STALE_MOV(nvenc_qp45) - STALE_MOV(nvenc_qp18),> 0.01,25.0,25.0,19.0,0.75,PASS,0.5721123165283982,none
+b,tau0.25,counted,F3,STALE_MOV(x264_qp24_bf2_pb1) - STALE_MOV(x264_qp24),> 0.01,0.0,25.0,20.0,0.8,FAIL,0.0,none
+b,tau0.25,counted,F4,STALE_MOV(nvenc_qp28_bf2_bqeq) - STALE_MOV(nvenc_qp28),> 0.01,0.0,25.0,19.0,0.75,FAIL,-0.004905467552376086,none
+b,tau0.25,counted,decision,,,,,,,"it leaks: x264_crf45, nvenc_qp45",,

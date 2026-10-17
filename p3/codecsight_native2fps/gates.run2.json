@@ -1,0 +1,15 @@
+{
+ "N": 25,
+ "required": 19,
+ "q75": 9.27,
+ "v0_pass_clips": 24,
+ "drift_pass_clips": 0,
+ "V0": "PASS",
+ "drift": "FAIL",
+ "not_counted": [
+  "VIRAT_S_010003_03_000219_000259",
+  "VIRAT_S_010004_03_000239_000277"
+ ],
+ "v0_missing": [],
+ "drift_missing": []
+}
