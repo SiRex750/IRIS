@@ -1,0 +1,38 @@
+config,subset,key,comparison,margin,count,units,required,share,result,median_diff,missing
+primary,counted,F1,STALE_MOV(x264_crf45) - STALE_MOV(x264_crf12),> 0.01,6.0,22.0,18.0,0.8,FAIL,0.004754264130909156,none
+primary,counted,F2,STALE_MOV(nvenc_qp45) - STALE_MOV(nvenc_qp18),> 0.01,18.0,22.0,17.0,0.75,PASS,0.020882176280250332,none
+primary,counted,F3,STALE_MOV(x264_qp24_bf2_pb1) - STALE_MOV(x264_qp24),> 0.01,3.0,22.0,18.0,0.8,FAIL,0.0021370739543969185,none
+primary,counted,F4,STALE_MOV(nvenc_qp28_bf2_bqeq) - STALE_MOV(nvenc_qp28),> 0.01,1.0,22.0,17.0,0.75,FAIL,0.0008016644638949414,none
+primary,counted,KILL-A2,,,3.0,9.0,9.0,,DOES NOT FIRE,,
+primary,counted,decision,,,,,,,leaks: nvenc_qp45,,
+tau1,counted,F1,STALE_MOV(x264_crf45) - STALE_MOV(x264_crf12),> 0.01,12.0,22.0,18.0,0.8,FAIL,0.01183408215661104,none
+tau1,counted,F2,STALE_MOV(nvenc_qp45) - STALE_MOV(nvenc_qp18),> 0.01,20.0,22.0,17.0,0.75,PASS,0.020882176280250332,none
+tau1,counted,F3,STALE_MOV(x264_qp24_bf2_pb1) - STALE_MOV(x264_qp24),> 0.01,8.0,22.0,18.0,0.8,FAIL,0.006324404761904762,none
+tau1,counted,F4,STALE_MOV(nvenc_qp28_bf2_bqeq) - STALE_MOV(nvenc_qp28),> 0.01,1.0,22.0,17.0,0.75,FAIL,0.0023555029029202245,none
+tau1,counted,KILL-A2,,,6.0,9.0,9.0,,DOES NOT FIRE,,
+tau1,counted,decision,,,,,,,"leaks: x264_crf45, x264_qp24_bf2_pb1, nvenc_qp45",,
+primary,unseen,F1,STALE_MOV(x264_crf45) - STALE_MOV(x264_crf12),> 0.01,4.0,11.0,9.0,0.8,FAIL,0.006493506493506494,none
+primary,unseen,F2,STALE_MOV(nvenc_qp45) - STALE_MOV(nvenc_qp18),> 0.01,8.0,11.0,9.0,0.75,FAIL,0.01923076923076923,none
+primary,unseen,F3,STALE_MOV(x264_qp24_bf2_pb1) - STALE_MOV(x264_qp24),> 0.01,1.0,11.0,9.0,0.8,FAIL,0.004045853000674308,none
+primary,unseen,F4,STALE_MOV(nvenc_qp28_bf2_bqeq) - STALE_MOV(nvenc_qp28),> 0.01,0.0,11.0,9.0,0.75,FAIL,0.0014409221902017292,none
+primary,unseen,decision,,,,,,,leaks: nvenc_qp45,,
+tau1,unseen,F1,STALE_MOV(x264_crf45) - STALE_MOV(x264_crf12),> 0.01,8.0,11.0,9.0,0.8,FAIL,0.016883116883116882,none
+tau1,unseen,F2,STALE_MOV(nvenc_qp45) - STALE_MOV(nvenc_qp18),> 0.01,11.0,11.0,9.0,0.75,PASS,0.018696581196581196,none
+tau1,unseen,F3,STALE_MOV(x264_qp24_bf2_pb1) - STALE_MOV(x264_qp24),> 0.01,6.0,11.0,9.0,0.8,FAIL,0.010086455331412104,none
+tau1,unseen,F4,STALE_MOV(nvenc_qp28_bf2_bqeq) - STALE_MOV(nvenc_qp28),> 0.01,1.0,11.0,9.0,0.75,FAIL,0.003121748178980229,none
+tau1,unseen,decision,,,,,,,"leaks: x264_crf45, x264_qp24_bf2_pb1, nvenc_qp45",,
+primary,"counted, fb",F1,STALE_MOV(x264_crf45) - STALE_MOV(x264_crf12),> 0.01,7.0,22.0,18.0,0.8,FAIL,0.00540603722860232,none
+primary,"counted, fb",F2,STALE_MOV(nvenc_qp45) - STALE_MOV(nvenc_qp18),> 0.01,11.0,22.0,17.0,0.75,FAIL,0.009387440765652462,none
+primary,"counted, fb",F3,STALE_MOV(x264_qp24_bf2_pb1) - STALE_MOV(x264_qp24),> 0.01,1.0,22.0,18.0,0.8,FAIL,0.0,none
+primary,"counted, fb",F4,STALE_MOV(nvenc_qp28_bf2_bqeq) - STALE_MOV(nvenc_qp28),> 0.01,0.0,22.0,17.0,0.75,FAIL,0.0,none
+primary,"counted, fb",decision,,,,,,,leaks: nvenc_qp45,,
+tau1,"counted, fb",F1,STALE_MOV(x264_crf45) - STALE_MOV(x264_crf12),> 0.01,8.0,22.0,18.0,0.8,FAIL,0.008310344827586207,none
+tau1,"counted, fb",F2,STALE_MOV(nvenc_qp45) - STALE_MOV(nvenc_qp18),> 0.01,13.0,22.0,17.0,0.75,FAIL,0.013060016906170752,none
+tau1,"counted, fb",F3,STALE_MOV(x264_qp24_bf2_pb1) - STALE_MOV(x264_qp24),> 0.01,4.0,22.0,18.0,0.8,FAIL,0.0012690355329949238,none
+tau1,"counted, fb",F4,STALE_MOV(nvenc_qp28_bf2_bqeq) - STALE_MOV(nvenc_qp28),> 0.01,2.0,22.0,17.0,0.75,FAIL,0.0,none
+tau1,"counted, fb",decision,,,,,,,"leaks: x264_crf45, nvenc_qp45",,
+tau0.25,"counted, raft",F1,STALE_MOV(x264_crf45) - STALE_MOV(x264_crf12),> 0.01,3.0,22.0,18.0,0.8,FAIL,0.0036492407759777423,none
+tau0.25,"counted, raft",F2,STALE_MOV(nvenc_qp45) - STALE_MOV(nvenc_qp18),> 0.01,16.0,22.0,17.0,0.75,FAIL,0.017415134370579913,none
+tau0.25,"counted, raft",F3,STALE_MOV(x264_qp24_bf2_pb1) - STALE_MOV(x264_qp24),> 0.01,0.0,22.0,18.0,0.8,FAIL,0.0,none
+tau0.25,"counted, raft",F4,STALE_MOV(nvenc_qp28_bf2_bqeq) - STALE_MOV(nvenc_qp28),> 0.01,1.0,22.0,17.0,0.75,FAIL,0.0,none
+tau0.25,"counted, raft",decision,,,,,,,leaks: nvenc_qp45,,

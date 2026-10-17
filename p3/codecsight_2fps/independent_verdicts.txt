@@ -1,0 +1,28 @@
+R-chain: 1/22 (need 17) -> FAIL
+primary counted: x264_crf12 REUSE 0.14532 STALE_MOV 0.00000; x264_crf45 REUSE 0.28376 STALE_MOV 0.00560; x264_qp24 REUSE 0.14951 STALE_MOV 0.00137; x264_qp24_bf2_pb1 REUSE 0.19785 STALE_MOV 0.00274; nvenc_qp18 REUSE 0.12877 STALE_MOV 0.00000; nvenc_qp23 REUSE 0.16122 STALE_MOV 0.00000; nvenc_qp45 REUSE 0.77599 STALE_MOV 0.02266; nvenc_qp28 REUSE 0.29374 STALE_MOV 0.00160; nvenc_qp28_bf2_bqeq REUSE 0.27934 STALE_MOV 0.00345
+primary unseen: x264_crf12 REUSE 0.13937 STALE_MOV 0.00000; x264_crf45 REUSE 0.35994 STALE_MOV 0.00649; x264_qp24 REUSE 0.13835 STALE_MOV 0.00152; x264_qp24_bf2_pb1 REUSE 0.19308 STALE_MOV 0.00568; nvenc_qp18 REUSE 0.12112 STALE_MOV 0.00000; nvenc_qp23 REUSE 0.16142 STALE_MOV 0.00053; nvenc_qp45 REUSE 0.76923 STALE_MOV 0.01976; nvenc_qp28 REUSE 0.34136 STALE_MOV 0.00166; nvenc_qp28_bf2_bqeq REUSE 0.29043 STALE_MOV 0.00472
+tau1 counted: x264_crf12 REUSE 0.28564 STALE_MOV 0.00456; x264_crf45 REUSE 0.52370 STALE_MOV 0.01749; x264_qp24 REUSE 0.33789 STALE_MOV 0.00496; x264_qp24_bf2_pb1 REUSE 0.37550 STALE_MOV 0.01430; nvenc_qp18 REUSE 0.25674 STALE_MOV 0.00065; nvenc_qp23 REUSE 0.31538 STALE_MOV 0.00218; nvenc_qp45 REUSE 0.80149 STALE_MOV 0.02623; nvenc_qp28 REUSE 0.44886 STALE_MOV 0.00283; nvenc_qp28_bf2_bqeq REUSE 0.44288 STALE_MOV 0.00659
+tau1 unseen: x264_crf12 REUSE 0.24215 STALE_MOV 0.00390; x264_crf45 REUSE 0.58921 STALE_MOV 0.01782; x264_qp24 REUSE 0.34939 STALE_MOV 0.00519; x264_qp24_bf2_pb1 REUSE 0.38959 STALE_MOV 0.01549; nvenc_qp18 REUSE 0.21287 STALE_MOV 0.00056; nvenc_qp23 REUSE 0.30394 STALE_MOV 0.00214; nvenc_qp45 REUSE 0.78216 STALE_MOV 0.02354; nvenc_qp28 REUSE 0.49921 STALE_MOV 0.00423; nvenc_qp28_bf2_bqeq REUSE 0.48873 STALE_MOV 0.00711
+OK   ('primary', 'counted', 'F1'): independent 6 FAIL | analyze (6, 'FAIL')
+OK   ('primary', 'counted', 'F2'): independent 18 PASS | analyze (18, 'PASS')
+OK   ('primary', 'counted', 'F3'): independent 3 FAIL | analyze (3, 'FAIL')
+OK   ('primary', 'counted', 'F4'): independent 1 FAIL | analyze (1, 'FAIL')
+OK   ('primary', 'counted', 'KILL-A2'): independent 3 DOES NOT FIRE | analyze (3, 'DOES NOT FIRE')
+OK   ('primary', 'counted', 'decision'): independent None leaks: nvenc_qp45 | analyze (None, 'leaks: nvenc_qp45')
+OK   ('primary', 'unseen', 'F1'): independent 4 FAIL | analyze (4, 'FAIL')
+OK   ('primary', 'unseen', 'F2'): independent 8 FAIL | analyze (8, 'FAIL')
+OK   ('primary', 'unseen', 'F3'): independent 1 FAIL | analyze (1, 'FAIL')
+OK   ('primary', 'unseen', 'F4'): independent 0 FAIL | analyze (0, 'FAIL')
+OK   ('primary', 'unseen', 'decision'): independent None leaks: nvenc_qp45 | analyze (None, 'leaks: nvenc_qp45')
+OK   ('tau1', 'counted', 'F1'): independent 12 FAIL | analyze (12, 'FAIL')
+OK   ('tau1', 'counted', 'F2'): independent 20 PASS | analyze (20, 'PASS')
+OK   ('tau1', 'counted', 'F3'): independent 8 FAIL | analyze (8, 'FAIL')
+OK   ('tau1', 'counted', 'F4'): independent 1 FAIL | analyze (1, 'FAIL')
+OK   ('tau1', 'counted', 'KILL-A2'): independent 6 DOES NOT FIRE | analyze (6, 'DOES NOT FIRE')
+OK   ('tau1', 'counted', 'decision'): independent None leaks: x264_crf45, x264_qp24_bf2_pb1, nvenc_qp45 | analyze (None, 'leaks: x264_crf45, x264_qp24_bf2_pb1, nvenc_qp45')
+OK   ('tau1', 'unseen', 'F1'): independent 8 FAIL | analyze (8, 'FAIL')
+OK   ('tau1', 'unseen', 'F2'): independent 11 PASS | analyze (11, 'PASS')
+OK   ('tau1', 'unseen', 'F3'): independent 6 FAIL | analyze (6, 'FAIL')
+OK   ('tau1', 'unseen', 'F4'): independent 1 FAIL | analyze (1, 'FAIL')
+OK   ('tau1', 'unseen', 'decision'): independent None leaks: x264_crf45, x264_qp24_bf2_pb1, nvenc_qp45 | analyze (None, 'leaks: x264_crf45, x264_qp24_bf2_pb1, nvenc_qp45')
+ALL AGREE: True (22 items)

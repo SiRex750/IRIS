@@ -1,0 +1,19 @@
+diag_chain.py: post-results R-chain diagnostic (DEVIATIONS.md entry 4); changes no gate or threshold
+frame: VIRAT_S_000206_07_001501_001600 source frame 600, 1280x720; RAFT Raft_Large_Weights.C_T_SKHT_V2, 12 updates, float32
+truth: 12 px right in both tests (13 frames, 12 composed native steps; collect.py's chain uses k = 15)
+
+(a) global shift, interior pixels (margin 32 px, x >= 44)
+  pixels selected 789824, in frame 789824, |F| > 2 px (r computed) 789824
+  median D: x +11.987  y +0.006  |D| 11.987 px
+  median F: x +12.047  y +0.174  |F| 12.048 px
+  median e = |D - F| 0.215 px, median r = |D - F| / |F| 0.0178
+  pass rule |median D_x - 12| < 0.5 and |median F_x - 12| < 0.5: PASS
+
+(b) small object, 24x48 px patch from (x 80, y 416), pasted at (x 622, y 336) at t = 0, 1 px/frame right; patch pixels at t = 0
+  pixels selected 1152, in frame 1152, |F| > 2 px (r computed) 1148
+  median D: x +12.103  y -0.076  |D| 12.104 px
+  median F: x +12.217  y +0.242  |F| 12.221 px
+  median e = |D - F| 0.533 px, median r = |D - F| / |F| 0.0440
+  background (static, >= 32 px from the patch path): median |D| 0.008 px, median |F| 0.100 px
+
+(a) PASS
