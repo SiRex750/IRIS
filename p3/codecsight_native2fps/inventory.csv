@@ -1,0 +1,28 @@
+clip,scene,avg_fps,k,keyint,rule,gops,win_first,win_last,native_frames,sampled_frames,scored_sampled,native_pairs,skipped_native_frames,iframes_native,refresh_sampled,overlap_analysed,sampled_in_analysed,decode_through
+VIRAT_S_000206_07_001501_001600,VIRAT_S_000206,30,15,240,unseen,5,600,1785,1186,80,79,1185,1106,"0,240,480,720,960","0,16,32,48,64",none,0,1786
+VIRAT_S_000206_08_001618_001712,VIRAT_S_000206,30,15,240,unseen,5,600,1785,1186,80,79,1185,1106,"0,240,480,720,960","0,16,32,48,64",none,0,1786
+VIRAT_S_000207_00_000000_000045,VIRAT_S_000207,30,15,240,unseen,3,600,1305,706,48,47,705,658,"0,240,480","0,16,32",none,0,1306
+VIRAT_S_000207_01_000094_000156,VIRAT_S_000207,30,15,240,unseen,5,600,1785,1186,80,79,1185,1106,"0,240,480,720,960","0,16,32,48,64",none,0,1786
+VIRAT_S_000207_03_000556_000590,VIRAT_S_000207,30,15,240,end-aligned (overlaps analysed frames),2,554,1019,466,32,31,465,434,"0,240","0,16","confirmatory p3/virat_confirm 554-599 (46 src fr, 4 sampled)",4,1020
+VIRAT_S_000207_04_000902_000934,VIRAT_S_000207,30,15,240,end-aligned (overlaps analysed frames),2,472,937,466,32,31,465,434,"0,240","0,16","confirmatory p3/virat_confirm 472-599 (128 src fr, 9 sampled)",9,938
+VIRAT_S_000207_05_001125_001193,VIRAT_S_000207,30,15,240,unseen,5,600,1785,1186,80,79,1185,1106,"0,240,480,720,960","0,16,32,48,64",none,0,1786
+VIRAT_S_010000_00_000000_000165,VIRAT_S_010000,2397/100,12,192,unseen,5,600,1548,949,80,79,948,869,"0,192,384,576,768","0,16,32,48,64",none,0,1549
+VIRAT_S_010000_01_000184_000324,VIRAT_S_010000,2397/100,12,192,unseen,5,600,1548,949,80,79,948,869,"0,192,384,576,768","0,16,32,48,64",none,0,1549
+VIRAT_S_010000_06_000728_000762,VIRAT_S_010000,2397/100,12,192,end-aligned (overlaps analysed frames),2,393,765,373,32,31,372,341,"0,192","0,16","confirmatory p3/virat_confirm 393-599 (207 src fr, 18 sampled)",18,766
+VIRAT_S_010000_07_000827_000860,VIRAT_S_010000,2397/100,12,192,end-aligned (overlaps analysed frames),2,242,614,373,32,31,372,341,"0,192","0,16","exploratory p3/virat 242-299 (58 src fr, 5 sampled); confirmatory p3/virat_confirm 300-599 (300 src fr, 25 sampled)",30,615
+VIRAT_S_010002_02_000174_000204,VIRAT_S_010002,2397/100,12,192,end-aligned (overlaps analysed frames),2,267,639,373,32,31,372,341,"0,192","0,16","exploratory p3/virat 267-299 (33 src fr, 3 sampled); confirmatory p3/virat_confirm 300-599 (300 src fr, 25 sampled)",28,640
+VIRAT_S_010003_00_000000_000108,VIRAT_S_010003,2397/100,12,192,unseen,5,600,1548,949,80,79,948,869,"0,192,384,576,768","0,16,32,48,64",none,0,1549
+VIRAT_S_010003_01_000111_000137,VIRAT_S_010003,2397/100,12,192,end-aligned (overlaps analysed frames),2,161,533,373,32,31,372,341,"0,192","0,16","exploratory p3/virat 161-299 (139 src fr, 12 sampled); confirmatory p3/virat_confirm 300-533 (234 src fr, 20 sampled)",32,534
+VIRAT_S_010003_02_000165_000202,VIRAT_S_010003,2397/100,12,192,end-aligned (overlaps analysed frames),2,469,841,373,32,31,372,341,"0,192","0,16","confirmatory p3/virat_confirm 469-599 (131 src fr, 11 sampled)",11,842
+VIRAT_S_010003_03_000219_000259,VIRAT_S_010003,2397/100,12,192,end-aligned (overlaps analysed frames),2,586,958,373,32,31,372,341,"0,192","0,16","confirmatory p3/virat_confirm 586-599 (14 src fr, 2 sampled)",2,959
+VIRAT_S_010003_05_000499_000523,VIRAT_S_010003,2397/100,12,192,end-aligned (overlaps analysed frames),2,164,536,373,32,31,372,341,"0,192","0,16","exploratory p3/virat 164-299 (136 src fr, 12 sampled); confirmatory p3/virat_confirm 300-536 (237 src fr, 20 sampled)",32,537
+VIRAT_S_010003_06_000526_000560,VIRAT_S_010003,2397/100,12,192,end-aligned (overlaps analysed frames),2,301,673,373,32,31,372,341,"0,192","0,16","confirmatory p3/virat_confirm 301-599 (299 src fr, 25 sampled)",25,674
+VIRAT_S_010003_07_000608_000636,VIRAT_S_010003,2397/100,12,192,end-aligned (overlaps analysed frames),2,122,494,373,32,31,372,341,"0,192","0,16","exploratory p3/virat 122-299 (178 src fr, 15 sampled); confirmatory p3/virat_confirm 300-494 (195 src fr, 17 sampled)",32,495
+VIRAT_S_010003_10_000901_000934,VIRAT_S_010003,2397/100,12,192,end-aligned (overlaps analysed frames),2,265,637,373,32,31,372,341,"0,192","0,16","exploratory p3/virat 265-299 (35 src fr, 3 sampled); confirmatory p3/virat_confirm 300-599 (300 src fr, 25 sampled)",28,638
+VIRAT_S_010003_13_001066_001124,VIRAT_S_010003,2397/100,12,192,unseen,3,600,1164,565,48,47,564,517,"0,192,384","0,16,32",none,0,1165
+VIRAT_S_010004_03_000239_000277,VIRAT_S_010004,2397/100,12,192,end-aligned (overlaps analysed frames),2,517,889,373,32,31,372,341,"0,192","0,16","confirmatory p3/virat_confirm 517-599 (83 src fr, 7 sampled)",7,890
+VIRAT_S_010004_07_000729_000809,VIRAT_S_010004,2397/100,12,192,unseen,5,600,1548,949,80,79,948,869,"0,192,384,576,768","0,16,32,48,64",none,0,1549
+VIRAT_S_010004_08_000811_000920,VIRAT_S_010004,2397/100,12,192,unseen,5,600,1548,949,80,79,948,869,"0,192,384,576,768","0,16,32,48,64",none,0,1549
+VIRAT_S_010005_00_000048_000075,VIRAT_S_010005,2397/100,12,192,end-aligned (overlaps analysed frames),2,175,547,373,32,31,372,341,"0,192","0,16","exploratory p3/virat 175-299 (125 src fr, 11 sampled); confirmatory p3/virat_confirm 300-547 (248 src fr, 21 sampled)",32,548
+VIRAT_S_010005_02_000177_000203,VIRAT_S_010005,2397/100,12,192,end-aligned (overlaps analysed frames),2,243,615,373,32,31,372,341,"0,192","0,16","exploratory p3/virat 243-299 (57 src fr, 5 sampled); confirmatory p3/virat_confirm 300-599 (300 src fr, 25 sampled)",30,616
+VIRAT_S_010005_04_000299_000323,VIRAT_S_010005,2397/100,12,192,end-aligned (overlaps analysed frames),2,120,492,373,32,31,372,341,"0,192","0,16","exploratory p3/virat 120-299 (180 src fr, 15 sampled); confirmatory p3/virat_confirm 300-492 (193 src fr, 17 sampled)",32,493

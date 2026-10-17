@@ -1,0 +1,61 @@
+# Native-rate encode, 2 fps sampling (reading B): inventory and runtime (no pixel, vector or flow value read)
+Source: codecsight_2fps\inventory.csv (cc2eaf9 windows). Clips: 27.
+
+## Windows (same source-frame windows as cc2eaf9; native encode = every frame first..last)
+
+                           clip  k  keyint  gops  win_first  win_last  native_frames  sampled_frames  native_pairs    iframes_native
+VIRAT_S_000206_07_001501_001600 15     240     5        600      1785           1186              80          1185 0,240,480,720,960
+VIRAT_S_000206_08_001618_001712 15     240     5        600      1785           1186              80          1185 0,240,480,720,960
+VIRAT_S_000207_00_000000_000045 15     240     3        600      1305            706              48           705         0,240,480
+VIRAT_S_000207_01_000094_000156 15     240     5        600      1785           1186              80          1185 0,240,480,720,960
+VIRAT_S_000207_03_000556_000590 15     240     2        554      1019            466              32           465             0,240
+VIRAT_S_000207_04_000902_000934 15     240     2        472       937            466              32           465             0,240
+VIRAT_S_000207_05_001125_001193 15     240     5        600      1785           1186              80          1185 0,240,480,720,960
+VIRAT_S_010000_00_000000_000165 12     192     5        600      1548            949              80           948 0,192,384,576,768
+VIRAT_S_010000_01_000184_000324 12     192     5        600      1548            949              80           948 0,192,384,576,768
+VIRAT_S_010000_06_000728_000762 12     192     2        393       765            373              32           372             0,192
+VIRAT_S_010000_07_000827_000860 12     192     2        242       614            373              32           372             0,192
+VIRAT_S_010002_02_000174_000204 12     192     2        267       639            373              32           372             0,192
+VIRAT_S_010003_00_000000_000108 12     192     5        600      1548            949              80           948 0,192,384,576,768
+VIRAT_S_010003_01_000111_000137 12     192     2        161       533            373              32           372             0,192
+VIRAT_S_010003_02_000165_000202 12     192     2        469       841            373              32           372             0,192
+VIRAT_S_010003_03_000219_000259 12     192     2        586       958            373              32           372             0,192
+VIRAT_S_010003_05_000499_000523 12     192     2        164       536            373              32           372             0,192
+VIRAT_S_010003_06_000526_000560 12     192     2        301       673            373              32           372             0,192
+VIRAT_S_010003_07_000608_000636 12     192     2        122       494            373              32           372             0,192
+VIRAT_S_010003_10_000901_000934 12     192     2        265       637            373              32           372             0,192
+VIRAT_S_010003_13_001066_001124 12     192     3        600      1164            565              48           564         0,192,384
+VIRAT_S_010004_03_000239_000277 12     192     2        517       889            373              32           372             0,192
+VIRAT_S_010004_07_000729_000809 12     192     5        600      1548            949              80           948 0,192,384,576,768
+VIRAT_S_010004_08_000811_000920 12     192     5        600      1548            949              80           948 0,192,384,576,768
+VIRAT_S_010005_00_000048_000075 12     192     2        175       547            373              32           372             0,192
+VIRAT_S_010005_02_000177_000203 12     192     2        243       615            373              32           372             0,192
+VIRAT_S_010005_04_000299_000323 12     192     2        120       492            373              32           372             0,192
+
+## Summary
+
+- clips: 27; by k: {12: 20, 15: 7}; by GOP count: {2: 16, 3: 2, 5: 9}
+- unseen-window clips (start 600): 11; end-aligned (overlap analysed frames): 16
+- native frames per encode, total over clips: 16914; per arm x clip encoded frames: 152226
+- sampled frames (policy-scored positions): 1328, scored j=1..n-1: 1301
+- skipped native frames (not sampled): 15586
+- **native RAFT pairs (forward, every native pair of every window): 16887**
+  - of them in the 11 unseen-window clips: 10749
+  - cc2eaf9 for comparison: 1,301 pairs at 2 fps (x2 with backward) + 4,308 chain pairs
+- sampled frames in ranges analysed before (native rate, any encode): 352 / 1328
+- encodes: 27 x 9 = 243 (108 x264, 135 NVENC)
+
+## Runtime estimate
+
+| step | estimate (min) | resource |
+|---|---|---|
+| decode (CPU path + RGB for RAFT, from frame 0) | 5 | CPU |
+| x264 encodes (108) | 38 | CPU |
+| NVENC encodes (135) | 4 | GPU |
+| MV extraction (243) | 19 | CPU |
+| RAFT forward, every native pair | 172 | GPU |
+
+RAFT: 16887 pairs x 0.61 s = 10301 s = 172 min = 2.86 h on the RTX 4050.
+Encode + decode + MV overlap with RAFT only partly (as cc2eaf9, encodes ran first); analysis adds < 15 min CPU.
+Wall-clock total, serial worst case: 252 min (4.2 h); with CPU encodes overlapped: about 197-212 min.
+Peak VRAM: RAFT at 1280x720 peaked at 2.6 GB (confirmatory run). Disk: native encodes are small; the per-clip raft.npz stores float16 cell grids (flow, splat, count: about 0.5 MB per pair), so about 8.2 GB for 16887 native pairs (not committed).
