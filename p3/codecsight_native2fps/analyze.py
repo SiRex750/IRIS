@@ -137,8 +137,8 @@ def run_gates(clips, W_, workers):
     N = len(units)
     # 2. V0: texture threshold pooled over all 27 windows, pass over the counted clips
     q75 = G.tex_q75([v0[c]["tex_hist"] for c in clips])
-    gt["v0_median_err"] = [G.v0_median(v0[c]["v0_tex"], v0[c]["v0_err"], q75) for c in gt.clip]
-    gt["v0_cells_textured"] = [int((v0[c]["v0_tex"] >= q75).sum()) for c in gt.clip]
+    gt["v0_median_err"] = [G.v0_median(v0[c]["v0_tex"], v0[c]["v0_err"], q75) for c in gt["clip"]]
+    gt["v0_cells_textured"] = [int((v0[c]["v0_tex"] >= q75).sum()) for c in gt["clip"]]
     gt["v0_pass"] = gt.v0_median_err < G.V0_ERR  # NaN (no V0 cell) does not pass
     # 3. drift gate
     gt["false_move_rate"] = gt.false_move_cellframes / gt.quiet_cellframes.where(gt.quiet_cellframes > 0)
