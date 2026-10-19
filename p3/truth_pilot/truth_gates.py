@@ -122,7 +122,7 @@ def main():
     L_ += ["", "| clip | candidate | g1 quiet | g1 false | g1 rate | g1 | g2 points | g2 median px | g2 | infer s | peak VRAM GB |",
            "|---|---|---|---|---|---|---|---|---|---|---|"]
     for _, r in df.iterrows():
-        L_.append(f"| {r.clip} | {r.candidate} | {r.get('g1_quiet', '')} | {r.get('g1_false', '')} | "
+        L_.append(f"| {r['clip']} | {r['candidate']} | {r.get('g1_quiet', '')} | {r.get('g1_false', '')} | "
                   f"{r.get('g1_rate', float('nan')):.5f} | {'pass' if r.g1_pass else 'fail'} | {r.get('g2_points', '')} | "
                   f"{r.get('g2_median_px', float('nan')):.3f} | {'pass' if r.g2_pass else 'fail'} | "
                   f"{(r.infer_s or float('nan')):.0f} | {(r.peak_vram_gb or float('nan')):.2f} |")
