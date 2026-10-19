@@ -68,9 +68,17 @@ def main():
     W_ = windows()
     cells, xy = query_points()
     rows, mans = [], {}
+    src = {c: c for c in CANDS}
     for cand in CANDS:
         mp = os.path.join(OUT, f"{cand}_manifest.json")
         mans[cand] = json.load(open(mp)) if os.path.exists(mp) else None
+    # PLAN §1: if DOT at 480x856 ran out of memory on any period, DOT is evaluated at 360x640 on every clip.
+    first = mans["dot"]
+    dot_oom = bool(first) and any("OutOfMemory" in v.get("error", "") for v in first["clips"].values())
+    if dot_oom:
+        fb = os.path.join(OUT, "dot_360x640_manifest.json")
+        mans["dot"] = json.load(open(fb)) if os.path.exists(fb) else None
+        src["dot"] = "dot_360x640"
     for clip in CLIPS:
         L = W_[clip]["L"]
         T, ok, Hc, Wc = G.load_truth(clip, NATIVE)
@@ -78,8 +86,8 @@ def main():
         T, ok = T[:, cells], ok[:, cells]
         flow = np.load(os.path.join(NATIVE, "data", clip, "raft.npz"))["flow_tm1"]
         for cand in CANDS:
-            row = {"clip": clip, "candidate": cand}
-            f = os.path.join(OUT, "data", clip, f"{cand}.npz")
+            row = {"clip": clip, "candidate": src[cand]}
+            f = os.path.join(OUT, "data", clip, f"{src[cand]}.npz")
             m = (mans[cand] or {}).get("clips", {}).get(clip, {})
             row.update(status=m.get("status", "missing"), infer_s=m.get("infer_s"), peak_vram_gb=m.get("peak_vram_gb"))
             if os.path.exists(f) and m.get("status") == "ok":
@@ -102,11 +110,15 @@ def main():
           "Gate 2 (agreement): median |candidate - native RAFT chain| over spans <= 16 frames, points moving > 2 px; "
           "pass if < 1.0 px on all 3 clips. A candidate passes only if both pass.", ""]
     for cand in CANDS:
-        d = df[df.candidate == cand]
+        d = df[df.candidate == src[cand]]
         g1, g2 = d.g1_pass.all(), d.g2_pass.all()
         man = mans[cand] or {}
-        L_.append(f"- **{cand}**: gate 1 {'PASS' if g1 else 'FAIL'}, gate 2 {'PASS' if g2 else 'FAIL'} -> "
+        L_.append(f"- **{src[cand]}**: gate 1 {'PASS' if g1 else 'FAIL'}, gate 2 {'PASS' if g2 else 'FAIL'} -> "
                   f"**{'PASS' if g1 and g2 else 'FAIL'}**. Wall time {man.get('wall_s', float('nan')) / 60:.1f} min.")
+    if dot_oom:
+        L_.append("- DOT at 480x856 ran out of GPU memory (" + "; ".join(
+            f"{c}: {v.get('status')}" for c, v in first["clips"].items()) + "); per PLAN §1 DOT is evaluated at "
+            "360x640 on every clip (first attempt: `out/dot_manifest.json`).")
     L_ += ["", "| clip | candidate | g1 quiet | g1 false | g1 rate | g1 | g2 points | g2 median px | g2 | infer s | peak VRAM GB |",
            "|---|---|---|---|---|---|---|---|---|---|---|"]
     for _, r in df.iterrows():
